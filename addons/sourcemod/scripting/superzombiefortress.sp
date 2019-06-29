@@ -1918,7 +1918,7 @@ public Action event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			{
 				if (IsValidClient(i))
 				{
-					ShowHudText(i, 2, "The Tank '%N' has died\nMost damage: %N (%d)", victim, iWinner, RoundFloat(fHighest));
+					ShowHudText(i, 5, "The Tank '%N' has died\nMost damage: %N (%d)", victim, iWinner, RoundFloat(fHighest));
 				}
 			}
 		}
@@ -2821,31 +2821,31 @@ void handle_survivorAbilities()
 				if (GetEntProp(iPrimary, Prop_Send, "m_iItemDefinitionIndex") == 752)
 				{
 					float fFocus = GetEntPropFloat(i, Prop_Send, "m_flRageMeter");
-					ShowHudText(i, 1, "Focus: %d/100", RoundToZero(fFocus));
+					ShowHudText(i, 0, "Focus: %d/100", RoundToZero(fFocus));
 				}
 
 				if (isSlotClassname(i, 0, "tf_weapon_particle_cannon"))
 				{
 					float fEnergy = GetEntPropFloat(iPrimary, Prop_Send, "m_flEnergy");
-					ShowHudText(i, 1, "Mangler: %d\%", RoundFloat(fEnergy)*5);
+					ShowHudText(i, 0, "Mangler: %d\%", RoundFloat(fEnergy)*5);
 				}
 
 				if (isSlotClassname(i, 0, "tf_weapon_drg_pomson"))
 				{
 					float fEnergy = GetEntPropFloat(iPrimary, Prop_Send, "m_flEnergy");
-					ShowHudText(i, 1, "Pomson: %d\%", RoundFloat(fEnergy)*5);
+					ShowHudText(i, 0, "Pomson: %d\%", RoundFloat(fEnergy)*5);
 				}
 
 				if (isSlotClassname(i, 0, "tf_weapon_sniperrifle_decap"))
 				{
 					int iHeads = GetEntProp(i, Prop_Send, "m_iDecapitations");
-					ShowHudText(i, 1, "Heads: %d", iHeads);
+					ShowHudText(i, 0, "Heads: %d", iHeads);
 				}
 
 				if (isSlotClassname(i, 0, "tf_weapon_sentry_revenge"))
 				{
 					int iCrits = GetEntProp(i, Prop_Send, "m_iRevengeCrits");
-					ShowHudText(i, 1, "Crits: %d", iCrits);
+					ShowHudText(i, 0, "Crits: %d", iCrits);
 				}
 			}
 
@@ -2857,25 +2857,25 @@ void handle_survivorAbilities()
 				if (isSlotClassname(i, 1, "tf_weapon_raygun"))
 				{
 					float fEnergy = GetEntPropFloat(iSecondary, Prop_Send, "m_flEnergy");
-					ShowHudText(i, 2, "Bison: %d\%", RoundFloat(fEnergy)*5);
+					ShowHudText(i, 5, "Bison: %d\%", RoundFloat(fEnergy)*5);
 				}
 
 				if (isSlotClassname(i, 1, "tf_weapon_buff_item"))
 				{
 					float fRage = GetEntPropFloat(i, Prop_Send, "m_flRageMeter");
-					ShowHudText(i, 2, "Rage: %d/100", RoundToZero(fRage));
+					ShowHudText(i, 5, "Rage: %d/100", RoundToZero(fRage));
 				}
 				
 				if (isSlotClassname(i, 1, "tf_weapon_jar_gas"))
 				{
 					float flMeter = GetEntPropFloat(i, Prop_Send, "m_flItemChargeMeter", 1);
-					ShowHudText(i, 2, "Gas: %d/100", RoundToZero(flMeter));
+					ShowHudText(i, 5, "Gas: %d/100", RoundToZero(flMeter));
 				}
 
 				if (isSlotClassname(i, 1, "tf_weapon_charged_smg"))
 				{
 					float fRage = GetEntPropFloat(iSecondary, Prop_Send, "m_flMinicritCharge");
-					ShowHudText(i, 2, "Crikey: %d/100", RoundToZero(fRage));
+					ShowHudText(i, 5, "Crikey: %d/100", RoundToZero(fRage));
 				}
 			}
 
@@ -2997,7 +2997,7 @@ void handle_zombieAbilities()
 				{
 					float fTime = GetEntPropFloat(iMelee, Prop_Send, "m_flEffectBarRegenTime") - GetGameTime();
 					if (fTime > 0.0)
-						ShowHudText(i, 2, "Ball: %ds", RoundToZero(fTime));
+						ShowHudText(i, 5, "Ball: %ds", RoundToZero(fTime));
 				}
 			}
 		} //if
