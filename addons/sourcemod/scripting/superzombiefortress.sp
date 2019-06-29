@@ -565,32 +565,12 @@ public void OnConfigsExecuted()
 public void OnMapEnd()
 {
 	// Close timer handles
-	if (zf_tMain != INVALID_HANDLE)
-	{
-		CloseHandle_2(zf_tMain);
-		zf_tMain = INVALID_HANDLE;
-	}
-	if (zf_tMoraleDecay != INVALID_HANDLE)
-	{
-		CloseHandle_2(zf_tMoraleDecay);
-		zf_tMoraleDecay = INVALID_HANDLE;
-	}
-	if (zf_tMainSlow != INVALID_HANDLE)
-	{
-		CloseHandle_2(zf_tMainSlow);
-		zf_tMainSlow = INVALID_HANDLE;
-	}
-
-	if (zf_tMainFast != INVALID_HANDLE)
-	{
-		CloseHandle_2(zf_tMainFast);
-		zf_tMainFast = INVALID_HANDLE;
-	}
-	if (zf_tHoarde != INVALID_HANDLE)
-	{
-		CloseHandle_2(zf_tHoarde);
-		zf_tHoarde = INVALID_HANDLE;
-	}
+	delete zf_tMain;
+	delete zf_tMoraleDecay;
+	delete zf_tMainSlow;
+	delete zf_tMainFast;
+	delete zf_tHoarde;
+	
 	setRoundState(RoundPost);
 	g_bRoundActive = false;
 	zfDisable();
@@ -611,14 +591,6 @@ void GetMapSettings()
 		if (strcmp(name, "szf_director_notank", false) == 0) g_bNoDirectorTanks = true;
 		if (strcmp(name, "szf_director_norage", false) == 0) g_bNoDirectorRages = true;
 		if (strcmp(name, "szf_director_spawnteleport", false) == 0) g_bDirectorSpawnTeleport = true;
-	}
-}
-
-stock void CloseHandle_2(Handle hndl)
-{
-	if (hndl != null)
-	{
-		delete hndl;
 	}
 }
 
@@ -3072,7 +3044,7 @@ void handle_hoardeBonus()
 	for (int i = 0; i < playerCount; i++)
 		zf_hordeBonus[player[i]] = hoardeSize[playerHoardeId[i]] - 1;
 
-	CloseHandle_2(hStack);
+	delete hStack;
 }
 
 ////////////////////////////////////////////////////////////
@@ -3120,28 +3092,22 @@ void zfEnable()
 	tf_spy_cloak_no_attack_time.AddChangeHook(OnConvarChanged);
 	
 	// [Re]Enable periodic timers.
-	if (zf_tMain != INVALID_HANDLE)
-		CloseHandle_2(zf_tMain);
+	delete zf_tMain;
 	zf_tMain = CreateTimer(1.0, timer_main, _, TIMER_REPEAT);
 	
-	if (zf_tMoraleDecay != INVALID_HANDLE)
-		CloseHandle_2(zf_tMoraleDecay);
+	delete zf_tMoraleDecay;
 	zf_tMoraleDecay = CreateTimer(1.0, timer_moraleDecay);	//Timer inside will call itself for loops
 	
-	if (zf_tMainSlow != INVALID_HANDLE)
-		CloseHandle_2(zf_tMainSlow);
+	delete zf_tMainSlow;
 	zf_tMainSlow = CreateTimer(240.0, timer_mainSlow, _, TIMER_REPEAT);
 
-	if (zf_tMainFast != INVALID_HANDLE)
-		CloseHandle_2(zf_tMainFast);
+	delete zf_tMainFast;
 	zf_tMainFast = CreateTimer(0.5, timer_mainFast, _, TIMER_REPEAT);
 
-	if (zf_tHoarde != INVALID_HANDLE)
-		CloseHandle_2(zf_tHoarde);
+	delete zf_tHoarde;
 	zf_tHoarde = CreateTimer(5.0, timer_hoarde, _, TIMER_REPEAT);
 
-	if (zf_tDataCollect != INVALID_HANDLE)
-		CloseHandle_2(zf_tDataCollect);
+	delete zf_tDataCollect;
 	zf_tDataCollect = CreateTimer(2.0, timer_datacollect, _, TIMER_REPEAT);
 }
 
@@ -3183,32 +3149,12 @@ void zfDisable()
 	tf_spy_cloak_no_attack_time.RestoreDefault();
 	
 	// Disable periodic timers.
-	if (zf_tMain != INVALID_HANDLE)
-	{
-		CloseHandle_2(zf_tMain);
-		zf_tMain = INVALID_HANDLE;
-	}
-	if (zf_tMoraleDecay != INVALID_HANDLE)
-	{
-		CloseHandle_2(zf_tMoraleDecay);
-		zf_tMoraleDecay = INVALID_HANDLE;
-	}
-	if (zf_tMainSlow != INVALID_HANDLE)
-	{
-		CloseHandle_2(zf_tMainSlow);
-		zf_tMainSlow = INVALID_HANDLE;
-	}
-	if (zf_tHoarde != INVALID_HANDLE)
-	{
-		CloseHandle_2(zf_tHoarde);
-		zf_tHoarde = INVALID_HANDLE;
-	}
 
-	if (zf_tDataCollect != INVALID_HANDLE)
-	{
-		CloseHandle_2(zf_tDataCollect);
-		zf_tDataCollect = INVALID_HANDLE;
-	}
+	delete zf_tMain;
+	delete zf_tMoraleDecay;
+	delete zf_tMainSlow;
+	delete zf_tHoarde;
+	delete zf_tDataCollect;
 
 	// Enable resupply lockers.
 	int index = -1;
@@ -3334,7 +3280,7 @@ public void panel_PrintMain(int client)
 	panel.DrawItem(" Classes: Infected (Special)");
 	panel.DrawItem("Exit");
 	panel.Send(client, panel_HandleHelp, 30);
-	CloseHandle_2(panel);
+	delete panel;
 }
 
 public int panel_HandleHelp(Menu menu, MenuAction action, int param1, int param2)
@@ -3370,7 +3316,7 @@ public void panel_PrintOverview(int client)
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
 	panel.Send(client, panel_HandleOverview, 10);
-	CloseHandle_2(panel);
+	delete panel;
 }
 
 public int panel_HandleOverview(Menu menu, MenuAction action, int param1, int param2)
@@ -3414,7 +3360,7 @@ public void panel_PrintTeam(int client, int team)
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
 	panel.Send(client, panel_HandleTeam, 30);
-	CloseHandle_2(panel);
+	delete panel;
 }
 
 public int panel_HandleTeam(Menu menu, MenuAction action, int param1, int param2)
@@ -3445,7 +3391,7 @@ public void panel_PrintSurClass(int client)
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
 	panel.Send(client, panel_HandleSurClass, 10);
-	CloseHandle_2(panel);
+	delete panel;
 }
 
 public int panel_HandleSurClass(Menu menu, MenuAction action, int param1, int param2)
@@ -3476,7 +3422,7 @@ public void panel_PrintZomClass(int client)
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
 	panel.Send(client, panel_HandleZomClass, 10);
-	CloseHandle_2(panel);
+	delete panel;
 }
 
 public int panel_HandleZomClass(Menu menu, MenuAction action, int param1, int param2)
@@ -3587,7 +3533,7 @@ public void panel_PrintClass(int client, TFClassType class)
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
 	panel.Send(client, panel_HandleClass, 30);
-	CloseHandle_2(panel);
+	delete panel;
 }
 
 public int panel_HandleClass(Menu menu, MenuAction action, int param1, int param2)
@@ -3616,7 +3562,7 @@ public int panel_PrintZomSpecial(int client)
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
 	panel.Send(client, panel_HandleZomSpecial, 10);
-	CloseHandle_2(panel);
+	delete panel;
 }
 
 public int panel_HandleZomSpecial(Menu menu, MenuAction action, int param1, int param2)
@@ -3713,7 +3659,7 @@ public void panel_PrintSpecial(int client, int class)
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
 	panel.Send(client, panel_HandleSpecial, 30);
-	CloseHandle_2(panel);
+	delete panel;
 }
 
 public int panel_HandleSpecial(Menu menu, MenuAction action, int param1, int param2)
@@ -4213,7 +4159,7 @@ public Action StopZombieRage(Handle hTimer)
 
 void FastRespawnReset()
 {
-	if (g_hFastRespawnArray != INVALID_HANDLE) CloseHandle_2(g_hFastRespawnArray);
+	delete g_hFastRespawnArray;
 	g_hFastRespawnArray = CreateArray(3);
 }
 
@@ -4264,12 +4210,12 @@ int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true
 	{
 		int iRandom = GetRandomInt(0, GetArraySize(hTombola)-1);
 		int iResult = GetArrayCell(hTombola, iRandom);
-		CloseHandle_2(hTombola);
+		delete hTombola;
 		return iResult;
 	}
 	else
 	{
-		CloseHandle_2(hTombola);
+		delete hTombola;
 	}
 	return -1;
 }
@@ -4295,12 +4241,12 @@ bool PerformFastRespawn2(int iClient)
 
 	if (GetArraySize(hTombola) <= 0)
 	{
-		CloseHandle_2(hTombola);
+		delete hTombola;
 		return false;
 	}
 
 	int iTarget = GetArrayCell(hTombola, GetRandomInt(0, GetArraySize(hTombola)-1));
-	CloseHandle_2(hTombola);
+	delete hTombola;
 
 	int iResult = FastRespawnNearby(iTarget, 7.0);
 	if (iResult < 0) return false;
@@ -4350,7 +4296,7 @@ stock bool PointsAtTarget(float fBeginPos[3], any iTarget)
 	int iHit = -1;
 	if (TR_DidHit(hTrace)) iHit = TR_GetEntityIndex(hTrace);
 
-	CloseHandle_2(hTrace);
+	delete hTrace;
 	return (iHit == iTarget);
 }
 
@@ -4414,7 +4360,7 @@ stock bool ObstactleBetweenEntities(int iEntity1, int iEntity2)
 
 	bool bHit = TR_DidHit(hTrace);
 	int iHit = TR_GetEntityIndex(hTrace);
-	CloseHandle_2(hTrace);
+	delete hTrace;
 
 	if (!bHit) return true;
 	if (iHit != iEntity2) return true;
@@ -5101,12 +5047,12 @@ int GetMostDamageZom()
 
 	if (GetArraySize(hArray) <= 0)
 	{
-		CloseHandle_2(hArray);
+		delete hArray;
 		return 0;
 	}
 
 	int iClient = GetArrayCell(hArray, GetRandomInt(0, GetArraySize(hArray)-1));
-	CloseHandle_2(hArray);
+	delete hArray;
 	return iClient;
 }
 
