@@ -3,6 +3,7 @@
 enum struct eConfigMelee
 {
 	int iIndex;
+	int iIndexPrefab;
 	int iIndexReplace;
 	char sText[256];
 	char sAttrib[256];
@@ -52,6 +53,7 @@ public void Config_LoadTemplates()
 					eConfigMelee eMelee;
 					
 					eMelee.iIndex = iIndex;
+					eMelee.iIndexPrefab = kv.GetNum("prefab", -1);
 					eMelee.iIndexReplace = kv.GetNum("weapon", -1);
 					
 					kv.GetString("text", sBuffer, sizeof(sBuffer));

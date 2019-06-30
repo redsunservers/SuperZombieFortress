@@ -4404,6 +4404,18 @@ void HandleSurvivorLoadout(int iClient)
 			
 			if (eMelee.iIndex == iIndex)
 			{
+				//If have prefab, use said index instead
+				if (eMelee.iIndexPrefab >= 0)
+				{
+					int iPrefab = eMelee.iIndexPrefab;
+					for (int j = 0; j < g_aConfigMelee.Length; j++)
+					{
+						g_aConfigMelee.GetArray(j, eMelee, sizeof(eMelee));
+						if (eMelee.iIndex == iPrefab)
+							break;
+					}
+				}
+				
 				//See if there weapon to replace
 				if (eMelee.iIndexReplace >= 0)
 				{
