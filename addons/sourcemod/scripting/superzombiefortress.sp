@@ -4397,7 +4397,9 @@ void HandleSurvivorLoadout(int iClient)
 		
 		//Get attrib from index to apply
 		int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
-		for (int i = 0; i < g_aConfigMelee.Length; i++)
+		
+		int len = g_aConfigMelee.Length;
+		for (int i = 0; i < len; i++)
 		{
 			eConfigMelee eMelee;
 			g_aConfigMelee.GetArray(i, eMelee, sizeof(eMelee));
@@ -4408,7 +4410,7 @@ void HandleSurvivorLoadout(int iClient)
 				if (eMelee.iIndexPrefab >= 0)
 				{
 					int iPrefab = eMelee.iIndexPrefab;
-					for (int j = 0; j < g_aConfigMelee.Length; j++)
+					for (int j = 0; j < len; j++)
 					{
 						g_aConfigMelee.GetArray(j, eMelee, sizeof(eMelee));
 						if (eMelee.iIndex == iPrefab)
