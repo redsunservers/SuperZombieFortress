@@ -13,7 +13,8 @@
 #include <tf_econ_data>
 #include <dhooks>
 #include <morecolors>
-#include <superzombiefortress>
+
+#include "include/superzombiefortress.inc"
 
 #pragma newdecls required
 
@@ -213,6 +214,7 @@ char g_strSoundCritHit[][128] =
 };
 
 #include "szf/stocks.sp"
+#include "szf/config.sp"
 #include "szf/precache.sp"
 #include "szf/sound.sp"
 #include "szf/pickupweapons.sp"
@@ -362,6 +364,9 @@ public void OnPluginStart()
 	cookieForceZombieStart = RegClientCookie("szf_forcezombiestart", "is this the flowey map?", CookieAccess_Protected);
 
 	SDK_Init();
+	
+	Config_InitTemplates();
+	Config_LoadTemplates();
 	
 	Weapons_Setup();
 	
@@ -4371,9 +4376,7 @@ stock bool ObstactleBetweenEntities(int iEntity1, int iEntity2)
 void HandleSurvivorLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
-	char strChanges[128];
-	// TFClassType iClass = TF2_GetPlayerClass(iClient);
-
+	
 	// remove primary weapon
 	TF2_RemoveWeaponSlot(iClient, 0);
 
@@ -4385,99 +4388,60 @@ void HandleSurvivorLoadout(int iClient)
 	iEntity = GetPlayerWeaponSlot(iClient, TFWeaponSlot_Melee);
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
 	{
-		int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex"); // get item index
-
-		// half zatoichi: drains max health
-		if (iIndex == 357)
-		{
-			TF2Attrib_SetByName(iEntity, "mod_maxhealth_drain_rate", 10.0);
-			Format(strChanges, sizeof(strChanges), "{orange}The Half-Zatoichi {red}drains your max health while active.");
-		}
-
-		// market gardener: 20% blast damage from rocket jumps
-		if (iIndex == 416)
-		{
-			TF2Attrib_SetByName(iEntity, "rocket jump damage reduction", 0.8);
-			Format(strChanges, sizeof(strChanges), "{orange}The Market Gardener {green}makes you take 20%% less damage from Rocket Jumping.");
-
-		}
-
-		// homewrecker: no dmg penalty
-		if (iIndex == 153 || iIndex == 466)
-		{
-			TF2Attrib_SetByName(iEntity, "dmg penalty vs players", 1.0);
-			Format(strChanges, sizeof(strChanges), "{orange}The Homewrecker & reskins {green}have their damage penalty removed.");
-		}
-
-		// southern hospitality: 15% firing speed penalty
-		if (iIndex == 155)
-		{
-			TF2Attrib_SetByName(iEntity, "fire rate penalty", 1.15);
-			Format(strChanges, sizeof(strChanges), "{orange}The Southern Hospitality {red}has a 15%% firing speed penalty.");
-		}
-
-		// ubersaw: reduced uber gained on hit
-		if (iIndex == 37 || iIndex == 1003)
-		{
-			TF2Attrib_SetByName(iEntity, "add uber charge on hit", 0.1);
-			Format(strChanges, sizeof(strChanges), "{orange}The Ubersaw {red}gives 10%% uber on hit.");
-		}
-
-		// shiv: reduced damage penalty to 80%
-		if (iIndex == 171)
-		{
-			TF2Attrib_SetByName(iEntity, "damage penalty", 0.8);
-			Format(strChanges, sizeof(strChanges), "{orange}The Tribalman's Shiv {green}has its damage penalty reduced to 20%%.");
-		}
-
-		// amputator: no aoe heal, reduced health regeneration
-		if (iIndex == 304)
-		{
-			TF2Attrib_SetByName(iEntity, "enables aoe heal", view_as<float>(0));
-			TF2Attrib_SetByName(iEntity, "active health regen", view_as<float>(2));
-			Format(strChanges, sizeof(strChanges), "{orange}The Amputator {red}does not heal in an area when taunting.");
-		}
-
-		// pain train: 10% damage taken.
-		if (iIndex == 154)
-		{
-			TF2Attrib_SetByName(iEntity, "dmg taken increased", 1.1);
-			Format(strChanges, sizeof(strChanges), "{orange}The Pain Train {red}makes you take 10%% additional damage.");
-		}
-
-		// eureka
-		if (iIndex == 589)
-		{
-			TF2_CreateAndEquipWeapon(iClient, 7);
-			Format(strChanges, sizeof(strChanges), "{orange}The Eureka Effect {red}is disabled.");
-		}
+		//Get default attrib from config to apply all melee weapons
+		char atts[32][32];
+		int iCount = ExplodeString(g_eConfigMeleeDefault.sAttrib, " ; ", atts, 32, 32);
+		if (iCount > 1)
+			for (int i = 0; i < iCount; i+= 2)
+				TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[i]), StringToFloat(atts[i+1]));
 		
-		// back scratcher: 90% health from healers penalty
-		if (iIndex == 326)
+		//Get attrib from index to apply
+		int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
+		for (int i = 0; i < g_aConfigMelee.Length; i++)
 		{
-			TF2Attrib_SetByName(iEntity, "health from healers reduced", 0.1);
-			Format(strChanges, sizeof(strChanges), "{orange}The Back Scratcher {red}has a 90% health from healers penalty.");
+			eConfigMelee eMelee;
+			g_aConfigMelee.GetArray(i, eMelee, sizeof(eMelee));
+			
+			if (eMelee.iIndex == iIndex)
+			{
+				//See if there weapon to replace
+				if (eMelee.iIndexReplace >= 0)
+				{
+					iIndex = eMelee.iIndexReplace;
+					TF2_RemoveWeaponSlot(iClient, TFWeaponSlot_Melee);
+					iEntity = TF2_CreateAndEquipWeapon(iClient, iIndex);
+					
+					//Re-apply global attrib
+					for (int j = 0; j < iCount; j+= 2)
+						TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[j]), StringToFloat(atts[j+1]));
+				}
+				
+				//Print text with cooldown to prevent spam
+				if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(eMelee.sText, ""))
+				{
+					CPrintToChat(iClient, eMelee.sText);
+					g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
+				}
+				
+				//Apply attribute
+				iCount = ExplodeString(eMelee.sAttrib, " ; ", atts, 32, 32);
+				if (iCount > 1)
+					for (int j = 0; j < iCount; j+= 2)
+						TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[j]), StringToFloat(atts[j+1]));
+				
+				break;
+			}
 		}
-		else
-		{
-			// add penalty from medic healing
-			TF2Attrib_SetByName(iEntity, "health from healers reduced", 0.40);
-		}
-		
-		TF2Attrib_ClearCache(iEntity); // This will refresh health max calculation and other attributes
+
+		// This will refresh health max calculation and other attributes
+		TF2Attrib_ClearCache(iEntity);
 	}
 	else
 	{
 		// no melee, okay.. weird
 		TF2_RespawnPlayer(iClient);
 	}
-	// Prevent chat spam
-	if (g_flStopChatSpam[iClient] < GetGameTime() && strlen(strChanges) > 8)
-	{
-		CPrintToChat(iClient, strChanges);
-		g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
-	}
-
+	
 	// reset custom models
 	SetVariantString("");
 	AcceptEntityInput(iClient, "SetCustomModel");
