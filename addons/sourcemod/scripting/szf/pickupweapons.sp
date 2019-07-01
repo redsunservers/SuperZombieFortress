@@ -56,101 +56,100 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 	{
 		eWeaponsType type = GetWeaponType(iEntity);
 		
-		// if weapon
-		if (type != eWeaponsType_Invalid)
+		switch (type)
 		{
-			switch (type)
+			case eWeaponsType_Spawn:
 			{
-				case eWeaponsType_Spawn:
+				if (aWeaponsCommon.Length > 0)
 				{
-					if (aWeaponsCommon.Length > 0)
-					{
-						//Make sure every spawn weapons is different
-						int iRandom = GetRandomInt(0, aWeaponsCommon.Length - 1);
-						
-						eWeapon wep;
-						aWeaponsCommon.GetArray(iRandom, wep);
-						
-						SetWeaponModel(iEntity, wep.sModel);
-						aWeaponsCommon.Erase(iRandom);
-					}
-					else
-					{
-						//If we already went through every spawn weapons, no point having rest of it
-						AcceptEntityInput(iEntity, "Kill");
-						continue;
-					}
-				}
-				
-				case eWeaponsType_Rare:
-				{
-					// if rare weapon cap is unreached, make it a "rare" weapon
-					if (iRare < MAX_RARE)
-					{
-						SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
-						iRare++;
-					}
-	
-					// else make it a uncommon weapon
-					else
-					{
-						SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
-					}
-				}
-				
-				case eWeaponsType_RareSpawn:
-				{
-					SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
-				}
-				
-				case eWeaponsType_Default, eWeaponsType_DefaultNoPickup:
-				{
-					// if rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
-					if (iRare < MAX_RARE && !GetRandomInt(0, 5))
-					{
-						SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
-						iRare++;
-					}
-	
-					// pick-ups
-					else if (!GetRandomInt(0, 9) && type != eWeaponsType_DefaultNoPickup)
-					{
-						SetRandomPickup(iEntity);
-					}
-	
-					// else make it either common or uncommon weapon
-					else
-					{
-						if (GetRandomInt(0, GetRarityWeaponCount(eWeaponsRarity_Common)+GetRarityWeaponCount(eWeaponsRarity_Uncommon)) < GetRarityWeaponCount(eWeaponsRarity_Common))
-							SetRandomWeapon(iEntity, eWeaponsRarity_Common);
-						else
-							SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
-					}
-				}
-				
-				case eWeaponsType_Static, eWeaponsType_StaticSpawn:
-				{
-					// check if there reskin weapons to replace
-					char sModel[256];
-					GetEntPropString(iEntity, Prop_Data, "m_ModelName", sModel, sizeof(sModel));
-					int iIndex = GetReskinIndex(sModel);
+					//Make sure every spawn weapons is different
+					int iRandom = GetRandomInt(0, aWeaponsCommon.Length - 1);
 					
-					if (iIndex >= 0)
-						Weapons_ReplaceEntityModel(iEntity, iIndex);
+					eWeapon wep;
+					aWeaponsCommon.GetArray(iRandom, wep);
+					
+					SetWeaponModel(iEntity, wep.sModel);
+					aWeaponsCommon.Erase(iRandom);
+				}
+				else
+				{
+					//If we already went through every spawn weapons, no point having rest of it
+					AcceptEntityInput(iEntity, "Kill");
+					continue;
 				}
 			}
 			
-			AcceptEntityInput(iEntity, "DisableShadow");
-			AcceptEntityInput(iEntity, "EnableCollision");
+			case eWeaponsType_Rare:
+			{
+				// if rare weapon cap is unreached, make it a "rare" weapon
+				if (iRare < MAX_RARE)
+				{
+					SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
+					iRare++;
+				}
 
-			// relocate weapon to higher height, looks much better
-			float flPosition[3];
-			GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", flPosition);
-			flPosition[2] += 0.8;
-			TeleportEntity(iEntity, flPosition, NULL_VECTOR, NULL_VECTOR);
+				// else make it a uncommon weapon
+				else
+				{
+					SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
+				}
+			}
+			
+			case eWeaponsType_RareSpawn:
+			{
+				SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
+			}
+			
+			case eWeaponsType_Default, eWeaponsType_DefaultNoPickup:
+			{
+				// if rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
+				if (iRare < MAX_RARE && !GetRandomInt(0, 5))
+				{
+					SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
+					iRare++;
+				}
 
-			g_bTriggerEntity[iEntity] = true; // indicate reset of the OnUser triggers
+				// pick-ups
+				else if (!GetRandomInt(0, 9) && type != eWeaponsType_DefaultNoPickup)
+				{
+					SetRandomPickup(iEntity);
+				}
+
+				// else make it either common or uncommon weapon
+				else
+				{
+					if (GetRandomInt(0, GetRarityWeaponCount(eWeaponsRarity_Common)+GetRarityWeaponCount(eWeaponsRarity_Uncommon)) < GetRarityWeaponCount(eWeaponsRarity_Common))
+						SetRandomWeapon(iEntity, eWeaponsRarity_Common);
+					else
+						SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
+				}
+			}
+			
+			case eWeaponsType_Static, eWeaponsType_StaticSpawn:
+			{
+				// check if there reskin weapons to replace
+				char sModel[256];
+				GetEntPropString(iEntity, Prop_Data, "m_ModelName", sModel, sizeof(sModel));
+				int iIndex = GetReskinIndex(sModel);
+				
+				if (iIndex >= 0)
+					Weapons_ReplaceEntityModel(iEntity, iIndex);
+			}
+			
+			default:
+				continue;
 		}
+		
+		AcceptEntityInput(iEntity, "DisableShadow");
+		AcceptEntityInput(iEntity, "EnableCollision");
+
+		// relocate weapon to higher height, looks much better
+		float flPosition[3];
+		GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", flPosition);
+		flPosition[2] += 0.8;
+		TeleportEntity(iEntity, flPosition, NULL_VECTOR, NULL_VECTOR);
+
+		g_bTriggerEntity[iEntity] = true; // indicate reset of the OnUser triggers
 	}
 	
 	delete aWeaponsCommon;
