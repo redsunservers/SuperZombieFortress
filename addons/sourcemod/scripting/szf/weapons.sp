@@ -34,12 +34,12 @@ void Weapons_Init()
 {
 	g_Weapons = Config_LoadWeaponData();
 	
-	int len = g_Weapons.Length;
+	int iLength = g_Weapons.Length;
 	for (int i = 0; i < INT(eWeaponsRarity); i++)
 	{
 		g_WepIndexesByRarity[i] = new ArrayList();
 		
-		for (int j = 0; j < len; j++)
+		for (int j = 0; j < iLength; j++)
 		{
 			eWeapon wep;
 			g_Weapons.GetArray(j, wep);
@@ -56,8 +56,8 @@ void Weapons_Precache()
 {
 	SoundPrecache();
 	
-	int len = g_Weapons.Length;
-	for (int i = 0; i < len; i++)
+	int iLength = g_Weapons.Length;
+	for (int i = 0; i < iLength; i++)
 	{
 		eWeapon wep;
 		g_Weapons.GetArray(i, wep);
@@ -71,8 +71,8 @@ void Weapons_Precache()
 
 void GetWeaponFromModel(eWeapon buffer, char[] model)
 {
-	int len = g_Weapons.Length;
-	for (int i = 0; i < len; i++) 
+	int iLength = g_Weapons.Length;
+	for (int i = 0; i < iLength; i++) 
 	{
 		eWeapon wep;
 		g_Weapons.GetArray(i, wep);
@@ -87,8 +87,8 @@ void GetWeaponFromModel(eWeapon buffer, char[] model)
 
 void GetWeaponFromIndex(eWeapon buffer, int index)
 {
-	int len = g_Weapons.Length;
-	for (int i = 0; i < len; i++) 
+	int iLength = g_Weapons.Length;
+	for (int i = 0; i < iLength; i++) 
 	{
 		eWeapon wep;
 		g_Weapons.GetArray(i, wep);
@@ -123,8 +123,8 @@ int GetRarityWeaponCount(eWeaponsRarity rarity)
 
 void Weapons_ReplaceEntityModel(int ent, int index)
 {
-	int len = g_Weapons.Length;
-	for (int i = 0; i < len; i++) 
+	int iLength = g_Weapons.Length;
+	for (int i = 0; i < iLength; i++) 
 	{
 		eWeapon wep;
 		g_Weapons.GetArray(i, wep);
