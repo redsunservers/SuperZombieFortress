@@ -809,12 +809,12 @@ stock int TF2_CreateAndEquipWeapon_eWeapon(int iClient, eWeapon wep)
 			if (iCount > 1)
 				for (int i = 0; i < iCount; i+= 2)
 					TF2Attrib_SetByDefIndex(iWeapon, StringToInt(atts[i]), StringToFloat(atts[i+1]));
-			
-			if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(wep.sText, ""))
-			{
-				CPrintToChat(iClient, wep.sText);
-				g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
-			}
+		}
+		
+		if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(wep.sText, ""))
+		{
+			CPrintToChat(iClient, wep.sText);
+			g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
 		}
 		
 		DispatchSpawn(iWeapon);
