@@ -54,11 +54,11 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 	
 	while ((iEntity = FindEntityByClassname2(iEntity, "prop_dynamic")) != -1)
 	{
-		// if weapon
-		if (GetWeaponType(iEntity) != eWeaponsType_Invalid)
+		eWeaponsType type = GetWeaponType(iEntity);
+		
+		switch (type)
 		{
-			// spawn weapon
-			if (GetWeaponType(iEntity) == eWeaponsType_Spawn)
+			case eWeaponsType_Spawn:
 			{
 				if (aWeaponsCommon.Length > 0)
 				{
@@ -79,8 +79,7 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 				}
 			}
 			
-			// rare weapon
-			else if (GetWeaponType(iEntity) == eWeaponsType_Rare)
+			case eWeaponsType_Rare:
 			{
 				// if rare weapon cap is unreached, make it a "rare" weapon
 				if (iRare < MAX_RARE)
@@ -95,16 +94,13 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 					SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
 				}
 			}
-
-			// rare weapon that doesnt dissapear and is not affected by max rare cap
-			else if (GetWeaponType(iEntity) == eWeaponsType_RareSpawn)
+			
+			case eWeaponsType_RareSpawn:
 			{
 				SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
 			}
-
-			// else if not a spawn weapon
-			else if (GetWeaponType(iEntity) == eWeaponsType_Default
-			|| GetWeaponType(iEntity) == eWeaponsType_DefaultNoPickup)
+			
+			case eWeaponsType_Default, eWeaponsType_DefaultNoPickup:
 			{
 				// if rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
 				if (iRare < MAX_RARE && !GetRandomInt(0, 5))
@@ -114,7 +110,7 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 				}
 
 				// pick-ups
-				else if (!GetRandomInt(0, 9) && GetWeaponType(iEntity) != eWeaponsType_DefaultNoPickup)
+				else if (!GetRandomInt(0, 9) && type != eWeaponsType_DefaultNoPickup)
 				{
 					SetRandomPickup(iEntity);
 				}
@@ -129,9 +125,7 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 				}
 			}
 			
-			// static weapon
-			else if (GetWeaponType(iEntity) == eWeaponsType_Static
-			|| GetWeaponType(iEntity) == eWeaponsType_StaticSpawn)
+			case eWeaponsType_Static, eWeaponsType_StaticSpawn:
 			{
 				// check if there reskin weapons to replace
 				char sModel[256];
@@ -142,17 +136,20 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 					Weapons_ReplaceEntityModel(iEntity, iIndex);
 			}
 			
-			AcceptEntityInput(iEntity, "DisableShadow");
-			AcceptEntityInput(iEntity, "EnableCollision");
-
-			// relocate weapon to higher height, looks much better
-			float flPosition[3];
-			GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", flPosition);
-			flPosition[2] += 0.8;
-			TeleportEntity(iEntity, flPosition, NULL_VECTOR, NULL_VECTOR);
-
-			g_bTriggerEntity[iEntity] = true; // indicate reset of the OnUser triggers
+			default:
+				continue;
 		}
+		
+		AcceptEntityInput(iEntity, "DisableShadow");
+		AcceptEntityInput(iEntity, "EnableCollision");
+
+		// relocate weapon to higher height, looks much better
+		float flPosition[3];
+		GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", flPosition);
+		flPosition[2] += 0.8;
+		TeleportEntity(iEntity, flPosition, NULL_VECTOR, NULL_VECTOR);
+
+		g_bTriggerEntity[iEntity] = true; // indicate reset of the OnUser triggers
 	}
 	
 	delete aWeaponsCommon;
@@ -315,41 +312,44 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 
 	g_bCanPickup[iClient] = false;
 	CreateTimer(PICKUP_COOLDOWN, ResetPickup, iClient);
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_Soldier)
+	
+	switch (TF2_GetPlayerClass(iClient))
 	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Soldier)-1);
-		EmitSoundToAll(g_strWeaponVO_Soldier[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-	}
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_Pyro)
-	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Pyro)-1);
-		EmitSoundToAll(g_strWeaponVO_Pyro[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-	}
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_DemoMan)
-	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_DemoMan)-1);
-		EmitSoundToAll(g_strWeaponVO_DemoMan[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-	}
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_Engineer)
-	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Engineer)-1);
-		EmitSoundToAll(g_strWeaponVO_Engineer[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-	}
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_Medic)
-	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Medic)-1);
-		EmitSoundToAll(g_strWeaponVO_Medic[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-	}
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_Sniper)
-	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Sniper)-1);
-		EmitSoundToAll(g_strWeaponVO_Sniper[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		case TFClass_Soldier:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Soldier)-1);
+			EmitSoundToAll(g_strWeaponVO_Soldier[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
+		
+		case TFClass_Pyro:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Pyro)-1);
+			EmitSoundToAll(g_strWeaponVO_Pyro[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
+		
+		case TFClass_DemoMan:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_DemoMan)-1);
+			EmitSoundToAll(g_strWeaponVO_DemoMan[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
+		
+		case TFClass_Engineer:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Engineer)-1);
+			EmitSoundToAll(g_strWeaponVO_Engineer[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
+		
+		case TFClass_Medic:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Medic)-1);
+			EmitSoundToAll(g_strWeaponVO_Medic[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
+		
+		case TFClass_Sniper:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Sniper)-1);
+			EmitSoundToAll(g_strWeaponVO_Sniper[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
 	}
 
 	int iSlot = TF2Econ_GetItemSlot(wep.iIndex, TF2_GetPlayerClass(iClient));
