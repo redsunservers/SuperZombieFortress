@@ -1,23 +1,8 @@
-enum eWeaponsReskin
-{
-	iWeaponsReskinIndex,
-	String:sWeaponsReskinModel[256],
-}
-
-//Static weapon models in map to replace what we actually wanted
-int g_nWeaponsReskin[][eWeaponsReskin] =
-{
-	{18, "models/weapons/w_models/w_rocketlauncher.mdl"},
-	{18, "models/weapons/c_models/c_bet_rocketlauncher/c_bet_rocketlauncher.mdl"},
-	{29, "models/weapons/w_models/w_medigun.mdl"},
-	{14, "models/weapons/w_models/w_sniperrifle.mdl"},
-};
-
-// -----------------------------------------------------------
 typedef eWeapon_OnPickup = function bool (int client); // Return true if the pickup should be destroyed
 
 static ArrayList g_Weapons;
 static ArrayList g_WepIndexesByRarity[eWeaponsRarity]; // Array indexes of g_Weapons array
+static StringMap g_WeaponsReskin;
 
 enum struct eWeapon
 {
@@ -33,6 +18,7 @@ enum struct eWeapon
 void Weapons_Init()
 {
 	g_Weapons = Config_LoadWeaponData();
+	g_WeaponsReskin = Config_LoadWeaponReskinData();
 	
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < INT(eWeaponsRarity); i++)
@@ -119,6 +105,15 @@ ArrayList GetAllWeaponsWithRarity(eWeaponsRarity rarity)
 int GetRarityWeaponCount(eWeaponsRarity rarity)
 {
 	return g_WepIndexesByRarity[rarity].Length;
+}
+
+int GetReskinIndex(char[] sModel)
+{
+	int iIndex = -1;
+	if (g_WeaponsReskin.GetValue(sModel, iIndex))
+		return iIndex;
+	
+	return -1;
 }
 
 void Weapons_ReplaceEntityModel(int ent, int index)

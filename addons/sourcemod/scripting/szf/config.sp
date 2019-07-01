@@ -75,7 +75,7 @@ public void Config_LoadTemplates()
 	delete kv;
 }
 
-ArrayList Config_LoadWeaponData()
+public ArrayList Config_LoadWeaponData()
 {
 	StringMap rarity_map = new StringMap();
 	rarity_map.SetValue("common", eWeaponsRarity_Common);
@@ -85,7 +85,7 @@ ArrayList Config_LoadWeaponData()
 	
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
 	ArrayList array = new ArrayList(sizeof(eWeapon));
-	int len;
+	int iLength;
 	
 	if (kv != null)
 	{
@@ -97,17 +97,17 @@ ArrayList Config_LoadWeaponData()
 				{
 					eWeapon wep;
 					
-					char buffer[256];
-					kv.GetSectionName(buffer, sizeof(buffer));
+					char sBuffer[256];
+					kv.GetSectionName(sBuffer, sizeof(sBuffer));
 					
-					int index = StringToInt(buffer);
+					int index = StringToInt(sBuffer);
 					
 					wep.iIndex = index;
 					
-					kv.GetString("rarity", buffer, sizeof(buffer), "common");
-					CStrToLower(buffer);
+					kv.GetString("rarity", sBuffer, sizeof(sBuffer), "common");
+					CStrToLower(sBuffer);
 					
-					rarity_map.GetValue(buffer, wep.Rarity);
+					rarity_map.GetValue(sBuffer, wep.Rarity);
 					
 					kv.GetString("model", wep.sModel, sizeof(wep.sModel));
 					if (wep.sModel[0] == '\0') 
@@ -118,7 +118,7 @@ ArrayList Config_LoadWeaponData()
 					
 					// Check if the model is already taken by another weapon
 					eWeapon duplicate;
-					for (int i = 0; i < len; i++) 
+					for (int i = 0; i < iLength; i++) 
 					{
 						array.GetArray(i, duplicate);
 						
@@ -132,8 +132,8 @@ ArrayList Config_LoadWeaponData()
 					kv.GetString("text", wep.sText, sizeof(wep.sText));
 					kv.GetString("attrib", wep.sAttribs, sizeof(wep.sAttribs));
 					
-					kv.GetString("callback", buffer, sizeof(buffer));
-					wep.on_pickup = view_as<eWeapon_OnPickup>(GetFunctionByName(null, buffer));
+					kv.GetString("callback", sBuffer, sizeof(sBuffer));
+					wep.on_pickup = view_as<eWeapon_OnPickup>(GetFunctionByName(null, sBuffer));
 					
 					int color[4];
 					kv.GetColor4("color", color);
@@ -143,7 +143,7 @@ ArrayList Config_LoadWeaponData()
 					wep.color[2] = color[2];
 					
 					array.PushArray(wep);
-					++len;
+					++iLength;
 				} 
 				while (kv.GotoNextKey(false));
 			}
@@ -154,6 +154,35 @@ ArrayList Config_LoadWeaponData()
 	delete rarity_map;
 	
 	return array;
+}
+
+public StringMap Config_LoadWeaponReskinData()
+{
+	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
+	StringMap stringmap = new StringMap();
+	
+	if (kv != null)
+	{
+		if (kv.JumpToKey("reskin", false))
+		{
+			if (kv.GotoFirstSubKey(false))
+			{
+				do
+				{
+					char sBuffer[256];
+					kv.GetSectionName(sBuffer, sizeof(sBuffer));
+					int iIndex = StringToInt(sBuffer);
+					kv.GetString(NULL_STRING, sBuffer, sizeof(sBuffer), "");
+					
+					stringmap.SetValue(sBuffer, iIndex);
+				}
+				while (kv.GotoNextKey(false));
+			}
+		}
+	}
+	
+	delete kv;
+	return stringmap;
 }
 
 public KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)

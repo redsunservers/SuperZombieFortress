@@ -57,6 +57,8 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 		// if weapon
 		if (GetWeaponType(iEntity) != eWeaponsType_Invalid)
 		{
+			PrintToChatAll("found weapon entity %d type %d", iEntity, GetWeaponType(iEntity));
+			
 			// spawn weapon
 			if (GetWeaponType(iEntity) == eWeaponsType_Spawn)
 			{
@@ -133,20 +135,17 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 			else if (GetWeaponType(iEntity) == eWeaponsType_Static
 			|| GetWeaponType(iEntity) == eWeaponsType_StaticSpawn)
 			{
-				for (int i = 0; i < sizeof(g_nWeaponsReskin); i++)
-				{
-					char strModel[256];
-					GetEntityModel(iEntity, strModel, sizeof(strModel));
-					
-					// check if there reskin weapons to replace
-					if (StrEqual(g_nWeaponsReskin[i][sWeaponsReskinModel], strModel))
-					{
-						//Find same index to replace
-						Weapons_ReplaceEntityModel(iEntity, g_nWeaponsReskin[i][iWeaponsReskinIndex]);
-					}
-				}
+				// check if there reskin weapons to replace
+				char sModel[256];
+				GetEntPropString(iEntity, Prop_Data, "m_ModelName", sModel, sizeof(sModel));
+				int iIndex = GetReskinIndex(sModel);
+				
+				if (iIndex >= 0)
+					Weapons_ReplaceEntityModel(iEntity, iIndex);
+				
+				PrintToChatAll("static weapon entity %d index %d model %s", iEntity, iIndex, sModel);
 			}
-
+			
 			AcceptEntityInput(iEntity, "DisableShadow");
 			AcceptEntityInput(iEntity, "EnableCollision");
 
