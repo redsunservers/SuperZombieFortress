@@ -4549,9 +4549,9 @@ void HandleSurvivorLoadout(int iClient)
 		g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
 	}
 
-	// reset custom models
-	SetVariantString("");
-	AcceptEntityInput(iClient, "SetCustomModel");
+	// Prevent Survivors with voodoo-cursed souls
+	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
+	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
 
 	SetValidSlot(iClient);
 }
@@ -4573,8 +4573,6 @@ void HandleZombieLoadout(int iClient)
 		}
 
 		TF2_CreateAndEquipWeapon(iClient, (g_iSpecialInfected[iClient] == INFECTED_NONE) ? 44 : 0);
-
-		SetVariantString("models/redsun/left4fortress/scout/scout_zombie_v2.mdl");
 	}
 
 	if (TF2_GetPlayerClass(iClient) == TFClass_Heavy)
@@ -4589,8 +4587,6 @@ void HandleZombieLoadout(int iClient)
 		if (g_iSpecialInfected[iClient] == INFECTED_CHARGER) 	iItem = 587; // Apoco-Fists
 
 		TF2_CreateAndEquipWeapon(iClient, iItem);
-
-		SetVariantString("models/redsun/left4fortress/heavy/heavy_zombie_v2.mdl");
 	}
 
 
@@ -4610,15 +4606,7 @@ void HandleZombieLoadout(int iClient)
 			if (iWeapon > MaxClients && IsValidEdict(iWeapon))
 				TF2Attrib_SetByName(iWeapon, "disguise on backstab", 0.0);
 		}
-		
-		SetVariantString("models/redsun/left4fortress/spy/spy_zombie_v2.mdl");
 	}
-
-	// Set model based on SetVariantString in the IF statements
-	AcceptEntityInput(iClient, "SetCustomModel");
-	SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", 1);
-	SetVariantBool(true);
-	AcceptEntityInput(iClient, "SetCustomModelVisibletoSelf");
 
 	// Set slot to melee
 	int iEntity = GetPlayerWeaponSlot(iClient, TFWeaponSlot_Melee);
@@ -4638,10 +4626,12 @@ void HandleZombieLoadout(int iClient)
 	//Set health back to what it should be after modifying weapons
 	SetEntityHealth(iClient, SDK_GetMaxHealth(iClient));
 
-	// Prevents voodoo-cursed souls from applying RED skin to zombies on use.
+	// Prevents voodoo-cursed souls from applying RED skin to zombies on use
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
-	SetEntProp(iClient, Prop_Send, "m_iPlayerSkinOverride", 0);
+
+	// Set zombie model / soul wearable
+	ApplyVoodooCursedSoul(iClient);
 
 	//SetValidSlot(iClient);
 }
