@@ -85,6 +85,7 @@ ArrayList Config_LoadWeaponData()
 	
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
 	ArrayList array = new ArrayList(sizeof(eWeapon));
+	int len;
 	
 	if (kv != null)
 	{
@@ -109,9 +110,23 @@ ArrayList Config_LoadWeaponData()
 					rarity_map.GetValue(buffer, wep.Rarity);
 					
 					kv.GetString("model", wep.sModel, sizeof(wep.sModel));
-					if (wep.sModel[0] == '\0') {
+					if (wep.sModel[0] == '\0') 
+					{
 						LogError("Weapon must have a model.");
 						continue;
+					}
+					
+					// Check if the model is already taken by another weapon
+					eWeapon duplicate;
+					for (int i = 0; i < len; i++) 
+					{
+						array.GetArray(i, duplicate);
+						
+						if (StrEqual(wep.sModel, duplicate.sModel))
+						{
+							LogError("%i: Model \"%s\" is already taken by weapon %i.", wep.iIndex, wep.sModel, duplicate.iIndex);
+							continue;
+						}
 					}
 					
 					kv.GetString("name", wep.sName, sizeof(wep.sName));
@@ -129,6 +144,7 @@ ArrayList Config_LoadWeaponData()
 					wep.color[2] = color[2];
 					
 					array.PushArray(wep);
+					++len;
 				} 
 				while (kv.GotoNextKey(false));
 			}
