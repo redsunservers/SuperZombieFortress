@@ -27,7 +27,7 @@
 
 #define GOO_INCREASE_RATE		3
 
-bool bTF2Items = false;
+bool bTF2Items = true;
 
 Handle cookieFirstTimeSurvivor;
 Handle cookieFirstTimeZombie;
@@ -4082,6 +4082,7 @@ public void OnMapStart()
 	DetermineControlPoints();
 	ModelPrecache();
 	Weapons_Precache();
+	PrecacheZombieSouls();
 
 	PrecacheParticle("spell_cast_wheel_blue");
 

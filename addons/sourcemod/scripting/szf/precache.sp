@@ -159,3 +159,14 @@ stock int PrepareModel(const char[] szModelPath, bool bMdlOnly = false)
 
 	return PrecacheModel(szModelPath, true);
 }
+
+stock int PrecacheZombieSouls()
+{
+	char cPath[64];
+	// loops through all class types available
+	for (int i = 1; i <= view_as<int>(TFClassType); i++)
+	{
+		Format(cPath, sizeof(cPath), "models/player/items/%s/%s_zombie.mdl", cClassNames[i], cClassNames[i]);
+		iZombieSoulIndex[i] = PrecacheModel(cPath);
+	}
+}
