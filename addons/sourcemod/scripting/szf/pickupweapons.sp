@@ -243,11 +243,11 @@ bool AttemptGrabItem(int iClient)
 		GetClientName2(iClient, strPlayer, sizeof(strPlayer));
 
 		if (StrEqual(wep.sName, ""))
-			TF2Econ_GetItemName(iIndex, wep.sName, sizeof(wep.sName));
+			TF2Econ_GetLocalizedItemName(iIndex, wep.sName, sizeof(wep.sName));
 		ReplaceString(wep.sName, sizeof(wep.sName), "The", "", true);
 		TrimString(wep.sName);
 		
-		if (iIndex == 9)	//Shotgun
+		if (iIndex == 9 || iIndex == 10 || iIndex == 12)	//Shotgun
 		{
 			switch (TF2_GetPlayerClass(iClient))
 			{
@@ -265,7 +265,7 @@ bool AttemptGrabItem(int iClient)
 			if (nRarity == eWeaponsRarity_Rare)
 			{
 				char strResult[255];
-				Format(strResult, sizeof(strResult), "(TEAM) %s\x01 : I have picked up a {limegreen}%s\x01!", strPlayer, wep.sName);
+				SZF_CPrintToChatAll(iClient, "I have picked up a {limegreen}{param3}\x01!", true, .param3 = wep.sName);
 				for (int i = 1; i <= MaxClients; i++)
 				{
 					if (IsValidSurvivor(i))
@@ -300,7 +300,7 @@ bool AttemptGrabItem(int iClient)
 		else if (nRarity == eWeaponsRarity_Rare && g_fLastCallout[iClient] + 5.0 < GetGameTime())
 		{
 			char strResult[255];
-			Format(strResult, sizeof(strResult), "(TEAM) %s\x01 : {limegreen}%s \x01here!", strPlayer, wep.sName);
+			SZF_CPrintToChatAll(iClient, "{limegreen}{param3} \x01here!", true, .param3 = wep.sName);
 			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidSurvivor(i))
@@ -444,7 +444,7 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 	}
 	
 	// generate and equip weapon
-	int iWeapon = TF2_CreateAndEquipWeapon_eWeapon(iClient, wep);
+	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, wep.sAttribs, wep.sText);
 	
 	char sClassname[256];
 	TF2Econ_GetItemClassName(wep.iIndex, sClassname, sizeof(sClassname));

@@ -748,7 +748,7 @@ stock void DealDamage(int iVictim, int iDamage, int iAttacker = 0, int iDmgType 
 //
 ////////////////////////////////////////////////////////////
 
-stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex)
+stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, char[] sAttribs = "", char[] sText = "")
 {
 	char sClassname[256];
 	TF2Econ_GetItemClassName(iIndex, sClassname, sizeof(sClassname));
@@ -769,51 +769,19 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex)
 		SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 6);
 		SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
 		
-		DispatchSpawn(iWeapon);
-		
-		if (StrContains(sClassname, "tf_wearable") == 0)
-			SDK_EquipWearable(iClient, iWeapon);
-		else
-			EquipPlayerWeapon(iClient, iWeapon);
-	}
-	
-	return iWeapon;
-}
-
-stock int TF2_CreateAndEquipWeapon_eWeapon(int iClient, eWeapon wep)
-{
-	char sClassname[256];
-	TF2Econ_GetItemClassName(wep.iIndex, sClassname, sizeof(sClassname));
-	TF2Econ_TranslateWeaponEntForClass(sClassname, sizeof(sClassname), TF2_GetPlayerClass(iClient));
-	
-	int iWeapon = CreateEntityByName(sClassname);
-	if (IsValidEntity(iWeapon))
-	{
-		SetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex", wep.iIndex);
-		SetEntProp(iWeapon, Prop_Send, "m_bInitialized", 1);
-		
-		// Allow quality / level override by updating through the offset.
-		char netClass[64];
-		GetEntityNetClass(iWeapon, netClass, sizeof(netClass));
-		SetEntData(iWeapon, FindSendPropInfo(netClass, "m_iEntityQuality"), 6);
-		SetEntData(iWeapon, FindSendPropInfo(netClass, "m_iEntityLevel"), 1);
-		
-		SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 6);
-		SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
-		
 		// Attribute shittery inbound
-		if (!StrEqual(wep.sAttribs, ""))
+		if (!StrEqual(sAttribs, ""))
 		{
 			char atts[32][32];
-			int iCount = ExplodeString(wep.sAttribs, " ; ", atts, 32, 32);
+			int iCount = ExplodeString(sAttribs, " ; ", atts, 32, 32);
 			if (iCount > 1)
 				for (int i = 0; i < iCount; i+= 2)
 					TF2Attrib_SetByDefIndex(iWeapon, StringToInt(atts[i]), StringToFloat(atts[i+1]));
 		}
 		
-		if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(wep.sText, ""))
+		if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(sText, ""))
 		{
-			CPrintToChat(iClient, wep.sText);
+			CPrintToChat(iClient, sText);
 			g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
 		}
 		
@@ -963,4 +931,51 @@ public Action TimerKillEntity(Handle hTimer, int iEntity)
 	{
 		AcceptEntityInput(iEntity, "Kill");
 	}
+}
+
+// Yoinked from https://github.com/DFS-Servers/Super-Zombie-Fortress/blob/master/addons/sourcemod/scripting/include/szf_util_base.inc
+stock void SZF_CPrintToChatAll(int iClient, char[] strText, bool bTeam = false, const char[] param1="", const char[] param2="", const char[] param3="", const char[] param4="")
+{
+	if (bTeam && !IsValidClient(iClient)) return;
+
+	char strPlayerName[80], strMessage[255];
+	if (0 < iClient <= MaxClients)
+	{
+		GetClientName(iClient, strPlayerName, sizeof(strPlayerName));
+		if (bTeam)
+			Format(strMessage, sizeof(strMessage), "\x01(TEAM) {teamcolor}%s\x01 : %s", strPlayerName, strText);
+		else
+			Format(strMessage, sizeof(strMessage), "\x01%s\x01 : {teamcolor}%s\x01", strPlayerName, strText);
+	}
+	
+	ReplaceString(strMessage, sizeof(strMessage), "{param1}", "%s1");
+	ReplaceString(strMessage, sizeof(strMessage), "{param2}", "%s2");
+	ReplaceString(strMessage, sizeof(strMessage), "{param3}", "%s3");
+	ReplaceString(strMessage, sizeof(strMessage), "{param4}", "%s4");
+	CReplaceColorCodes(strMessage, iClient, _, sizeof(strMessage));
+	
+	int players[MAXPLAYERS+1], playersNum;
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (!IsValidClient(i) || (bTeam &&  GetClientTeam(i) != GetClientTeam(iClient))) continue;
+		players[playersNum++] = i;
+	}
+	UTIL_SayText2(players, playersNum, iClient, true, strMessage, param1, param2, param3, param4);
+}
+
+stock void UTIL_SayText2(int[] players, int playersNum, int iEntity, bool bChat, const char[] msg_name, const char[] param1="", const char[] param2="", const char[] param3="", const char[] param4="")
+{
+	BfWrite message = UserMessageToBfWrite(StartMessage("SayText2", players, playersNum, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS)); 
+	
+	message.WriteByte(iEntity);
+	message.WriteByte(true);
+
+	message.WriteString(msg_name); 
+	
+	message.WriteString(param1); 
+	message.WriteString(param2); 
+	message.WriteString(param3);
+	message.WriteString(param4);
+	
+	EndMessage();
 }

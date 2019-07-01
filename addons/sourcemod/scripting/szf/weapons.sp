@@ -10,13 +10,14 @@ int g_nWeaponsReskin[][eWeaponsReskin] =
 	{18, "models/weapons/w_models/w_rocketlauncher.mdl"},
 	{18, "models/weapons/c_models/c_bet_rocketlauncher/c_bet_rocketlauncher.mdl"},
 	{29, "models/weapons/w_models/w_medigun.mdl"},
+	{14, "models/weapons/w_models/w_sniperrifle.mdl"},
 };
 
 // -----------------------------------------------------------
 typedef eWeapon_OnPickup = function bool (int client); // Return true if the pickup should be destroyed
 
-static ArrayList Weapons;
-static ArrayList WepIndexesByRarity[eWeaponsRarity]; // Array indexes of Weapons array
+static ArrayList g_Weapons;
+static ArrayList g_WepIndexesByRarity[eWeaponsRarity]; // Array indexes of g_Weapons array
 
 enum struct eWeapon
 {
@@ -32,21 +33,21 @@ enum struct eWeapon
 
 void Weapons_Init()
 {
-	Weapons = Config_LoadWeaponData();
+	g_Weapons = Config_LoadWeaponData();
 	
-	int len = Weapons.Length;
+	int len = g_Weapons.Length;
 	for (int i = 0; i < INT(eWeaponsRarity); i++)
 	{
-		WepIndexesByRarity[i] = new ArrayList();
+		g_WepIndexesByRarity[i] = new ArrayList();
 		
 		for (int j = 0; j < len; j++)
 		{
 			eWeapon wep;
-			Weapons.GetArray(j, wep);
+			g_Weapons.GetArray(j, wep);
 			
 			if (wep.Rarity == view_as<eWeaponsRarity>(i))
 			{
-				WepIndexesByRarity[i].Push(j);
+				g_WepIndexesByRarity[i].Push(j);
 			}
 		}
 	}
@@ -56,11 +57,11 @@ void Weapons_Precache()
 {
 	SoundPrecache();
 	
-	int len = Weapons.Length;
+	int len = g_Weapons.Length;
 	for (int i = 0; i < len; i++)
 	{
 		eWeapon wep;
-		Weapons.GetArray(i, wep);
+		g_Weapons.GetArray(i, wep);
 		
 		PrecacheModel(wep.sModel);
 	}
@@ -71,11 +72,11 @@ void Weapons_Precache()
 
 void GetWeaponFromModel(eWeapon buffer, char[] model)
 {
-	int len = Weapons.Length;
+	int len = g_Weapons.Length;
 	for (int i = 0; i < len; i++) 
 	{
 		eWeapon wep;
-		Weapons.GetArray(i, wep);
+		g_Weapons.GetArray(i, wep);
 		
 		if (StrEqual(model, wep.sModel))
 		{
@@ -87,11 +88,11 @@ void GetWeaponFromModel(eWeapon buffer, char[] model)
 
 void GetWeaponFromIndex(eWeapon buffer, int index)
 {
-	int len = Weapons.Length;
+	int len = g_Weapons.Length;
 	for (int i = 0; i < len; i++) 
 	{
 		eWeapon wep;
-		Weapons.GetArray(i, wep);
+		g_Weapons.GetArray(i, wep);
 		
 		if (index == wep.iIndex)
 		{
@@ -108,7 +109,7 @@ ArrayList GetAllWeaponsWithRarity(eWeaponsRarity rarity)
 	for (int i = 0; i < GetRarityWeaponCount(rarity); i++)
 	{
 		eWeapon wep;
-		Weapons.GetArray(WepIndexesByRarity[rarity].Get(i), wep);
+		g_Weapons.GetArray(g_WepIndexesByRarity[rarity].Get(i), wep);
 		
 		array.PushArray(wep);
 	}
@@ -118,16 +119,16 @@ ArrayList GetAllWeaponsWithRarity(eWeaponsRarity rarity)
 
 int GetRarityWeaponCount(eWeaponsRarity rarity)
 {
-	return WepIndexesByRarity[rarity].Length;
+	return g_WepIndexesByRarity[rarity].Length;
 }
 
 void Weapons_ReplaceEntityModel(int ent, int index)
 {
-	int len = Weapons.Length;
+	int len = g_Weapons.Length;
 	for (int i = 0; i < len; i++) 
 	{
 		eWeapon wep;
-		Weapons.GetArray(i, wep);
+		g_Weapons.GetArray(i, wep);
 		
 		if (index == wep.iIndex)
 		{
