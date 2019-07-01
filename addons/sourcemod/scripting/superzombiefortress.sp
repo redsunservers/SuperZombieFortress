@@ -2691,75 +2691,11 @@ void handle_winCondition()
 
 void handle_survivorAbilities()
 {
-	int clipAmmo;
-	int resAmmo;
-	int ammoAdj;
-
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidLivingSurvivor(i))
 		{
-			// 1. Handle survivor weapon rules.
-			//        SMG doesn't have to reload.
-			//        Syringe gun / blutsauger don't have to reload.
-			//        Flamethrower / backburner ammo limited to 125.
-			switch(TF2_GetPlayerClass(i))
-			{
-				case TFClass_Sniper:
-				{
-					if (isSlotClassname(i, 1, "tf_weapon_smg"))
-					{
-						clipAmmo = getClipAmmo(i, 1);
-						resAmmo = getResAmmo(i, 1);
-						ammoAdj = min((25 - clipAmmo), resAmmo);
-						if (ammoAdj > 0)
-						{
-							setClipAmmo(i, 1, (clipAmmo + ammoAdj));
-							setResAmmo(i, 1, (resAmmo - ammoAdj));
-						}
-					}
-				}
-
-				case TFClass_Medic:
-				{
-					if (isSlotClassname(i, 0, "tf_weapon_syringegun_medic"))
-					{
-						clipAmmo = getClipAmmo(i, 0);
-						resAmmo = getResAmmo(i, 0);
-						ammoAdj = min((40 - clipAmmo), resAmmo);
-						if (ammoAdj > 0)
-						{
-							setClipAmmo(i, 0, (clipAmmo + ammoAdj));
-							setResAmmo(i, 0, (resAmmo - ammoAdj));
-						}
-					}
-				}
-
-				case TFClass_Pyro:
-				{
-					resAmmo = getResAmmo(i, 0);
-					if (resAmmo > 100)
-					{
-						ammoAdj = max((resAmmo - 10), 100);
-						setResAmmo(i, 0, ammoAdj);
-					}
-				}
-
-				case TFClass_Engineer:
-				{
-					if (isSlotClassname(i, 1, "tf_weapon_pistol"))
-					{
-						resAmmo = getResAmmo(i, 1);
-						if (resAmmo > 60)
-						{
-							ammoAdj = 60;
-							setResAmmo(i, 1, ammoAdj);
-						}
-					}
-				}
-			} //switch
-
-			// 2. Survivor health regeneration.
+			// 1. Survivor health regeneration.
 			int curH = GetClientHealth(i);
 			int maxH = SDK_GetMaxHealth(i);
 			if (curH < maxH)
@@ -2777,21 +2713,21 @@ void handle_survivorAbilities()
 				SetEntityHealth(i, curH);
 			}
 
-			// 3. Handle survivor morale.
+			// 2. Handle survivor morale.
 			if (zf_survivorMorale[i] > 100) SetMorale(i, 100);
 			//zf_survivorMorale[i] = max(0, zf_survivorMorale[i] - 1);
 			int iMorale = GetMorale(i);
 			// decrement morale bonus over time
 
-			// 3.1. Show morale on HUD
+			// 2.1. Show morale on HUD
 			SetHudTextParams(0.18, 0.71, 1.0, 200 - (iMorale * 2), 255, 200 - (iMorale * 2), 255);
 			ShowHudText(i, 3, "Morale: %d/100", iMorale);
 
-			// 3.2. Award buffs if high morale is detected
+			// 2.2. Award buffs if high morale is detected
 			if (iMorale > 50) TF2_AddCondition(i, TFCond_DefenseBuffed, 1.1); // 50: defense buff
 
-			// 4. HUD stuff
-			// 4.1. Primary weapons
+			// 3. HUD stuff
+			// 3.1. Primary weapons
 			SetHudTextParams(0.18, 0.84, 1.0, 200, 255, 200, 255);
 			int iPrimary = GetPlayerWeaponSlot(i, 0);
 			if (iPrimary > MaxClients && IsValidEdict(iPrimary))
@@ -2827,7 +2763,7 @@ void handle_survivorAbilities()
 				}
 			}
 
-			// 4.2. Secondary weapons
+			// 3.2. Secondary weapons
 			SetHudTextParams(0.18, 0.9, 1.0, 200, 255, 200, 255);
 			int iSecondary = GetPlayerWeaponSlot(i, 1);
 			if (iSecondary > MaxClients && IsValidEdict(iSecondary))
@@ -2857,8 +2793,8 @@ void handle_survivorAbilities()
 				}
 			}
 
-		} //if
-	} //for
+		}
+	}
 
 	// 3. Handle sentry rules.
 	//        + Mini and Norm sentry starts with 40 ammo and decays to 0, then self destructs.
