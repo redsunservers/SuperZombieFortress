@@ -57,8 +57,6 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 		// if weapon
 		if (GetWeaponType(iEntity) != eWeaponsType_Invalid)
 		{
-			PrintToChatAll("found weapon entity %d type %d", iEntity, GetWeaponType(iEntity));
-			
 			// spawn weapon
 			if (GetWeaponType(iEntity) == eWeaponsType_Spawn)
 			{
@@ -142,8 +140,6 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 				
 				if (iIndex >= 0)
 					Weapons_ReplaceEntityModel(iEntity, iIndex);
-				
-				PrintToChatAll("static weapon entity %d index %d model %s", iEntity, iIndex, sModel);
 			}
 			
 			AcceptEntityInput(iEntity, "DisableShadow");
