@@ -16,7 +16,7 @@ int g_nWeaponsReskin[][eWeaponsReskin] =
 typedef eWeapon_OnPickup = function bool (int client); // Return true if the pickup should be destroyed
 
 static ArrayList Weapons;
-static ArrayList WepIndexesByRarity[eWeaponsRarity];
+static ArrayList WepIndexesByRarity[eWeaponsRarity]; // Array indexes of Weapons array
 
 enum struct eWeapon
 {

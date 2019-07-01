@@ -255,6 +255,8 @@ bool AttemptGrabItem(int iClient)
 				case TFClass_Pyro: iIndex = 12;
 				case TFClass_Engineer: iIndex = 9;
 			}
+			
+			wep.iIndex = iIndex;
 		}
 		
 		int iSlot = TF2Econ_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
@@ -432,7 +434,7 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
 		TF2_RemoveWeaponSlot(iClient, iSlot);
-		
+	
 	//Remove wearable if have one
 	int iWearable = SDK_GetEquippedWearable(iClient, iSlot);
 	if (iWearable > MaxClients)
@@ -442,7 +444,7 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 	}
 	
 	// generate and equip weapon
-	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex);
+	int iWeapon = TF2_CreateAndEquipWeapon_eWeapon(iClient, wep);
 	
 	char sClassname[256];
 	TF2Econ_GetItemClassName(wep.iIndex, sClassname, sizeof(sClassname));

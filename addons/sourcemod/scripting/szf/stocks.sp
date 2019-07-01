@@ -769,8 +769,38 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex)
 		SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 6);
 		SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
 		
-		eWeapon wep;
-		GetWeaponFromIndex(wep, iIndex);
+		DispatchSpawn(iWeapon);
+		
+		if (StrContains(sClassname, "tf_wearable") == 0)
+			SDK_EquipWearable(iClient, iWeapon);
+		else
+			EquipPlayerWeapon(iClient, iWeapon);
+	}
+	
+	return iWeapon;
+}
+
+stock int TF2_CreateAndEquipWeapon_eWeapon(int iClient, eWeapon wep)
+{
+	char sClassname[256];
+	TF2Econ_GetItemClassName(wep.iIndex, sClassname, sizeof(sClassname));
+	TF2Econ_TranslateWeaponEntForClass(sClassname, sizeof(sClassname), TF2_GetPlayerClass(iClient));
+	
+	int iWeapon = CreateEntityByName(sClassname);
+	if (IsValidEntity(iWeapon))
+	{
+		SetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex", wep.iIndex);
+		SetEntProp(iWeapon, Prop_Send, "m_bInitialized", 1);
+		
+		// Allow quality / level override by updating through the offset.
+		char netClass[64];
+		GetEntityNetClass(iWeapon, netClass, sizeof(netClass));
+		SetEntData(iWeapon, FindSendPropInfo(netClass, "m_iEntityQuality"), 6);
+		SetEntData(iWeapon, FindSendPropInfo(netClass, "m_iEntityLevel"), 1);
+		
+		SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 6);
+		SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
+		
 		// Attribute shittery inbound
 		if (!StrEqual(wep.sAttribs, ""))
 		{
