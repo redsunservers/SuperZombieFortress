@@ -65,6 +65,7 @@ int g_nWeapons[][eWeapons] =
 	
 	{-1, eWeaponsRarity_Pickup, "models/items/ammopack_large.mdl"},
 	{-1, eWeaponsRarity_Pickup, "models/items/medkit_large.mdl"},
+	{-1, eWeaponsRarity_Pickup, "models/weapons/c_models/c_energy_drink/c_energy_drink.mdl"},
 };
 
 //Static weapon models in map to replace what we actually wanted

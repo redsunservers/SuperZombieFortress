@@ -274,6 +274,16 @@ bool AttemptGrabItem(int iClient)
 		AcceptEntityInput(iTarget, "Kill");
 		return true;
 	}
+	//Temporary Powerups
+	if (StrEqual(strModel, "models/weapons/c_models/c_energy_drink/c_energy_drink.mdl"))
+	{
+		TF2_AddCondition(iClient,TFCond.TFCOND_DefenseBuffed,30.0);
+		TF2_AddCondition(iClient,TFCond.TFCOND_DefenseBuffNoCritBlock,30.0);
+		EmitSoundToClient(iClient, "ui/item_heavy_gun_pickup.wav"); // TODO: CHANGE SOUND
+		AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
+		AcceptEntityInput(iTarget, "Kill");
+		return true;
+	}
 	
 	//Find index from model
 	int iIndex = -1;
@@ -623,14 +633,23 @@ stock void SetRandomPickup(int iEntity)
 	flAngles[0] = 0.0;
 	flAngles[1] = 0.0;
 	flAngles[2] = 0.0;
-
 	// set model
 	SetRandomWeapon(iEntity, eWeaponsRarity_Pickup);
 	TeleportEntity(iEntity, NULL_VECTOR, flAngles, NULL_VECTOR);
-
-	// set color
-	SetEntityRenderMode(iEntity, RENDER_TRANSCOLOR);
-	SetEntityRenderColor(iEntity, 150, 255, 150, 255);
+	GetEntityModel(iTarget, strModel, sizeof(strModel));
+	// Ammo/Health Pick-ups
+	if (StrEqual(strModel, "models/items/ammopack_large.mdl") || StrEqual(strModel, "models/items/medkit_large.mdl"))
+	{
+		// set color
+		SetEntityRenderMode(iEntity, RENDER_TRANSCOLOR);
+		SetEntityRenderColor(iEntity, 150, 255, 150, 255);
+	}
+	// energy-drink Pick-ups
+	if (StrEqual(strModel, "models/weapons/c_models/c_energy_drink/c_energy_drink.mdl"))
+	{
+		// set size
+		SetEntPropFloat(iEntity,Prop_Data,"m_flModelScale", 1.5);
+	}
 }
 
 stock void SetRandomWeapon(int iEntity, eWeaponsRarity nRarity)
