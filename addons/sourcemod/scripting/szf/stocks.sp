@@ -62,9 +62,11 @@ int zf_surTeam = INT(TFTeam_Red);
 //
 // Zombie Soul related indexes
 //
-int iZombieSoulIndex[TFClassType];
+int iZombieSoulIndex[10];
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
+
+char cClassNames[10][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
 
 ////////////////////////////////////////////////////////////
 //
