@@ -941,11 +941,11 @@ stock void SZF_CPrintToChatAll(int iClient, char[] strText, bool bTeam = false, 
 	char strPlayerName[80], strMessage[255];
 	if (0 < iClient <= MaxClients)
 	{
-		GetClientName(iClient, strPlayerName, sizeof(strPlayerName));
+		GetClientName2(iClient, strPlayerName, sizeof(strPlayerName));
 		if (bTeam)
-			Format(strMessage, sizeof(strMessage), "\x01(TEAM) {teamcolor}%s\x01 : %s", strPlayerName, strText);
+			Format(strMessage, sizeof(strMessage), "\x01(TEAM) %s\x01 : %s", strPlayerName, strText);
 		else
-			Format(strMessage, sizeof(strMessage), "\x01%s\x01 : {teamcolor}%s\x01", strPlayerName, strText);
+			Format(strMessage, sizeof(strMessage), "\x01%s\x01 : %s\x01", strPlayerName, strText);
 	}
 	
 	ReplaceString(strMessage, sizeof(strMessage), "{param1}", "%s1");
