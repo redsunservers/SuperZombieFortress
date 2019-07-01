@@ -111,6 +111,7 @@ ArrayList Config_LoadWeaponData()
 					kv.GetString("model", wep.sModel, sizeof(wep.sModel));
 					if (wep.sModel[0] == '\0') {
 						LogError("Weapon must have a model.");
+						continue;
 					}
 					
 					kv.GetString("name", wep.sName, sizeof(wep.sName));
