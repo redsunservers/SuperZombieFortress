@@ -242,11 +242,6 @@ bool AttemptGrabItem(int iClient)
 		char strPlayer[128];
 		GetClientName2(iClient, strPlayer, sizeof(strPlayer));
 
-		if (StrEqual(wep.sName, ""))
-			TF2Econ_GetLocalizedItemName(iIndex, wep.sName, sizeof(wep.sName));
-		ReplaceString(wep.sName, sizeof(wep.sName), "The", "", true);
-		TrimString(wep.sName);
-		
 		if (iIndex == 9 || iIndex == 10 || iIndex == 12)	//Shotgun
 		{
 			switch (TF2_GetPlayerClass(iClient))
@@ -264,16 +259,10 @@ bool AttemptGrabItem(int iClient)
 		{
 			if (nRarity == eWeaponsRarity_Rare)
 			{
-				char strResult[255];
-				SZF_CPrintToChatAll(iClient, "I have picked up a {limegreen}{param3}\x01!", true, .param3 = wep.sName);
-				for (int i = 1; i <= MaxClients; i++)
-				{
-					if (IsValidSurvivor(i))
-					{
-						CPrintToChatEx(i, iClient, strResult);
-					}
-				}
-
+				char sName[255];
+				TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
+				SZF_CPrintToChatAll(iClient, "I have picked up a {limegreen}{param3}\x01!", true, .param3 = sName);
+				
 				AddToCookie(iClient, 1, weaponsRarePicked);
 				int RareWeaponsPicked = GetCookie(iClient, weaponsRarePicked);
 
@@ -299,16 +288,10 @@ bool AttemptGrabItem(int iClient)
 		}
 		else if (nRarity == eWeaponsRarity_Rare && g_fLastCallout[iClient] + 5.0 < GetGameTime())
 		{
-			char strResult[255];
-			SZF_CPrintToChatAll(iClient, "{limegreen}{param3} \x01here!", true, .param3 = wep.sName);
-			for (int i = 1; i <= MaxClients; i++)
-			{
-				if (IsValidSurvivor(i))
-				{
-					CPrintToChatEx(i, iClient, strResult);
-				}
-			}
-
+			char sName[255];
+			TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
+			SZF_CPrintToChatAll(iClient, "{limegreen}{param3} \x01here!", true, .param3 = sName);
+			
 			AddToCookie(iClient, 1, weaponsCalled);
 			int WeaponsCalled = GetCookie(iClient, weaponsCalled);
 			if (WeaponsCalled <= 1)

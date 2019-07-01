@@ -24,7 +24,6 @@ enum struct eWeapon
 	int iIndex;
 	eWeaponsRarity Rarity;
 	char sModel[PLATFORM_MAX_PATH];
-	char sName[128];
 	char sText[256];
 	char sAttribs[256];
 	int color[3];

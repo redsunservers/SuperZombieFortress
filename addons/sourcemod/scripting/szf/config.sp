@@ -129,7 +129,6 @@ ArrayList Config_LoadWeaponData()
 						}
 					}
 					
-					kv.GetString("name", wep.sName, sizeof(wep.sName));
 					kv.GetString("text", wep.sText, sizeof(wep.sText));
 					kv.GetString("attrib", wep.sAttribs, sizeof(wep.sAttribs));
 					
