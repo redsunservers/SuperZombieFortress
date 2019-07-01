@@ -313,41 +313,44 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 
 	g_bCanPickup[iClient] = false;
 	CreateTimer(PICKUP_COOLDOWN, ResetPickup, iClient);
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_Soldier)
+	
+	switch (TF2_GetPlayerClass(iClient))
 	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Soldier)-1);
-		EmitSoundToAll(g_strWeaponVO_Soldier[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-	}
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_Pyro)
-	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Pyro)-1);
-		EmitSoundToAll(g_strWeaponVO_Pyro[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-	}
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_DemoMan)
-	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_DemoMan)-1);
-		EmitSoundToAll(g_strWeaponVO_DemoMan[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-	}
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_Engineer)
-	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Engineer)-1);
-		EmitSoundToAll(g_strWeaponVO_Engineer[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-	}
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_Medic)
-	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Medic)-1);
-		EmitSoundToAll(g_strWeaponVO_Medic[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-	}
-
-	if (TF2_GetPlayerClass(iClient) == TFClass_Sniper)
-	{
-		int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Sniper)-1);
-		EmitSoundToAll(g_strWeaponVO_Sniper[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		case TFClass_Soldier:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Soldier)-1);
+			EmitSoundToAll(g_strWeaponVO_Soldier[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
+		
+		case TFClass_Pyro:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Pyro)-1);
+			EmitSoundToAll(g_strWeaponVO_Pyro[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
+		
+		case TFClass_DemoMan:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_DemoMan)-1);
+			EmitSoundToAll(g_strWeaponVO_DemoMan[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
+		
+		case TFClass_Engineer:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Engineer)-1);
+			EmitSoundToAll(g_strWeaponVO_Engineer[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
+		
+		case TFClass_Medic:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Medic)-1);
+			EmitSoundToAll(g_strWeaponVO_Medic[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
+		
+		case TFClass_Sniper:
+		{
+			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Sniper)-1);
+			EmitSoundToAll(g_strWeaponVO_Sniper[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		}
 	}
 
 	int iSlot = TF2Econ_GetItemSlot(wep.iIndex, TF2_GetPlayerClass(iClient));
