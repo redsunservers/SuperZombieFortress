@@ -16,25 +16,6 @@ enum eWeaponsType
 	eWeaponsType_DefaultNoPickup,
 };
 
-//TODO convert this to enum struct once server use 1.10
-enum eWeapons
-{
-	iWeaponsIndex,
-	eWeaponsRarity:nWeaponsRarity,
-	String:sWeaponsModel[256],
-	String:sWeaponsName[256],
-}
-
-enum eWeaponsReskin
-{
-	iWeaponsReskinIndex,
-	String:sWeaponsReskinModel[256],
-}
-
-#include "szf/weapons.sp"
-
-ArrayList g_aWeaponsRarity[eWeaponsRarity];
-
 bool g_bCanPickup[MAXPLAYERS+1] = false;
 bool g_bTriggerEntity[2048] = true;
 float g_fLastCallout[MAXPLAYERS+1] = 0.0;
@@ -55,16 +36,7 @@ public void Weapons_Setup()
 	weaponsRarePicked = RegClientCookie("weaponsrarepicked", "is this the flowey map?", CookieAccess_Protected);
 	weaponsCalled = RegClientCookie("weaponscalled", "is this the flowey map?", CookieAccess_Protected);
 	
-	//Create lists to seperate between rarity
-	for (int i = 0; i < INT(eWeaponsRarity); i++)
-		g_aWeaponsRarity[i] = new ArrayList();
-	
-	for (int i = 0; i < sizeof(g_nWeapons); i++)
-	{
-		eWeaponsRarity nRarity = g_nWeapons[i][nWeaponsRarity];
-		int iIndex = g_nWeapons[i][iWeaponsIndex];
-		g_aWeaponsRarity[nRarity].Push(iIndex);
-	}
+	Weapons_Init();
 }
 
 public void Weapons_ClientDisconnect(int iClient)
@@ -73,25 +45,12 @@ public void Weapons_ClientDisconnect(int iClient)
 	g_fLastCallout[iClient] = 0.0;
 }
 
-public void Weapons_Precache()
-{
-	SoundPrecache();
-	
-	for (int i = 0; i < sizeof(g_nWeapons); i++)
-		PrecacheModel(g_nWeapons[i][sWeaponsModel]);
-	
-	PrecacheSound("ui/item_heavy_gun_pickup.wav");
-	PrecacheSound("ui/item_heavy_gun_drop.wav");
-}
-
 public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 {
 	int iEntity = -1;
-	int iRare = 0;
+	int iRare;
 	
-	int iCommon = INT(eWeaponsRarity_Common);
-	int iUncommon = INT(eWeaponsRarity_Uncommon);
-	ArrayList aWeaponsCommon = g_aWeaponsRarity[iCommon].Clone();
+	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(eWeaponsRarity_Common);
 	
 	while ((iEntity = FindEntityByClassname2(iEntity, "prop_dynamic")) != -1)
 	{
@@ -105,17 +64,12 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 				{
 					//Make sure every spawn weapons is different
 					int iRandom = GetRandomInt(0, aWeaponsCommon.Length - 1);
-					int iIndex = aWeaponsCommon.Get(iRandom);
 					
-					for (int i = 0; i < sizeof(g_nWeapons); i++)
-					{
-						if (g_nWeapons[i][iWeaponsIndex] == iIndex)
-						{
-							SetWeaponModel(iEntity, g_nWeapons[i][sWeaponsModel]);
-							aWeaponsCommon.Erase(iRandom);
-							break;
-						}
-					}
+					eWeapon wep;
+					aWeaponsCommon.GetArray(iRandom, wep);
+					
+					SetWeaponModel(iEntity, wep.sModel);
+					aWeaponsCommon.Erase(iRandom);
 				}
 				else
 				{
@@ -168,7 +122,7 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 				// else make it either common or uncommon weapon
 				else
 				{
-					if (GetRandomInt(0, g_aWeaponsRarity[iCommon].Length+g_aWeaponsRarity[iUncommon].Length) < g_aWeaponsRarity[iCommon].Length)
+					if (GetRandomInt(0, GetRarityWeaponCount(eWeaponsRarity_Common)+GetRarityWeaponCount(eWeaponsRarity_Uncommon)) < GetRarityWeaponCount(eWeaponsRarity_Common))
 						SetRandomWeapon(iEntity, eWeaponsRarity_Common);
 					else
 						SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
@@ -188,14 +142,7 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 					if (StrEqual(g_nWeaponsReskin[i][sWeaponsReskinModel], strModel))
 					{
 						//Find same index to replace
-						for (int j = 0; j < sizeof(g_nWeapons); j++)
-						{
-							if (g_nWeapons[j][iWeaponsIndex] == g_nWeaponsReskin[i][iWeaponsReskinIndex])
-							{
-								SetWeaponModel(iEntity, g_nWeapons[j][sWeaponsModel]);
-								break;
-							}
-						}
+						Weapons_ReplaceEntityModel(iEntity, g_nWeaponsReskin[i][iWeaponsReskinIndex]);
 					}
 				}
 			}
@@ -264,41 +211,41 @@ bool AttemptGrabItem(int iClient)
 	
 	char strModel[256];
 	GetEntityModel(iTarget, strModel, sizeof(strModel));
-
-	// Pick-ups
-	if (StrEqual(strModel, "models/items/ammopack_large.mdl") || StrEqual(strModel, "models/items/medkit_large.mdl"))
+	
+	eWeapon wep;
+	GetWeaponFromModel(wep, strModel);
+	
+	bool destroy_pickup;
+	if (wep.on_pickup != INVALID_FUNCTION)
 	{
-		SpawnPickup(iClient, StrEqual(strModel, "models/items/ammopack_large.mdl") ? "item_ammopack_full" : "item_healthkit_full");
-		EmitSoundToClient(iClient, "ui/item_heavy_gun_pickup.wav"); // TODO: CHANGE SOUND
-		AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
-		AcceptEntityInput(iTarget, "Kill");
+		Call_StartFunction(null, wep.on_pickup);
+		Call_PushCell(iClient);
+		Call_Finish(destroy_pickup);
+	}
+	
+	if (wep.Rarity == eWeaponsRarity_Pickup)
+	{
+		if (destroy_pickup)
+		{
+			AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
+			AcceptEntityInput(iTarget, "Kill");
+		}
+		
 		return true;
 	}
 	
-	//Find index from model
-	int iIndex = -1;
-	eWeaponsRarity nRarity;
-	char sName[256];
-	for (int i = 0; i < sizeof(g_nWeapons); i++)
-	{
-		if (StrEqual(g_nWeapons[i][sWeaponsModel], strModel))
-		{
-			iIndex = g_nWeapons[i][iWeaponsIndex];
-			nRarity = g_nWeapons[i][nWeaponsRarity];
-			Format(sName, sizeof(sName), g_nWeapons[i][sWeaponsName]);
-			break;
-		}
-	}
+	int iIndex = wep.iIndex;
+	eWeaponsRarity nRarity = wep.Rarity;
 	
 	if (iIndex > -1)
 	{
 		char strPlayer[128];
 		GetClientName2(iClient, strPlayer, sizeof(strPlayer));
 
-		if (StrEqual(sName, ""))
-			TF2Econ_GetItemName(iIndex, sName, sizeof(sName));
-		ReplaceString(sName, sizeof(sName), "The", "", true);
-		TrimString(sName);
+		if (StrEqual(wep.sName, ""))
+			TF2Econ_GetItemName(iIndex, wep.sName, sizeof(wep.sName));
+		ReplaceString(wep.sName, sizeof(wep.sName), "The", "", true);
+		TrimString(wep.sName);
 		
 		if (iIndex == 9)	//Shotgun
 		{
@@ -316,7 +263,7 @@ bool AttemptGrabItem(int iClient)
 			if (nRarity == eWeaponsRarity_Rare)
 			{
 				char strResult[255];
-				Format(strResult, sizeof(strResult), "(TEAM) %s\x01 : I have picked up a {limegreen}%s\x01!", strPlayer, sName);
+				Format(strResult, sizeof(strResult), "(TEAM) %s\x01 : I have picked up a {limegreen}%s\x01!", strPlayer, wep.sName);
 				for (int i = 1; i <= MaxClients; i++)
 				{
 					if (IsValidSurvivor(i))
@@ -344,14 +291,14 @@ bool AttemptGrabItem(int iClient)
 				}
 			}
 
-			PickupWeapon(iClient, iIndex, iTarget);
+			PickupWeapon(iClient, wep, iTarget);
 			
 			return true;
 		}
 		else if (nRarity == eWeaponsRarity_Rare && g_fLastCallout[iClient] + 5.0 < GetGameTime())
 		{
 			char strResult[255];
-			Format(strResult, sizeof(strResult), "(TEAM) %s\x01 : {limegreen}%s \x01here!", strPlayer, sName);
+			Format(strResult, sizeof(strResult), "(TEAM) %s\x01 : {limegreen}%s \x01here!", strPlayer, wep.sName);
 			for (int i = 1; i <= MaxClients; i++)
 			{
 				if (IsValidSurvivor(i))
@@ -382,7 +329,7 @@ bool AttemptGrabItem(int iClient)
 	return false;
 }
 
-public void PickupWeapon(int iClient, int iIndex, int iTarget)
+public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 {
 	EmitSoundToClient(iClient, "ui/item_heavy_gun_pickup.wav");
 
@@ -425,7 +372,7 @@ public void PickupWeapon(int iClient, int iIndex, int iTarget)
 		EmitSoundToAll(g_strWeaponVO_Sniper[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 	}
 
-	int iSlot = TF2Econ_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
+	int iSlot = TF2Econ_GetItemSlot(wep.iIndex, TF2_GetPlayerClass(iClient));
 
 	if (GetWeaponType(iTarget) != eWeaponsType_Spawn
 	&& GetWeaponType(iTarget) != eWeaponsType_RareSpawn
@@ -448,14 +395,9 @@ public void PickupWeapon(int iClient, int iIndex, int iTarget)
 			if (iOldIndex == 9 || iOldIndex == 10 || iOldIndex == 12)	//Shotgun
 				iOldIndex = 9;
 			
-			for (int i = 0; i < sizeof(g_nWeapons); i++)
-			{
-				if (g_nWeapons[i][iWeaponsIndex] == iOldIndex)
-				{
-					Format(sModel, sizeof(sModel), g_nWeapons[i][sWeaponsModel]);
-					break;
-				}
-			}
+			eWeapon oldwep;
+			GetWeaponFromIndex(oldwep, iOldIndex);
+			strcopy(sModel, sizeof(sModel), oldwep.sModel);
 		}
 		
 		if (strlen(sModel) > 0)
@@ -486,7 +428,7 @@ public void PickupWeapon(int iClient, int iIndex, int iTarget)
 		TF2_RemoveCondition(iClient, TFCond_Kritzkrieged);
 	}
 	
-	//If player already have item in his inv, remove it before we generate new weapon for him, otherwise some weapons can glich out...
+	//If player already have item in his inv, remove it before we generate new weapon for him, otherwise some weapons can glitch out...
 	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
 		TF2_RemoveWeaponSlot(iClient, iSlot);
@@ -500,10 +442,10 @@ public void PickupWeapon(int iClient, int iIndex, int iTarget)
 	}
 	
 	// generate and equip weapon
-	int iWeapon = TF2_CreateAndEquipWeapon(iClient, iIndex);
+	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex);
 	
 	char sClassname[256];
-	TF2Econ_GetItemClassName(iIndex, sClassname, sizeof(sClassname));
+	TF2Econ_GetItemClassName(wep.iIndex, sClassname, sizeof(sClassname));
 	if (StrContains(sClassname, "tf_wearable") == 0) 
 	{ 
 		if (GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon") <= MaxClients)
@@ -527,7 +469,7 @@ public void PickupWeapon(int iClient, int iIndex, int iTarget)
 		{
 			//We want to set gas passer ammo empty, because thats how normal gas passer works
 			int iMaxAmmo;
-			if (iIndex == 1180)
+			if (wep.iIndex == 1180)
 			{
 				iMaxAmmo = 0;
 				SetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", 0.0, 1);
@@ -566,20 +508,10 @@ public void PickupWeapon(int iClient, int iIndex, int iTarget)
 		g_bTriggerEntity[iTarget] = false;
 	}
 	
-	eWeaponsRarity nRarity = eWeaponsRarity_Common;
-	for (int i = 0; i < sizeof(g_nWeapons); i++)
-	{
-		if (g_nWeapons[i][iWeaponsIndex] == iIndex)
-		{
-			nRarity = g_nWeapons[i][nWeaponsRarity];
-			break;
-		}
-	}
-	
 	Call_StartForward(g_hForwardWeaponPickup);
 	Call_PushCell(iClient);
 	Call_PushCell(iWeapon);
-	Call_PushCell(nRarity);
+	Call_PushCell(wep.Rarity);
 	Call_Finish();
 }
 
@@ -620,32 +552,29 @@ stock void SetRandomPickup(int iEntity)
 {
 	// reset angle
 	float flAngles[3];
-	flAngles[0] = 0.0;
-	flAngles[1] = 0.0;
-	flAngles[2] = 0.0;
 
 	// set model
 	SetRandomWeapon(iEntity, eWeaponsRarity_Pickup);
 	TeleportEntity(iEntity, NULL_VECTOR, flAngles, NULL_VECTOR);
-
-	// set color
-	SetEntityRenderMode(iEntity, RENDER_TRANSCOLOR);
-	SetEntityRenderColor(iEntity, 150, 255, 150, 255);
 }
 
 stock void SetRandomWeapon(int iEntity, eWeaponsRarity nRarity)
 {
-	int iRandom = GetRandomInt(0, g_aWeaponsRarity[INT(nRarity)].Length - 1);
-	int iIndex = g_aWeaponsRarity[INT(nRarity)].Get(iRandom);
+	ArrayList array = GetAllWeaponsWithRarity(nRarity);
+	int iRandom = GetRandomInt(0, array.Length - 1);
 	
-	for (int i = 0; i < sizeof(g_nWeapons); i++)
+	eWeapon wep;
+	array.GetArray(iRandom, wep);
+	
+	SetWeaponModel(iEntity, wep.sModel);
+	
+	if (wep.color[0] + wep.color[1] + wep.color[2] > 0)
 	{
-		if (g_nWeapons[i][iWeaponsIndex] == iIndex)
-		{
-			SetWeaponModel(iEntity, g_nWeapons[i][sWeaponsModel]);
-			return;
-		}
+		SetEntityRenderMode(iEntity, RENDER_TRANSCOLOR);
+		SetEntityRenderColor(iEntity, wep.color[0], wep.color[1], wep.color[2], 255);
 	}
+	
+	delete array;
 }
 
 stock void SetWeaponModel(int iEntity, char[] strModel)

@@ -213,11 +213,12 @@ char g_strSoundCritHit[][128] =
 	"player/crit_received3.wav"
 };
 
+#include "szf/weapons.sp"
 #include "szf/stocks.sp"
-#include "szf/config.sp"
 #include "szf/precache.sp"
 #include "szf/sound.sp"
 #include "szf/pickupweapons.sp"
+#include "szf/config.sp"
 
 //
 // Plugin Information

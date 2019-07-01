@@ -769,6 +769,24 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex)
 		SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 6);
 		SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
 		
+		eWeapon wep;
+		GetWeaponFromIndex(wep, iIndex);
+		// Attribute shittery inbound
+		if (!StrEqual(wep.sAttribs, ""))
+		{
+			char atts[32][32];
+			int iCount = ExplodeString(wep.sAttribs, " ; ", atts, 32, 32);
+			if (iCount > 1)
+				for (int i = 0; i < iCount; i+= 2)
+					TF2Attrib_SetByDefIndex(iWeapon, StringToInt(atts[i]), StringToFloat(atts[i+1]));
+			
+			if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(wep.sText, ""))
+			{
+				CPrintToChat(iClient, wep.sText);
+				g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
+			}
+		}
+		
 		DispatchSpawn(iWeapon);
 		
 		if (StrContains(sClassname, "tf_wearable") == 0)
