@@ -118,7 +118,10 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 				// else make it either common or uncommon weapon
 				else
 				{
-					if (GetRandomInt(0, GetRarityWeaponCount(eWeaponsRarity_Common)+GetRarityWeaponCount(eWeaponsRarity_Uncommon)) < GetRarityWeaponCount(eWeaponsRarity_Common))
+					int common_count = GetRarityWeaponCount(eWeaponsRarity_Common);
+					int uncommon_count = GetRarityWeaponCount(eWeaponsRarity_Uncommon);
+					
+					if (GetRandomInt(0, common_count + uncommon_count) < common_count)
 						SetRandomWeapon(iEntity, eWeaponsRarity_Common);
 					else
 						SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
@@ -179,9 +182,7 @@ public Action EventVoiceMenu(int iClient, const char[] command, int argc)
 	{
 		// if an item was succesfully grabbed
 		if (AttemptGrabItem(iClient))
-		{
 			return Plugin_Handled;
-		}
 
 		return Plugin_Continue;
 	}
@@ -197,9 +198,7 @@ bool AttemptGrabItem(int iClient)
 	int iTarget = GetClientPointVisible(iClient);
 
 	if (iTarget <= 0 || !IsClassname(iTarget, "prop_dynamic") || GetWeaponType(iTarget) == eWeaponsType_Invalid)
-	{
 		return false;
-	}
 	
 	char strModel[256];
 	GetEntityModel(iTarget, strModel, sizeof(strModel));
@@ -207,21 +206,21 @@ bool AttemptGrabItem(int iClient)
 	eWeapon wep;
 	GetWeaponFromModel(wep, strModel);
 	
-	bool destroy_pickup;
+	bool allow_pickup = true;
 	if (wep.on_pickup != INVALID_FUNCTION)
 	{
 		Call_StartFunction(null, wep.on_pickup);
 		Call_PushCell(iClient);
-		Call_Finish(destroy_pickup);
+		Call_Finish(allow_pickup);
 	}
 	
 	if (wep.Rarity == eWeaponsRarity_Pickup)
 	{
-		if (destroy_pickup)
-		{
-			AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
-			AcceptEntityInput(iTarget, "Kill");
-		}
+		if (!allow_pickup)
+			return false;
+		
+		AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
+		AcceptEntityInput(iTarget, "Kill");
 		
 		return true;
 	}
@@ -247,7 +246,7 @@ bool AttemptGrabItem(int iClient)
 		}
 		
 		int iSlot = TF2Econ_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
-		if (iSlot >= 0)
+		if (iSlot >= 0 && allow_pickup)
 		{
 			if (nRarity == eWeaponsRarity_Rare)
 			{
@@ -498,9 +497,7 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 public Action ResetPickup(Handle timer, any iClient)
 {
 	if (IsValidClient(iClient))
-	{
 		g_bCanPickup[iClient] = true;
-	}
 }
 
 stock eWeaponsType GetWeaponType(int iEntity)
@@ -523,9 +520,7 @@ stock eWeaponsType GetWeaponType(int iEntity)
 stock void SwitchToSlot(int iClient, int iSlot)
 {
 	if (GetPlayerWeaponSlot(iClient, iSlot) > 0)
-	{
 		EquipPlayerWeapon(iClient, weapon);
-	}
 }
 
 stock void SetRandomPickup(int iEntity)

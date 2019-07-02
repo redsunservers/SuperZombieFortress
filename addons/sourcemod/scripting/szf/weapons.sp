@@ -1,4 +1,4 @@
-typedef eWeapon_OnPickup = function bool (int client); // Return true if the pickup should be destroyed
+typedef eWeapon_OnPickup = function bool (int client); // Return false to prevent client from picking up the item.
 
 static ArrayList g_Weapons;
 static ArrayList g_WepIndexesByRarity[eWeaponsRarity]; // Array indexes of g_Weapons array
@@ -31,9 +31,7 @@ void Weapons_Init()
 			g_Weapons.GetArray(j, wep);
 			
 			if (wep.Rarity == view_as<eWeaponsRarity>(i))
-			{
 				g_WepIndexesByRarity[i].Push(j);
-			}
 		}
 	}
 }
@@ -91,7 +89,8 @@ ArrayList GetAllWeaponsWithRarity(eWeaponsRarity rarity)
 {
 	ArrayList array = new ArrayList(sizeof(eWeapon));
 	
-	for (int i = 0; i < GetRarityWeaponCount(rarity); i++)
+	int iLength = GetRarityWeaponCount(rarity);
+	for (int i = 0; i < iLength; i++)
 	{
 		eWeapon wep;
 		g_Weapons.GetArray(g_WepIndexesByRarity[rarity].Get(i), wep);
@@ -135,10 +134,15 @@ void Weapons_ReplaceEntityModel(int ent, int index)
 // -----------------------------------------------------------
 public bool Weapons_OnPickup_Health(int client)
 {
-	SpawnPickup(client, "item_healthkit_full");
-	EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+	if (GetClientHealth(client) < SDK_GetMaxHealth(client))
+	{
+		SpawnPickup(client, "item_healthkit_full");
+		EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+		
+		return true;
+	}
 	
-	return true;
+	return false;
 }
 
 public bool Weapons_OnPickup_Ammo(int client)
