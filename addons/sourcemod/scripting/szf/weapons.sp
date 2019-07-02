@@ -31,9 +31,7 @@ void Weapons_Init()
 			g_Weapons.GetArray(j, wep);
 			
 			if (wep.Rarity == view_as<eWeaponsRarity>(i))
-			{
 				g_WepIndexesByRarity[i].Push(j);
-			}
 		}
 	}
 }
@@ -91,7 +89,8 @@ ArrayList GetAllWeaponsWithRarity(eWeaponsRarity rarity)
 {
 	ArrayList array = new ArrayList(sizeof(eWeapon));
 	
-	for (int i = 0; i < GetRarityWeaponCount(rarity); i++)
+	int iLength = GetRarityWeaponCount(rarity);
+	for (int i = 0; i < iLength; i++)
 	{
 		eWeapon wep;
 		g_Weapons.GetArray(g_WepIndexesByRarity[rarity].Get(i), wep);
