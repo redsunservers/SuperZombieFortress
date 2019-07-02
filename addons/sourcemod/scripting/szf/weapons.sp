@@ -134,10 +134,15 @@ void Weapons_ReplaceEntityModel(int ent, int index)
 // -----------------------------------------------------------
 public bool Weapons_OnPickup_Health(int client)
 {
-	SpawnPickup(client, "item_healthkit_full");
-	EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+	if (GetClientHealth(client) < SDK_GetMaxHealth(client))
+	{
+		SpawnPickup(client, "item_healthkit_full");
+		EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+		
+		return true;
+	}
 	
-	return true;
+	return false;
 }
 
 public bool Weapons_OnPickup_Ammo(int client)
