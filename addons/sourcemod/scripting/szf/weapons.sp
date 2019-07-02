@@ -1,4 +1,4 @@
-typedef eWeapon_OnPickup = function bool (int client); // Return true if the pickup should be destroyed
+typedef eWeapon_OnPickup = function bool (int client); // Return true to prevent client from picking up the item.
 
 static ArrayList g_Weapons;
 static ArrayList g_WepIndexesByRarity[eWeaponsRarity]; // Array indexes of g_Weapons array

@@ -206,21 +206,22 @@ bool AttemptGrabItem(int iClient)
 	eWeapon wep;
 	GetWeaponFromModel(wep, strModel);
 	
-	bool destroy_pickup;
+	bool prevent_pickup;
 	if (wep.on_pickup != INVALID_FUNCTION)
 	{
 		Call_StartFunction(null, wep.on_pickup);
 		Call_PushCell(iClient);
-		Call_Finish(destroy_pickup);
+		Call_Finish(prevent_pickup);
 	}
+	
+	// Do nothing if OnPickup callback returned false.
+	if (prevent_pickup)
+		return false;
 	
 	if (wep.Rarity == eWeaponsRarity_Pickup)
 	{
-		if (destroy_pickup)
-		{
-			AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
-			AcceptEntityInput(iTarget, "Kill");
-		}
+		AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
+		AcceptEntityInput(iTarget, "Kill");
 		
 		return true;
 	}
