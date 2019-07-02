@@ -206,7 +206,7 @@ bool AttemptGrabItem(int iClient)
 	eWeapon wep;
 	GetWeaponFromModel(wep, strModel);
 	
-	bool allow_pickup;
+	bool allow_pickup = true;
 	if (wep.on_pickup != INVALID_FUNCTION)
 	{
 		Call_StartFunction(null, wep.on_pickup);
