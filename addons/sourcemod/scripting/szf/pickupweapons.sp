@@ -206,16 +206,16 @@ bool AttemptGrabItem(int iClient)
 	eWeapon wep;
 	GetWeaponFromModel(wep, strModel);
 	
-	bool prevent_pickup;
+	bool allow_pickup;
 	if (wep.on_pickup != INVALID_FUNCTION)
 	{
 		Call_StartFunction(null, wep.on_pickup);
 		Call_PushCell(iClient);
-		Call_Finish(prevent_pickup);
+		Call_Finish(allow_pickup);
 	}
 	
 	// Do nothing if OnPickup callback returned false.
-	if (prevent_pickup)
+	if (!allow_pickup)
 		return false;
 	
 	if (wep.Rarity == eWeaponsRarity_Pickup)
