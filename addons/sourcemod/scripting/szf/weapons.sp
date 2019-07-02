@@ -152,3 +152,19 @@ public bool Weapons_OnPickup_Ammo(int client)
 	
 	return true;
 }
+
+public bool Weapons_OnPickup_Minicrits(int client)
+{
+	TF2_AddCondition(client,TFCond_Buffed,30.0);
+	EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+	
+	return true;
+}
+
+public bool Weapons_OnPickup_Defense(int client)
+{
+	TF2_AddCondition(client,TFCond_DefenseBuffed,30.0);
+	EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+	
+	return true;
+}
