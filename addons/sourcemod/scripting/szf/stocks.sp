@@ -928,6 +928,17 @@ public Action TimerKillEntity(Handle hTimer, int iEntity)
 
 /******************************************************************************************************/
 
+stock int PrecacheZombieSouls()
+{
+	char cPath[64];
+	// loops through all class types available
+	for (int i = 1; i <= 9; i++)
+	{
+		Format(cPath, sizeof(cPath), "models/player/items/%s/%s_zombie.mdl", cClassNames[i], cClassNames[i]);
+		iZombieSoulIndex[i] = PrecacheModel(cPath);
+	}
+}
+
 stock void ApplyVoodooCursedSoul(int iClient)
 {
 	if (!bTF2Items || TF2_IsPlayerInCondition(iClient, TFCond_HalloweenGhostMode)) return;
