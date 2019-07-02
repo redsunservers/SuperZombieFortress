@@ -277,8 +277,8 @@ bool AttemptGrabItem(int iClient)
 	//Temporary Powerups
 	if (StrEqual(strModel, "models/weapons/c_models/c_energy_drink/c_energy_drink.mdl"))
 	{
-		TF2_AddCondition(iClient,TFCond_DefenseBuffed,30.0);
-		TF2_AddCondition(iClient,TFCond_DefenseBuffNoCritBlock,30.0);
+		TF2_AddCondition(iClient,TFCond.TFCOND_DefenseBuffed,30.0);
+		TF2_AddCondition(iClient,TFCond.TFCOND_DefenseBuffNoCritBlock,30.0);
 		EmitSoundToClient(iClient, "ui/item_heavy_gun_pickup.wav"); // TODO: CHANGE SOUND
 		AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
 		AcceptEntityInput(iTarget, "Kill");
