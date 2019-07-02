@@ -543,10 +543,10 @@ stock void SetRandomWeapon(int iEntity, eWeaponsRarity nRarity)
 	
 	SetWeaponModel(iEntity, wep.sModel);
 	
-	if (wep.color[0] + wep.color[1] + wep.color[2] > 0)
+	if (wep.iColor[0] + wep.iColor[1] + wep.iColor[2] > 0)
 	{
 		SetEntityRenderMode(iEntity, RENDER_TRANSCOLOR);
-		SetEntityRenderColor(iEntity, wep.color[0], wep.color[1], wep.color[2], 255);
+		SetEntityRenderColor(iEntity, wep.iColor[0], wep.iColor[1], wep.iColor[2], 255);
 	}
 	
 	delete array;

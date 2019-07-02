@@ -138,9 +138,9 @@ public ArrayList Config_LoadWeaponData()
 					int color[4];
 					kv.GetColor4("color", color);
 					
-					wep.color[0] = color[0];
-					wep.color[1] = color[1];
-					wep.color[2] = color[2];
+					wep.iColor[0] = color[0];
+					wep.iColor[1] = color[1];
+					wep.iColor[2] = color[2];
 					
 					array.PushArray(wep);
 					++iLength;

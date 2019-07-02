@@ -11,7 +11,7 @@ enum struct eWeapon
 	char sModel[PLATFORM_MAX_PATH];
 	char sText[256];
 	char sAttribs[256];
-	int color[3];
+	int iColor[3];
 	eWeapon_OnPickup on_pickup;
 }
 
