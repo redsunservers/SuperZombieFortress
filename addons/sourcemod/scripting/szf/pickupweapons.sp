@@ -214,12 +214,11 @@ bool AttemptGrabItem(int iClient)
 		Call_Finish(allow_pickup);
 	}
 	
-	// Do nothing if OnPickup callback returned false.
-	if (!allow_pickup)
-		return false;
-	
 	if (wep.Rarity == eWeaponsRarity_Pickup)
 	{
+		if (!allow_pickup)
+			return false;
+		
 		AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
 		AcceptEntityInput(iTarget, "Kill");
 		
@@ -247,7 +246,7 @@ bool AttemptGrabItem(int iClient)
 		}
 		
 		int iSlot = TF2Econ_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
-		if (iSlot >= 0)
+		if (iSlot >= 0 && allow_pickup)
 		{
 			if (nRarity == eWeaponsRarity_Rare)
 			{
