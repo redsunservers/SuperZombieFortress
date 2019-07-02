@@ -943,7 +943,7 @@ stock void ApplyVoodooCursedSoul(int iClient)
 {
 	if (!bTF2Items || TF2_IsPlayerInCondition(iClient, TFCond_HalloweenGhostMode)) return;
 
-	TF2_CreateAndEquipFakeModel(iClient, view_as<int>(TF2_GetPlayerClass(iClient)));
+	TF2_CreateAndEquipFakeModel(iClient, iZombieSoulIndex[view_as<int>(TF2_GetPlayerClass(iClient))]);
 
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", true);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", (isSpy(iClient)) ? SKIN_ZOMBIE_SPY : SKIN_ZOMBIE);
