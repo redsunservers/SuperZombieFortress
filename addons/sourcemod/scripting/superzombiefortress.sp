@@ -5937,10 +5937,34 @@ public void DoSmokerBeam(int iClient)
 
 	// 750 in L4D2, scaled to TF2 player hull sizing (32hu -> 48hu)
 	if (GetVectorDistance(vOrigin, vEndOrigin) > 1150.0) return;
-
-	// draw beam
-	TE_SetupBeamPoints(vOrigin, vEndOrigin, g_iSprite, 0, 0, 0, 0.08, 5.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
-	TE_SendToAll();
+	
+	// Smoker's tongue beam
+	// Beam starting point is lower for the smoker himself (looks slightly better this way)
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i))
+		{
+			if (i == iClient)
+			{
+				float newOrigin[3];
+				float sub[3];
+				
+				sub[0] += 0.0;
+				sub[1] += 0.0;
+				sub[2] += 7.0;
+				
+				SubtractVectors(vOrigin, sub, newOrigin);
+				
+				TE_SetupBeamPoints(newOrigin, vEndOrigin, g_iSprite, 0, 0, 0, 0.08, 2.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
+			}
+			else
+			{
+				TE_SetupBeamPoints(vOrigin, vEndOrigin, g_iSprite, 0, 0, 0, 0.08, 5.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
+			}
+			
+			TE_SendToClient(i);
+		}
+	}
 
 	int iHit = TR_GetEntityIndex(hTrace);
 
