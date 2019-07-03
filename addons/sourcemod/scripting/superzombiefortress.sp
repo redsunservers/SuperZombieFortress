@@ -22,6 +22,8 @@
 
 #pragma newdecls required
 
+#define PLUGIN_VERSION "3.1.0"
+
 #define INT(%0)		view_as<int>(%0)
 
 #define MAX_DIGITS 	12 // 10 + \0 for IntToString. And negative signs.

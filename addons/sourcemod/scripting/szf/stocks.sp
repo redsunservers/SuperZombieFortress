@@ -1,5 +1,3 @@
-#define PLUGIN_VERSION "3.0.2"
-
 // Soldier
 #define ZFWEAP_ESCAPEPLAN 775
 
