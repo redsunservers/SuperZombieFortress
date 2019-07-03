@@ -226,7 +226,7 @@ public Plugin myinfo =
 	author = "42, Frosty Scales, Benoist3012, Darthmule (2.0 version), MekuCube (1.0 version)",
 	description = "Originally based off MekuCube's 1.05 version.",
 	version = PLUGIN_VERSION,
-	url = "https://redsun.tf"
+	url = "https://github.com/redsunservers/SuperZombieFortress"
 }
 
 ////////////////////////////////////////////////////////////
