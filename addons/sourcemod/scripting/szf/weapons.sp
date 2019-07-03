@@ -12,6 +12,9 @@ enum struct eWeapon
 	char sText[256];
 	char sAttribs[256];
 	int iColor[3];
+	float flOffsetOrigin[3];
+	float flOffsetAngles[3];
+	float flModelScale;
 	eWeapon_OnPickup on_pickup;
 }
 
@@ -125,10 +128,22 @@ void Weapons_ReplaceEntityModel(int ent, int index)
 		
 		if (index == wep.iIndex)
 		{
-			SetWeaponModel(ent, wep.sModel);
+			SetWeaponModel(ent, wep);
 			return;
 		}
 	}
+}
+
+// enum structs are truly epic
+void Weapons_GetOffsets(eWeapon wep, float origin[3], float angles[3])
+{
+	origin[0] = wep.flOffsetOrigin[0];
+	origin[1] = wep.flOffsetOrigin[1];
+	origin[2] = wep.flOffsetOrigin[2];
+	
+	angles[0] = wep.flOffsetAngles[0];
+	angles[1] = wep.flOffsetAngles[1];
+	angles[2] = wep.flOffsetAngles[2];
 }
 
 // -----------------------------------------------------------

@@ -68,7 +68,7 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 					eWeapon wep;
 					aWeaponsCommon.GetArray(iRandom, wep);
 					
-					SetWeaponModel(iEntity, wep.sModel);
+					SetWeaponModel(iEntity, wep);
 					aWeaponsCommon.Erase(iRandom);
 				}
 				else
@@ -357,7 +357,7 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 	&& GetWeaponType(iTarget) != eWeaponsType_RareSpawn
 	&& GetWeaponType(iTarget) != eWeaponsType_StaticSpawn)
 	{
-		char sModel[256]; // weapon model path
+		eWeapon oldwep;
 
 		int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
 		if (!IsValidEdict(iEntity))
@@ -374,15 +374,14 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 			if (iOldIndex == 9 || iOldIndex == 10 || iOldIndex == 12)	//Shotgun
 				iOldIndex = 9;
 			
-			eWeapon oldwep;
 			GetWeaponFromIndex(oldwep, iOldIndex);
-			strcopy(sModel, sizeof(sModel), oldwep.sModel);
 		}
 		
-		if (strlen(sModel) > 0)
+		if (oldwep.iIndex > 0)
 		{
 			EmitSoundToClient(iClient, "ui/item_heavy_gun_drop.wav");
-			SetWeaponModel(iTarget, sModel);
+			
+			SetWeaponModel(iTarget, oldwep);
 		}
 
 		else
@@ -528,9 +527,8 @@ stock void SetRandomPickup(int iEntity)
 	// reset angle
 	float flAngles[3];
 
-	// set model
-	SetRandomWeapon(iEntity, eWeaponsRarity_Pickup);
 	TeleportEntity(iEntity, NULL_VECTOR, flAngles, NULL_VECTOR);
+	SetRandomWeapon(iEntity, eWeaponsRarity_Pickup);
 }
 
 stock void SetRandomWeapon(int iEntity, eWeaponsRarity nRarity)
@@ -541,7 +539,11 @@ stock void SetRandomWeapon(int iEntity, eWeaponsRarity nRarity)
 	eWeapon wep;
 	array.GetArray(iRandom, wep);
 	
-	SetWeaponModel(iEntity, wep.sModel);
+	float flOffsetOrigin[3];
+	float flOffsetAngles[3];
+	Weapons_GetOffsets(wep, flOffsetOrigin, flOffsetAngles);
+	
+	SetWeaponModel(iEntity, wep);
 	
 	if (wep.iColor[0] + wep.iColor[1] + wep.iColor[2] > 0)
 	{
@@ -552,22 +554,35 @@ stock void SetRandomWeapon(int iEntity, eWeaponsRarity nRarity)
 	delete array;
 }
 
-stock void SetWeaponModel(int iEntity, char[] strModel)
+stock void SetWeaponModel(int iEntity, eWeapon wep)
 {
+	float flOffsetOrigin[3];
+	float flOffsetAngles[3];
+	Weapons_GetOffsets(wep, flOffsetOrigin, flOffsetAngles);
+	
 	char strOldModel[256];
 	GetEntityModel(iEntity, strOldModel, sizeof(strOldModel));
 	
-	// Because sniper wearable have a really offplace origin prop, we have to move entity to a more reasonable spot
+	// Offsets
+	float vecOrigin[3];
+	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
+	vecOrigin[0] += flOffsetOrigin[0];
+	vecOrigin[1] += flOffsetOrigin[1];
+	vecOrigin[2] += flOffsetOrigin[2];
 	
+	float vecAngles[3];
+	GetEntPropVector(iEntity, Prop_Send, "m_angRotation", vecAngles);
+	vecAngles[0] += flOffsetAngles[0];
+	vecAngles[1] += flOffsetAngles[1];
+	vecAngles[2] += flOffsetAngles[2];
+	
+	TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
+	SetEntPropFloat(iEntity, Prop_Data, "m_flModelScale", wep.flModelScale);
+	
+	// Because sniper wearable have a really offplace origin prop, we have to move entity to a more reasonable spot
 	if (StrEqual(strOldModel, "models/player/items/sniper/knife_shield.mdl")
-		|| StrEqual(strOldModel, "models/player/items/sniper/xms_sniper_commandobackpack.mdl") )
+		|| StrEqual(strOldModel, "models/player/items/sniper/xms_sniper_commandobackpack.mdl"))
 	{
-		float vecOrigin[3];
-		GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
-		
-		float vecAngles[3];
-		GetEntPropVector(iEntity, Prop_Send, "m_angRotation", vecAngles);
-		
 		float vecDirection[3];
 		GetAngleVectors(vecAngles, vecDirection, NULL_VECTOR, NULL_VECTOR);
 		ScaleVector(vecDirection, 64.0);
@@ -579,17 +594,11 @@ stock void SetWeaponModel(int iEntity, char[] strModel)
 		TeleportEntity(iEntity, vecOrigin, NULL_VECTOR, NULL_VECTOR);
 	}
 	
-	SetEntityModel(iEntity, strModel);
+	SetEntityModel(iEntity, wep.sModel);
 	
-	if (StrEqual(strModel, "models/player/items/sniper/knife_shield.mdl")
-		|| StrEqual(strModel, "models/player/items/sniper/xms_sniper_commandobackpack.mdl") )
+	if (StrEqual(wep.sModel, "models/player/items/sniper/knife_shield.mdl")
+		|| StrEqual(wep.sModel, "models/player/items/sniper/xms_sniper_commandobackpack.mdl"))
 	{
-		float vecOrigin[3];
-		GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
-		
-		float vecAngles[3];
-		GetEntPropVector(iEntity, Prop_Send, "m_angRotation", vecAngles);
-
 		float vecDirection[3];
 		GetAngleVectors(vecAngles, vecDirection, NULL_VECTOR, NULL_VECTOR);
 		ScaleVector(vecDirection, 64.0);
