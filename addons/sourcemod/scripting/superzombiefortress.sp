@@ -868,7 +868,7 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &
 			if (g_iSpecialInfected[iAttacker] == INFECTED_TANK)
 			{
 				char strPath[PLATFORM_MAX_PATH];
-				Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/tank_attack_0%d.mp3", GetRandomInt(1, 4));
+				Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/tank_attack_0%d.mp3", GetRandomInt(1, 4));
 				EmitSoundToAll(strPath, iAttacker, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
@@ -1129,7 +1129,7 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 					DoBoomerExplosion(client, 600.0);
 
 					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/male_boomer_disruptvomit_0%d.mp3", GetRandomInt(5, 7));
+					Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/male_boomer_disruptvomit_0%d.mp3", GetRandomInt(5, 7));
 					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
@@ -1145,7 +1145,7 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 					TeleportEntity(client, NULL_VECTOR, NULL_VECTOR, vecVel);
 					
 					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/charger_charge_0%d.mp3", GetRandomInt(1, 2));
+					Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/charger_charge_0%d.mp3", GetRandomInt(1, 2));
 					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
@@ -1165,7 +1165,7 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 					DoHunterJump(client);
 
 					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/hunter_attackmix_0%d.mp3", GetRandomInt(1, 3));
+					Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/hunter_attackmix_0%d.mp3", GetRandomInt(1, 3));
 					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 			}
@@ -1582,7 +1582,7 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 						else
 						{
 							char strSound[PLATFORM_MAX_PATH];
-							Format(strSound, sizeof(strSound), "redsun/szf_rsx/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
+							Format(strSound, sizeof(strSound), "left4fortress/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
 							EmitSoundToAll(strSound);
 						}
 					}
@@ -1862,7 +1862,7 @@ public Action event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		float fHighest = 0.0;
 				
 		char strPath[PLATFORM_MAX_PATH];
-		Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/tank_death_0%d.mp3", GetRandomInt(1, 4));
+		Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/tank_death_0%d.mp3", GetRandomInt(1, 4));
 		EmitSoundToAll(strPath);
 				
 		for (int i = 1; i <= MaxClients; i++)
@@ -5464,40 +5464,40 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 			{
 				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
 				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/ignite0%d.mp3", GetRandomInt(7, 9));
+					Format(sound, sizeof(sound), "left4fortress/zombie_vo/ignite0%d.mp3", GetRandomInt(7, 9));
 				}
 
 				else if (GetClientHealth(iClient) < 50 || StrContains(sound, "critical", false) != -1)
 				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/death_2%d.mp3", GetRandomInt(2, 9));
+					Format(sound, sizeof(sound), "left4fortress/zombie_vo/death_2%d.mp3", GetRandomInt(2, 9));
 				}
 
 				else
 				{
 					int iRandom = GetRandomInt(18, 22);
 					if (iRandom == 15 || iRandom == 16 || iRandom == 17 || iRandom == 23) iRandom = GetRandomInt(12, 14);
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/been_shot_%d.mp3", iRandom);
+					Format(sound, sizeof(sound), "left4fortress/zombie_vo/been_shot_%d.mp3", iRandom);
 				}
 			}
 
 			if (StrContains(sound, "_laugh", false) != -1 || StrContains(sound, "_no", false) != -1 || StrContains(sound, "_yes", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/mumbling0%d.mp3", GetRandomInt(1, 8));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/mumbling0%d.mp3", GetRandomInt(1, 8));
 			}
 
 			if (StrContains(sound, "_go", false) != -1 || StrContains(sound, "_jarate", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/shoved_%d.mp3", GetRandomInt(1, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/shoved_%d.mp3", GetRandomInt(1, 4));
 			}
 
 			if (StrContains(sound, "_medic", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/rage_at_victim2%d.mp3", !GetRandomInt(0, 2) ? GetRandomInt(1, 2) : GetRandomInt(5, 6));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/rage_at_victim2%d.mp3", !GetRandomInt(0, 2) ? GetRandomInt(1, 2) : GetRandomInt(5, 6));
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/idle_breath_0%d.mp3", GetRandomInt(1, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/idle_breath_0%d.mp3", GetRandomInt(1, 4));
 			}
 
 			if (g_iSpecialInfected[iClient] == INFECTED_KINGPIN) pitch = 80;
@@ -5511,18 +5511,18 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 			{
 				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
 				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/tank_fire_0%d.mp3", GetRandomInt(2, 5));
+					Format(sound, sizeof(sound), "left4fortress/zombie_vo/tank_fire_0%d.mp3", GetRandomInt(2, 5));
 				}
 
 				else
 				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/tank_pain_0%d.mp3", GetRandomInt(1, 4));
+					Format(sound, sizeof(sound), "left4fortress/zombie_vo/tank_pain_0%d.mp3", GetRandomInt(1, 4));
 				}
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
 			}
 		}
 
@@ -5531,12 +5531,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/charger_pain_0%d.mp3", GetRandomInt(1, 3));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/charger_pain_0%d.mp3", GetRandomInt(1, 3));
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/charger_spotprey_0%d.mp3", GetRandomInt(1, 3));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/charger_spotprey_0%d.mp3", GetRandomInt(1, 3));
 			}
 		}
 
@@ -5545,12 +5545,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/hunter_pain_1%d.mp3", GetRandomInt(2, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/hunter_pain_1%d.mp3", GetRandomInt(2, 4));
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/hunter_stalk_0%d.mp3", GetRandomInt(4, 6));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/hunter_stalk_0%d.mp3", GetRandomInt(4, 6));
 			}
 		}
 
@@ -5559,12 +5559,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/male_boomer_pain_%d.mp3", GetRandomInt(1, 3));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/male_boomer_pain_%d.mp3", GetRandomInt(1, 3));
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/male_boomer_lurk_0%d.mp3", GetRandomInt(2, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/male_boomer_lurk_0%d.mp3", GetRandomInt(2, 4));
 			}
 		}
 
@@ -5573,12 +5573,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/smoker_pain_0%d.mp3", GetRandomInt(2, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/smoker_pain_0%d.mp3", GetRandomInt(2, 4));
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/smoker_lurk_1%d.mp3", GetRandomInt(1, 3));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/smoker_lurk_1%d.mp3", GetRandomInt(1, 3));
 			}
 		}
 
