@@ -556,27 +556,33 @@ stock void SetRandomWeapon(int iEntity, eWeaponsRarity nRarity)
 
 stock void SetWeaponModel(int iEntity, eWeapon wep)
 {
-	float flOffsetOrigin[3];
-	float flOffsetAngles[3];
-	Weapons_GetOffsets(wep, flOffsetOrigin, flOffsetAngles);
-	
 	char strOldModel[256];
 	GetEntityModel(iEntity, strOldModel, sizeof(strOldModel));
 	
-	// Offsets
 	float vecOrigin[3];
 	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
-	vecOrigin[0] += flOffsetOrigin[0];
-	vecOrigin[1] += flOffsetOrigin[1];
-	vecOrigin[2] += flOffsetOrigin[2];
 	
 	float vecAngles[3];
 	GetEntPropVector(iEntity, Prop_Send, "m_angRotation", vecAngles);
-	vecAngles[0] += flOffsetAngles[0];
-	vecAngles[1] += flOffsetAngles[1];
-	vecAngles[2] += flOffsetAngles[2];
 	
-	TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
+	// Offsets (will only work for pickups for now)
+	if (wep.Rarity == eWeaponsRarity_Pickup)
+	{
+		float flOffsetOrigin[3];
+		float flOffsetAngles[3];
+		Weapons_GetOffsets(wep, flOffsetOrigin, flOffsetAngles);
+		
+		vecOrigin[0] += flOffsetOrigin[0];
+		vecOrigin[1] += flOffsetOrigin[1];
+		vecOrigin[2] += flOffsetOrigin[2];
+		
+		vecAngles[0] += flOffsetAngles[0];
+		vecAngles[1] += flOffsetAngles[1];
+		vecAngles[2] += flOffsetAngles[2];
+	
+		TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
+	}
+	
 	SetEntPropFloat(iEntity, Prop_Data, "m_flModelScale", wep.flModelScale);
 	
 	// Because sniper wearable have a really offplace origin prop, we have to move entity to a more reasonable spot
