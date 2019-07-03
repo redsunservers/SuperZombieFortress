@@ -4133,7 +4133,9 @@ int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true
 	float fPosEntry2[3];
 	float fEntryDistance;
 	GetClientAbsOrigin(iClient, fPosClient);
-	for (int i = 0; i < GetArraySize(g_hFastRespawnArray); i++)
+	
+	int iLength = GetArraySize(g_hFastRespawnArray);
+	for (int i = 0; i < iLength; i++)
 	{
 		GetArrayArray(g_hFastRespawnArray, i, fPosEntry);
 		fPosEntry2[0] = fPosEntry[0];
@@ -4144,6 +4146,7 @@ int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true
 
 		fEntryDistance = GetVectorDistance(fPosClient, fPosEntry);
 		fEntryDistance /= 50.0;
+		
 		if (fEntryDistance > fDistance) bAllow = false;
 
 		// check if survivors can see it
@@ -4181,16 +4184,9 @@ int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true
 
 bool PerformFastRespawn(int iClient)
 {
-	if (g_bDirectorSpawnTeleport) return PerformFastRespawn2(iClient);
+	if (!(g_bDirectorSpawnTeleport) && (!g_bZombieRage || !g_bZombieRageAllowRespawn))
+		return false;
 	
-	if (!g_bZombieRage) return false;
-	if (!g_bZombieRageAllowRespawn) return false;
-
-	return PerformFastRespawn2(iClient);
-}
-
-bool PerformFastRespawn2(int iClient)
-{
 	// first let's find a target
 	Handle hTombola = CreateArray();
 	for (int i = 1; i <= MaxClients; i++)
@@ -4226,6 +4222,8 @@ void FastRespawnDataCollect()
 	if (g_hFastRespawnArray == INVALID_HANDLE) FastRespawnReset();
 
 	float fPos[3];
+	
+	ClearArray(g_hFastRespawnArray); // cancer everywhere
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		if (IsClientInGame(iClient) && IsValidLivingPlayer(iClient) && FastRespawnNearby(iClient, 1.0, false) < 0 && !(GetEntityFlags(iClient) & FL_DUCKING == FL_DUCKING) && (GetEntityFlags(iClient) & FL_ONGROUND == FL_ONGROUND))
