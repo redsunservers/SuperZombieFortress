@@ -11,7 +11,9 @@ enum struct eWeapon
 	char sModel[PLATFORM_MAX_PATH];
 	char sText[256];
 	char sAttribs[256];
-	int color[3];
+	int iColor[3];
+	float flOffsetOrigin[3];
+	float flOffsetAngles[3];
 	eWeapon_OnPickup on_pickup;
 }
 
@@ -51,6 +53,10 @@ void Weapons_Precache()
 	
 	PrecacheSound("ui/item_heavy_gun_pickup.wav");
 	PrecacheSound("ui/item_heavy_gun_drop.wav");
+	
+	PrecacheSound("items/smallmedkit1.wav");			// Medkit pickup
+	PrecacheSound("items/powerup_pickup_base.wav");		// Defense pickup
+	PrecacheSound("items/powerup_pickup_haste.wav");	// Minicrits pickup
 }
 
 void GetWeaponFromModel(eWeapon buffer, char[] model)
@@ -125,10 +131,22 @@ void Weapons_ReplaceEntityModel(int ent, int index)
 		
 		if (index == wep.iIndex)
 		{
-			SetWeaponModel(ent, wep.sModel);
+			SetWeaponModel(ent, wep);
 			return;
 		}
 	}
+}
+
+// enum structs are truly epic
+void Weapons_GetOffsets(eWeapon wep, float origin[3], float angles[3])
+{
+	origin[0] = wep.flOffsetOrigin[0];
+	origin[1] = wep.flOffsetOrigin[1];
+	origin[2] = wep.flOffsetOrigin[2];
+	
+	angles[0] = wep.flOffsetAngles[0];
+	angles[1] = wep.flOffsetAngles[1];
+	angles[2] = wep.flOffsetAngles[2];
 }
 
 // -----------------------------------------------------------
@@ -137,7 +155,7 @@ public bool Weapons_OnPickup_Health(int client)
 	if (GetClientHealth(client) < SDK_GetMaxHealth(client))
 	{
 		SpawnPickup(client, "item_healthkit_full");
-		EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+		EmitSoundToClient(client, "items/smallmedkit1.wav");
 		
 		return true;
 	}
@@ -156,7 +174,7 @@ public bool Weapons_OnPickup_Ammo(int client)
 public bool Weapons_OnPickup_Minicrits(int client)
 {
 	TF2_AddCondition(client,TFCond_Buffed,30.0);
-	EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+	EmitSoundToClient(client, "items/powerup_pickup_haste.wav");
 	
 	return true;
 }
@@ -164,7 +182,7 @@ public bool Weapons_OnPickup_Minicrits(int client)
 public bool Weapons_OnPickup_Defense(int client)
 {
 	TF2_AddCondition(client,TFCond_DefenseBuffed,30.0);
-	EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+	EmitSoundToClient(client, "items/powerup_pickup_base.wav");
 	
 	return true;
 }

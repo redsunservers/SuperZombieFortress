@@ -138,9 +138,22 @@ public ArrayList Config_LoadWeaponData()
 					int color[4];
 					kv.GetColor4("color", color);
 					
-					wep.color[0] = color[0];
-					wep.color[1] = color[1];
-					wep.color[2] = color[2];
+					wep.iColor[0] = color[0];
+					wep.iColor[1] = color[1];
+					wep.iColor[2] = color[2];
+					
+					float flOffsetOrigin[3];
+					float flOffsetAngles[3];
+					kv.GetVector("offset_origin", flOffsetOrigin);
+					kv.GetVector("offset_angles", flOffsetAngles);
+					
+					wep.flOffsetOrigin[0] = flOffsetOrigin[0];
+					wep.flOffsetOrigin[1] = flOffsetOrigin[1];
+					wep.flOffsetOrigin[2] = flOffsetOrigin[2];
+					
+					wep.flOffsetAngles[0] = flOffsetAngles[0];
+					wep.flOffsetAngles[1] = flOffsetAngles[1];
+					wep.flOffsetAngles[2] = flOffsetAngles[2];
 					
 					array.PushArray(wep);
 					++iLength;
