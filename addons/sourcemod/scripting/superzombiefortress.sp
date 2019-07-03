@@ -3271,7 +3271,7 @@ public void help_printZFInfoChat(int client)
 public void panel_PrintMain(int client)
 {
 	Panel panel = new Panel();
-	panel.SetTitle("Super Zombie Fortress - redsun.tf");
+	panel.SetTitle("Super Zombie Fortress");
 	panel.DrawItem(" Overview");
 	panel.DrawItem(" Team: Survivors");
 	panel.DrawItem(" Team: Infected");
@@ -5300,7 +5300,7 @@ bool AttemptCarryItem(int iClient)
 
 	char strName[255];
 	GetEntPropString(iTarget, Prop_Data, "m_iName", strName, sizeof(strName));
-	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1 || StrContains(strName, "redsun_pickup", false) != -1)) return false;
+	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1)) return false;
 
 	g_iCarryingItem[iClient] = iTarget;
 	SetEntProp(iClient, Prop_Send, "m_bDrawViewmodel", 0);
@@ -5370,7 +5370,7 @@ void UpdateClientCarrying(int iClient)
 
 	char strName[255];
 	GetEntPropString(iTarget, Prop_Data, "m_iName", strName, sizeof(strName));
-	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1 || StrContains(strName, "redsun_pickup", false) != -1)) return;
+	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1)) return;
 
 	float vOrigin[3];
 	float vAngles[3];
