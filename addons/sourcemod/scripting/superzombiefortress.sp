@@ -221,7 +221,6 @@ char g_strSoundCritHit[][128] =
 
 #include "szf/weapons.sp"
 #include "szf/stocks.sp"
-#include "szf/precache.sp"
 #include "szf/sound.sp"
 #include "szf/pickupweapons.sp"
 #include "szf/config.sp"
@@ -3968,7 +3967,6 @@ public void OnMapStart()
 	SoundPrecache();
 	FastRespawnReset();
 	DetermineControlPoints();
-	ModelPrecache();
 	Weapons_Precache();
 	PrecacheZombieSouls();
 
@@ -4409,13 +4407,7 @@ void HandleSurvivorLoadout(int iClient)
 		// no melee, okay.. weird
 		TF2_RespawnPlayer(iClient);
 	}
-	// Prevent chat spam
-	if (g_flStopChatSpam[iClient] < GetGameTime() && strlen(strChanges) > 8)
-	{
-		CPrintToChat(iClient, strChanges);
-		g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
-	}
-
+	
 	// Prevent Survivors with voodoo-cursed souls
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
