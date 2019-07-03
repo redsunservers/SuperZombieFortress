@@ -562,7 +562,7 @@ void SoundPrecache()
 	for (int i = 0; i < sizeof(g_strZombieVO); i++)
     {
         char strPath[96];
-        Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/%s.mp3", g_strZombieVO[i]);
+        Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/%s.mp3", g_strZombieVO[i]);
         PrecacheSound2(strPath);
     }
 }
