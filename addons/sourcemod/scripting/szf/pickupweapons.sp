@@ -583,8 +583,6 @@ stock void SetWeaponModel(int iEntity, eWeapon wep)
 		TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
 	}
 	
-	SetEntPropFloat(iEntity, Prop_Data, "m_flModelScale", wep.flModelScale);
-	
 	// Because sniper wearable have a really offplace origin prop, we have to move entity to a more reasonable spot
 	if (StrEqual(strOldModel, "models/player/items/sniper/knife_shield.mdl")
 		|| StrEqual(strOldModel, "models/player/items/sniper/xms_sniper_commandobackpack.mdl"))

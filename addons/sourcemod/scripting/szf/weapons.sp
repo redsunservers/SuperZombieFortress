@@ -14,7 +14,6 @@ enum struct eWeapon
 	int iColor[3];
 	float flOffsetOrigin[3];
 	float flOffsetAngles[3];
-	float flModelScale;
 	eWeapon_OnPickup on_pickup;
 }
 

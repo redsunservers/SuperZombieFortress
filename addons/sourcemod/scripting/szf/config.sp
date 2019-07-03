@@ -155,8 +155,6 @@ public ArrayList Config_LoadWeaponData()
 					wep.flOffsetAngles[1] = flOffsetAngles[1];
 					wep.flOffsetAngles[2] = flOffsetAngles[2];
 					
-					wep.flModelScale = kv.GetFloat("scale", 1.0);
-					
 					array.PushArray(wep);
 					++iLength;
 				} 
