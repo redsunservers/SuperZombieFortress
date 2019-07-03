@@ -54,6 +54,10 @@ void Weapons_Precache()
 	
 	PrecacheSound("ui/item_heavy_gun_pickup.wav");
 	PrecacheSound("ui/item_heavy_gun_drop.wav");
+	
+	PrecacheSound("items/smallmedkit1.wav");			// Medkit pickup
+	PrecacheSound("items/powerup_pickup_base.wav");		// Defense pickup
+	PrecacheSound("items/powerup_pickup_haste.wav");	// Minicrits pickup
 }
 
 void GetWeaponFromModel(eWeapon buffer, char[] model)
@@ -152,7 +156,7 @@ public bool Weapons_OnPickup_Health(int client)
 	if (GetClientHealth(client) < SDK_GetMaxHealth(client))
 	{
 		SpawnPickup(client, "item_healthkit_full");
-		EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+		EmitSoundToClient(client, "items/smallmedkit1.wav");
 		
 		return true;
 	}
@@ -171,7 +175,7 @@ public bool Weapons_OnPickup_Ammo(int client)
 public bool Weapons_OnPickup_Minicrits(int client)
 {
 	TF2_AddCondition(client,TFCond_Buffed,30.0);
-	EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+	EmitSoundToClient(client, "items/powerup_pickup_haste.wav");
 	
 	return true;
 }
@@ -179,7 +183,7 @@ public bool Weapons_OnPickup_Minicrits(int client)
 public bool Weapons_OnPickup_Defense(int client)
 {
 	TF2_AddCondition(client,TFCond_DefenseBuffed,30.0);
-	EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
+	EmitSoundToClient(client, "items/powerup_pickup_base.wav");
 	
 	return true;
 }
