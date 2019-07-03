@@ -13,7 +13,8 @@
 #include <tf_econ_data>
 #include <dhooks>
 #include <morecolors>
-#include <superzombiefortress>
+
+#include "include/superzombiefortress.inc"
 
 #undef REQUIRE_EXTENSIONS
 #tryinclude <tf2items>
@@ -218,10 +219,12 @@ char g_strSoundCritHit[][128] =
 	"player/crit_received3.wav"
 };
 
+#include "szf/weapons.sp"
 #include "szf/stocks.sp"
 #include "szf/precache.sp"
 #include "szf/sound.sp"
 #include "szf/pickupweapons.sp"
+#include "szf/config.sp"
 
 //
 // Plugin Information
@@ -378,6 +381,9 @@ public void OnPluginStart()
 	cookieForceZombieStart = RegClientCookie("szf_forcezombiestart", "is this the flowey map?", CookieAccess_Protected);
 
 	SDK_Init();
+	
+	Config_InitTemplates();
+	Config_LoadTemplates();
 	
 	Weapons_Setup();
 	
@@ -2701,75 +2707,11 @@ void handle_winCondition()
 
 void handle_survivorAbilities()
 {
-	int clipAmmo;
-	int resAmmo;
-	int ammoAdj;
-
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidLivingSurvivor(i))
 		{
-			// 1. Handle survivor weapon rules.
-			//        SMG doesn't have to reload.
-			//        Syringe gun / blutsauger don't have to reload.
-			//        Flamethrower / backburner ammo limited to 125.
-			switch(TF2_GetPlayerClass(i))
-			{
-				case TFClass_Sniper:
-				{
-					if (isSlotClassname(i, 1, "tf_weapon_smg"))
-					{
-						clipAmmo = getClipAmmo(i, 1);
-						resAmmo = getResAmmo(i, 1);
-						ammoAdj = min((25 - clipAmmo), resAmmo);
-						if (ammoAdj > 0)
-						{
-							setClipAmmo(i, 1, (clipAmmo + ammoAdj));
-							setResAmmo(i, 1, (resAmmo - ammoAdj));
-						}
-					}
-				}
-
-				case TFClass_Medic:
-				{
-					if (isSlotClassname(i, 0, "tf_weapon_syringegun_medic"))
-					{
-						clipAmmo = getClipAmmo(i, 0);
-						resAmmo = getResAmmo(i, 0);
-						ammoAdj = min((40 - clipAmmo), resAmmo);
-						if (ammoAdj > 0)
-						{
-							setClipAmmo(i, 0, (clipAmmo + ammoAdj));
-							setResAmmo(i, 0, (resAmmo - ammoAdj));
-						}
-					}
-				}
-
-				case TFClass_Pyro:
-				{
-					resAmmo = getResAmmo(i, 0);
-					if (resAmmo > 100)
-					{
-						ammoAdj = max((resAmmo - 10), 100);
-						setResAmmo(i, 0, ammoAdj);
-					}
-				}
-
-				case TFClass_Engineer:
-				{
-					if (isSlotClassname(i, 1, "tf_weapon_pistol"))
-					{
-						resAmmo = getResAmmo(i, 1);
-						if (resAmmo > 60)
-						{
-							ammoAdj = 60;
-							setResAmmo(i, 1, ammoAdj);
-						}
-					}
-				}
-			} //switch
-
-			// 2. Survivor health regeneration.
+			// 1. Survivor health regeneration.
 			int curH = GetClientHealth(i);
 			int maxH = SDK_GetMaxHealth(i);
 			if (curH < maxH)
@@ -2787,21 +2729,21 @@ void handle_survivorAbilities()
 				SetEntityHealth(i, curH);
 			}
 
-			// 3. Handle survivor morale.
+			// 2. Handle survivor morale.
 			if (zf_survivorMorale[i] > 100) SetMorale(i, 100);
 			//zf_survivorMorale[i] = max(0, zf_survivorMorale[i] - 1);
 			int iMorale = GetMorale(i);
 			// decrement morale bonus over time
 
-			// 3.1. Show morale on HUD
+			// 2.1. Show morale on HUD
 			SetHudTextParams(0.18, 0.71, 1.0, 200 - (iMorale * 2), 255, 200 - (iMorale * 2), 255);
 			ShowHudText(i, 3, "Morale: %d/100", iMorale);
 
-			// 3.2. Award buffs if high morale is detected
+			// 2.2. Award buffs if high morale is detected
 			if (iMorale > 50) TF2_AddCondition(i, TFCond_DefenseBuffed, 1.1); // 50: defense buff
 
-			// 4. HUD stuff
-			// 4.1. Primary weapons
+			// 3. HUD stuff
+			// 3.1. Primary weapons
 			SetHudTextParams(0.18, 0.84, 1.0, 200, 255, 200, 255);
 			int iPrimary = GetPlayerWeaponSlot(i, 0);
 			if (iPrimary > MaxClients && IsValidEdict(iPrimary))
@@ -2837,7 +2779,7 @@ void handle_survivorAbilities()
 				}
 			}
 
-			// 4.2. Secondary weapons
+			// 3.2. Secondary weapons
 			SetHudTextParams(0.18, 0.9, 1.0, 200, 255, 200, 255);
 			int iSecondary = GetPlayerWeaponSlot(i, 1);
 			if (iSecondary > MaxClients && IsValidEdict(iSecondary))
@@ -2867,8 +2809,8 @@ void handle_survivorAbilities()
 				}
 			}
 
-		} //if
-	} //for
+		}
+	}
 
 	// 3. Handle sentry rules.
 	//        + Mini and Norm sentry starts with 40 ammo and decays to 0, then self destructs.
@@ -4388,9 +4330,7 @@ stock bool ObstactleBetweenEntities(int iEntity1, int iEntity2)
 void HandleSurvivorLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
-	char strChanges[128];
-	// TFClassType iClass = TF2_GetPlayerClass(iClient);
-
+	
 	// remove primary weapon
 	TF2_RemoveWeaponSlot(iClient, 0);
 
@@ -4402,86 +4342,67 @@ void HandleSurvivorLoadout(int iClient)
 	iEntity = GetPlayerWeaponSlot(iClient, TFWeaponSlot_Melee);
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
 	{
-		int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex"); // get item index
-
-		// half zatoichi: drains max health
-		if (iIndex == 357)
-		{
-			TF2Attrib_SetByName(iEntity, "mod_maxhealth_drain_rate", 10.0);
-			Format(strChanges, sizeof(strChanges), "{orange}The Half-Zatoichi {red}drains your max health while active.");
-		}
-
-		// market gardener: 20% blast damage from rocket jumps
-		if (iIndex == 416)
-		{
-			TF2Attrib_SetByName(iEntity, "rocket jump damage reduction", 0.8);
-			Format(strChanges, sizeof(strChanges), "{orange}The Market Gardener {green}makes you take 20%% less damage from Rocket Jumping.");
-
-		}
-
-		// homewrecker: no dmg penalty
-		if (iIndex == 153 || iIndex == 466)
-		{
-			TF2Attrib_SetByName(iEntity, "dmg penalty vs players", 1.0);
-			Format(strChanges, sizeof(strChanges), "{orange}The Homewrecker & reskins {green}have their damage penalty removed.");
-		}
-
-		// southern hospitality: 15% firing speed penalty
-		if (iIndex == 155)
-		{
-			TF2Attrib_SetByName(iEntity, "fire rate penalty", 1.15);
-			Format(strChanges, sizeof(strChanges), "{orange}The Southern Hospitality {red}has a 15%% firing speed penalty.");
-		}
-
-		// ubersaw: reduced uber gained on hit
-		if (iIndex == 37 || iIndex == 1003)
-		{
-			TF2Attrib_SetByName(iEntity, "add uber charge on hit", 0.1);
-			Format(strChanges, sizeof(strChanges), "{orange}The Ubersaw {red}gives 10%% uber on hit.");
-		}
-
-		// shiv: reduced damage penalty to 80%
-		if (iIndex == 171)
-		{
-			TF2Attrib_SetByName(iEntity, "damage penalty", 0.8);
-			Format(strChanges, sizeof(strChanges), "{orange}The Tribalman's Shiv {green}has its damage penalty reduced to 20%%.");
-		}
-
-		// amputator: no aoe heal, reduced health regeneration
-		if (iIndex == 304)
-		{
-			TF2Attrib_SetByName(iEntity, "enables aoe heal", view_as<float>(0));
-			TF2Attrib_SetByName(iEntity, "active health regen", view_as<float>(2));
-			Format(strChanges, sizeof(strChanges), "{orange}The Amputator {red}does not heal in an area when taunting.");
-		}
-
-		// pain train: 10% damage taken.
-		if (iIndex == 154)
-		{
-			TF2Attrib_SetByName(iEntity, "dmg taken increased", 1.1);
-			Format(strChanges, sizeof(strChanges), "{orange}The Pain Train {red}makes you take 10%% additional damage.");
-		}
-
-		// eureka
-		if (iIndex == 589)
-		{
-			TF2_CreateAndEquipWeapon(iClient, 7);
-			Format(strChanges, sizeof(strChanges), "{orange}The Eureka Effect {red}is disabled.");
-		}
+		//Get default attrib from config to apply all melee weapons
+		char atts[32][32];
+		int iCount = ExplodeString(g_eConfigMeleeDefault.sAttrib, " ; ", atts, 32, 32);
+		if (iCount > 1)
+			for (int i = 0; i < iCount; i+= 2)
+				TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[i]), StringToFloat(atts[i+1]));
 		
-		// back scratcher: 90% health from healers penalty
-		if (iIndex == 326)
-		{
-			TF2Attrib_SetByName(iEntity, "health from healers reduced", 0.1);
-			Format(strChanges, sizeof(strChanges), "{orange}The Back Scratcher {red}has a 90% health from healers penalty.");
-		}
-		else
-		{
-			// add penalty from medic healing
-			TF2Attrib_SetByName(iEntity, "health from healers reduced", 0.40);
-		}
+		//Get attrib from index to apply
+		int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
 		
-		TF2Attrib_ClearCache(iEntity); // This will refresh health max calculation and other attributes
+		int iLength = g_aConfigMelee.Length;
+		for (int i = 0; i < iLength; i++)
+		{
+			eConfigMelee eMelee;
+			g_aConfigMelee.GetArray(i, eMelee, sizeof(eMelee));
+			
+			if (eMelee.iIndex == iIndex)
+			{
+				//If have prefab, use said index instead
+				if (eMelee.iIndexPrefab >= 0)
+				{
+					int iPrefab = eMelee.iIndexPrefab;
+					for (int j = 0; j < iLength; j++)
+					{
+						g_aConfigMelee.GetArray(j, eMelee, sizeof(eMelee));
+						if (eMelee.iIndex == iPrefab)
+							break;
+					}
+				}
+				
+				//See if there weapon to replace
+				if (eMelee.iIndexReplace >= 0)
+				{
+					iIndex = eMelee.iIndexReplace;
+					TF2_RemoveWeaponSlot(iClient, TFWeaponSlot_Melee);
+					iEntity = TF2_CreateAndEquipWeapon(iClient, iIndex);
+					
+					//Re-apply global attrib
+					for (int j = 0; j < iCount; j+= 2)
+						TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[j]), StringToFloat(atts[j+1]));
+				}
+				
+				//Print text with cooldown to prevent spam
+				if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(eMelee.sText, ""))
+				{
+					CPrintToChat(iClient, eMelee.sText);
+					g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
+				}
+				
+				//Apply attribute
+				iCount = ExplodeString(eMelee.sAttrib, " ; ", atts, 32, 32);
+				if (iCount > 1)
+					for (int j = 0; j < iCount; j+= 2)
+						TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[j]), StringToFloat(atts[j+1]));
+				
+				break;
+			}
+		}
+
+		// This will refresh health max calculation and other attributes
+		TF2Attrib_ClearCache(iEntity);
 	}
 	else
 	{
