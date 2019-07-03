@@ -16,6 +16,10 @@
 
 #include "include/superzombiefortress.inc"
 
+#undef REQUIRE_EXTENSIONS
+#tryinclude <tf2items>
+#define REQUIRE_EXTENSIONS
+
 #pragma newdecls required
 
 #define INT(%0)		view_as<int>(%0)
@@ -23,6 +27,8 @@
 #define MAX_DIGITS 	12 // 10 + \0 for IntToString. And negative signs.
 
 #define GOO_INCREASE_RATE		3
+
+bool bTF2Items = true;
 
 Handle cookieFirstTimeSurvivor;
 Handle cookieFirstTimeZombie;
@@ -229,7 +235,7 @@ public Plugin myinfo =
 	author = "42, Frosty Scales, Benoist3012, Darthmule (2.0 version), MekuCube (1.0 version)",
 	description = "Originally based off MekuCube's 1.05 version.",
 	version = PLUGIN_VERSION,
-	url = "https://redsun.tf"
+	url = "https://github.com/redsunservers/SuperZombieFortress"
 }
 
 ////////////////////////////////////////////////////////////
@@ -262,6 +268,16 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("SZF_GetWeaponCalloutCount", Native_GetWeaponCalloutCount);
 	
 	RegPluginLibrary("superzombiefortress");
+}
+
+public void OnAllPluginsLoaded()
+{
+	// tf2items
+	if (GetExtensionFileStatus("tf2items.ext") != 1)
+	{
+		bTF2Items = false;
+		LogMessage("TF2Items is not loaded: Zombies will not receive voodoo cursed souls from the plugin.");
+	}
 }
 
 public void OnPluginStart()
@@ -874,7 +890,7 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &
 			if (g_iSpecialInfected[iAttacker] == INFECTED_TANK)
 			{
 				char strPath[PLATFORM_MAX_PATH];
-				Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/tank_attack_0%d.mp3", GetRandomInt(1, 4));
+				Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/tank_attack_0%d.mp3", GetRandomInt(1, 4));
 				EmitSoundToAll(strPath, iAttacker, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
@@ -1135,7 +1151,7 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 					DoBoomerExplosion(client, 600.0);
 
 					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/male_boomer_disruptvomit_0%d.mp3", GetRandomInt(5, 7));
+					Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/male_boomer_disruptvomit_0%d.mp3", GetRandomInt(5, 7));
 					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
@@ -1151,7 +1167,7 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 					TeleportEntity(client, NULL_VECTOR, NULL_VECTOR, vecVel);
 					
 					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/charger_charge_0%d.mp3", GetRandomInt(1, 2));
+					Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/charger_charge_0%d.mp3", GetRandomInt(1, 2));
 					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
@@ -1171,7 +1187,7 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 					DoHunterJump(client);
 
 					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/hunter_attackmix_0%d.mp3", GetRandomInt(1, 3));
+					Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/hunter_attackmix_0%d.mp3", GetRandomInt(1, 3));
 					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 			}
@@ -1588,7 +1604,7 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 						else
 						{
 							char strSound[PLATFORM_MAX_PATH];
-							Format(strSound, sizeof(strSound), "redsun/szf_rsx/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
+							Format(strSound, sizeof(strSound), "left4fortress/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
 							EmitSoundToAll(strSound);
 						}
 					}
@@ -1868,7 +1884,7 @@ public Action event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		float fHighest = 0.0;
 				
 		char strPath[PLATFORM_MAX_PATH];
-		Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/tank_death_0%d.mp3", GetRandomInt(1, 4));
+		Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/tank_death_0%d.mp3", GetRandomInt(1, 4));
 		EmitSoundToAll(strPath);
 				
 		for (int i = 1; i <= MaxClients; i++)
@@ -3213,7 +3229,7 @@ public void help_printZFInfoChat(int client)
 public void panel_PrintMain(int client)
 {
 	Panel panel = new Panel();
-	panel.SetTitle("Super Zombie Fortress - redsun.tf");
+	panel.SetTitle("Super Zombie Fortress");
 	panel.DrawItem(" Overview");
 	panel.DrawItem(" Team: Survivors");
 	panel.DrawItem(" Team: Infected");
@@ -3954,6 +3970,7 @@ public void OnMapStart()
 	DetermineControlPoints();
 	ModelPrecache();
 	Weapons_Precache();
+	PrecacheZombieSouls();
 
 	PrecacheParticle("spell_cast_wheel_blue");
 
@@ -4392,10 +4409,16 @@ void HandleSurvivorLoadout(int iClient)
 		// no melee, okay.. weird
 		TF2_RespawnPlayer(iClient);
 	}
-	
-	// reset custom models
-	SetVariantString("");
-	AcceptEntityInput(iClient, "SetCustomModel");
+	// Prevent chat spam
+	if (g_flStopChatSpam[iClient] < GetGameTime() && strlen(strChanges) > 8)
+	{
+		CPrintToChat(iClient, strChanges);
+		g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
+	}
+
+	// Prevent Survivors with voodoo-cursed souls
+	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
+	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
 
 	SetValidSlot(iClient);
 }
@@ -4417,8 +4440,6 @@ void HandleZombieLoadout(int iClient)
 		}
 
 		TF2_CreateAndEquipWeapon(iClient, (g_iSpecialInfected[iClient] == INFECTED_NONE) ? 44 : 0);
-
-		SetVariantString("models/redsun/left4fortress/scout/scout_zombie_v2.mdl");
 	}
 
 	if (TF2_GetPlayerClass(iClient) == TFClass_Heavy)
@@ -4433,8 +4454,6 @@ void HandleZombieLoadout(int iClient)
 		if (g_iSpecialInfected[iClient] == INFECTED_CHARGER) 	iItem = 587; // Apoco-Fists
 
 		TF2_CreateAndEquipWeapon(iClient, iItem);
-
-		SetVariantString("models/redsun/left4fortress/heavy/heavy_zombie_v2.mdl");
 	}
 
 
@@ -4454,15 +4473,7 @@ void HandleZombieLoadout(int iClient)
 			if (iWeapon > MaxClients && IsValidEdict(iWeapon))
 				TF2Attrib_SetByName(iWeapon, "disguise on backstab", 0.0);
 		}
-		
-		SetVariantString("models/redsun/left4fortress/spy/spy_zombie_v2.mdl");
 	}
-
-	// Set model based on SetVariantString in the IF statements
-	AcceptEntityInput(iClient, "SetCustomModel");
-	SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", 1);
-	SetVariantBool(true);
-	AcceptEntityInput(iClient, "SetCustomModelVisibletoSelf");
 
 	// Set slot to melee
 	int iEntity = GetPlayerWeaponSlot(iClient, TFWeaponSlot_Melee);
@@ -4482,10 +4493,12 @@ void HandleZombieLoadout(int iClient)
 	//Set health back to what it should be after modifying weapons
 	SetEntityHealth(iClient, SDK_GetMaxHealth(iClient));
 
-	// Prevents voodoo-cursed souls from applying RED skin to zombies on use.
+	// Prevents voodoo-cursed souls from applying RED skin to zombies on use
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
-	SetEntProp(iClient, Prop_Send, "m_iPlayerSkinOverride", 0);
+
+	// Set zombie model / soul wearable
+	ApplyVoodooCursedSoul(iClient);
 
 	//SetValidSlot(iClient);
 }
@@ -5215,7 +5228,7 @@ bool AttemptCarryItem(int iClient)
 
 	char strName[255];
 	GetEntPropString(iTarget, Prop_Data, "m_iName", strName, sizeof(strName));
-	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1 || StrContains(strName, "redsun_pickup", false) != -1)) return false;
+	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1)) return false;
 
 	g_iCarryingItem[iClient] = iTarget;
 	SetEntProp(iClient, Prop_Send, "m_bDrawViewmodel", 0);
@@ -5285,7 +5298,7 @@ void UpdateClientCarrying(int iClient)
 
 	char strName[255];
 	GetEntPropString(iTarget, Prop_Data, "m_iName", strName, sizeof(strName));
-	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1 || StrContains(strName, "redsun_pickup", false) != -1)) return;
+	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1)) return;
 
 	float vOrigin[3];
 	float vAngles[3];
@@ -5379,40 +5392,40 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 			{
 				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
 				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/ignite0%d.mp3", GetRandomInt(7, 9));
+					Format(sound, sizeof(sound), "left4fortress/zombie_vo/ignite0%d.mp3", GetRandomInt(7, 9));
 				}
 
 				else if (GetClientHealth(iClient) < 50 || StrContains(sound, "critical", false) != -1)
 				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/death_2%d.mp3", GetRandomInt(2, 9));
+					Format(sound, sizeof(sound), "left4fortress/zombie_vo/death_2%d.mp3", GetRandomInt(2, 9));
 				}
 
 				else
 				{
 					int iRandom = GetRandomInt(18, 22);
 					if (iRandom == 15 || iRandom == 16 || iRandom == 17 || iRandom == 23) iRandom = GetRandomInt(12, 14);
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/been_shot_%d.mp3", iRandom);
+					Format(sound, sizeof(sound), "left4fortress/zombie_vo/been_shot_%d.mp3", iRandom);
 				}
 			}
 
 			if (StrContains(sound, "_laugh", false) != -1 || StrContains(sound, "_no", false) != -1 || StrContains(sound, "_yes", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/mumbling0%d.mp3", GetRandomInt(1, 8));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/mumbling0%d.mp3", GetRandomInt(1, 8));
 			}
 
 			if (StrContains(sound, "_go", false) != -1 || StrContains(sound, "_jarate", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/shoved_%d.mp3", GetRandomInt(1, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/shoved_%d.mp3", GetRandomInt(1, 4));
 			}
 
 			if (StrContains(sound, "_medic", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/rage_at_victim2%d.mp3", !GetRandomInt(0, 2) ? GetRandomInt(1, 2) : GetRandomInt(5, 6));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/rage_at_victim2%d.mp3", !GetRandomInt(0, 2) ? GetRandomInt(1, 2) : GetRandomInt(5, 6));
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/idle_breath_0%d.mp3", GetRandomInt(1, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/idle_breath_0%d.mp3", GetRandomInt(1, 4));
 			}
 
 			if (g_iSpecialInfected[iClient] == INFECTED_KINGPIN) pitch = 80;
@@ -5426,18 +5439,18 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 			{
 				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
 				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/tank_fire_0%d.mp3", GetRandomInt(2, 5));
+					Format(sound, sizeof(sound), "left4fortress/zombie_vo/tank_fire_0%d.mp3", GetRandomInt(2, 5));
 				}
 
 				else
 				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/tank_pain_0%d.mp3", GetRandomInt(1, 4));
+					Format(sound, sizeof(sound), "left4fortress/zombie_vo/tank_pain_0%d.mp3", GetRandomInt(1, 4));
 				}
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
 			}
 		}
 
@@ -5446,12 +5459,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/charger_pain_0%d.mp3", GetRandomInt(1, 3));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/charger_pain_0%d.mp3", GetRandomInt(1, 3));
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/charger_spotprey_0%d.mp3", GetRandomInt(1, 3));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/charger_spotprey_0%d.mp3", GetRandomInt(1, 3));
 			}
 		}
 
@@ -5460,12 +5473,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/hunter_pain_1%d.mp3", GetRandomInt(2, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/hunter_pain_1%d.mp3", GetRandomInt(2, 4));
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/hunter_stalk_0%d.mp3", GetRandomInt(4, 6));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/hunter_stalk_0%d.mp3", GetRandomInt(4, 6));
 			}
 		}
 
@@ -5474,12 +5487,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/male_boomer_pain_%d.mp3", GetRandomInt(1, 3));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/male_boomer_pain_%d.mp3", GetRandomInt(1, 3));
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/male_boomer_lurk_0%d.mp3", GetRandomInt(2, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/male_boomer_lurk_0%d.mp3", GetRandomInt(2, 4));
 			}
 		}
 
@@ -5488,12 +5501,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/smoker_pain_0%d.mp3", GetRandomInt(2, 4));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/smoker_pain_0%d.mp3", GetRandomInt(2, 4));
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/smoker_lurk_1%d.mp3", GetRandomInt(1, 3));
+				Format(sound, sizeof(sound), "left4fortress/zombie_vo/smoker_lurk_1%d.mp3", GetRandomInt(1, 3));
 			}
 		}
 
@@ -5852,10 +5865,28 @@ public void DoSmokerBeam(int iClient)
 
 	// 750 in L4D2, scaled to TF2 player hull sizing (32hu -> 48hu)
 	if (GetVectorDistance(vOrigin, vEndOrigin) > 1150.0) return;
-
-	// draw beam
+	
+	// Smoker's tongue beam
+	// Beam that gets sent to all other clients
 	TE_SetupBeamPoints(vOrigin, vEndOrigin, g_iSprite, 0, 0, 0, 0.08, 5.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
-	TE_SendToAll();
+	int iTotal = 0;
+	int[] iClients = new int[MaxClients];
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && i != iClient)
+		{
+			iClients[iTotal++] = i;
+		}
+	}
+	TE_Send(iClients, iTotal);
+	
+	// Send a different beam to smoker
+	float newOrigin[3];
+	newOrigin[0] = vOrigin[0];
+	newOrigin[1] = vOrigin[1];
+	newOrigin[2] = vOrigin[2] - 7.0;
+	TE_SetupBeamPoints(newOrigin, vEndOrigin, g_iSprite, 0, 0, 0, 0.08, 2.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
+	TE_SendToClient(iClient);
 
 	int iHit = TR_GetEntityIndex(hTrace);
 

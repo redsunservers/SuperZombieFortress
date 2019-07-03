@@ -59,6 +59,15 @@ static ZFRoundState zf_roundState = RoundInit1;
 int zf_zomTeam = INT(TFTeam_Blue);
 int zf_surTeam = INT(TFTeam_Red);
 
+//
+// Zombie Soul related indexes
+//
+int iZombieSoulIndex[10];
+#define SKIN_ZOMBIE			5
+#define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
+
+char cClassNames[10][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
+
 ////////////////////////////////////////////////////////////
 //
 // Util Init
@@ -978,4 +987,56 @@ stock void UTIL_SayText2(int[] players, int playersNum, int iEntity, bool bChat,
 	message.WriteString(param4);
 	
 	EndMessage();
+}
+
+/******************************************************************************************************/
+
+stock int PrecacheZombieSouls()
+{
+	char cPath[64];
+	// loops through all class types available
+	for (int i = 1; i <= 9; i++)
+	{
+		Format(cPath, sizeof(cPath), "models/player/items/%s/%s_zombie.mdl", cClassNames[i], cClassNames[i]);
+		iZombieSoulIndex[i] = PrecacheModel(cPath);
+	}
+}
+
+stock void ApplyVoodooCursedSoul(int iClient)
+{
+	if (!bTF2Items || TF2_IsPlayerInCondition(iClient, TFCond_HalloweenGhostMode)) return;
+
+	TF2_CreateAndEquipFakeModel(iClient, iZombieSoulIndex[view_as<int>(TF2_GetPlayerClass(iClient))]);
+
+	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", true);
+	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", (isSpy(iClient)) ? SKIN_ZOMBIE_SPY : SKIN_ZOMBIE);
+}
+
+stock int TF2_CreateAndEquipFakeModel(int iClient, int iModelIndex)
+{
+	#if defined _tf2items_included // This requires TF2items to be included
+	Handle hWearable = TF2Items_CreateItem(OVERRIDE_ALL|FORCE_GENERATION);
+	if (hWearable == INVALID_HANDLE) return -1;
+
+	TF2Items_SetClassname(hWearable, "tf_wearable");
+	TF2Items_SetItemIndex(hWearable, 5023);
+	TF2Items_SetLevel(hWearable, 50);
+	TF2Items_SetQuality(hWearable, 6);
+
+	int iWearable = TF2Items_GiveNamedItem(iClient, hWearable);
+	delete hWearable;
+	if (IsValidEdict(iWearable))
+	{
+		SetEntProp(iWearable, Prop_Send, "m_bValidatedAttachedEntity", true);
+		if (g_hSDKEquipWearable != INVALID_HANDLE)
+		{
+			SDKCall(g_hSDKEquipWearable, iClient, iWearable);
+			SetEntProp(iWearable, Prop_Send, "m_bValidatedAttachedEntity", true);
+			SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", iModelIndex);
+			return iWearable;
+		}
+	}
+	#endif
+
+	return -1;
 }
