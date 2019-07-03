@@ -231,7 +231,7 @@ char g_strSoundCritHit[][128] =
 public Plugin myinfo =
 {
 	name = "Super Zombie Fortress",
-	author = "42, Frosty Scales, Benoist3012, Darthmule (2.0 version), MekuCube (1.0 version)",
+	author = "42, Sasch, Benoist3012, Haxton Sale, Frosty Scales, MekuCube (original)",
 	description = "Originally based off MekuCube's 1.05 version.",
 	version = PLUGIN_VERSION,
 	url = "https://github.com/redsunservers/SuperZombieFortress"
