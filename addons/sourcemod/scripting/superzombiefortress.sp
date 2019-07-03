@@ -5939,32 +5939,26 @@ public void DoSmokerBeam(int iClient)
 	if (GetVectorDistance(vOrigin, vEndOrigin) > 1150.0) return;
 	
 	// Smoker's tongue beam
-	// Beam starting point is lower for the smoker himself (looks slightly better this way)
+	// Beam that gets sent to all other clients
+	TE_SetupBeamPoints(vOrigin, vEndOrigin, g_iSprite, 0, 0, 0, 0.08, 5.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
+	int iTotal = 0;
+	int[] iClients = new int[MaxClients];
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsClientInGame(i))
+		if (IsClientInGame(i) && i != iClient)
 		{
-			if (i == iClient)
-			{
-				float newOrigin[3];
-				float sub[3];
-				
-				sub[0] += 0.0;
-				sub[1] += 0.0;
-				sub[2] += 7.0;
-				
-				SubtractVectors(vOrigin, sub, newOrigin);
-				
-				TE_SetupBeamPoints(newOrigin, vEndOrigin, g_iSprite, 0, 0, 0, 0.08, 2.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
-			}
-			else
-			{
-				TE_SetupBeamPoints(vOrigin, vEndOrigin, g_iSprite, 0, 0, 0, 0.08, 5.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
-			}
-			
-			TE_SendToClient(i);
+			iClients[iTotal++] = i;
 		}
 	}
+	TE_Send(iClients, iTotal);
+	
+	// Send a different beam to smoker
+	float newOrigin[3];
+	newOrigin[0] = vOrigin[0];
+	newOrigin[1] = vOrigin[1];
+	newOrigin[2] = vOrigin[2] - 7.0;
+	TE_SetupBeamPoints(newOrigin, vEndOrigin, g_iSprite, 0, 0, 0, 0.08, 2.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
+	TE_SendToClient(iClient);
 
 	int iHit = TR_GetEntityIndex(hTrace);
 
