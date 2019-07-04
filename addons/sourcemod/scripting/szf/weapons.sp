@@ -59,7 +59,7 @@ void Weapons_Precache()
 	PrecacheSound("items/powerup_pickup_haste.wav");	// Minicrits pickup
 }
 
-void GetWeaponFromModel(eWeapon buffer, char[] model)
+bool GetWeaponFromModel(eWeapon buffer, char[] model)
 {
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++) 
@@ -70,9 +70,11 @@ void GetWeaponFromModel(eWeapon buffer, char[] model)
 		if (StrEqual(model, wep.sModel))
 		{
 			buffer = wep;
-			return;
+			return true;
 		}
 	}
+	
+	return false;
 }
 
 void GetWeaponFromIndex(eWeapon buffer, int index)

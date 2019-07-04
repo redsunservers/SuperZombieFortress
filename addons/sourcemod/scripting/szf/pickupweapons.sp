@@ -204,7 +204,8 @@ bool AttemptGrabItem(int iClient)
 	GetEntityModel(iTarget, strModel, sizeof(strModel));
 	
 	eWeapon wep;
-	GetWeaponFromModel(wep, strModel);
+	if (!GetWeaponFromModel(wep, strModel))
+		return false;
 	
 	bool allow_pickup = true;
 	if (wep.on_pickup != INVALID_FUNCTION)
