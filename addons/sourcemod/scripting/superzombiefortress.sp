@@ -85,7 +85,7 @@ float g_fZombieDamageScale = 1.0;
 //int g_StartTime = 0;
 //int g_AdditionalTime = 0;
 
-Handle g_hFastRespawnArray = INVALID_HANDLE;
+ArrayList g_aFastRespawnArray;
 
 bool g_bBackstabbed[MAXPLAYERS+1] = false;
 #define BACKSTABDURATION_FULL		5.5
@@ -3967,7 +3967,6 @@ stock float GetTimePercentage()
 public void OnMapStart()
 {
 	SoundPrecache();
-	FastRespawnReset();
 	DetermineControlPoints();
 	Weapons_Precache();
 	PrecacheZombieSouls();
@@ -4116,15 +4115,9 @@ public Action StopZombieRage(Handle hTimer)
 	}
 }
 
-void FastRespawnReset()
-{
-	delete g_hFastRespawnArray;
-	g_hFastRespawnArray = CreateArray(3);
-}
-
 int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true)
 {
-	if (g_hFastRespawnArray == INVALID_HANDLE) return -1;
+	if (g_aFastRespawnArray == null) return -1;
 
 	Handle hTombola = CreateArray();
 
@@ -4134,10 +4127,10 @@ int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true
 	float fEntryDistance;
 	GetClientAbsOrigin(iClient, fPosClient);
 	
-	int iLength = GetArraySize(g_hFastRespawnArray);
+	int iLength = g_aFastRespawnArray.Length;
 	for (int i = 0; i < iLength; i++)
 	{
-		GetArrayArray(g_hFastRespawnArray, i, fPosEntry);
+		g_aFastRespawnArray.GetArray(i, fPosEntry);
 		fPosEntry2[0] = fPosEntry[0];
 		fPosEntry2[1] = fPosEntry[1];
 		fPosEntry2[2] = fPosEntry[2] += 90.0;
@@ -4209,7 +4202,7 @@ bool PerformFastRespawn(int iClient)
 	float fPosSpawn[3];
 	float fPosTarget[3];
 	float fAngle[3];
-	GetArrayArray(g_hFastRespawnArray, iResult, fPosSpawn);
+	g_aFastRespawnArray.GetArray(iResult, fPosSpawn);
 	GetClientAbsOrigin(iTarget, fPosTarget);
 	VectorTowards(fPosSpawn, fPosTarget, fAngle);
 
@@ -4219,17 +4212,18 @@ bool PerformFastRespawn(int iClient)
 
 void FastRespawnDataCollect()
 {
-	if (g_hFastRespawnArray == INVALID_HANDLE) FastRespawnReset();
+	if (g_aFastRespawnArray == null)
+		g_aFastRespawnArray = new ArrayList(3);
 
 	float fPos[3];
 	
-	ClearArray(g_hFastRespawnArray); // cancer everywhere
+	g_aFastRespawnArray.Clear(); // cancer everywhere
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		if (IsClientInGame(iClient) && IsValidLivingPlayer(iClient) && FastRespawnNearby(iClient, 1.0, false) < 0 && !(GetEntityFlags(iClient) & FL_DUCKING == FL_DUCKING) && (GetEntityFlags(iClient) & FL_ONGROUND == FL_ONGROUND))
 		{
 			GetClientAbsOrigin(iClient, fPos);
-			PushArrayArray(g_hFastRespawnArray, fPos);
+			g_aFastRespawnArray.PushArray(fPos);
 		}
 	}
 }
