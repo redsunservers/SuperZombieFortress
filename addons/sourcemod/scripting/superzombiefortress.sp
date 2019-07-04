@@ -22,7 +22,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION "3.1.0"
+#define PLUGIN_VERSION "3.1.1"
 
 #define INT(%0)		view_as<int>(%0)
 
