@@ -3229,8 +3229,11 @@ public void help_printZFInfoChat(int client)
 //
 public void panel_PrintMain(int client)
 {
+	char sBuffer[64];
+	Format(sBuffer, sizeof(sBuffer), "Super Zombie Fortress - %s", PLUGIN_VERSION);
+	
 	Panel panel = new Panel();
-	panel.SetTitle("Super Zombie Fortress");
+	panel.SetTitle(sBuffer);
 	panel.DrawItem(" Overview");
 	panel.DrawItem(" Team: Survivors");
 	panel.DrawItem(" Team: Infected");
