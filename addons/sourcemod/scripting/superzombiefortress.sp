@@ -4479,6 +4479,10 @@ void HandleZombieLoadout(int iClient)
 	//Set health back to what it should be after modifying weapons
 	SetEntityHealth(iClient, SDK_GetMaxHealth(iClient));
 
+	// reset custom models
+	SetVariantString("");
+	AcceptEntityInput(iClient, "SetCustomModel");
+
 	// Prevents voodoo-cursed souls from applying RED skin to zombies on use
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
