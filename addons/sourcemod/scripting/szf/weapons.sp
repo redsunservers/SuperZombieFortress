@@ -1,4 +1,4 @@
-typedef eWeapon_OnPickup = function bool (int client); // Return false to prevent client from picking up the item.
+ typedef eWeapon_OnPickup = function bool (int client); // Return false to prevent client from picking up the item.
 
 static ArrayList g_Weapons;
 static ArrayList g_WepIndexesByRarity[eWeaponsRarity]; // Array indexes of g_Weapons array
@@ -137,18 +137,6 @@ void Weapons_ReplaceEntityModel(int ent, int index)
 			return;
 		}
 	}
-}
-
-// enum structs are truly epic
-void Weapons_GetOffsets(eWeapon wep, float origin[3], float angles[3])
-{
-	origin[0] = wep.flOffsetOrigin[0];
-	origin[1] = wep.flOffsetOrigin[1];
-	origin[2] = wep.flOffsetOrigin[2];
-	
-	angles[0] = wep.flOffsetAngles[0];
-	angles[1] = wep.flOffsetAngles[1];
-	angles[2] = wep.flOffsetAngles[2];
 }
 
 // -----------------------------------------------------------

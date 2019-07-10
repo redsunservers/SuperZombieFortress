@@ -540,10 +540,6 @@ stock void SetRandomWeapon(int iEntity, eWeaponsRarity nRarity)
 	eWeapon wep;
 	array.GetArray(iRandom, wep);
 	
-	float flOffsetOrigin[3];
-	float flOffsetAngles[3];
-	Weapons_GetOffsets(wep, flOffsetOrigin, flOffsetAngles);
-	
 	SetWeaponModel(iEntity, wep);
 	
 	if (wep.iColor[0] + wep.iColor[1] + wep.iColor[2] > 0)
@@ -569,17 +565,13 @@ stock void SetWeaponModel(int iEntity, eWeapon wep)
 	// Offsets (will only work for pickups for now)
 	if (wep.Rarity == eWeaponsRarity_Pickup)
 	{
-		float flOffsetOrigin[3];
-		float flOffsetAngles[3];
-		Weapons_GetOffsets(wep, flOffsetOrigin, flOffsetAngles);
+		vecOrigin[0] += wep.flOffsetOrigin[0];
+		vecOrigin[1] += wep.flOffsetOrigin[1];
+		vecOrigin[2] += wep.flOffsetOrigin[2];
 		
-		vecOrigin[0] += flOffsetOrigin[0];
-		vecOrigin[1] += flOffsetOrigin[1];
-		vecOrigin[2] += flOffsetOrigin[2];
-		
-		vecAngles[0] += flOffsetAngles[0];
-		vecAngles[1] += flOffsetAngles[1];
-		vecAngles[2] += flOffsetAngles[2];
+		vecAngles[0] += wep.flOffsetAngles[0];
+		vecAngles[1] += wep.flOffsetAngles[1];
+		vecAngles[2] += wep.flOffsetAngles[2];
 	
 		TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
 	}
