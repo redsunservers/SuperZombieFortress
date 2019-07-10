@@ -49,9 +49,8 @@ void Weapons_Precache()
 		
 		PrecacheModel(wep.sModel);
 		
-		if (wep.sSound_Pickup[0] != '\0') {
+		if (wep.sSound_Pickup[0] != '\0')
 			PrecacheSound(wep.sSound_Pickup);
-		}
 	}
 	
 	PrecacheSound("ui/item_heavy_gun_pickup.wav");
