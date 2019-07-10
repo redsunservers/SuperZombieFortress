@@ -220,6 +220,9 @@ bool AttemptGrabItem(int iClient)
 		if (!allow_pickup)
 			return false;
 		
+		if (wep.sSound_Pickup[0] != '\0')
+			EmitSoundToClient(iClient, wep.sSound_Pickup);
+		
 		AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
 		AcceptEntityInput(iTarget, "Kill");
 		
@@ -308,7 +311,10 @@ bool AttemptGrabItem(int iClient)
 
 public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 {
-	EmitSoundToClient(iClient, "ui/item_heavy_gun_pickup.wav");
+	if (wep.sSound_Pickup[0] == '\0')
+		EmitSoundToClient(iClient, "ui/item_heavy_gun_pickup.wav");
+	else
+		EmitSoundToClient(iClient, wep.sSound_Pickup);
 
 	g_bCanPickup[iClient] = false;
 	CreateTimer(PICKUP_COOLDOWN, ResetPickup, iClient);

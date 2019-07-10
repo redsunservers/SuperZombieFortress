@@ -131,6 +131,7 @@ public ArrayList Config_LoadWeaponData()
 					
 					kv.GetString("text", wep.sText, sizeof(wep.sText));
 					kv.GetString("attrib", wep.sAttribs, sizeof(wep.sAttribs));
+					kv.GetString("sound_pickup", wep.sSound_Pickup, sizeof(wep.sSound_Pickup));
 					
 					kv.GetString("callback", sBuffer, sizeof(sBuffer));
 					wep.on_pickup = view_as<eWeapon_OnPickup>(GetFunctionByName(null, sBuffer));

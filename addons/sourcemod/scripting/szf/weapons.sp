@@ -1,4 +1,4 @@
- typedef eWeapon_OnPickup = function bool (int client); // Return false to prevent client from picking up the item.
+typedef eWeapon_OnPickup = function bool (int client); // Return false to prevent client from picking up the item.
 
 static ArrayList g_Weapons;
 static ArrayList g_WepIndexesByRarity[eWeaponsRarity]; // Array indexes of g_Weapons array
@@ -9,6 +9,7 @@ enum struct eWeapon
 	int iIndex;
 	eWeaponsRarity Rarity;
 	char sModel[PLATFORM_MAX_PATH];
+	char sSound_Pickup[PLATFORM_MAX_PATH];
 	char sText[256];
 	char sAttribs[256];
 	int iColor[3];
@@ -40,8 +41,6 @@ void Weapons_Init()
 
 void Weapons_Precache()
 {
-	SoundPrecache();
-	
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++)
 	{
@@ -49,14 +48,14 @@ void Weapons_Precache()
 		g_Weapons.GetArray(i, wep);
 		
 		PrecacheModel(wep.sModel);
+		
+		if (wep.sSound_Pickup[0] != '\0') {
+			PrecacheSound(wep.sSound_Pickup);
+		}
 	}
 	
 	PrecacheSound("ui/item_heavy_gun_pickup.wav");
 	PrecacheSound("ui/item_heavy_gun_drop.wav");
-	
-	PrecacheSound("items/smallmedkit1.wav");			// Medkit pickup
-	PrecacheSound("items/powerup_pickup_base.wav");		// Defense pickup
-	PrecacheSound("items/powerup_pickup_haste.wav");	// Minicrits pickup
 }
 
 bool GetWeaponFromModel(eWeapon buffer, char[] model)
@@ -145,7 +144,6 @@ public bool Weapons_OnPickup_Health(int client)
 	if (GetClientHealth(client) < SDK_GetMaxHealth(client))
 	{
 		SpawnPickup(client, "item_healthkit_full");
-		EmitSoundToClient(client, "items/smallmedkit1.wav");
 		
 		return true;
 	}
@@ -156,7 +154,6 @@ public bool Weapons_OnPickup_Health(int client)
 public bool Weapons_OnPickup_Ammo(int client)
 {
 	SpawnPickup(client, "item_ammopack_full");
-	EmitSoundToClient(client, "ui/item_heavy_gun_pickup.wav");
 	
 	return true;
 }
@@ -164,7 +161,6 @@ public bool Weapons_OnPickup_Ammo(int client)
 public bool Weapons_OnPickup_Minicrits(int client)
 {
 	TF2_AddCondition(client,TFCond_Buffed,30.0);
-	EmitSoundToClient(client, "items/powerup_pickup_haste.wav");
 	
 	return true;
 }
@@ -172,7 +168,6 @@ public bool Weapons_OnPickup_Minicrits(int client)
 public bool Weapons_OnPickup_Defense(int client)
 {
 	TF2_AddCondition(client,TFCond_DefenseBuffed,30.0);
-	EmitSoundToClient(client, "items/powerup_pickup_base.wav");
 	
 	return true;
 }
