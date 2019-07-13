@@ -1983,6 +1983,9 @@ public Action event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_flRageRespawnStress += 1.7;	//Add stress time 1.7 sec for every respawn zombies
 			CreateTimer(flTimer, RespawnPlayer, victim);
 		}
+		
+		//Check for spec bypass from AFK manager
+		RequestFrame(Frame_CheckZombieBypass, victim);
 	}
 
 	// Instant respawn outside of the actual gameplay
@@ -3666,6 +3669,12 @@ void SetGlow()
 			SetEntProp(i, Prop_Send, "m_bGlowEnabled", iGlow2);
 		}
 	}
+}
+
+public void Frame_CheckZombieBypass(int iClient)
+{
+	if (GetClientTeam(iClient) <= 1)
+		CheckZombieBypass(iClient);
 }
 
 void CheckZombieBypass(int iClient)
