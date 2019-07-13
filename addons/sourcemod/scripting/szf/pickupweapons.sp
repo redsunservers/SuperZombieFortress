@@ -1,4 +1,4 @@
-#define PICKUP_COOLDOWN 	1.5
+#define PICKUP_COOLDOWN 	2.0
 #define MAX_RARE			15
 
 #define ENT_ONPICKUP	"FireUser1"
