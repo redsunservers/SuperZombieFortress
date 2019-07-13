@@ -9,7 +9,7 @@ enum struct eWeapon
 	int iIndex;
 	eWeaponsRarity Rarity;
 	char sModel[PLATFORM_MAX_PATH];
-	char sSound_Pickup[PLATFORM_MAX_PATH];
+	char sSound[PLATFORM_MAX_PATH];
 	char sText[256];
 	char sAttribs[256];
 	int iColor[3];
@@ -49,8 +49,8 @@ void Weapons_Precache()
 		
 		PrecacheModel(wep.sModel);
 		
-		if (wep.sSound_Pickup[0] != '\0')
-			PrecacheSound(wep.sSound_Pickup);
+		if (wep.sSound[0] != '\0')
+			PrecacheSound(wep.sSound);
 	}
 	
 	PrecacheSound("ui/item_heavy_gun_pickup.wav");
