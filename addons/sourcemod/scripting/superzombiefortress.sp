@@ -5383,7 +5383,7 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				if (GetClientHealth(iClient) < 50 || StrContains(sound, "crticial", false) != -1)
+				if (GetClientHealth(iClient) < 50 || StrContains(sound, "crticial", false) != -1)  // the typo is intended because that's how the soundfiles are named
 				{
 					EmitSoundToAll(g_strZombieVO_Common_Death[GetRandomInt(0, sizeof(g_strZombieVO_Common_Death) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
