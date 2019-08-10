@@ -5396,7 +5396,7 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				if (GetClientHealth(iClient) < 50 || StrContains(sound, "crticial", false) != -1)
+				if (GetClientHealth(iClient) < 50 || StrContains(sound, "crticial", false) != -1) // the typo is intended because that's how the soundfiles are named
 				{
 					Format(sound, sizeof(sound), "left4fortress/zombie_vo/death_2%d.mp3", GetRandomInt(2, 9));
 				}
