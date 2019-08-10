@@ -1145,8 +1145,10 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 				{
 					zf_rageTimer[client] = 31;
 					DoGenericRage(client);
+					char strPath[PLATFORM_MAX_PATH];
+					Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/rage_at_victim2%d.mp3", !GetRandomInt(0, 2) ? GetRandomInt(1, 2) : GetRandomInt(5, 6));
+					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
-
 				if (g_iSpecialInfected[client] == INFECTED_BOOMER && g_bRoundActive)
 				{
 					DoBoomerExplosion(client, 600.0);
@@ -5384,45 +5386,37 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 	{
 		return Plugin_Continue;
 	}
-
+	
 	if (StrContains(sound, "vo/", false) != -1 && IsZombie(iClient))
 	{
+		if (StrContains(sound, "zombie_vo/", false) != -1) return Plugin_Continue; // so rage sounds (for normal & most special infected alike) don't get blocked
+		
 		// normal infected & kingpin(pitch only)
 		if (g_iSpecialInfected[iClient] == INFECTED_NONE || g_iSpecialInfected[iClient] == INFECTED_KINGPIN)
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-				{
-					Format(sound, sizeof(sound), "left4fortress/zombie_vo/ignite0%d.mp3", GetRandomInt(7, 9));
-				}
-
-				else if (GetClientHealth(iClient) < 50 || StrContains(sound, "critical", false) != -1)
+				if (GetClientHealth(iClient) < 50 || StrContains(sound, "crticial", false) != -1)
 				{
 					Format(sound, sizeof(sound), "left4fortress/zombie_vo/death_2%d.mp3", GetRandomInt(2, 9));
 				}
 
 				else
 				{
-					int iRandom = GetRandomInt(18, 22);
+					int iRandom = GetRandomInt(12, 24);
 					if (iRandom == 15 || iRandom == 16 || iRandom == 17 || iRandom == 23) iRandom = GetRandomInt(12, 14);
 					Format(sound, sizeof(sound), "left4fortress/zombie_vo/been_shot_%d.mp3", iRandom);
 				}
 			}
 
-			if (StrContains(sound, "_laugh", false) != -1 || StrContains(sound, "_no", false) != -1 || StrContains(sound, "_yes", false) != -1)
+			else if (StrContains(sound, "_laugh", false) != -1 || StrContains(sound, "_no", false) != -1 || StrContains(sound, "_yes", false) != -1)
 			{
 				Format(sound, sizeof(sound), "left4fortress/zombie_vo/mumbling0%d.mp3", GetRandomInt(1, 8));
 			}
 
-			if (StrContains(sound, "_go", false) != -1 || StrContains(sound, "_jarate", false) != -1)
+			else if (StrContains(sound, "_go", false) != -1 || StrContains(sound, "_jarate", false) != -1)
 			{
 				Format(sound, sizeof(sound), "left4fortress/zombie_vo/shoved_%d.mp3", GetRandomInt(1, 4));
-			}
-
-			if (StrContains(sound, "_medic", false) != -1)
-			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/rage_at_victim2%d.mp3", !GetRandomInt(0, 2) ? GetRandomInt(1, 2) : GetRandomInt(5, 6));
 			}
 
 			else
@@ -5714,7 +5708,7 @@ public void DoGenericRage(int iClient)
 	int curH = GetClientHealth(iClient);
 	SetEntityHealth(iClient, RoundToCeil(curH * 1.5));
 
-	ClientCommand(iClient, "voicemenu 2 1");
+	//ClientCommand(iClient, "voicemenu 2 1");
 
 	float fClientPos[3];
 	GetClientEyePosition(iClient, fClientPos);
