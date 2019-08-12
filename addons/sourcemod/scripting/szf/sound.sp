@@ -897,13 +897,13 @@ void EndSound(int iClient)
 		StopSound(iClient, SNDCHAN_AUTO, g_sSound[iClient]);
 	
 	//Reset global variables
-	strcopy(g_sSound[iClient], sizeof(g_sSound), "");
+	strcopy(g_sSound[iClient], sizeof(g_sSound), "misc/null.wav"); //Having nothing here gives an "empty soundpath is not precached" warning to the server every time a music sound stops for each client
 	g_iSound[iClient] = SOUND_NONE;
 }
 
 void GetRandomSound(int iSound, char strPath[PLATFORM_MAX_PATH], int iLength)
 {
-	strcopy(strPath, iLength, "");
+	strcopy(strPath, iLength, "misc/null.wav"); //Having nothing here doesn't seem to matter, but let's keep it consistent
 	
 	switch (iSound)
 	{
