@@ -4868,8 +4868,8 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 	// check if both owner and toucher is valid
 	if (!IsValidClient(iOwner) || !IsValidClient(iToucher)) return Plugin_Continue;
 	
-	// dont allow tank to collect health
-	if (g_iSpecialInfected[iToucher] == INFECTED_TANK) return Plugin_Handled;
+	// dont allow owner and tank collect sandvich
+	if (iOwner == iToucher || g_iSpecialInfected[iToucher] == INFECTED_TANK) return Plugin_Handled;
 	
 	if (GetClientTeam(iToucher) != GetClientTeam(iOwner))
 	{
