@@ -1875,7 +1875,7 @@ public Action event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		int iWinner = 0;
 		float fHighest = 0.0;
 				
-		EmitSoundToAll(g_strZombieVO_Tank_Death[GetRandomInt(0, sizeof(g_strZombieVO_Tank_Death) - 1)], victim, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		EmitSoundToAll(g_strZombieVO_Tank_Death[GetRandomInt(0, sizeof(g_strZombieVO_Tank_Death) - 1)]);
 				
 		for (int i = 1; i <= MaxClients; i++)
 		{
