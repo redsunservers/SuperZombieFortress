@@ -13,7 +13,3 @@ Sourcemod 1.10 or higher is required for servers to use this plugin, as it uses 
 - [tf_econ_data](https://forums.alliedmods.net/showthread.php?t=315011)
 - [dhooks](https://forums.alliedmods.net/showthread.php?t=180114)
 - [morecolors](https://forums.alliedmods.net/showthread.php?t=185016) (Only needed if recompiling)
-
-# Optional Plugin/Extension Dependencies
-
-- [tf2items](https://forums.alliedmods.net/showthread.php?t=115100) (Applying voodoo-cursed souls)
