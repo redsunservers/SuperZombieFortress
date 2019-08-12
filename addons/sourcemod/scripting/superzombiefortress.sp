@@ -1568,6 +1568,8 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				SetEntityRenderColor(client, 0, 255, 0, 255);
 				//PerformFastRespawn2(client);
 				
+				EmitSoundToAll(g_strZombieVO_Tank_OnFire[GetRandomInt(0, sizeof(g_strZombieVO_Tank_OnFire) - 1)]);
+				
 				for (int i = 1; i <= MaxClients; i++)
 				{
 					if (IsValidClient(i))
@@ -1591,13 +1593,9 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 
 						CPrintToChat(i, "{red}Incoming TAAAAANK!");
 						
-						if (GetCurrentSound(i) != SOUND_MUSIC_LASTSTAND || !IsMusicOverrideOn())
+						if (GetCurrentSound(i) != SOUND_MUSIC_LASTSTAND || !IsMusicOverrideOn()) // lms current sound check seems not to work, may need to check it later
 						{
-							PlaySound(i, SOUND_MUSIC_TANK);
-						}
-						else
-						{
-							EmitSoundToAll(g_strZombieVO_Tank_Default[GetRandomInt(0, sizeof(g_strZombieVO_Tank_Default) - 1)]);
+							PlaySound(i, SOUND_MUSIC_TANK);	
 						}
 					}
 
