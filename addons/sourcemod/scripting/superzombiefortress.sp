@@ -4717,7 +4717,8 @@ public void OnEntityCreated(int iEntity, const char[] strClassname)
 
 	if (StrEqual(strClassname, "item_healthkit_medium"))
 	{
-		SDKHook(iEntity, SDKHook_Touch, OnSandvichTouch);
+		SDKHook(iEntity, SDKHook_Touch, BlockTouch);
+		CreateTimer(3.0, Timer_EnableSandvichTouch, EntIndexToEntRef(iEntity));
 	}
 
 	if (StrEqual(strClassname, "item_healthkit_small"))
@@ -4843,6 +4844,20 @@ public Action BallTouch(int iEntity, int iOther)
 	}
 
 	return Plugin_Stop;
+}
+
+public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
+{
+	int iEntity = EntRefToEntIndex(iRef);
+	if (!IsValidEntity(iEntity)) return;
+	
+	SDKUnhook(iEntity, SDKHook_Touch, BlockTouch);
+	SDKHook(iEntity, SDKHook_Touch, OnSandvichTouch);
+}
+
+public Action BlockTouch(int iEntity, int iClient)
+{
+	return Plugin_Handled;
 }
 
 public Action OnSandvichTouch(int iEntity, int iClient)
