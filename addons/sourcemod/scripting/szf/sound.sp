@@ -203,11 +203,11 @@ char g_strSoundSurivourWin[][PLATFORM_MAX_PATH] =
 //Special infected spawned
 char g_strSoundSpawnInfected[][PLATFORM_MAX_PATH] =
 {
-	"ui/null.wav"							//no special infected
-	,"ui/null.wav"							//tank
+	""					//no special infected
+	,""					//tank
 	,"left4fortress/boomerbacterias.mp3"	//boomer
 	,"left4fortress/chargerbacterias.mp3"	//charger
-	,"ui/null.wav"							//kingpin, used to use smoker's bacteria (need new sound for kingpin)
+	,""					//kingpin, used to use smoker's bacteria (need new sound for kingpin)
 	,"left4fortress/jockeybacterias.mp3"	//stalker
 	,"left4fortress/hunterbacterias.mp3"	//hunter
 	,"left4fortress/smokerbacterias.mp3"	//smoker
