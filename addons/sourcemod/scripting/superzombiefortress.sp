@@ -4902,7 +4902,7 @@ public Action OnBananaTouch(int iEntity, int iClient)
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
 		AcceptEntityInput(iEntity, "Kill");
 
-		DealDamage(iToucher, 40, iOwner);
+		DealDamage(iToucher, 30, iOwner);
 
 		return Plugin_Handled;
 	}
