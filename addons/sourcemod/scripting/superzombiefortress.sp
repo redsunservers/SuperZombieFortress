@@ -1769,6 +1769,9 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				TF2_AddCondition(client, TFCond_Ubercharged, 2.0);
 			}
 		}
+		
+		// Set zombie model / soul wearable
+		ApplyVoodooCursedSoul(client);
 	}
 	
 	// 2. Handle valid, post spawn logic
@@ -4465,13 +4468,6 @@ void HandleZombieLoadout(int iClient)
 	// reset custom models
 	SetVariantString("");
 	AcceptEntityInput(iClient, "SetCustomModel");
-
-	// Prevents voodoo-cursed souls from applying RED skin to zombies on use
-	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
-	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
-
-	// Set zombie model / soul wearable
-	ApplyVoodooCursedSoul(iClient);
 
 	//SetValidSlot(iClient);
 }

@@ -60,12 +60,12 @@ int zf_surTeam = INT(TFTeam_Red);
 //
 // Zombie Soul related indexes
 //
-int iZombieSoulIndex[10];
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
 
 char g_sClassNames[10][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
 int g_iVoodooIndex[10] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
+int g_iZombieSoulIndex[10];
 
 ////////////////////////////////////////////////////////////
 //
@@ -794,6 +794,7 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, char[] sAttribs = ""
 		}
 		
 		DispatchSpawn(iWeapon);
+		SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", true);
 		
 		if (StrContains(sClassname, "tf_wearable") == 0)
 			SDK_EquipWearable(iClient, iWeapon);
@@ -997,20 +998,19 @@ stock int PrecacheZombieSouls()
 	for (int i = 1; i <= 9; i++)
 	{
 		Format(sPath, sizeof(sPath), "models/player/items/%s/%s_zombie.mdl", g_sClassNames[i], g_sClassNames[i]);
-		iZombieSoulIndex[i] = PrecacheModel(sPath);
+		g_iZombieSoulIndex[i] = PrecacheModel(sPath);
 	}
 }
 
 stock void ApplyVoodooCursedSoul(int iClient)
 {
 	if (TF2_IsPlayerInCondition(iClient, TFCond_HalloweenGhostMode)) return;
-
-	TFClassType nClass = TF2_GetPlayerClass(iClient);
-	
-	int iWearable = TF2_CreateAndEquipWeapon(iClient, g_iVoodooIndex[view_as<int>(nClass)]);	//Not really a weapon, but still works
-	if (IsValidEntity(iWearable))
-		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", iZombieSoulIndex[view_as<int>(nClass)]);
 	
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", true);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", (isSpy(iClient)) ? SKIN_ZOMBIE_SPY : SKIN_ZOMBIE);
+	
+	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	int iWearable = TF2_CreateAndEquipWeapon(iClient, g_iVoodooIndex[view_as<int>(nClass)]);	//Not really a weapon, but still works
+	if (IsValidEntity(iWearable))
+		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", g_iZombieSoulIndex[view_as<int>(nClass)]);
 }
