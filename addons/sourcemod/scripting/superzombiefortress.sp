@@ -16,10 +16,6 @@
 
 #include "include/superzombiefortress.inc"
 
-#undef REQUIRE_EXTENSIONS
-#tryinclude <tf2items>
-#define REQUIRE_EXTENSIONS
-
 #pragma newdecls required
 
 #define PLUGIN_VERSION "3.1.2"
@@ -29,8 +25,6 @@
 #define MAX_DIGITS 	12 // 10 + \0 for IntToString. And negative signs.
 
 #define GOO_INCREASE_RATE		3
-
-bool bTF2Items = true;
 
 Handle cookieFirstTimeSurvivor;
 Handle cookieFirstTimeZombie;
@@ -269,16 +263,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("SZF_GetWeaponCalloutCount", Native_GetWeaponCalloutCount);
 	
 	RegPluginLibrary("superzombiefortress");
-}
-
-public void OnAllPluginsLoaded()
-{
-	// tf2items
-	if (GetExtensionFileStatus("tf2items.ext") != 1)
-	{
-		bTF2Items = false;
-		LogMessage("TF2Items is not loaded: Zombies will not receive voodoo cursed souls from the plugin.");
-	}
 }
 
 public void OnPluginStart()

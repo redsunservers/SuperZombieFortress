@@ -64,7 +64,8 @@ int iZombieSoulIndex[10];
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
 
-char cClassNames[10][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
+char g_sClassNames[10][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
+int g_iVoodooIndex[10] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
 
 ////////////////////////////////////////////////////////////
 //
@@ -991,50 +992,25 @@ stock void UTIL_SayText2(int[] players, int playersNum, int iEntity, bool bChat,
 
 stock int PrecacheZombieSouls()
 {
-	char cPath[64];
+	char sPath[64];
 	// loops through all class types available
 	for (int i = 1; i <= 9; i++)
 	{
-		Format(cPath, sizeof(cPath), "models/player/items/%s/%s_zombie.mdl", cClassNames[i], cClassNames[i]);
-		iZombieSoulIndex[i] = PrecacheModel(cPath);
+		Format(sPath, sizeof(sPath), "models/player/items/%s/%s_zombie.mdl", g_sClassNames[i], g_sClassNames[i]);
+		iZombieSoulIndex[i] = PrecacheModel(sPath);
 	}
 }
 
 stock void ApplyVoodooCursedSoul(int iClient)
 {
-	if (!bTF2Items || TF2_IsPlayerInCondition(iClient, TFCond_HalloweenGhostMode)) return;
+	if (TF2_IsPlayerInCondition(iClient, TFCond_HalloweenGhostMode)) return;
 
-	TF2_CreateAndEquipFakeModel(iClient, iZombieSoulIndex[view_as<int>(TF2_GetPlayerClass(iClient))]);
-
+	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	
+	int iWearable = TF2_CreateAndEquipWeapon(iClient, g_iVoodooIndex[view_as<int>(nClass)]);	//Not really a weapon, but still works
+	if (IsValidEntity(iWearable))
+		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", iZombieSoulIndex[view_as<int>(nClass)]);
+	
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", true);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", (isSpy(iClient)) ? SKIN_ZOMBIE_SPY : SKIN_ZOMBIE);
-}
-
-stock int TF2_CreateAndEquipFakeModel(int iClient, int iModelIndex)
-{
-	#if defined _tf2items_included // This requires TF2items to be included
-	Handle hWearable = TF2Items_CreateItem(OVERRIDE_ALL|FORCE_GENERATION);
-	if (hWearable == INVALID_HANDLE) return -1;
-
-	TF2Items_SetClassname(hWearable, "tf_wearable");
-	TF2Items_SetItemIndex(hWearable, 5023);
-	TF2Items_SetLevel(hWearable, 50);
-	TF2Items_SetQuality(hWearable, 6);
-
-	int iWearable = TF2Items_GiveNamedItem(iClient, hWearable);
-	delete hWearable;
-	if (IsValidEdict(iWearable))
-	{
-		SetEntProp(iWearable, Prop_Send, "m_bValidatedAttachedEntity", true);
-		if (g_hSDKEquipWearable != INVALID_HANDLE)
-		{
-			SDKCall(g_hSDKEquipWearable, iClient, iWearable);
-			SetEntProp(iWearable, Prop_Send, "m_bValidatedAttachedEntity", true);
-			SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", iModelIndex);
-			return iWearable;
-		}
-	}
-	#endif
-
-	return -1;
 }
