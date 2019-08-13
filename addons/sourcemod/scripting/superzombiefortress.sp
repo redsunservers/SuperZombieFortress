@@ -1681,8 +1681,6 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					SetEntityRenderColor(client, 255, 0, 0, 255);
 					CPrintToChat(client, "{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}(16 second cooldown)");
 				}
-
-				g_ShouldBacteriaPlay[client] = false;
 			}
 
 
@@ -1709,8 +1707,6 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					SetEntityRenderColor(client, 150, 0, 255, 255);
 					CPrintToChat(client, "{green}YOU ARE A KINGPIN:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(21 second cooldown){orange}\n- Zombies standing near you are more powerful.");
 				}
-
-				g_ShouldBacteriaPlay[client] = false;
 			}
 
 			if (g_iSpecialInfected[client] == INFECTED_STALKER
