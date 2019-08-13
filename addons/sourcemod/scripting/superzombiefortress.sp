@@ -4404,7 +4404,11 @@ void HandleZombieLoadout(int iClient)
 			TF2_RemoveWeaponSlot(iClient, 1);
 		}
 
-		TF2_CreateAndEquipWeapon(iClient, (g_iSpecialInfected[iClient] == INFECTED_NONE) ? 44 : 0);
+		int iItem = 44; // Sandman
+		if (g_iSpecialInfected[iClient] == INFECTED_HUNTER) 	iItem = 572; // Unarmed Combat
+		if (g_iSpecialInfected[iClient] == INFECTED_KINGPIN) 	iItem = 939; // Bat Outta Hell
+		
+		TF2_CreateAndEquipWeapon(iClient, iItem);
 	}
 
 	if (TF2_GetPlayerClass(iClient) == TFClass_Heavy)
@@ -4414,7 +4418,7 @@ void HandleZombieLoadout(int iClient)
 			TF2_RemoveWeaponSlot(iClient, 1);
 		}
 
-		int iItem = 5; // fists
+		int iItem = 5; // Fists
 		if (g_iSpecialInfected[iClient] == INFECTED_BOOMER) 	iItem = 331; // Fists of Steel
 		if (g_iSpecialInfected[iClient] == INFECTED_CHARGER) 	iItem = 587; // Apoco-Fists
 
@@ -4430,11 +4434,11 @@ void HandleZombieLoadout(int iClient)
 		
 		if (g_iSpecialInfected[iClient] == INFECTED_NONE)
 		{
-			TF2_CreateAndEquipWeapon(iClient, 4);
+			TF2_CreateAndEquipWeapon(iClient, 4);	// Knife
 		}
 		else
 		{
-			int iWeapon = TF2_CreateAndEquipWeapon(iClient, 574);
+			int iWeapon = TF2_CreateAndEquipWeapon(iClient, 574);	// Wanga Prick
 			if (iWeapon > MaxClients && IsValidEdict(iWeapon))
 				TF2Attrib_SetByName(iWeapon, "disguise on backstab", 0.0);
 		}
