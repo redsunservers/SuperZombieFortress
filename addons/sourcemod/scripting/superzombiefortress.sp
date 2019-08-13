@@ -890,9 +890,7 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &
 
 			if (g_iSpecialInfected[iAttacker] == INFECTED_TANK)
 			{
-				char strPath[PLATFORM_MAX_PATH];
-				Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/tank_attack_0%d.mp3", GetRandomInt(1, 4));
-				EmitSoundToAll(strPath, iAttacker, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+				EmitSoundToAll(g_strZombieVO_Tank_Attack[GetRandomInt(0, sizeof(g_strZombieVO_Tank_Attack) - 1)], iAttacker, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
@@ -1145,15 +1143,14 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 				{
 					zf_rageTimer[client] = 31;
 					DoGenericRage(client);
+					
+					EmitSoundToAll(g_strZombieVO_Common_Rage[GetRandomInt(0, sizeof(g_strZombieVO_Common_Rage) - 1)], client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
-
 				if (g_iSpecialInfected[client] == INFECTED_BOOMER && g_bRoundActive)
 				{
 					DoBoomerExplosion(client, 600.0);
 
-					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/male_boomer_disruptvomit_0%d.mp3", GetRandomInt(5, 7));
-					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+					EmitSoundToAll(g_strZombieVO_Boomer_Explode[GetRandomInt(0, sizeof(g_strZombieVO_Boomer_Explode) - 1)], client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
 				if (g_iSpecialInfected[client] == INFECTED_CHARGER)
@@ -1167,9 +1164,7 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 					vecVel[1] = 450.0 * Sine(DegToRad(vecAngles[1]));
 					TeleportEntity(client, NULL_VECTOR, NULL_VECTOR, vecVel);
 					
-					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/charger_charge_0%d.mp3", GetRandomInt(1, 2));
-					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+					EmitSoundToAll(g_strZombieVO_Charger_Charge[GetRandomInt(0, sizeof(g_strZombieVO_Charger_Charge) - 1)], client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
 				if (g_iSpecialInfected[client] == INFECTED_KINGPIN)
@@ -1187,9 +1182,7 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 					zf_rageTimer[client] = 3;
 					DoHunterJump(client);
 
-					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/hunter_attackmix_0%d.mp3", GetRandomInt(1, 3));
-					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+					EmitSoundToAll(g_strZombieVO_Hunter_Leap[GetRandomInt(0, sizeof(g_strZombieVO_Hunter_Leap) - 1)], client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 			}
 
@@ -1575,6 +1568,8 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				SetEntityRenderColor(client, 0, 255, 0, 255);
 				//PerformFastRespawn2(client);
 				
+				EmitSoundToAll(g_strZombieVO_Tank_OnFire[GetRandomInt(0, sizeof(g_strZombieVO_Tank_OnFire) - 1)]);
+				
 				for (int i = 1; i <= MaxClients; i++)
 				{
 					if (IsValidClient(i))
@@ -1598,15 +1593,9 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 
 						CPrintToChat(i, "{red}Incoming TAAAAANK!");
 						
-						if (GetCurrentSound(i) != SOUND_MUSIC_LASTSTAND || !IsMusicOverrideOn())
+						if (GetCurrentSound(i) != SOUND_MUSIC_LASTSTAND || !IsMusicOverrideOn()) // lms current sound check seems not to work, may need to check it later
 						{
-							PlaySound(i, SOUND_MUSIC_TANK);
-						}
-						else
-						{
-							char strSound[PLATFORM_MAX_PATH];
-							Format(strSound, sizeof(strSound), "left4fortress/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
-							EmitSoundToAll(strSound);
+							PlaySound(i, SOUND_MUSIC_TANK);	
 						}
 					}
 
@@ -1692,8 +1681,6 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					SetEntityRenderColor(client, 255, 0, 0, 255);
 					CPrintToChat(client, "{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}(16 second cooldown)");
 				}
-
-				g_ShouldBacteriaPlay[client] = false;
 			}
 
 
@@ -1720,8 +1707,6 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					SetEntityRenderColor(client, 150, 0, 255, 255);
 					CPrintToChat(client, "{green}YOU ARE A KINGPIN:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(21 second cooldown){orange}\n- Zombies standing near you are more powerful.");
 				}
-
-				g_ShouldBacteriaPlay[client] = false;
 			}
 
 			if (g_iSpecialInfected[client] == INFECTED_STALKER
@@ -1884,9 +1869,7 @@ public Action event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		int iWinner = 0;
 		float fHighest = 0.0;
 				
-		char strPath[PLATFORM_MAX_PATH];
-		Format(strPath, sizeof(strPath), "left4fortress/zombie_vo/tank_death_0%d.mp3", GetRandomInt(1, 4));
-		EmitSoundToAll(strPath);
+		EmitSoundToAll(g_strZombieVO_Tank_Death[GetRandomInt(0, sizeof(g_strZombieVO_Tank_Death) - 1)]);
 				
 		for (int i = 1; i <= MaxClients; i++)
 		{
@@ -5384,50 +5367,40 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 	{
 		return Plugin_Continue;
 	}
-
+	
 	if (StrContains(sound, "vo/", false) != -1 && IsZombie(iClient))
 	{
+		if (StrContains(sound, "zombie_vo/", false) != -1) return Plugin_Continue; // so rage sounds (for normal & most special infected alike) don't get blocked
+		
 		// normal infected & kingpin(pitch only)
 		if (g_iSpecialInfected[iClient] == INFECTED_NONE || g_iSpecialInfected[iClient] == INFECTED_KINGPIN)
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
+				if (GetClientHealth(iClient) < 50 || StrContains(sound, "crticial", false) != -1)  // the typo is intended because that's how the soundfiles are named
 				{
-					Format(sound, sizeof(sound), "left4fortress/zombie_vo/ignite0%d.mp3", GetRandomInt(7, 9));
-				}
-
-				else if (GetClientHealth(iClient) < 50 || StrContains(sound, "critical", false) != -1)
-				{
-					Format(sound, sizeof(sound), "left4fortress/zombie_vo/death_2%d.mp3", GetRandomInt(2, 9));
+					EmitSoundToAll(g_strZombieVO_Common_Death[GetRandomInt(0, sizeof(g_strZombieVO_Common_Death) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
 				else
 				{
-					int iRandom = GetRandomInt(18, 22);
-					if (iRandom == 15 || iRandom == 16 || iRandom == 17 || iRandom == 23) iRandom = GetRandomInt(12, 14);
-					Format(sound, sizeof(sound), "left4fortress/zombie_vo/been_shot_%d.mp3", iRandom);
+					EmitSoundToAll(g_strZombieVO_Common_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Common_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 			}
 
-			if (StrContains(sound, "_laugh", false) != -1 || StrContains(sound, "_no", false) != -1 || StrContains(sound, "_yes", false) != -1)
+			else if (StrContains(sound, "_laugh", false) != -1 || StrContains(sound, "_no", false) != -1 || StrContains(sound, "_yes", false) != -1)
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/mumbling0%d.mp3", GetRandomInt(1, 8));
+				EmitSoundToAll(g_strZombieVO_Common_Mumbling[GetRandomInt(0, sizeof(g_strZombieVO_Common_Mumbling) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
-			if (StrContains(sound, "_go", false) != -1 || StrContains(sound, "_jarate", false) != -1)
+			else if (StrContains(sound, "_go", false) != -1 || StrContains(sound, "_jarate", false) != -1)
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/shoved_%d.mp3", GetRandomInt(1, 4));
-			}
-
-			if (StrContains(sound, "_medic", false) != -1)
-			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/rage_at_victim2%d.mp3", !GetRandomInt(0, 2) ? GetRandomInt(1, 2) : GetRandomInt(5, 6));
+				EmitSoundToAll(g_strZombieVO_Common_Shoved[GetRandomInt(0, sizeof(g_strZombieVO_Common_Shoved) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/idle_breath_0%d.mp3", GetRandomInt(1, 4));
+				EmitSoundToAll(g_strZombieVO_Common_Default[GetRandomInt(0, sizeof(g_strZombieVO_Common_Default) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			if (g_iSpecialInfected[iClient] == INFECTED_KINGPIN) pitch = 80;
@@ -5441,18 +5414,18 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 			{
 				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
 				{
-					Format(sound, sizeof(sound), "left4fortress/zombie_vo/tank_fire_0%d.mp3", GetRandomInt(2, 5));
+					EmitSoundToAll(g_strZombieVO_Tank_OnFire[GetRandomInt(0, sizeof(g_strZombieVO_Tank_OnFire) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
 				else
 				{
-					Format(sound, sizeof(sound), "left4fortress/zombie_vo/tank_pain_0%d.mp3", GetRandomInt(1, 4));
+					EmitSoundToAll(g_strZombieVO_Tank_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Tank_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
+				EmitSoundToAll(g_strZombieVO_Tank_Default[GetRandomInt(0, sizeof(g_strZombieVO_Tank_Default) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
@@ -5461,12 +5434,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/charger_pain_0%d.mp3", GetRandomInt(1, 3));
+				EmitSoundToAll(g_strZombieVO_Charger_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Charger_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/charger_spotprey_0%d.mp3", GetRandomInt(1, 3));
+				EmitSoundToAll(g_strZombieVO_Charger_Default[GetRandomInt(0, sizeof(g_strZombieVO_Charger_Default) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
@@ -5475,12 +5448,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/hunter_pain_1%d.mp3", GetRandomInt(2, 4));
+				EmitSoundToAll(g_strZombieVO_Hunter_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Hunter_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/hunter_stalk_0%d.mp3", GetRandomInt(4, 6));
+				EmitSoundToAll(g_strZombieVO_Hunter_Default[GetRandomInt(0, sizeof(g_strZombieVO_Hunter_Default) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
@@ -5489,12 +5462,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/male_boomer_pain_%d.mp3", GetRandomInt(1, 3));
+				EmitSoundToAll(g_strZombieVO_Boomer_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Boomer_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/male_boomer_lurk_0%d.mp3", GetRandomInt(2, 4));
+				EmitSoundToAll(g_strZombieVO_Boomer_Default[GetRandomInt(0, sizeof(g_strZombieVO_Boomer_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
@@ -5503,16 +5476,16 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/smoker_pain_0%d.mp3", GetRandomInt(2, 4));
+				EmitSoundToAll(g_strZombieVO_Smoker_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Smoker_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "left4fortress/zombie_vo/smoker_lurk_1%d.mp3", GetRandomInt(1, 3));
+				EmitSoundToAll(g_strZombieVO_Smoker_Default[GetRandomInt(0, sizeof(g_strZombieVO_Smoker_Default) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
-		return Plugin_Changed;
+		return Plugin_Handled;
 	}
 
 	return Plugin_Continue;
@@ -5714,7 +5687,7 @@ public void DoGenericRage(int iClient)
 	int curH = GetClientHealth(iClient);
 	SetEntityHealth(iClient, RoundToCeil(curH * 1.5));
 
-	ClientCommand(iClient, "voicemenu 2 1");
+	//ClientCommand(iClient, "voicemenu 2 1");
 
 	float fClientPos[3];
 	GetClientEyePosition(iClient, fClientPos);
