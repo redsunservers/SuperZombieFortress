@@ -4688,7 +4688,8 @@ public void OnEntityCreated(int iEntity, const char[] strClassname)
 
 	if (StrEqual(strClassname, "item_healthkit_medium"))
 	{
-		SDKHook(iEntity, SDKHook_Touch, OnSandvichTouch);
+		SDKHook(iEntity, SDKHook_Touch, BlockTouch);
+		CreateTimer(3.0, Timer_EnableSandvichTouch, EntIndexToEntRef(iEntity));
 	}
 
 	if (StrEqual(strClassname, "item_healthkit_small"))
@@ -4816,6 +4817,20 @@ public Action BallTouch(int iEntity, int iOther)
 	return Plugin_Stop;
 }
 
+public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
+{
+	int iEntity = EntRefToEntIndex(iRef);
+	if (!IsValidEntity(iEntity)) return;
+	
+	SDKUnhook(iEntity, SDKHook_Touch, BlockTouch);
+	SDKHook(iEntity, SDKHook_Touch, OnSandvichTouch);
+}
+
+public Action BlockTouch(int iEntity, int iClient)
+{
+	return Plugin_Handled;
+}
+
 public Action OnSandvichTouch(int iEntity, int iClient)
 {
 	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
@@ -4824,8 +4839,8 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 	// check if both owner and toucher is valid
 	if (!IsValidClient(iOwner) || !IsValidClient(iToucher)) return Plugin_Continue;
 	
-	// dont allow tank to collect health
-	if (g_iSpecialInfected[iToucher] == INFECTED_TANK) return Plugin_Handled;
+	// dont allow owner and tank collect sandvich
+	if (iOwner == iToucher || g_iSpecialInfected[iToucher] == INFECTED_TANK) return Plugin_Handled;
 	
 	if (GetClientTeam(iToucher) != GetClientTeam(iOwner))
 	{
@@ -4858,7 +4873,7 @@ public Action OnBananaTouch(int iEntity, int iClient)
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
 		AcceptEntityInput(iEntity, "Kill");
 
-		DealDamage(iToucher, 40, iOwner);
+		DealDamage(iToucher, 30, iOwner);
 
 		return Plugin_Handled;
 	}
