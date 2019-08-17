@@ -2356,7 +2356,7 @@ public Action timer_main(Handle timer) // 1Hz
 
 public Action timer_moraleDecay(Handle timer) // timer scales based on how many zombies, slow if low zombies, fast if high zombies
 {
-	if (!zf_bEnabled) return Plugin_Continue;
+	if (!zf_bEnabled) return Plugin_Stop;
 	
 	AddMoraleAll(-1);
 	
@@ -2380,7 +2380,7 @@ public Action timer_moraleDecay(Handle timer) // timer scales based on how many 
 
 public Action timer_mainSlow(Handle timer) // 4 min
 {
-	if (!zf_bEnabled) return Plugin_Continue;
+	if (!zf_bEnabled) return Plugin_Stop;
 	help_printZFInfoChat(0);
 
 	return Plugin_Continue;
@@ -2388,7 +2388,7 @@ public Action timer_mainSlow(Handle timer) // 4 min
 
 public Action timer_mainFast(Handle timer)
 {
-	if (!zf_bEnabled) return Plugin_Continue;
+	if (!zf_bEnabled) return Plugin_Stop;
 	GooDamageCheck();
 
 	return Plugin_Continue;
@@ -2396,7 +2396,7 @@ public Action timer_mainFast(Handle timer)
 
 public Action timer_hoarde(Handle timer) // 1/5th Hz
 {
-	if (!zf_bEnabled) return Plugin_Continue;
+	if (!zf_bEnabled) return Plugin_Stop;
 	handle_hoardeBonus();
 
 	return Plugin_Continue;
@@ -2404,16 +2404,16 @@ public Action timer_hoarde(Handle timer) // 1/5th Hz
 
 public Action timer_datacollect(Handle timer) // 1/5th Hz
 {
-	if (!zf_bEnabled) return Plugin_Continue;
+	if (!zf_bEnabled) return Plugin_Stop;
 	FastRespawnDataCollect();
 
 	return Plugin_Continue;
 }
 
-public Action timer_progress(Handle timer) // 30 sec
+public Action timer_progress(Handle timer) // 6 sec
 {
-	if (!zf_bEnabled) return Plugin_Continue;
-	g_fTimeProgress += 0.05;
+	if (!zf_bEnabled) return Plugin_Stop;
+	g_fTimeProgress += 0.01;
 
 	return Plugin_Continue;
 }
@@ -3007,6 +3007,8 @@ void zfEnable()
 	zf_bNewRound = true;
 	zf_lastSurvivor = false;
 	
+	g_fTimeProgress = 0.0;
+	
 	setRoundState(RoundInit2);
 
 	zfSetTeams();
@@ -3054,7 +3056,7 @@ void zfEnable()
 	zf_tDataCollect = CreateTimer(2.0, timer_datacollect, _, TIMER_REPEAT);
 	
 	delete zf_tTimeProgress;
-	zf_tTimeProgress = CreateTimer(30.0, timer_progress, _, TIMER_REPEAT);
+	zf_tTimeProgress = CreateTimer(6.0, timer_progress, _, TIMER_REPEAT);
 }
 
 void zfDisable()
@@ -3068,6 +3070,8 @@ void zfDisable()
 	zf_bEnabled = false;
 	zf_bNewRound = true;
 	zf_lastSurvivor = false;
+	
+	g_fTimeProgress = 0.0;
 	
 	setRoundState(RoundInit2);
 
@@ -3779,7 +3783,7 @@ void UpdateZombieDamageScale()
 			flProgress = float(iCurrentCP) / float(iMaxCP);
 			
 		//If the map is too big for the amount of CPs, progress incerases with time
-		if(g_fTimeProgress > flProgress)
+		if(1.0 >= g_fTimeProgress > flProgress)
 		{
 			//Failsafe : Cannot exceed current CP (and a half)
 			float flProgressMax = (float(iCurrentCP)+1.0) / float(iMaxCP);
