@@ -13,9 +13,12 @@
 #include <tf_econ_data>
 #include <dhooks>
 #include <morecolors>
-#include <superzombiefortress>
+
+#include "include/superzombiefortress.inc"
 
 #pragma newdecls required
+
+#define PLUGIN_VERSION "3.1.4"
 
 #define INT(%0)		view_as<int>(%0)
 
@@ -76,7 +79,7 @@ float g_fZombieDamageScale = 1.0;
 //int g_StartTime = 0;
 //int g_AdditionalTime = 0;
 
-Handle g_hFastRespawnArray = INVALID_HANDLE;
+ArrayList g_aFastRespawnArray;
 
 bool g_bBackstabbed[MAXPLAYERS+1] = false;
 #define BACKSTABDURATION_FULL		5.5
@@ -212,10 +215,11 @@ char g_strSoundCritHit[][128] =
 	"player/crit_received3.wav"
 };
 
+#include "szf/weapons.sp"
 #include "szf/stocks.sp"
-#include "szf/precache.sp"
 #include "szf/sound.sp"
 #include "szf/pickupweapons.sp"
+#include "szf/config.sp"
 
 //
 // Plugin Information
@@ -223,10 +227,10 @@ char g_strSoundCritHit[][128] =
 public Plugin myinfo =
 {
 	name = "Super Zombie Fortress",
-	author = "42, Frosty Scales, Benoist3012, Darthmule (2.0 version), MekuCube (1.0 version)",
+	author = "42, Sasch, Benoist3012, Haxton Sale, Frosty Scales, MekuCube (original)",
 	description = "Originally based off MekuCube's 1.05 version.",
 	version = PLUGIN_VERSION,
-	url = "https://redsun.tf"
+	url = "https://github.com/redsunservers/SuperZombieFortress"
 }
 
 ////////////////////////////////////////////////////////////
@@ -362,6 +366,9 @@ public void OnPluginStart()
 	cookieForceZombieStart = RegClientCookie("szf_forcezombiestart", "is this the flowey map?", CookieAccess_Protected);
 
 	SDK_Init();
+	
+	Config_InitTemplates();
+	Config_LoadTemplates();
 	
 	Weapons_Setup();
 	
@@ -867,9 +874,7 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &
 
 			if (g_iSpecialInfected[iAttacker] == INFECTED_TANK)
 			{
-				char strPath[PLATFORM_MAX_PATH];
-				Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/tank_attack_0%d.mp3", GetRandomInt(1, 4));
-				EmitSoundToAll(strPath, iAttacker, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+				EmitSoundToAll(g_strZombieVO_Tank_Attack[GetRandomInt(0, sizeof(g_strZombieVO_Tank_Attack) - 1)], iAttacker, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
@@ -1122,15 +1127,14 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 				{
 					zf_rageTimer[client] = 31;
 					DoGenericRage(client);
+					
+					EmitSoundToAll(g_strZombieVO_Common_Rage[GetRandomInt(0, sizeof(g_strZombieVO_Common_Rage) - 1)], client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
-
 				if (g_iSpecialInfected[client] == INFECTED_BOOMER && g_bRoundActive)
 				{
 					DoBoomerExplosion(client, 600.0);
 
-					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/male_boomer_disruptvomit_0%d.mp3", GetRandomInt(5, 7));
-					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+					EmitSoundToAll(g_strZombieVO_Boomer_Explode[GetRandomInt(0, sizeof(g_strZombieVO_Boomer_Explode) - 1)], client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
 				if (g_iSpecialInfected[client] == INFECTED_CHARGER)
@@ -1144,9 +1148,7 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 					vecVel[1] = 450.0 * Sine(DegToRad(vecAngles[1]));
 					TeleportEntity(client, NULL_VECTOR, NULL_VECTOR, vecVel);
 					
-					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/charger_charge_0%d.mp3", GetRandomInt(1, 2));
-					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+					EmitSoundToAll(g_strZombieVO_Charger_Charge[GetRandomInt(0, sizeof(g_strZombieVO_Charger_Charge) - 1)], client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
 				if (g_iSpecialInfected[client] == INFECTED_KINGPIN)
@@ -1164,9 +1166,7 @@ public Action hook_VoiceMenu(int client, const char[] command, int argc)
 					zf_rageTimer[client] = 3;
 					DoHunterJump(client);
 
-					char strPath[PLATFORM_MAX_PATH];
-					Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/hunter_attackmix_0%d.mp3", GetRandomInt(1, 3));
-					EmitSoundToAll(strPath, client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+					EmitSoundToAll(g_strZombieVO_Hunter_Leap[GetRandomInt(0, sizeof(g_strZombieVO_Hunter_Leap) - 1)], client, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 			}
 
@@ -1552,6 +1552,8 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				SetEntityRenderColor(client, 0, 255, 0, 255);
 				//PerformFastRespawn2(client);
 				
+				EmitSoundToAll(g_strZombieVO_Tank_OnFire[GetRandomInt(0, sizeof(g_strZombieVO_Tank_OnFire) - 1)]);
+				
 				for (int i = 1; i <= MaxClients; i++)
 				{
 					if (IsValidClient(i))
@@ -1575,15 +1577,9 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 
 						CPrintToChat(i, "{red}Incoming TAAAAANK!");
 						
-						if (GetCurrentSound(i) != SOUND_MUSIC_LASTSTAND || !IsMusicOverrideOn())
+						if (GetCurrentSound(i) != SOUND_MUSIC_LASTSTAND || !IsMusicOverrideOn()) // lms current sound check seems not to work, may need to check it later
 						{
-							PlaySound(i, SOUND_MUSIC_TANK);
-						}
-						else
-						{
-							char strSound[PLATFORM_MAX_PATH];
-							Format(strSound, sizeof(strSound), "redsun/szf_rsx/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
-							EmitSoundToAll(strSound);
+							PlaySound(i, SOUND_MUSIC_TANK);	
 						}
 					}
 
@@ -1669,8 +1665,6 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					SetEntityRenderColor(client, 255, 0, 0, 255);
 					CPrintToChat(client, "{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}(16 second cooldown)");
 				}
-
-				g_ShouldBacteriaPlay[client] = false;
 			}
 
 
@@ -1697,8 +1691,6 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					SetEntityRenderColor(client, 150, 0, 255, 255);
 					CPrintToChat(client, "{green}YOU ARE A KINGPIN:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(21 second cooldown){orange}\n- Zombies standing near you are more powerful.");
 				}
-
-				g_ShouldBacteriaPlay[client] = false;
 			}
 
 			if (g_iSpecialInfected[client] == INFECTED_STALKER
@@ -1777,6 +1769,9 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				TF2_AddCondition(client, TFCond_Ubercharged, 2.0);
 			}
 		}
+		
+		// Set zombie model / soul wearable
+		ApplyVoodooCursedSoul(client);
 	}
 	
 	// 2. Handle valid, post spawn logic
@@ -1861,9 +1856,7 @@ public Action event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		int iWinner = 0;
 		float fHighest = 0.0;
 				
-		char strPath[PLATFORM_MAX_PATH];
-		Format(strPath, sizeof(strPath), "redsun/szf_rsx/zombie_vo/tank_death_0%d.mp3", GetRandomInt(1, 4));
-		EmitSoundToAll(strPath);
+		EmitSoundToAll(g_strZombieVO_Tank_Death[GetRandomInt(0, sizeof(g_strZombieVO_Tank_Death) - 1)]);
 				
 		for (int i = 1; i <= MaxClients; i++)
 		{
@@ -1960,6 +1953,9 @@ public Action event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_flRageRespawnStress += 1.7;	//Add stress time 1.7 sec for every respawn zombies
 			CreateTimer(flTimer, RespawnPlayer, victim);
 		}
+		
+		//Check for spec bypass from AFK manager
+		RequestFrame(Frame_CheckZombieBypass, victim);
 	}
 
 	// Instant respawn outside of the actual gameplay
@@ -2685,75 +2681,11 @@ void handle_winCondition()
 
 void handle_survivorAbilities()
 {
-	int clipAmmo;
-	int resAmmo;
-	int ammoAdj;
-
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidLivingSurvivor(i))
 		{
-			// 1. Handle survivor weapon rules.
-			//        SMG doesn't have to reload.
-			//        Syringe gun / blutsauger don't have to reload.
-			//        Flamethrower / backburner ammo limited to 125.
-			switch(TF2_GetPlayerClass(i))
-			{
-				case TFClass_Sniper:
-				{
-					if (isSlotClassname(i, 1, "tf_weapon_smg"))
-					{
-						clipAmmo = getClipAmmo(i, 1);
-						resAmmo = getResAmmo(i, 1);
-						ammoAdj = min((25 - clipAmmo), resAmmo);
-						if (ammoAdj > 0)
-						{
-							setClipAmmo(i, 1, (clipAmmo + ammoAdj));
-							setResAmmo(i, 1, (resAmmo - ammoAdj));
-						}
-					}
-				}
-
-				case TFClass_Medic:
-				{
-					if (isSlotClassname(i, 0, "tf_weapon_syringegun_medic"))
-					{
-						clipAmmo = getClipAmmo(i, 0);
-						resAmmo = getResAmmo(i, 0);
-						ammoAdj = min((40 - clipAmmo), resAmmo);
-						if (ammoAdj > 0)
-						{
-							setClipAmmo(i, 0, (clipAmmo + ammoAdj));
-							setResAmmo(i, 0, (resAmmo - ammoAdj));
-						}
-					}
-				}
-
-				case TFClass_Pyro:
-				{
-					resAmmo = getResAmmo(i, 0);
-					if (resAmmo > 100)
-					{
-						ammoAdj = max((resAmmo - 10), 100);
-						setResAmmo(i, 0, ammoAdj);
-					}
-				}
-
-				case TFClass_Engineer:
-				{
-					if (isSlotClassname(i, 1, "tf_weapon_pistol"))
-					{
-						resAmmo = getResAmmo(i, 1);
-						if (resAmmo > 60)
-						{
-							ammoAdj = 60;
-							setResAmmo(i, 1, ammoAdj);
-						}
-					}
-				}
-			} //switch
-
-			// 2. Survivor health regeneration.
+			// 1. Survivor health regeneration.
 			int curH = GetClientHealth(i);
 			int maxH = SDK_GetMaxHealth(i);
 			if (curH < maxH)
@@ -2771,21 +2703,21 @@ void handle_survivorAbilities()
 				SetEntityHealth(i, curH);
 			}
 
-			// 3. Handle survivor morale.
+			// 2. Handle survivor morale.
 			if (zf_survivorMorale[i] > 100) SetMorale(i, 100);
 			//zf_survivorMorale[i] = max(0, zf_survivorMorale[i] - 1);
 			int iMorale = GetMorale(i);
 			// decrement morale bonus over time
 
-			// 3.1. Show morale on HUD
+			// 2.1. Show morale on HUD
 			SetHudTextParams(0.18, 0.71, 1.0, 200 - (iMorale * 2), 255, 200 - (iMorale * 2), 255);
 			ShowHudText(i, 3, "Morale: %d/100", iMorale);
 
-			// 3.2. Award buffs if high morale is detected
+			// 2.2. Award buffs if high morale is detected
 			if (iMorale > 50) TF2_AddCondition(i, TFCond_DefenseBuffed, 1.1); // 50: defense buff
 
-			// 4. HUD stuff
-			// 4.1. Primary weapons
+			// 3. HUD stuff
+			// 3.1. Primary weapons
 			SetHudTextParams(0.18, 0.84, 1.0, 200, 255, 200, 255);
 			int iPrimary = GetPlayerWeaponSlot(i, 0);
 			if (iPrimary > MaxClients && IsValidEdict(iPrimary))
@@ -2821,7 +2753,7 @@ void handle_survivorAbilities()
 				}
 			}
 
-			// 4.2. Secondary weapons
+			// 3.2. Secondary weapons
 			SetHudTextParams(0.18, 0.9, 1.0, 200, 255, 200, 255);
 			int iSecondary = GetPlayerWeaponSlot(i, 1);
 			if (iSecondary > MaxClients && IsValidEdict(iSecondary))
@@ -2851,8 +2783,8 @@ void handle_survivorAbilities()
 				}
 			}
 
-		} //if
-	} //for
+		}
+	}
 
 	// 3. Handle sentry rules.
 	//        + Mini and Norm sentry starts with 40 ammo and decays to 0, then self destructs.
@@ -3270,8 +3202,11 @@ public void help_printZFInfoChat(int client)
 //
 public void panel_PrintMain(int client)
 {
+	char sBuffer[64];
+	Format(sBuffer, sizeof(sBuffer), "Super Zombie Fortress - %s", PLUGIN_VERSION);
+	
 	Panel panel = new Panel();
-	panel.SetTitle("Super Zombie Fortress - redsun.tf");
+	panel.SetTitle(sBuffer);
 	panel.DrawItem(" Overview");
 	panel.DrawItem(" Team: Survivors");
 	panel.DrawItem(" Team: Infected");
@@ -3706,6 +3641,12 @@ void SetGlow()
 	}
 }
 
+public void Frame_CheckZombieBypass(int iClient)
+{
+	if (GetClientTeam(iClient) <= 1)
+		CheckZombieBypass(iClient);
+}
+
 void CheckZombieBypass(int iClient)
 {
 	int iSurvivors = GetSurvivorCount();
@@ -4008,10 +3949,9 @@ stock float GetTimePercentage()
 public void OnMapStart()
 {
 	SoundPrecache();
-	FastRespawnReset();
 	DetermineControlPoints();
-	ModelPrecache();
 	Weapons_Precache();
+	PrecacheZombieSouls();
 
 	PrecacheParticle("spell_cast_wheel_blue");
 
@@ -4157,15 +4097,9 @@ public Action StopZombieRage(Handle hTimer)
 	}
 }
 
-void FastRespawnReset()
-{
-	delete g_hFastRespawnArray;
-	g_hFastRespawnArray = CreateArray(3);
-}
-
 int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true)
 {
-	if (g_hFastRespawnArray == INVALID_HANDLE) return -1;
+	if (g_aFastRespawnArray == null) return -1;
 
 	Handle hTombola = CreateArray();
 
@@ -4174,9 +4108,11 @@ int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true
 	float fPosEntry2[3];
 	float fEntryDistance;
 	GetClientAbsOrigin(iClient, fPosClient);
-	for (int i = 0; i < GetArraySize(g_hFastRespawnArray); i++)
+	
+	int iLength = g_aFastRespawnArray.Length;
+	for (int i = 0; i < iLength; i++)
 	{
-		GetArrayArray(g_hFastRespawnArray, i, fPosEntry);
+		g_aFastRespawnArray.GetArray(i, fPosEntry);
 		fPosEntry2[0] = fPosEntry[0];
 		fPosEntry2[1] = fPosEntry[1];
 		fPosEntry2[2] = fPosEntry[2] += 90.0;
@@ -4185,6 +4121,7 @@ int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true
 
 		fEntryDistance = GetVectorDistance(fPosClient, fPosEntry);
 		fEntryDistance /= 50.0;
+		
 		if (fEntryDistance > fDistance) bAllow = false;
 
 		// check if survivors can see it
@@ -4222,16 +4159,9 @@ int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true
 
 bool PerformFastRespawn(int iClient)
 {
-	if (g_bDirectorSpawnTeleport) return PerformFastRespawn2(iClient);
+	if (!(g_bDirectorSpawnTeleport) && (!g_bZombieRage || !g_bZombieRageAllowRespawn))
+		return false;
 	
-	if (!g_bZombieRage) return false;
-	if (!g_bZombieRageAllowRespawn) return false;
-
-	return PerformFastRespawn2(iClient);
-}
-
-bool PerformFastRespawn2(int iClient)
-{
 	// first let's find a target
 	Handle hTombola = CreateArray();
 	for (int i = 1; i <= MaxClients; i++)
@@ -4254,7 +4184,7 @@ bool PerformFastRespawn2(int iClient)
 	float fPosSpawn[3];
 	float fPosTarget[3];
 	float fAngle[3];
-	GetArrayArray(g_hFastRespawnArray, iResult, fPosSpawn);
+	g_aFastRespawnArray.GetArray(iResult, fPosSpawn);
 	GetClientAbsOrigin(iTarget, fPosTarget);
 	VectorTowards(fPosSpawn, fPosTarget, fAngle);
 
@@ -4264,15 +4194,18 @@ bool PerformFastRespawn2(int iClient)
 
 void FastRespawnDataCollect()
 {
-	if (g_hFastRespawnArray == INVALID_HANDLE) FastRespawnReset();
+	if (g_aFastRespawnArray == null)
+		g_aFastRespawnArray = new ArrayList(3);
 
 	float fPos[3];
+	
+	g_aFastRespawnArray.Clear(); // cancer everywhere
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		if (IsClientInGame(iClient) && IsValidLivingPlayer(iClient) && FastRespawnNearby(iClient, 1.0, false) < 0 && !(GetEntityFlags(iClient) & FL_DUCKING == FL_DUCKING) && (GetEntityFlags(iClient) & FL_ONGROUND == FL_ONGROUND))
 		{
 			GetClientAbsOrigin(iClient, fPos);
-			PushArrayArray(g_hFastRespawnArray, fPos);
+			g_aFastRespawnArray.PushArray(fPos);
 		}
 	}
 }
@@ -4371,9 +4304,7 @@ stock bool ObstactleBetweenEntities(int iEntity1, int iEntity2)
 void HandleSurvivorLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
-	char strChanges[128];
-	// TFClassType iClass = TF2_GetPlayerClass(iClient);
-
+	
 	// remove primary weapon
 	TF2_RemoveWeaponSlot(iClient, 0);
 
@@ -4385,102 +4316,77 @@ void HandleSurvivorLoadout(int iClient)
 	iEntity = GetPlayerWeaponSlot(iClient, TFWeaponSlot_Melee);
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
 	{
-		int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex"); // get item index
-
-		// half zatoichi: drains max health
-		if (iIndex == 357)
-		{
-			TF2Attrib_SetByName(iEntity, "mod_maxhealth_drain_rate", 10.0);
-			Format(strChanges, sizeof(strChanges), "{orange}The Half-Zatoichi {red}drains your max health while active.");
-		}
-
-		// market gardener: 20% blast damage from rocket jumps
-		if (iIndex == 416)
-		{
-			TF2Attrib_SetByName(iEntity, "rocket jump damage reduction", 0.8);
-			Format(strChanges, sizeof(strChanges), "{orange}The Market Gardener {green}makes you take 20%% less damage from Rocket Jumping.");
-
-		}
-
-		// homewrecker: no dmg penalty
-		if (iIndex == 153 || iIndex == 466)
-		{
-			TF2Attrib_SetByName(iEntity, "dmg penalty vs players", 1.0);
-			Format(strChanges, sizeof(strChanges), "{orange}The Homewrecker & reskins {green}have their damage penalty removed.");
-		}
-
-		// southern hospitality: 15% firing speed penalty
-		if (iIndex == 155)
-		{
-			TF2Attrib_SetByName(iEntity, "fire rate penalty", 1.15);
-			Format(strChanges, sizeof(strChanges), "{orange}The Southern Hospitality {red}has a 15%% firing speed penalty.");
-		}
-
-		// ubersaw: reduced uber gained on hit
-		if (iIndex == 37 || iIndex == 1003)
-		{
-			TF2Attrib_SetByName(iEntity, "add uber charge on hit", 0.1);
-			Format(strChanges, sizeof(strChanges), "{orange}The Ubersaw {red}gives 10%% uber on hit.");
-		}
-
-		// shiv: reduced damage penalty to 80%
-		if (iIndex == 171)
-		{
-			TF2Attrib_SetByName(iEntity, "damage penalty", 0.8);
-			Format(strChanges, sizeof(strChanges), "{orange}The Tribalman's Shiv {green}has its damage penalty reduced to 20%%.");
-		}
-
-		// amputator: no aoe heal, reduced health regeneration
-		if (iIndex == 304)
-		{
-			TF2Attrib_SetByName(iEntity, "enables aoe heal", view_as<float>(0));
-			TF2Attrib_SetByName(iEntity, "active health regen", view_as<float>(2));
-			Format(strChanges, sizeof(strChanges), "{orange}The Amputator {red}does not heal in an area when taunting.");
-		}
-
-		// pain train: 10% damage taken.
-		if (iIndex == 154)
-		{
-			TF2Attrib_SetByName(iEntity, "dmg taken increased", 1.1);
-			Format(strChanges, sizeof(strChanges), "{orange}The Pain Train {red}makes you take 10%% additional damage.");
-		}
-
-		// eureka
-		if (iIndex == 589)
-		{
-			TF2_CreateAndEquipWeapon(iClient, 7);
-			Format(strChanges, sizeof(strChanges), "{orange}The Eureka Effect {red}is disabled.");
-		}
+		//Get default attrib from config to apply all melee weapons
+		char atts[32][32];
+		int iCount = ExplodeString(g_eConfigMeleeDefault.sAttrib, " ; ", atts, 32, 32);
+		if (iCount > 1)
+			for (int i = 0; i < iCount; i+= 2)
+				TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[i]), StringToFloat(atts[i+1]));
 		
-		// back scratcher: 90% health from healers penalty
-		if (iIndex == 326)
-		{
-			TF2Attrib_SetByName(iEntity, "health from healers reduced", 0.1);
-			Format(strChanges, sizeof(strChanges), "{orange}The Back Scratcher {red}has a 90% health from healers penalty.");
-		}
-		else
-		{
-			// add penalty from medic healing
-			TF2Attrib_SetByName(iEntity, "health from healers reduced", 0.40);
-		}
+		//Get attrib from index to apply
+		int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
 		
-		TF2Attrib_ClearCache(iEntity); // This will refresh health max calculation and other attributes
+		int iLength = g_aConfigMelee.Length;
+		for (int i = 0; i < iLength; i++)
+		{
+			eConfigMelee eMelee;
+			g_aConfigMelee.GetArray(i, eMelee, sizeof(eMelee));
+			
+			if (eMelee.iIndex == iIndex)
+			{
+				//If have prefab, use said index instead
+				if (eMelee.iIndexPrefab >= 0)
+				{
+					int iPrefab = eMelee.iIndexPrefab;
+					for (int j = 0; j < iLength; j++)
+					{
+						g_aConfigMelee.GetArray(j, eMelee, sizeof(eMelee));
+						if (eMelee.iIndex == iPrefab)
+							break;
+					}
+				}
+				
+				//See if there weapon to replace
+				if (eMelee.iIndexReplace >= 0)
+				{
+					iIndex = eMelee.iIndexReplace;
+					TF2_RemoveWeaponSlot(iClient, TFWeaponSlot_Melee);
+					iEntity = TF2_CreateAndEquipWeapon(iClient, iIndex);
+					
+					//Re-apply global attrib
+					for (int j = 0; j < iCount; j+= 2)
+						TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[j]), StringToFloat(atts[j+1]));
+				}
+				
+				//Print text with cooldown to prevent spam
+				if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(eMelee.sText, ""))
+				{
+					CPrintToChat(iClient, eMelee.sText);
+					g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
+				}
+				
+				//Apply attribute
+				iCount = ExplodeString(eMelee.sAttrib, " ; ", atts, 32, 32);
+				if (iCount > 1)
+					for (int j = 0; j < iCount; j+= 2)
+						TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[j]), StringToFloat(atts[j+1]));
+				
+				break;
+			}
+		}
+
+		// This will refresh health max calculation and other attributes
+		TF2Attrib_ClearCache(iEntity);
 	}
 	else
 	{
 		// no melee, okay.. weird
 		TF2_RespawnPlayer(iClient);
 	}
-	// Prevent chat spam
-	if (g_flStopChatSpam[iClient] < GetGameTime() && strlen(strChanges) > 8)
-	{
-		CPrintToChat(iClient, strChanges);
-		g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
-	}
-
-	// reset custom models
-	SetVariantString("");
-	AcceptEntityInput(iClient, "SetCustomModel");
+	
+	// Prevent Survivors with voodoo-cursed souls
+	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
+	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
 
 	SetValidSlot(iClient);
 }
@@ -4501,9 +4407,11 @@ void HandleZombieLoadout(int iClient)
 			TF2_RemoveWeaponSlot(iClient, 1);
 		}
 
-		TF2_CreateAndEquipWeapon(iClient, (g_iSpecialInfected[iClient] == INFECTED_NONE) ? 44 : 0);
-
-		SetVariantString("models/redsun/left4fortress/scout/scout_zombie_v2.mdl");
+		int iItem = 44; // Sandman
+		if (g_iSpecialInfected[iClient] == INFECTED_HUNTER) 	iItem = 572; // Unarmed Combat
+		if (g_iSpecialInfected[iClient] == INFECTED_KINGPIN) 	iItem = 939; // Bat Outta Hell
+		
+		TF2_CreateAndEquipWeapon(iClient, iItem);
 	}
 
 	if (TF2_GetPlayerClass(iClient) == TFClass_Heavy)
@@ -4513,13 +4421,11 @@ void HandleZombieLoadout(int iClient)
 			TF2_RemoveWeaponSlot(iClient, 1);
 		}
 
-		int iItem = 5; // fists
+		int iItem = 5; // Fists
 		if (g_iSpecialInfected[iClient] == INFECTED_BOOMER) 	iItem = 331; // Fists of Steel
 		if (g_iSpecialInfected[iClient] == INFECTED_CHARGER) 	iItem = 587; // Apoco-Fists
 
 		TF2_CreateAndEquipWeapon(iClient, iItem);
-
-		SetVariantString("models/redsun/left4fortress/heavy/heavy_zombie_v2.mdl");
 	}
 
 
@@ -4531,23 +4437,15 @@ void HandleZombieLoadout(int iClient)
 		
 		if (g_iSpecialInfected[iClient] == INFECTED_NONE)
 		{
-			TF2_CreateAndEquipWeapon(iClient, 4);
+			TF2_CreateAndEquipWeapon(iClient, 4);	// Knife
 		}
 		else
 		{
-			int iWeapon = TF2_CreateAndEquipWeapon(iClient, 574);
+			int iWeapon = TF2_CreateAndEquipWeapon(iClient, 574);	// Wanga Prick
 			if (iWeapon > MaxClients && IsValidEdict(iWeapon))
 				TF2Attrib_SetByName(iWeapon, "disguise on backstab", 0.0);
 		}
-		
-		SetVariantString("models/redsun/left4fortress/spy/spy_zombie_v2.mdl");
 	}
-
-	// Set model based on SetVariantString in the IF statements
-	AcceptEntityInput(iClient, "SetCustomModel");
-	SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", 1);
-	SetVariantBool(true);
-	AcceptEntityInput(iClient, "SetCustomModelVisibletoSelf");
 
 	// Set slot to melee
 	int iEntity = GetPlayerWeaponSlot(iClient, TFWeaponSlot_Melee);
@@ -4567,10 +4465,9 @@ void HandleZombieLoadout(int iClient)
 	//Set health back to what it should be after modifying weapons
 	SetEntityHealth(iClient, SDK_GetMaxHealth(iClient));
 
-	// Prevents voodoo-cursed souls from applying RED skin to zombies on use.
-	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
-	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
-	SetEntProp(iClient, Prop_Send, "m_iPlayerSkinOverride", 0);
+	// reset custom models
+	SetVariantString("");
+	AcceptEntityInput(iClient, "SetCustomModel");
 
 	//SetValidSlot(iClient);
 }
@@ -4787,7 +4684,8 @@ public void OnEntityCreated(int iEntity, const char[] strClassname)
 
 	if (StrEqual(strClassname, "item_healthkit_medium"))
 	{
-		SDKHook(iEntity, SDKHook_Touch, OnSandvichTouch);
+		SDKHook(iEntity, SDKHook_Touch, BlockTouch);
+		CreateTimer(3.0, Timer_EnableSandvichTouch, EntIndexToEntRef(iEntity));
 	}
 
 	if (StrEqual(strClassname, "item_healthkit_small"))
@@ -4915,6 +4813,20 @@ public Action BallTouch(int iEntity, int iOther)
 	return Plugin_Stop;
 }
 
+public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
+{
+	int iEntity = EntRefToEntIndex(iRef);
+	if (!IsValidEntity(iEntity)) return;
+	
+	SDKUnhook(iEntity, SDKHook_Touch, BlockTouch);
+	SDKHook(iEntity, SDKHook_Touch, OnSandvichTouch);
+}
+
+public Action BlockTouch(int iEntity, int iClient)
+{
+	return Plugin_Handled;
+}
+
 public Action OnSandvichTouch(int iEntity, int iClient)
 {
 	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
@@ -4923,8 +4835,8 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 	// check if both owner and toucher is valid
 	if (!IsValidClient(iOwner) || !IsValidClient(iToucher)) return Plugin_Continue;
 	
-	// dont allow tank to collect health
-	if (g_iSpecialInfected[iToucher] == INFECTED_TANK) return Plugin_Handled;
+	// dont allow owner and tank collect sandvich
+	if (iOwner == iToucher || g_iSpecialInfected[iToucher] == INFECTED_TANK) return Plugin_Handled;
 	
 	if (GetClientTeam(iToucher) != GetClientTeam(iOwner))
 	{
@@ -4957,7 +4869,7 @@ public Action OnBananaTouch(int iEntity, int iClient)
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
 		AcceptEntityInput(iEntity, "Kill");
 
-		DealDamage(iToucher, 40, iOwner);
+		DealDamage(iToucher, 30, iOwner);
 
 		return Plugin_Handled;
 	}
@@ -5300,7 +5212,7 @@ bool AttemptCarryItem(int iClient)
 
 	char strName[255];
 	GetEntPropString(iTarget, Prop_Data, "m_iName", strName, sizeof(strName));
-	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1 || StrContains(strName, "redsun_pickup", false) != -1)) return false;
+	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1)) return false;
 
 	g_iCarryingItem[iClient] = iTarget;
 	SetEntProp(iClient, Prop_Send, "m_bDrawViewmodel", 0);
@@ -5370,7 +5282,7 @@ void UpdateClientCarrying(int iClient)
 
 	char strName[255];
 	GetEntPropString(iTarget, Prop_Data, "m_iName", strName, sizeof(strName));
-	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1 || StrContains(strName, "redsun_pickup", false) != -1)) return;
+	if (!(StrContains(strName, "szf_carry", false) != -1 || StrEqual(strName, "gascan", false) || StrContains(strName, "szf_pick", false) != -1)) return;
 
 	float vOrigin[3];
 	float vAngles[3];
@@ -5454,50 +5366,40 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 	{
 		return Plugin_Continue;
 	}
-
+	
 	if (StrContains(sound, "vo/", false) != -1 && IsZombie(iClient))
 	{
+		if (StrContains(sound, "zombie_vo/", false) != -1) return Plugin_Continue; // so rage sounds (for normal & most special infected alike) don't get blocked
+		
 		// normal infected & kingpin(pitch only)
 		if (g_iSpecialInfected[iClient] == INFECTED_NONE || g_iSpecialInfected[iClient] == INFECTED_KINGPIN)
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
+				if (GetClientHealth(iClient) < 50 || StrContains(sound, "crticial", false) != -1)  // the typo is intended because that's how the soundfiles are named
 				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/ignite0%d.mp3", GetRandomInt(7, 9));
-				}
-
-				else if (GetClientHealth(iClient) < 50 || StrContains(sound, "critical", false) != -1)
-				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/death_2%d.mp3", GetRandomInt(2, 9));
+					EmitSoundToAll(g_strZombieVO_Common_Death[GetRandomInt(0, sizeof(g_strZombieVO_Common_Death) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
 				else
 				{
-					int iRandom = GetRandomInt(18, 22);
-					if (iRandom == 15 || iRandom == 16 || iRandom == 17 || iRandom == 23) iRandom = GetRandomInt(12, 14);
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/been_shot_%d.mp3", iRandom);
+					EmitSoundToAll(g_strZombieVO_Common_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Common_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 			}
 
-			if (StrContains(sound, "_laugh", false) != -1 || StrContains(sound, "_no", false) != -1 || StrContains(sound, "_yes", false) != -1)
+			else if (StrContains(sound, "_laugh", false) != -1 || StrContains(sound, "_no", false) != -1 || StrContains(sound, "_yes", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/mumbling0%d.mp3", GetRandomInt(1, 8));
+				EmitSoundToAll(g_strZombieVO_Common_Mumbling[GetRandomInt(0, sizeof(g_strZombieVO_Common_Mumbling) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
-			if (StrContains(sound, "_go", false) != -1 || StrContains(sound, "_jarate", false) != -1)
+			else if (StrContains(sound, "_go", false) != -1 || StrContains(sound, "_jarate", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/shoved_%d.mp3", GetRandomInt(1, 4));
-			}
-
-			if (StrContains(sound, "_medic", false) != -1)
-			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/rage_at_victim2%d.mp3", !GetRandomInt(0, 2) ? GetRandomInt(1, 2) : GetRandomInt(5, 6));
+				EmitSoundToAll(g_strZombieVO_Common_Shoved[GetRandomInt(0, sizeof(g_strZombieVO_Common_Shoved) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/idle_breath_0%d.mp3", GetRandomInt(1, 4));
+				EmitSoundToAll(g_strZombieVO_Common_Default[GetRandomInt(0, sizeof(g_strZombieVO_Common_Default) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			if (g_iSpecialInfected[iClient] == INFECTED_KINGPIN) pitch = 80;
@@ -5511,18 +5413,18 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 			{
 				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
 				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/tank_fire_0%d.mp3", GetRandomInt(2, 5));
+					EmitSoundToAll(g_strZombieVO_Tank_OnFire[GetRandomInt(0, sizeof(g_strZombieVO_Tank_OnFire) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 
 				else
 				{
-					Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/tank_pain_0%d.mp3", GetRandomInt(1, 4));
+					EmitSoundToAll(g_strZombieVO_Tank_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Tank_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/tank_voice_0%d.mp3", GetRandomInt(1, 4));
+				EmitSoundToAll(g_strZombieVO_Tank_Default[GetRandomInt(0, sizeof(g_strZombieVO_Tank_Default) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
@@ -5531,12 +5433,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/charger_pain_0%d.mp3", GetRandomInt(1, 3));
+				EmitSoundToAll(g_strZombieVO_Charger_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Charger_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/charger_spotprey_0%d.mp3", GetRandomInt(1, 3));
+				EmitSoundToAll(g_strZombieVO_Charger_Default[GetRandomInt(0, sizeof(g_strZombieVO_Charger_Default) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
@@ -5545,12 +5447,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/hunter_pain_1%d.mp3", GetRandomInt(2, 4));
+				EmitSoundToAll(g_strZombieVO_Hunter_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Hunter_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/hunter_stalk_0%d.mp3", GetRandomInt(4, 6));
+				EmitSoundToAll(g_strZombieVO_Hunter_Default[GetRandomInt(0, sizeof(g_strZombieVO_Hunter_Default) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
@@ -5559,12 +5461,12 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/male_boomer_pain_%d.mp3", GetRandomInt(1, 3));
+				EmitSoundToAll(g_strZombieVO_Boomer_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Boomer_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/male_boomer_lurk_0%d.mp3", GetRandomInt(2, 4));
+				EmitSoundToAll(g_strZombieVO_Boomer_Default[GetRandomInt(0, sizeof(g_strZombieVO_Boomer_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
@@ -5573,16 +5475,16 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 		{
 			if (StrContains(sound, "_pain", false) != -1)
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/smoker_pain_0%d.mp3", GetRandomInt(2, 4));
+				EmitSoundToAll(g_strZombieVO_Smoker_Pain[GetRandomInt(0, sizeof(g_strZombieVO_Smoker_Pain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 
 			else
 			{
-				Format(sound, sizeof(sound), "redsun/szf_rsx/zombie_vo/smoker_lurk_1%d.mp3", GetRandomInt(1, 3));
+				EmitSoundToAll(g_strZombieVO_Smoker_Default[GetRandomInt(0, sizeof(g_strZombieVO_Smoker_Default) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
 		}
 
-		return Plugin_Changed;
+		return Plugin_Handled;
 	}
 
 	return Plugin_Continue;
@@ -5784,7 +5686,7 @@ public void DoGenericRage(int iClient)
 	int curH = GetClientHealth(iClient);
 	SetEntityHealth(iClient, RoundToCeil(curH * 1.5));
 
-	ClientCommand(iClient, "voicemenu 2 1");
+	//ClientCommand(iClient, "voicemenu 2 1");
 
 	float fClientPos[3];
 	GetClientEyePosition(iClient, fClientPos);
@@ -5937,10 +5839,28 @@ public void DoSmokerBeam(int iClient)
 
 	// 750 in L4D2, scaled to TF2 player hull sizing (32hu -> 48hu)
 	if (GetVectorDistance(vOrigin, vEndOrigin) > 1150.0) return;
-
-	// draw beam
+	
+	// Smoker's tongue beam
+	// Beam that gets sent to all other clients
 	TE_SetupBeamPoints(vOrigin, vEndOrigin, g_iSprite, 0, 0, 0, 0.08, 5.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
-	TE_SendToAll();
+	int iTotal = 0;
+	int[] iClients = new int[MaxClients];
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && i != iClient)
+		{
+			iClients[iTotal++] = i;
+		}
+	}
+	TE_Send(iClients, iTotal);
+	
+	// Send a different beam to smoker
+	float newOrigin[3];
+	newOrigin[0] = vOrigin[0];
+	newOrigin[1] = vOrigin[1];
+	newOrigin[2] = vOrigin[2] - 7.0;
+	TE_SetupBeamPoints(newOrigin, vEndOrigin, g_iSprite, 0, 0, 0, 0.08, 2.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
+	TE_SendToClient(iClient);
 
 	int iHit = TR_GetEntityIndex(hTrace);
 

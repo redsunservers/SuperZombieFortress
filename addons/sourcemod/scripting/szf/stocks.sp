@@ -1,5 +1,3 @@
-#define PLUGIN_VERSION "3.0.2"
-
 // Soldier
 #define ZFWEAP_ESCAPEPLAN 775
 
@@ -58,6 +56,16 @@ enum ZFRoundState
 static ZFRoundState zf_roundState = RoundInit1;
 int zf_zomTeam = INT(TFTeam_Blue);
 int zf_surTeam = INT(TFTeam_Red);
+
+//
+// Zombie Soul related indexes
+//
+#define SKIN_ZOMBIE			5
+#define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
+
+char g_sClassNames[10][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
+int g_iVoodooIndex[10] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
+int g_iZombieSoulIndex[10];
 
 ////////////////////////////////////////////////////////////
 //
@@ -748,7 +756,7 @@ stock void DealDamage(int iVictim, int iDamage, int iAttacker = 0, int iDmgType 
 //
 ////////////////////////////////////////////////////////////
 
-stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex)
+stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, char[] sAttribs = "", char[] sText = "")
 {
 	char sClassname[256];
 	TF2Econ_GetItemClassName(iIndex, sClassname, sizeof(sClassname));
@@ -769,7 +777,24 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex)
 		SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 6);
 		SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
 		
+		// Attribute shittery inbound
+		if (!StrEqual(sAttribs, ""))
+		{
+			char atts[32][32];
+			int iCount = ExplodeString(sAttribs, " ; ", atts, 32, 32);
+			if (iCount > 1)
+				for (int i = 0; i < iCount; i+= 2)
+					TF2Attrib_SetByDefIndex(iWeapon, StringToInt(atts[i]), StringToFloat(atts[i+1]));
+		}
+		
+		if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(sText, ""))
+		{
+			CPrintToChat(iClient, sText);
+			g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
+		}
+		
 		DispatchSpawn(iWeapon);
+		SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", true);
 		
 		if (StrContains(sClassname, "tf_wearable") == 0)
 			SDK_EquipWearable(iClient, iWeapon);
@@ -915,4 +940,77 @@ public Action TimerKillEntity(Handle hTimer, int iEntity)
 	{
 		AcceptEntityInput(iEntity, "Kill");
 	}
+}
+
+// Yoinked from https://github.com/DFS-Servers/Super-Zombie-Fortress/blob/master/addons/sourcemod/scripting/include/szf_util_base.inc
+stock void SZF_CPrintToChatAll(int iClient, char[] strText, bool bTeam = false, const char[] param1="", const char[] param2="", const char[] param3="", const char[] param4="")
+{
+	if (bTeam && !IsValidClient(iClient)) return;
+
+	char strPlayerName[80], strMessage[255];
+	if (0 < iClient <= MaxClients)
+	{
+		GetClientName2(iClient, strPlayerName, sizeof(strPlayerName));
+		if (bTeam)
+			Format(strMessage, sizeof(strMessage), "\x01(TEAM) %s\x01 : %s", strPlayerName, strText);
+		else
+			Format(strMessage, sizeof(strMessage), "\x01%s\x01 : %s\x01", strPlayerName, strText);
+	}
+	
+	ReplaceString(strMessage, sizeof(strMessage), "{param1}", "%s1");
+	ReplaceString(strMessage, sizeof(strMessage), "{param2}", "%s2");
+	ReplaceString(strMessage, sizeof(strMessage), "{param3}", "%s3");
+	ReplaceString(strMessage, sizeof(strMessage), "{param4}", "%s4");
+	CReplaceColorCodes(strMessage, iClient, _, sizeof(strMessage));
+	
+	int players[MAXPLAYERS+1], playersNum;
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (!IsValidClient(i) || (bTeam &&  GetClientTeam(i) != GetClientTeam(iClient))) continue;
+		players[playersNum++] = i;
+	}
+	UTIL_SayText2(players, playersNum, iClient, true, strMessage, param1, param2, param3, param4);
+}
+
+stock void UTIL_SayText2(int[] players, int playersNum, int iEntity, bool bChat, const char[] msg_name, const char[] param1="", const char[] param2="", const char[] param3="", const char[] param4="")
+{
+	BfWrite message = UserMessageToBfWrite(StartMessage("SayText2", players, playersNum, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS)); 
+	
+	message.WriteByte(iEntity);
+	message.WriteByte(true);
+
+	message.WriteString(msg_name); 
+	
+	message.WriteString(param1); 
+	message.WriteString(param2); 
+	message.WriteString(param3);
+	message.WriteString(param4);
+	
+	EndMessage();
+}
+
+/******************************************************************************************************/
+
+stock int PrecacheZombieSouls()
+{
+	char sPath[64];
+	// loops through all class types available
+	for (int i = 1; i <= 9; i++)
+	{
+		Format(sPath, sizeof(sPath), "models/player/items/%s/%s_zombie.mdl", g_sClassNames[i], g_sClassNames[i]);
+		g_iZombieSoulIndex[i] = PrecacheModel(sPath);
+	}
+}
+
+stock void ApplyVoodooCursedSoul(int iClient)
+{
+	if (TF2_IsPlayerInCondition(iClient, TFCond_HalloweenGhostMode)) return;
+	
+	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", true);
+	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", (isSpy(iClient)) ? SKIN_ZOMBIE_SPY : SKIN_ZOMBIE);
+	
+	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	int iWearable = TF2_CreateAndEquipWeapon(iClient, g_iVoodooIndex[view_as<int>(nClass)]);	//Not really a weapon, but still works
+	if (IsValidEntity(iWearable))
+		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", g_iZombieSoulIndex[view_as<int>(nClass)]);
 }
