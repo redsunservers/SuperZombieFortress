@@ -1372,6 +1372,9 @@ public Action event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	zf_spawnZombiesKilledCounter = 0;
 	zf_spawnZombiesKilledSpree = 0;
 
+	g_fTimeProgress = 0.0;
+	zf_tTimeProgress = null;
+
 	// Handle grace period timers.
 	CreateTimer(0.5, timer_graceStartPost, TIMER_FLAG_NO_MAPCHANGE);
 	CreateTimer(45.0, timer_graceEnd, TIMER_FLAG_NO_MAPCHANGE);
@@ -1445,6 +1448,9 @@ void EndGracePeriod()
 				CPrintToChat(i, "%sInfected have received extra health and other benefits to ensure game balance at the start of the round.", (IsZombie(i)) ? "{green}" : "{red}");
 		}
 	}
+
+	g_fTimeProgress = 0.0;
+	zf_tTimeProgress = CreateTimer(6.0, timer_progress, _, TIMER_REPEAT);
 
 	g_bFirstRound = false;
 	g_flTankCooldown = GetGameTime() + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); // 2 min cooldown before tank spawns will be considered
@@ -2412,6 +2418,7 @@ public Action timer_datacollect(Handle timer) // 1/5th Hz
 
 public Action timer_progress(Handle timer) // 6 sec
 {
+	if (zf_tTimeProgress != timer) return Plugin_Stop;
 	if (!zf_bEnabled) return Plugin_Stop;
 	g_fTimeProgress += 0.01;
 
@@ -3054,9 +3061,6 @@ void zfEnable()
 
 	delete zf_tDataCollect;
 	zf_tDataCollect = CreateTimer(2.0, timer_datacollect, _, TIMER_REPEAT);
-	
-	delete zf_tTimeProgress;
-	zf_tTimeProgress = CreateTimer(6.0, timer_progress, _, TIMER_REPEAT);
 }
 
 void zfDisable()
