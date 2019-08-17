@@ -61,6 +61,7 @@ Handle zf_tMainFast;
 Handle zf_tMainSlow;
 Handle zf_tHoarde;
 Handle zf_tDataCollect;
+Handle zf_tTimeProgress;
 
 // Cvar Handles
 Handle zf_cvForceOn;
@@ -100,6 +101,8 @@ int g_iControlPointsInfo[20][2];
 int g_iControlPoints = 0;
 bool g_bCapturingLastPoint = false;
 int g_iCarryingItem[MAXPLAYERS+1] = -1;
+
+float g_fTimeProgress = 0.0;
 
 #define DISTANCE_GOO            4.0
 #define TIME_GOO                7.0
@@ -2407,6 +2410,14 @@ public Action timer_datacollect(Handle timer) // 1/5th Hz
 	return Plugin_Continue;
 }
 
+public Action timer_progress(Handle timer) // 30 sec
+{
+	if (!zf_bEnabled) return Plugin_Continue;
+	g_fTimeProgress += 0.05;
+
+	return Plugin_Continue;
+}
+
 ////////////////////////////////////////////////////////////
 //
 // Aperiodic Timer Callbacks
@@ -3041,6 +3052,9 @@ void zfEnable()
 
 	delete zf_tDataCollect;
 	zf_tDataCollect = CreateTimer(2.0, timer_datacollect, _, TIMER_REPEAT);
+	
+	delete zf_tTimeProgress;
+	zf_tTimeProgress = CreateTimer(30.0, timer_progress, _, TIMER_REPEAT);
 }
 
 void zfDisable()
@@ -3087,6 +3101,7 @@ void zfDisable()
 	delete zf_tMainSlow;
 	delete zf_tHoarde;
 	delete zf_tDataCollect;
+	delete zf_tTimeProgress;
 
 	// Enable resupply lockers.
 	int index = -1;
@@ -3762,6 +3777,18 @@ void UpdateZombieDamageScale()
 		// If there atleast 1 CP, set progress by amount of CP capped
 		if (iMaxCP > 0)
 			flProgress = float(iCurrentCP) / float(iMaxCP);
+			
+		//If the map is too big for the amount of CPs, progress incerases with time
+		if(g_fTimeProgress > flProgress)
+		{
+			//Failsafe : Cannot exceed current CP (and a half)
+			float flProgressMax = float(iCurrentCP)+1.0 / float(iMaxCP);
+			if(g_fTimeProgress > flProgressMax)
+				flProgress = flProgressMax;
+			else
+				flProgress = g_fTimeProgress;
+		}
+		
 	}
 
 	//If progress found, calculate by amount of survivors and zombies
