@@ -3787,10 +3787,14 @@ void UpdateZombieDamageScale()
 			flProgress = float(iCurrentCP) / float(iMaxCP);
 			
 		//If the map is too big for the amount of CPs, progress incerases with time
-		if(1.0 >= g_fTimeProgress > flProgress)
+		if(g_fTimeProgress > flProgress)
 		{
 			//Failsafe : Cannot exceed current CP (and a half)
 			float flProgressMax = (float(iCurrentCP)+1.0) / float(iMaxCP);
+			//Cannot go above 1.0
+			if(1.0 >= flProgressMax)
+			flProgressMax = 1.0;
+			
 			if(g_fTimeProgress > flProgressMax)
 				flProgress = flProgressMax;
 			else
