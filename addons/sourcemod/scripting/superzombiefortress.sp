@@ -61,6 +61,7 @@ Handle zf_tMainFast;
 Handle zf_tMainSlow;
 Handle zf_tHoarde;
 Handle zf_tDataCollect;
+Handle zf_tTimeProgress;
 
 // Cvar Handles
 Handle zf_cvForceOn;
@@ -100,6 +101,8 @@ int g_iControlPointsInfo[20][2];
 int g_iControlPoints = 0;
 bool g_bCapturingLastPoint = false;
 int g_iCarryingItem[MAXPLAYERS+1] = -1;
+
+float g_fTimeProgress = 0.0;
 
 #define DISTANCE_GOO            4.0
 #define TIME_GOO                7.0
@@ -1369,6 +1372,9 @@ public Action event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	zf_spawnZombiesKilledCounter = 0;
 	zf_spawnZombiesKilledSpree = 0;
 
+	g_fTimeProgress = 0.0;
+	zf_tTimeProgress = null;
+
 	// Handle grace period timers.
 	CreateTimer(0.5, timer_graceStartPost, TIMER_FLAG_NO_MAPCHANGE);
 	CreateTimer(45.0, timer_graceEnd, TIMER_FLAG_NO_MAPCHANGE);
@@ -1442,6 +1448,9 @@ void EndGracePeriod()
 				CPrintToChat(i, "%sInfected have received extra health and other benefits to ensure game balance at the start of the round.", (IsZombie(i)) ? "{green}" : "{red}");
 		}
 	}
+
+	g_fTimeProgress = 0.0;
+	zf_tTimeProgress = CreateTimer(6.0, timer_progress, _, TIMER_REPEAT);
 
 	g_bFirstRound = false;
 	g_flTankCooldown = GetGameTime() + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); // 2 min cooldown before tank spawns will be considered
@@ -2353,7 +2362,7 @@ public Action timer_main(Handle timer) // 1Hz
 
 public Action timer_moraleDecay(Handle timer) // timer scales based on how many zombies, slow if low zombies, fast if high zombies
 {
-	if (!zf_bEnabled) return Plugin_Continue;
+	if (!zf_bEnabled) return Plugin_Stop;
 	
 	AddMoraleAll(-1);
 	
@@ -2377,7 +2386,7 @@ public Action timer_moraleDecay(Handle timer) // timer scales based on how many 
 
 public Action timer_mainSlow(Handle timer) // 4 min
 {
-	if (!zf_bEnabled) return Plugin_Continue;
+	if (!zf_bEnabled) return Plugin_Stop;
 	help_printZFInfoChat(0);
 
 	return Plugin_Continue;
@@ -2385,7 +2394,7 @@ public Action timer_mainSlow(Handle timer) // 4 min
 
 public Action timer_mainFast(Handle timer)
 {
-	if (!zf_bEnabled) return Plugin_Continue;
+	if (!zf_bEnabled) return Plugin_Stop;
 	GooDamageCheck();
 
 	return Plugin_Continue;
@@ -2393,7 +2402,7 @@ public Action timer_mainFast(Handle timer)
 
 public Action timer_hoarde(Handle timer) // 1/5th Hz
 {
-	if (!zf_bEnabled) return Plugin_Continue;
+	if (!zf_bEnabled) return Plugin_Stop;
 	handle_hoardeBonus();
 
 	return Plugin_Continue;
@@ -2401,8 +2410,17 @@ public Action timer_hoarde(Handle timer) // 1/5th Hz
 
 public Action timer_datacollect(Handle timer) // 1/5th Hz
 {
-	if (!zf_bEnabled) return Plugin_Continue;
+	if (!zf_bEnabled) return Plugin_Stop;
 	FastRespawnDataCollect();
+
+	return Plugin_Continue;
+}
+
+public Action timer_progress(Handle timer) // 6 sec
+{
+	if (zf_tTimeProgress != timer) return Plugin_Stop;
+	if (!zf_bEnabled) return Plugin_Stop;
+	g_fTimeProgress += 0.01;
 
 	return Plugin_Continue;
 }
@@ -2996,6 +3014,8 @@ void zfEnable()
 	zf_bNewRound = true;
 	zf_lastSurvivor = false;
 	
+	g_fTimeProgress = 0.0;
+	
 	setRoundState(RoundInit2);
 
 	zfSetTeams();
@@ -3055,6 +3075,8 @@ void zfDisable()
 	zf_bNewRound = true;
 	zf_lastSurvivor = false;
 	
+	g_fTimeProgress = 0.0;
+	
 	setRoundState(RoundInit2);
 
 	for (int i = 0; i <= MAXPLAYERS; i++)
@@ -3087,6 +3109,7 @@ void zfDisable()
 	delete zf_tMainSlow;
 	delete zf_tHoarde;
 	delete zf_tDataCollect;
+	delete zf_tTimeProgress;
 
 	// Enable resupply lockers.
 	int index = -1;
@@ -3762,6 +3785,23 @@ void UpdateZombieDamageScale()
 		// If there atleast 1 CP, set progress by amount of CP capped
 		if (iMaxCP > 0)
 			flProgress = float(iCurrentCP) / float(iMaxCP);
+			
+		//If the map is too big for the amount of CPs, progress incerases with time
+		if(g_fTimeProgress > flProgress)
+		{
+			//Failsafe : Cannot exceed current CP (and a half)
+			float flProgressMax = (float(iCurrentCP)+1.0) / float(iMaxCP);
+			
+			//Cannot go above 1.0
+			if (flProgressMax > 1.0)
+				flProgressMax = 1.0;
+			
+			if (g_fTimeProgress > flProgressMax)
+				flProgress = flProgressMax;
+			else
+				flProgress = g_fTimeProgress;
+		}
+		
 	}
 
 	//If progress found, calculate by amount of survivors and zombies
