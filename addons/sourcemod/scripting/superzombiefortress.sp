@@ -1413,26 +1413,9 @@ void EndGracePeriod()
 
 	int iSurvivors = GetSurvivorCount();
 	int iZombies = GetZombieCount();
-	int iConnecting = GetConnectingCount();
 
-	// buff survivors if these conditions are met:
-	// first round
-	// 16 or more people are still connecting
-	// 4 survivors or less are in the team
-	if (g_bFirstRound && iConnecting >= 16 && iSurvivors <= 4)
-	{
-		// for loop
-		for (int i = 1; i <= MaxClients; i++)
-		{
-			if (IsValidLivingSurvivor(i))
-				SetEntityHealth(i, 300);
-			
-			if (IsClientInGame(i))
-				CPrintToChat(i, "%sSurvivors have received extra health due to being in a heavy disadvantage in the first round.", (IsZombie(i)) ? "{red}" : "{green}");
-		}
-	}
-
-	else if (float(iZombies) / float(iSurvivors + iZombies) <= 0.15)	//If less than 15% of players is zombie, give buff
+	//If less than 15% of players is zombie, give buff
+	if (float(iZombies) / float(iSurvivors + iZombies) <= 0.15)
 	{
 		// for loop
 		for (int i = 1; i <= MaxClients; i++)
