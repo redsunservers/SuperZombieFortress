@@ -3791,11 +3791,12 @@ void UpdateZombieDamageScale()
 		{
 			//Failsafe : Cannot exceed current CP (and a half)
 			float flProgressMax = (float(iCurrentCP)+1.0) / float(iMaxCP);
-			//Cannot go above 1.0
-			if(1.0 >= flProgressMax)
-			flProgressMax = 1.0;
 			
-			if(g_fTimeProgress > flProgressMax)
+			//Cannot go above 1.0
+			if (flProgressMax > 1.0)
+				flProgressMax = 1.0;
+			
+			if (g_fTimeProgress > flProgressMax)
 				flProgress = flProgressMax;
 			else
 				flProgress = g_fTimeProgress;
