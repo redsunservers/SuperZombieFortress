@@ -174,6 +174,7 @@ int g_iGooMultiplier[MAXPLAYERS+1] = 0;
 bool g_bGooified[MAXPLAYERS+1] = false;
 bool g_bHitOnce[MAXPLAYERS+1] = false;
 bool g_bHopperIsUsingPounce[MAXPLAYERS+1] = false;
+float g_flGooCooldown[MAXPLAYERS+1] = 0.0;
 
 bool g_bSpawnAsSpecialInfected[MAXPLAYERS+1] = false;
 int g_iSpecialInfected[MAXPLAYERS+1] = 0;
@@ -2899,7 +2900,8 @@ void handle_zombieAbilities()
 			{
 				if (isSlotClassname(i, TFWeaponSlot_Melee, "tf_weapon_bat_wood"))
 				{
-					float fTime = GetEntPropFloat(iMelee, Prop_Send, "m_flEffectBarRegenTime") - GetGameTime();
+					g_flGooCooldown[i] = GetEntPropFloat(iMelee, Prop_Send, "m_flEffectBarRegenTime");
+					float fTime = g_flGooCooldown[i] - GetGameTime();
 					if (fTime > 0.0)
 						ShowHudText(i, 5, "Ball: %ds", RoundToZero(fTime));
 				}
@@ -4411,7 +4413,20 @@ void HandleZombieLoadout(int iClient)
 		if (g_iSpecialInfected[iClient] == INFECTED_HUNTER) 	iItem = 572; // Unarmed Combat
 		if (g_iSpecialInfected[iClient] == INFECTED_KINGPIN) 	iItem = 939; // Bat Outta Hell
 		
-		TF2_CreateAndEquipWeapon(iClient, iItem);
+		int iMelee = TF2_CreateAndEquipWeapon(iClient, iItem);
+		
+		if (IsValidEntity(iMelee) && iItem == 44)
+		{
+			//Set Sandman ball in cooldown if spammed
+			if (g_flGooCooldown[iClient] > GetGameTime())
+			{
+				int iAmmoType = GetEntProp(iMelee, Prop_Send, "m_iPrimaryAmmoType");
+				if (iAmmoType > -1)
+					SetEntProp(iClient, Prop_Send, "m_iAmmo", 0, _, iAmmoType);
+				
+				SetEntPropFloat(iMelee, Prop_Send, "m_flEffectBarRegenTime", g_flGooCooldown[iClient]);
+			}
+		}
 	}
 
 	if (TF2_GetPlayerClass(iClient) == TFClass_Heavy)
