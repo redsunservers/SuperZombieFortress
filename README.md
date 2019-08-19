@@ -1,4 +1,4 @@
-# Super Zombie Fortress
+# Super Zombie Fortress [![Build Status](https://travis-ci.com/redsunservers/SuperZombieFortress.svg?branch=master)](https://travis-ci.com/redsunservers/SuperZombieFortress)
 
 Custom Team Fortress 2 Gamemode, inspired from Left 4 Dead
 
