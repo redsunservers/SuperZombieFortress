@@ -721,37 +721,6 @@ stock void setTeamRespawnTime(int team, float time)
 
 ////////////////////////////////////////////////////////////
 //
-// Damage Utils
-//
-////////////////////////////////////////////////////////////
-stock void DealDamage(int iVictim, int iDamage, int iAttacker = 0, int iDmgType = DMG_GENERIC, char[] strWeapon = "")
-{
-	if (!IsValidClient(iAttacker)) iAttacker = 0;
-	if (IsValidClient(iVictim) && iDamage > 0)
-	{
-		char strDamage[16];
-		IntToString(iDamage, strDamage, 16);
-		char strDamageType[32];
-		IntToString(iDmgType, strDamageType, 32);
-		int iHurt = CreateEntityByName("point_hurt");
-		if (iHurt > 0 && IsValidEdict(iHurt))
-		{
-			DispatchKeyValue(iVictim, "targetname", "infectious_hurtme");
-			DispatchKeyValue(iHurt, "DamageTarget", "infectious_hurtme");
-			DispatchKeyValue(iHurt, "Damage", strDamage);
-			DispatchKeyValue(iHurt, "DamageType", strDamageType);
-			if (!StrEqual(strWeapon, "")) DispatchKeyValue(iHurt, "classname", strWeapon);
-			DispatchSpawn(iHurt);
-			AcceptEntityInput(iHurt, "Hurt", iAttacker);
-			DispatchKeyValue(iHurt, "classname", "point_hurt");
-			DispatchKeyValue(iVictim, "targetname", "infectious_donthurtme");
-			RemoveEdict(iHurt);
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////
-//
 // Weapon Utils
 //
 ////////////////////////////////////////////////////////////

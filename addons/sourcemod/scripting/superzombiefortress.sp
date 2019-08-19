@@ -2578,22 +2578,21 @@ void handle_gameFrameLogic()
 				float flDistance;
 				GetClientEyePosition(i, flPosCharger);
 
-				for (int z = 1; z <= MaxClients; z++)
+				for (int iVictim = 1; iVictim <= MaxClients; iVictim++)
 				{
-					int iVictim = z;
 					if (IsClientInGame(iVictim) && IsPlayerAlive(iVictim) && IsSurvivor(iVictim))
 					{
-						GetClientEyePosition(z, flPosClient);
+						GetClientEyePosition(iVictim, flPosClient);
 						flDistance = GetVectorDistance(flPosCharger, flPosClient);
 						if (flDistance <= 95.0)
 						{
-							if (!g_bBackstabbed[z])
+							if (!g_bBackstabbed[iVictim])
 							{
-								SetEntityHealth(iVictim, GetClientHealth(iVictim) - 30);
-								TF2_MakeBleed(iVictim, i, 2.0);
-
 								SetBackstabState(iVictim, BACKSTABDURATION_FULL, 0.8);
 								SetNextAttack(i, GetGameTime() + 0.6);
+								
+								TF2_MakeBleed(iVictim, i, 2.0);
+								SDKHooks_TakeDamage(iVictim, i, i, 30.0, DMG_PREVENT_PHYSICS_FORCE);
 
 								char strPath[PLATFORM_MAX_PATH];
 								Format(strPath, sizeof(strPath), "weapons/demo_charge_hit_flesh_range1.wav", GetRandomInt(1, 3));
@@ -2606,7 +2605,6 @@ void handle_gameFrameLogic()
 							}
 
 							TF2_RemoveCondition(i, TFCond_Charging);
-							DealDamage(z, 1, i, _, "tf_wearable_demoshield");
 							break; // target found, break the loop.
 						}
 					}
@@ -4583,8 +4581,7 @@ void GooDamageCheck()
 						float fDamage = float(g_iGooMultiplier[iClient])/float(GOO_INCREASE_RATE) * fPercentageDistance;
 						if (fDamage < 1.0) fDamage = 1.0;
 						if (fDamage > 4.0 && zf_CapturingPoint[iClient] != -1) fDamage = 4.0;	//If client is capturing point, add hardmax 4 dmg
-						int iDamage = RoundFloat(fDamage);
-						DealDamage(iClient, iDamage, iAttacker, _, "projectile_stun_ball");
+						SDKHooks_TakeDamage(iClient, iAttacker, iAttacker, fDamage, DMG_PREVENT_PHYSICS_FORCE);
 						g_bGooified[iClient] = true;
 
 						if (fDamage >= 7.0)
@@ -4867,7 +4864,7 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
 		AcceptEntityInput(iEntity, "Kill");
 
-		DealDamage(iToucher, 55, iOwner);
+		SDKHooks_TakeDamage(iToucher, iOwner, iOwner, 55.0);
 
 		return Plugin_Handled;
 	}
@@ -4892,7 +4889,7 @@ public Action OnBananaTouch(int iEntity, int iClient)
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
 		AcceptEntityInput(iEntity, "Kill");
 
-		DealDamage(iToucher, 30, iOwner);
+		SDKHooks_TakeDamage(iToucher, iOwner, iOwner, 30.0);
 
 		return Plugin_Handled;
 	}
@@ -5913,7 +5910,7 @@ public void DoSmokerBeam(int iClient)
 		g_iSmokerBeamHits[iClient]++;
 		if (g_iSmokerBeamHits[iClient] == 5)
 		{
-			DealDamage(iHit, 2, iClient); // do damage
+			SDKHooks_TakeDamage(iHit, iClient, iClient, 2.0, DMG_PREVENT_PHYSICS_FORCE); // do damage
 			g_iSmokerBeamHits[iClient] = 0;
 		}
 
