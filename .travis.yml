@@ -25,4 +25,4 @@ before_script:
   - mkdir compiled
 
 script: 
-  - ./compile.sh superzombiefortress.sp
+  - ./spcomp -E superzombiefortress.sp
