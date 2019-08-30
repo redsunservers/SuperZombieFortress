@@ -1707,8 +1707,6 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				if (g_iSpecialInfected[client] == INFECTED_SMOKER)
 				{
 					SetEntityRenderColor(client, 255, 0, 0, 255);
-					g_iMaxHealth[client] = 70;
-					SetEntityHealth(client, 70);
 					CPrintToChat(client, "{green}YOU ARE A SMOKER:\n{orange}- Right click to fire a beam to enemy players and pull them towards you! {yellow}(no cooldown)");
 				}
 			}
@@ -4468,21 +4466,20 @@ void HandleZombieLoadout(int iClient)
 	if (TF2_GetPlayerClass(iClient) == TFClass_Spy)
 	{
 		TF2_RemoveWeaponSlot(iClient, 1);
-
 		TF2_CreateAndEquipWeapon(iClient, 30); // Cloak
 		
-		if (g_iSpecialInfected[iClient] == INFECTED_NONE)
+		int iItem = 4; // Knife
+		if (g_iSpecialInfected[iClient] == INFECTED_STALKER) 	iItem = 574; // Wanga Prick
+		if (g_iSpecialInfected[iClient] == INFECTED_SMOKER) 	iItem = 356; // Kunai
+		
+		int iMelee = TF2_CreateAndEquipWeapon(iClient, iItem);
+		
+		if (IsValidEntity(iMelee) && iItem == 574)
 		{
-			TF2_CreateAndEquipWeapon(iClient, 4);	// Knife
-		}
-		else
-		{
-			int iWeapon = TF2_CreateAndEquipWeapon(iClient, 574);	// Wanga Prick
-			if (iWeapon > MaxClients && IsValidEdict(iWeapon))
-				TF2Attrib_SetByName(iWeapon, "disguise on backstab", 0.0);
+			TF2Attrib_SetByName(iMelee, "disguise on backstab", 0.0);
 		}
 	}
-
+	
 	// Set slot to melee
 	int iEntity = GetPlayerWeaponSlot(iClient, TFWeaponSlot_Melee);
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
