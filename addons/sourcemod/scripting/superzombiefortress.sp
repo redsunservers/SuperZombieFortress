@@ -4479,7 +4479,7 @@ void HandleZombieLoadout(int iClient)
 			TF2Attrib_SetByName(iMelee, "disguise on backstab", 0.0);
 		}
 	}
-	
+
 	// Set slot to melee
 	int iEntity = GetPlayerWeaponSlot(iClient, TFWeaponSlot_Melee);
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
