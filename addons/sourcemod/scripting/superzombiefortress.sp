@@ -4576,8 +4576,11 @@ void GooDamageCheck()
 			fPosGoo[0] = float(iEntry[0]);
 			fPosGoo[1] = float(iEntry[1]);
 			fPosGoo[2] = float(iEntry[2]);
+			
 			iAttacker = iEntry[3];
-
+			if (!IsValidClient(iAttacker))
+				continue;
+			
 			for (iClient = 1; iClient <= MaxClients; iClient++)
 			{
 				if (IsValidLivingSurvivor(iClient) && !g_bGooified[iClient] && CanRecieveDamage(iClient) && !g_bBackstabbed[iClient])
