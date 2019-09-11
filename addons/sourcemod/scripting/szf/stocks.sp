@@ -983,3 +983,17 @@ stock void ApplyVoodooCursedSoul(int iClient)
 	if (IsValidEntity(iWearable))
 		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", g_iZombieSoulIndex[view_as<int>(nClass)]);
 }
+
+/******************************************************************************************************/
+
+// SDKHooks_TakeDamage doesn't call OnTakeDamage, so we need to scale separately for 'indirect' damage
+stock void DealDamage(int iAttacker, int iVictim, float flDamage)
+{
+    if (g_fZombieDamageScale < 1.0)
+        flDamage *= g_fZombieDamageScale;
+
+    if (g_bBackstabbed[iVictim] && flDamage > 10.0)
+        flDamage = 10.0;
+    
+    SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, flDamage, DMG_PREVENT_PHYSICS_FORCE);
+}
