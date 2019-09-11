@@ -832,7 +832,7 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &
 				|| TF2_IsPlayerInCondition(iAttacker, TFCond_CritHype))
 			{
 				// reduce damage from crit amplifying items when active
-				fDamage *= 0.66;
+				fDamage *= 0.85;
 				bChanged = true;
 			}
 
