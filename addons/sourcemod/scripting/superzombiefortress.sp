@@ -3818,7 +3818,7 @@ void UpdateZombieDamageScale()
 	if (g_fZombieDamageScale > 3.0) g_fZombieDamageScale = 3.0;
 	
 	// Debugs
-	PrintToConsoleAll("[Debug] Zombie dmg scale: %.2f | progress %.2f | killspree %d | time since last death %.2f", g_fZombieDamageScale, flProgress, zf_spawnZombiesKilledSpree, GetGameTime() - zf_spawnSurvivorsLastDeath);
+	//PrintToConsoleAll("[Debug] Zombie dmg scale: %.2f | progress %.2f | killspree %d | time since last death %.2f", g_fZombieDamageScale, flProgress, zf_spawnZombiesKilledSpree, GetGameTime() - zf_spawnSurvivorsLastDeath);
 	
 	// not survival, no rage and no active tank
 	if (!g_bSurvival && !g_bZombieRage && g_iZombieTank <= 0 && !ZombiesHaveTank())
