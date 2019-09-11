@@ -958,7 +958,6 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &
 				ForcePlayerSuicide(iVictim);
 		}
 	}
-
 	if (bChanged) return Plugin_Changed;
 	return Plugin_Continue;
 }
@@ -2591,7 +2590,7 @@ void handle_gameFrameLogic()
 								SetNextAttack(i, GetGameTime() + 0.6);
 								
 								TF2_MakeBleed(iVictim, i, 2.0);
-								SDKHooks_TakeDamage(iVictim, i, i, 30.0, DMG_PREVENT_PHYSICS_FORCE);
+								DealDamage(i, iVictim, 30.0);
 
 								char strPath[PLATFORM_MAX_PATH];
 								Format(strPath, sizeof(strPath), "weapons/demo_charge_hit_flesh_range1.wav", GetRandomInt(1, 3));
@@ -3819,7 +3818,7 @@ void UpdateZombieDamageScale()
 	if (g_fZombieDamageScale > 3.0) g_fZombieDamageScale = 3.0;
 	
 	// Debugs
-	//PrintToConsoleAll("[Debug] Zombie dmg scale: %.2f | progress %.2f | killspree %d | time since last death %.2f", g_fZombieDamageScale, flProgress, zf_spawnZombiesKilledSpree, GetGameTime() - zf_spawnSurvivorsLastDeath);
+	PrintToConsoleAll("[Debug] Zombie dmg scale: %.2f | progress %.2f | killspree %d | time since last death %.2f", g_fZombieDamageScale, flProgress, zf_spawnZombiesKilledSpree, GetGameTime() - zf_spawnSurvivorsLastDeath);
 	
 	// not survival, no rage and no active tank
 	if (!g_bSurvival && !g_bZombieRage && g_iZombieTank <= 0 && !ZombiesHaveTank())
@@ -4596,7 +4595,7 @@ void GooDamageCheck()
 						float fDamage = float(g_iGooMultiplier[iClient])/float(GOO_INCREASE_RATE) * fPercentageDistance;
 						if (fDamage < 1.0) fDamage = 1.0;
 						if (fDamage > 4.0 && zf_CapturingPoint[iClient] != -1) fDamage = 4.0;	//If client is capturing point, add hardmax 4 dmg
-						SDKHooks_TakeDamage(iClient, iAttacker, iAttacker, fDamage, DMG_PREVENT_PHYSICS_FORCE);
+						DealDamage(iAttacker, iClient, fDamage);
 						g_bGooified[iClient] = true;
 
 						if (fDamage >= 7.0)
@@ -4878,8 +4877,8 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 		// Disable Sandvich and kill it
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
 		AcceptEntityInput(iEntity, "Kill");
-
-		SDKHooks_TakeDamage(iToucher, iOwner, iOwner, 55.0);
+		
+		DealDamage(iOwner, iToucher, 55.0);
 
 		return Plugin_Handled;
 	}
@@ -4904,7 +4903,7 @@ public Action OnBananaTouch(int iEntity, int iClient)
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
 		AcceptEntityInput(iEntity, "Kill");
 
-		SDKHooks_TakeDamage(iToucher, iOwner, iOwner, 30.0);
+		DealDamage(iOwner, iToucher, 30.0);
 
 		return Plugin_Handled;
 	}
@@ -5925,7 +5924,7 @@ public void DoSmokerBeam(int iClient)
 		g_iSmokerBeamHits[iClient]++;
 		if (g_iSmokerBeamHits[iClient] == 5)
 		{
-			SDKHooks_TakeDamage(iHit, iClient, iClient, 2.0, DMG_PREVENT_PHYSICS_FORCE); // do damage
+			DealDamage(iClient, iHit, 2.0); // do damage
 			g_iSmokerBeamHits[iClient] = 0;
 		}
 
