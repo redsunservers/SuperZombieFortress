@@ -4877,7 +4877,7 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 		// Disable Sandvich and kill it
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
 		AcceptEntityInput(iEntity, "Kill");
-		
+
 		DealDamage(iOwner, iToucher, 55.0);
 
 		return Plugin_Handled;
