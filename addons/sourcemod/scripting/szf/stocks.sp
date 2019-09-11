@@ -435,7 +435,6 @@ stock float clientBonusSpeed(int client)
 		//
 		// Handle heavy bonuses
 		// + Wielding GRU
-		// + Affected by Steak or similar
 		//
 		case TFClass_Heavy:
 		{
@@ -443,12 +442,13 @@ stock float clientBonusSpeed(int client)
 			{
 				return 70.0;
 			}
-
+			/*
 			else if (TF2_IsPlayerInCondition(client, TFCond_CritCola))
 			{
 				//return 40.0;
 				return 20.0;
 			}
+			*/
 		}
 	}
 
