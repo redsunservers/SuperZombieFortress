@@ -873,7 +873,7 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &
 
 				else
 				{
-					fDamage = 10.0;
+					fDamage = STUNNED_DAMAGE_CAP;
 					iDamageCustom = 0;
 					bChanged = true;
 				}
