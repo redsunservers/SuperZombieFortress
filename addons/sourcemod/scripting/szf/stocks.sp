@@ -992,8 +992,8 @@ stock void DealDamage(int iAttacker, int iVictim, float flDamage)
     if (g_fZombieDamageScale < 1.0)
         flDamage *= g_fZombieDamageScale;
 
-    if (g_bBackstabbed[iVictim] && flDamage > 10.0)
-        flDamage = 10.0;
+    if (g_bBackstabbed[iVictim] && flDamage > STUNNED_DAMAGE_CAP)
+        flDamage = STUNNED_DAMAGE_CAP;
     
     SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, flDamage, DMG_PREVENT_PHYSICS_FORCE);
 }
