@@ -118,8 +118,9 @@ float g_fTimeProgress = 0.0;
 #define INFECTED_HUNTER		6 // hunter
 #define INFECTED_SMOKER		7 // smoker
 
-
 #define OBJECT_ID_DISPENSER		0
+
+#define STUNNED_DAMAGE_CAP		10.0
 
 #define ATTRIB_DRAIN_HEALTH 			855
 #define ATTRIB_HEALTH_PENALTY 			125
@@ -809,7 +810,9 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &
 			// If backstabbed
 			if (g_bBackstabbed[iVictim])
 			{
-				if (fDamage > 10.0) fDamage = 10.0;
+				if (fDamage > STUNNED_DAMAGE_CAP)
+					fDamage = STUNNED_DAMAGE_CAP;
+					
 				iDamagetype &= ~DMG_CRIT;
 				iDamageCustom = 0;
 			}
@@ -870,7 +873,7 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &
 
 				else
 				{
-					fDamage = 10.0;
+					fDamage = STUNNED_DAMAGE_CAP;
 					iDamageCustom = 0;
 					bChanged = true;
 				}
@@ -958,7 +961,6 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &
 				ForcePlayerSuicide(iVictim);
 		}
 	}
-
 	if (bChanged) return Plugin_Changed;
 	return Plugin_Continue;
 }
@@ -2591,7 +2593,7 @@ void handle_gameFrameLogic()
 								SetNextAttack(i, GetGameTime() + 0.6);
 								
 								TF2_MakeBleed(iVictim, i, 2.0);
-								SDKHooks_TakeDamage(iVictim, i, i, 30.0, DMG_PREVENT_PHYSICS_FORCE);
+								DealDamage(i, iVictim, 30.0);
 
 								char strPath[PLATFORM_MAX_PATH];
 								Format(strPath, sizeof(strPath), "weapons/demo_charge_hit_flesh_range1.wav", GetRandomInt(1, 3));
@@ -4596,7 +4598,7 @@ void GooDamageCheck()
 						float fDamage = float(g_iGooMultiplier[iClient])/float(GOO_INCREASE_RATE) * fPercentageDistance;
 						if (fDamage < 1.0) fDamage = 1.0;
 						if (fDamage > 4.0 && zf_CapturingPoint[iClient] != -1) fDamage = 4.0;	//If client is capturing point, add hardmax 4 dmg
-						SDKHooks_TakeDamage(iClient, iAttacker, iAttacker, fDamage, DMG_PREVENT_PHYSICS_FORCE);
+						DealDamage(iAttacker, iClient, fDamage);
 						g_bGooified[iClient] = true;
 
 						if (fDamage >= 7.0)
@@ -4879,7 +4881,7 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
 		AcceptEntityInput(iEntity, "Kill");
 
-		SDKHooks_TakeDamage(iToucher, iOwner, iOwner, 55.0);
+		DealDamage(iOwner, iToucher, 55.0);
 
 		return Plugin_Handled;
 	}
@@ -4904,7 +4906,7 @@ public Action OnBananaTouch(int iEntity, int iClient)
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
 		AcceptEntityInput(iEntity, "Kill");
 
-		SDKHooks_TakeDamage(iToucher, iOwner, iOwner, 30.0);
+		DealDamage(iOwner, iToucher, 30.0);
 
 		return Plugin_Handled;
 	}
@@ -5925,7 +5927,7 @@ public void DoSmokerBeam(int iClient)
 		g_iSmokerBeamHits[iClient]++;
 		if (g_iSmokerBeamHits[iClient] == 5)
 		{
-			SDKHooks_TakeDamage(iHit, iClient, iClient, 2.0, DMG_PREVENT_PHYSICS_FORCE); // do damage
+			DealDamage(iClient, iHit, 2.0); // do damage
 			g_iSmokerBeamHits[iClient] = 0;
 		}
 
