@@ -118,8 +118,9 @@ float g_fTimeProgress = 0.0;
 #define INFECTED_HUNTER		6 // hunter
 #define INFECTED_SMOKER		7 // smoker
 
-
 #define OBJECT_ID_DISPENSER		0
+
+#define STUNNED_DAMAGE_CAP		10.0
 
 #define ATTRIB_DRAIN_HEALTH 			855
 #define ATTRIB_HEALTH_PENALTY 			125
@@ -809,7 +810,9 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &
 			// If backstabbed
 			if (g_bBackstabbed[iVictim])
 			{
-				if (fDamage > 10.0) fDamage = 10.0;
+				if (fDamage > STUNNED_DAMAGE_CAP)
+					fDamage = STUNNED_DAMAGE_CAP;
+					
 				iDamagetype &= ~DMG_CRIT;
 				iDamageCustom = 0;
 			}
