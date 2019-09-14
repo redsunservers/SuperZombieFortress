@@ -4696,13 +4696,29 @@ public Action GooEffect(Handle hTimer, any iGoo)
 
 public void OnEntityCreated(int iEntity, const char[] strClassname)
 {
-	if (StrEqual(strClassname, "trigger_capture_area"))
+	if (StrContains(strClassname, "item_healthkit") != -1
+	|| StrContains(strClassname, "item_ammopack") != -1
+	|| StrEqual(strClassname, "tf_ammo_pack"))
+	{
+		SDKHook(iEntity, SDKHook_StartTouch, OnPickup);
+		SDKHook(iEntity, SDKHook_Touch, OnPickup);
+	}
+	
+	if (StrEqual(strClassname, "item_healthkit_medium"))
+	{
+		SDKHook(iEntity, SDKHook_Touch, BlockTouch);
+		CreateTimer(3.0, Timer_EnableSandvichTouch, EntIndexToEntRef(iEntity));
+	}
+	else if (StrEqual(strClassname, "item_healthkit_small"))
+	{
+		SDKHook(iEntity, SDKHook_Touch, OnBananaTouch);
+	}
+	else if (StrEqual(strClassname, "trigger_capture_area"))
 	{
 		SDKHook(iEntity, SDKHook_StartTouch, OnCaptureStartTouch);
 		SDKHook(iEntity, SDKHook_EndTouch, OnCaptureEndTouch);
 	}
-	
-	if (StrEqual(strClassname, "trigger_multiple"))
+	else if (StrEqual(strClassname, "trigger_multiple"))
 	{
 		char sName[128];
 		GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
@@ -4712,30 +4728,10 @@ public void OnEntityCreated(int iEntity, const char[] strClassname)
 			SDKHook(iEntity, SDKHook_EndTouch, OnTriggerGooDefenseEnd);
 		}
 	}
-	
-	if (StrEqual(strClassname, "tf_projectile_stun_ball", false))
+	else if (StrEqual(strClassname, "tf_projectile_stun_ball"))
 	{
 		SDKHook(iEntity, SDKHook_StartTouch, BallStartTouch);
 		SDKHook(iEntity, SDKHook_Touch, BallTouch);
-	}
-
-	if (StrEqual(strClassname, "item_healthkit_medium"))
-	{
-		SDKHook(iEntity, SDKHook_Touch, BlockTouch);
-		CreateTimer(3.0, Timer_EnableSandvichTouch, EntIndexToEntRef(iEntity));
-	}
-
-	if (StrEqual(strClassname, "item_healthkit_small"))
-	{
-		SDKHook(iEntity, SDKHook_Touch, OnBananaTouch);
-	}
-
-	if (StrContains(strClassname, "item_healthkit") != -1
-	|| StrContains(strClassname, "item_ammopack") != -1
-	|| StrEqual(strClassname, "tf_ammo_pack"))
-	{
-		SDKHook(iEntity, SDKHook_StartTouch, OnPickup);
-		SDKHook(iEntity, SDKHook_Touch, OnPickup);
 	}
 }
 
