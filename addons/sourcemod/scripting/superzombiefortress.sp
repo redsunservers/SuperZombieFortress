@@ -4733,6 +4733,10 @@ public void OnEntityCreated(int iEntity, const char[] strClassname)
 		SDKHook(iEntity, SDKHook_StartTouch, BallStartTouch);
 		SDKHook(iEntity, SDKHook_Touch, BallTouch);
 	}
+	else if (StrEqual(strClassname, "tf_dropped_weapon"))
+	{
+		AcceptEntityInput(iEntity, "kill");
+	}
 }
 
 public Action OnCaptureStartTouch(int iEntity, int iClient)
