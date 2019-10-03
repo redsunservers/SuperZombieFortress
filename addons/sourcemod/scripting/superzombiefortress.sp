@@ -51,6 +51,7 @@ bool zf_screamerNearby[MAXPLAYERS+1] = false;
 
 bool g_bStartedAsZombie[MAXPLAYERS+1];
 float g_flStopChatSpam[MAXPLAYERS+1] = 0.0;
+bool g_bWaitingForTeamSwitch[MAXPLAYERS + 1] = false;
 
 int g_iSprite; // Smoker beam
 
@@ -339,6 +340,7 @@ public void OnPluginStart()
 	// Hook Client Commands
 	AddCommandListener(hook_JoinTeam, "jointeam");
 	AddCommandListener(hook_JoinTeam, "spectate");
+	AddCommandListener(hook_JoinTeam, "autoteam");
 	AddCommandListener(hook_JoinClass, "joinclass");
 	AddCommandListener(hook_VoiceMenu, "voicemenu");
 	AddCommandListener(hook_Build, "build");
@@ -983,29 +985,36 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 	//Get command/arg on which team player joined
 	if (StrEqual(command, "spectate", false))
 		strcopy(cmd1, sizeof(cmd1), "spectate");
+		
+	else if (StrEqual(command, "autoteam", false))
+		strcopy(cmd1, sizeof(cmd1), "autoteam");
+		
 	else
 		GetCmdArg(1, cmd1, sizeof(cmd1));
-
-	if (roundState() >= RoundGrace)
-	{
-		// Assign team-specific strings
-		if (zomTeam() == INT(TFTeam_Blue))
-		{
-			sSurTeam = "red";
-			sZomTeam = "blue";
-			sZomVgui = "class_blue";
-		}
-		else
-		{
-			sSurTeam = "blue";
-			sZomTeam = "red";
-			sZomVgui = "class_red";
-		}
 		
+	// Assign team-specific strings
+	if (zomTeam() == INT(TFTeam_Blue))
+	{
+		sSurTeam = "red";
+		sZomTeam = "blue";
+		sZomVgui = "class_blue";
+	}
+	else
+	{
+		sSurTeam = "blue";
+		sZomTeam = "red";
+		sZomVgui = "class_red";
+	}
+	
+	if (roundState() >= RoundGrace)
+	{	
 		//Check if client is trying to skip playing as zombie by joining spectator
 		if (StrEqual(cmd1, "spectate", false))
 			CheckZombieBypass(client);
-		
+	}
+	
+	if (roundState() > RoundGrace)
+	{
 		// If client tries to join the survivor team or a random team
 		// during grace period or active round, place them on the zombie
 		// team and present them with the zombie class select screen.
@@ -1015,19 +1024,79 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 			ShowVGUIPanel(client, sZomVgui);
 			return Plugin_Handled;
 		}
+		
 		// If client tries to join the zombie team or spectator
 		// during grace period or active round, let them do so.
 		else if (StrEqual(cmd1, sZomTeam, false) || StrEqual(cmd1, "spectate", false))
 		{
 			return Plugin_Continue;
 		}
+		
 		// Prevent joining any other team.
 		else
 		{
 			return Plugin_Handled;
 		}
 	}
+	
+	if (roundState() == RoundGrace)
+	{
+		if (IsClientInGame(client))
+		{
+			// If a client tries to join the infected team or a random team during grace period...
+			if (StrEqual(cmd1, sZomTeam, false) || StrEqual(cmd1, "auto", false) || StrEqual(cmd1, "autoteam", false))
+			{
+				// ...as survivor, don't let them.
+				if (IsSurvivor(client))
+				{
+					CPrintToChat(client, "{red}You can not switch to the opposing team during grace period.");
+					return Plugin_Handled;
+				}
 
+				// ...as a spectator who didn't start as an infected, set them as infected after grace period ends, after warning them.
+				if (GetClientTeam(client) <= 1 && !g_bStartedAsZombie[client])
+				{
+					if (!g_bWaitingForTeamSwitch[client])
+					{
+						CPrintToChat(client, "{red}You will join the Infected team when grace period ends.");
+						g_bWaitingForTeamSwitch[client] = true;
+					}
+					return Plugin_Handled;
+				}	
+			}
+
+			// If client tries to spectate during grace period, make them
+			// not be booted into the infected team if they tried to join
+			// it before.
+			else if (StrEqual(cmd1, "spectate", false))
+			{
+				if (GetClientTeam(client) <= 1 && g_bWaitingForTeamSwitch[client])
+				{
+					CPrintToChat(client, "{red}You will no longer automatically join the Infected team when grace period ends.");
+					g_bWaitingForTeamSwitch[client] = false;
+				}
+				return Plugin_Continue;
+			}
+			
+			// If client tries to join the survivor team during grace period, 
+			// deny and set them as infected instead.
+			else if (StrEqual(cmd1, sSurTeam, false))
+			{
+				if (GetClientTeam(client) <= 1)
+				{
+					CPrintToChat(client, "{red}Can not join the Survivor team at this time. You will join the Infected team when grace period ends.");
+					g_bWaitingForTeamSwitch[client] = true;
+				}
+				return Plugin_Handled;
+			}
+			
+			// Prevent joining any other team.
+			else
+			{
+				return Plugin_Handled;
+			}
+		}
+	}
 	return Plugin_Continue;
 }
 
@@ -1417,21 +1486,39 @@ void EndGracePeriod()
 	int iSurvivors = GetSurvivorCount();
 	int iZombies = GetZombieCount();
 
-	//If less than 15% of players is zombie, give buff
-	if (float(iZombies) / float(iSurvivors + iZombies) <= 0.15)
-	{
-		// for loop
-		for (int i = 1; i <= MaxClients; i++)
-		{
-			if (IsValidLivingZombie(i))
-			{
-				SetEntityHealth(i, 450);
-				//TF2_AddCondition(i, TFCond_DefenseBuffed, -1.0);
-				g_bSpawnAsSpecialInfected[i] = true;
-			}
+	//If less than 15% of players is zombie, set round start as imbalanced
+	bool bImbalanced = (float(iZombies) / float(iSurvivors + iZombies) <= 0.15);
 
-			if (IsClientInGame(i))
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i))
+		{
+			if (g_bWaitingForTeamSwitch[i])
+			{
+				ChangeClientTeam(i, zomTeam());
+				
+				if (!IsPlayerAlive(i))
+				{
+					if (zomTeam() == INT(TFTeam_Blue))
+						ShowVGUIPanel(i, "class_blue");
+					else
+						ShowVGUIPanel(i, "class_red");
+				}
+					
+				g_bWaitingForTeamSwitch[i] = false;
+			}
+		
+			// Give a buff to infected if the round is imbalanced
+			if (bImbalanced)
+			{
+				if (IsZombie(i) && IsPlayerAlive(i))
+				{
+					SetEntityHealth(i, 450);
+					//TF2_AddCondition(i, TFCond_DefenseBuffed, -1.0);
+					g_bSpawnAsSpecialInfected[i] = true;
+				}
 				CPrintToChat(i, "%sInfected have received extra health and other benefits to ensure game balance at the start of the round.", (IsZombie(i)) ? "{green}" : "{red}");
+			}
 		}
 	}
 
