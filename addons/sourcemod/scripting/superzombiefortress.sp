@@ -1062,9 +1062,7 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 			
 			// Prevent joining any other team.
 			else
-			{
 				return Plugin_Handled;
-			}
 		}
 		
 		else if (roundState() > RoundGrace)
@@ -1082,15 +1080,11 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 			// If client tries to join the zombie team or spectator
 			// during grace period or active round, let them do so.
 			else if (StrEqual(cmd1, sZomTeam, false) || StrEqual(cmd1, "spectate", false))
-			{
 				return Plugin_Continue;
-			}
 			
 			// Prevent joining any other team.
 			else
-			{
 				return Plugin_Handled;
-			}
 		}
 	}
 	return Plugin_Continue;
