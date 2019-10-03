@@ -1068,7 +1068,7 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 		else if (roundState() > RoundGrace)
 		{
 			// If client tries to join the survivor team or a random team
-			// during grace period or active round, place them on the zombie
+			// during an active round, place them on the zombie
 			// team and present them with the zombie class select screen.
 			if (StrEqual(cmd1, sSurTeam, false) || StrEqual(cmd1, "auto", false))
 			{
@@ -1078,7 +1078,7 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 			}
 			
 			// If client tries to join the zombie team or spectator
-			// during grace period or active round, let them do so.
+			// during an active round, let them do so.
 			else if (StrEqual(cmd1, sZomTeam, false) || StrEqual(cmd1, "spectate", false))
 				return Plugin_Continue;
 			
@@ -1476,7 +1476,7 @@ void EndGracePeriod()
 	int iSurvivors = GetSurvivorCount();
 	int iZombies = GetZombieCount();
 
-	//If less than 15% of players is zombie, set round start as imbalanced
+	//If less than 15% of players are infected, set round start as imbalanced
 	bool bImbalanced = (float(iZombies) / float(iSurvivors + iZombies) <= 0.15);
 
 	for (int i = 1; i <= MaxClients; i++)
