@@ -981,67 +981,37 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 
 	if (!zf_bEnabled) return Plugin_Continue;
 	if (argc < 1 && StrEqual(command, "jointeam", false)) return Plugin_Handled;
+	if (roundState() < RoundGrace) return Plugin_Handled;
 	
 	//Get command/arg on which team player joined
-	if (StrEqual(command, "spectate", false))
-		strcopy(cmd1, sizeof(cmd1), "spectate");
-		
+	if (StrEqual(command, "jointeam", false)) // this is done because "jointeam spectate" should take priority over "spectate"
+		GetCmdArg(1, cmd1, sizeof(cmd1));
+	else if (StrEqual(command, "spectate", false))
+		strcopy(cmd1, sizeof(cmd1), "spectate");	
 	else if (StrEqual(command, "autoteam", false))
-		strcopy(cmd1, sizeof(cmd1), "autoteam");
-		
-	else
-		GetCmdArg(1, cmd1, sizeof(cmd1));		
+		strcopy(cmd1, sizeof(cmd1), "autoteam");		
 	
-	if (roundState() >= RoundGrace)
-	{	
-		//Check if client is trying to skip playing as zombie by joining spectator
-		if (StrEqual(cmd1, "spectate", false))
-			CheckZombieBypass(client);
+	//Check if client is trying to skip playing as zombie by joining spectator
+	if (StrEqual(cmd1, "spectate", false))
+		CheckZombieBypass(client);
 			
-		// Assign team-specific strings
-		if (zomTeam() == INT(TFTeam_Blue))
-		{
-			sSurTeam = "red";
-			sZomTeam = "blue";
-			sZomVgui = "class_blue";
-		}
-		else
-		{
-			sSurTeam = "blue";
-			sZomTeam = "red";
-			sZomVgui = "class_red";
-		}
-	}
-	
-	if (roundState() > RoundGrace)
+	// Assign team-specific strings
+	if (zomTeam() == INT(TFTeam_Blue))
 	{
-		// If client tries to join the survivor team or a random team
-		// during grace period or active round, place them on the zombie
-		// team and present them with the zombie class select screen.
-		if (StrEqual(cmd1, sSurTeam, false) || StrEqual(cmd1, "auto", false))
-		{
-			ChangeClientTeam(client, zomTeam());
-			ShowVGUIPanel(client, sZomVgui);
-			return Plugin_Handled;
-		}
-		
-		// If client tries to join the zombie team or spectator
-		// during grace period or active round, let them do so.
-		else if (StrEqual(cmd1, sZomTeam, false) || StrEqual(cmd1, "spectate", false))
-		{
-			return Plugin_Continue;
-		}
-		
-		// Prevent joining any other team.
-		else
-		{
-			return Plugin_Handled;
-		}
+		sSurTeam = "red";
+		sZomTeam = "blue";
+		sZomVgui = "class_blue";
 	}
-	
-	if (roundState() == RoundGrace)
+	else
 	{
-		if (IsClientInGame(client))
+		sSurTeam = "blue";
+		sZomTeam = "red";
+		sZomVgui = "class_red";
+	}
+
+	if (IsClientInGame(client))
+	{
+		if (roundState() == RoundGrace)
 		{
 			// If a client tries to join the infected team or a random team during grace period...
 			if (StrEqual(cmd1, sZomTeam, false) || StrEqual(cmd1, "auto", false) || StrEqual(cmd1, "autoteam", false))
@@ -1088,6 +1058,32 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 					g_bWaitingForTeamSwitch[client] = true;
 				}
 				return Plugin_Handled;
+			}
+			
+			// Prevent joining any other team.
+			else
+			{
+				return Plugin_Handled;
+			}
+		}
+		
+		else if (roundState() > RoundGrace)
+		{
+			// If client tries to join the survivor team or a random team
+			// during grace period or active round, place them on the zombie
+			// team and present them with the zombie class select screen.
+			if (StrEqual(cmd1, sSurTeam, false) || StrEqual(cmd1, "auto", false))
+			{
+				ChangeClientTeam(client, zomTeam());
+				ShowVGUIPanel(client, sZomVgui);
+				return Plugin_Handled;
+			}
+			
+			// If client tries to join the zombie team or spectator
+			// during grace period or active round, let them do so.
+			else if (StrEqual(cmd1, sZomTeam, false) || StrEqual(cmd1, "spectate", false))
+			{
+				return Plugin_Continue;
 			}
 			
 			// Prevent joining any other team.
