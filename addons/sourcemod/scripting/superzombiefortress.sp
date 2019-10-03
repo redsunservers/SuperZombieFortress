@@ -990,27 +990,27 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 		strcopy(cmd1, sizeof(cmd1), "autoteam");
 		
 	else
-		GetCmdArg(1, cmd1, sizeof(cmd1));
-		
-	// Assign team-specific strings
-	if (zomTeam() == INT(TFTeam_Blue))
-	{
-		sSurTeam = "red";
-		sZomTeam = "blue";
-		sZomVgui = "class_blue";
-	}
-	else
-	{
-		sSurTeam = "blue";
-		sZomTeam = "red";
-		sZomVgui = "class_red";
-	}
+		GetCmdArg(1, cmd1, sizeof(cmd1));		
 	
 	if (roundState() >= RoundGrace)
 	{	
 		//Check if client is trying to skip playing as zombie by joining spectator
 		if (StrEqual(cmd1, "spectate", false))
 			CheckZombieBypass(client);
+			
+		// Assign team-specific strings
+		if (zomTeam() == INT(TFTeam_Blue))
+		{
+			sSurTeam = "red";
+			sZomTeam = "blue";
+			sZomVgui = "class_blue";
+		}
+		else
+		{
+			sSurTeam = "blue";
+			sZomTeam = "red";
+			sZomVgui = "class_red";
+		}
 	}
 	
 	if (roundState() > RoundGrace)
