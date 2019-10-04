@@ -1008,18 +1008,18 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 		sZomTeam = "red";
 		sZomVgui = "class_red";
 	}
-	
-	int iTeam = GetClientTeam(client);
 
 	if (IsClientInGame(client))
 	{
 		if (roundState() == RoundGrace)
 		{
+			int iTeam = GetClientTeam(client);
+		
 			// If a client tries to join the infected team or a random team during grace period...
 			if (StrEqual(cmd1, sZomTeam, false) || StrEqual(cmd1, "auto", false) || StrEqual(cmd1, "autoteam", false))
 			{
 				// ...as survivor, don't let them.
-				if (IsSurvivor(client))
+				if (iTeam == 2)
 				{
 					CPrintToChat(client, "{red}You can not switch to the opposing team during grace period.");
 					return Plugin_Handled;
