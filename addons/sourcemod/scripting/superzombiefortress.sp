@@ -51,7 +51,7 @@ bool zf_screamerNearby[MAXPLAYERS+1] = false;
 
 bool g_bStartedAsZombie[MAXPLAYERS+1];
 float g_flStopChatSpam[MAXPLAYERS+1] = 0.0;
-bool g_bWaitingForTeamSwitch[MAXPLAYERS + 1] = false;
+bool g_bWaitingForTeamSwitch[MAXPLAYERS+1];
 
 int g_iSprite; // Smoker beam
 
@@ -981,7 +981,7 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 
 	if (!zf_bEnabled) return Plugin_Continue;
 	if (argc < 1 && StrEqual(command, "jointeam", false)) return Plugin_Handled;
-	if (roundState() < RoundGrace) return Plugin_Handled;
+	if (roundState() < RoundGrace) return Plugin_Continue;
 	
 	//Get command/arg on which team player joined
 	if (StrEqual(command, "jointeam", false)) // this is done because "jointeam spectate" should take priority over "spectate"
