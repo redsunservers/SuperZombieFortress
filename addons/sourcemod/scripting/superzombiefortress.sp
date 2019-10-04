@@ -1052,7 +1052,7 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 			// deny and set them as infected instead.
 			else if (StrEqual(cmd1, sSurTeam, false))
 			{
-				if (GetClientTeam(client) <= 1)
+				if (GetClientTeam(client) <= 1 && !g_bWaitingForTeamSwitch[client])
 				{
 					CPrintToChat(client, "{red}Can not join the Survivor team at this time. You will join the Infected team when grace period ends.");
 					g_bWaitingForTeamSwitch[client] = true;
