@@ -51,7 +51,7 @@ bool zf_screamerNearby[MAXPLAYERS+1] = false;
 
 bool g_bStartedAsZombie[MAXPLAYERS+1];
 float g_flStopChatSpam[MAXPLAYERS+1] = 0.0;
-bool g_bWaitingForTeamSwitch[MAXPLAYERS+1];
+bool g_bWaitingForTeamSwitch[MAXPLAYERS+1] = false;
 
 int g_iSprite; // Smoker beam
 
@@ -1054,8 +1054,17 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 			{
 				if (GetClientTeam(client) <= 1 && !g_bWaitingForTeamSwitch[client])
 				{
-					CPrintToChat(client, "{red}Can not join the Survivor team at this time. You will join the Infected team when grace period ends.");
-					g_bWaitingForTeamSwitch[client] = true;
+					// However, if they started as infected, they can spawn as infected again, normally.
+					if (g_bStartedAsZombie[client])
+					{
+						ChangeClientTeam(client, zomTeam());
+						ShowVGUIPanel(client, sZomVgui);
+					}
+					else
+					{
+						CPrintToChat(client, "{red}Can not join the Survivor team at this time. You will join the Infected team when grace period ends.");
+						g_bWaitingForTeamSwitch[client] = true;
+					}
 				}
 				return Plugin_Handled;
 			}
@@ -1484,19 +1493,7 @@ void EndGracePeriod()
 		if (IsClientInGame(i))
 		{
 			if (g_bWaitingForTeamSwitch[i])
-			{
-				ChangeClientTeam(i, zomTeam());
-				
-				if (!IsPlayerAlive(i))
-				{
-					if (zomTeam() == INT(TFTeam_Blue))
-						ShowVGUIPanel(i, "class_blue");
-					else
-						ShowVGUIPanel(i, "class_red");
-				}
-					
-				g_bWaitingForTeamSwitch[i] = false;
-			}
+				RequestFrame(Frame_PostGracePeriodSpawn, i); // A frame later so maps which have post-setup spawn points can adapt to these players
 		
 			// Give a buff to infected if the round is imbalanced
 			if (bImbalanced)
@@ -1520,6 +1517,21 @@ void EndGracePeriod()
 	g_flSelectSpecialCooldown = GetGameTime() + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); // 2 min cooldown before select special will be considered
 	g_flRageCooldown = GetGameTime() + 60.0 - fMin(0.0, (iSurvivors-12) * 1.5); // 1 min cooldown before frenzy will be considered
 	zf_spawnSurvivorsLastDeath = GetGameTime();
+}
+
+public void Frame_PostGracePeriodSpawn(int iClient)
+{
+	ChangeClientTeam(iClient, zomTeam());
+	
+	if (!IsPlayerAlive(iClient))
+	{
+		if (zomTeam() == INT(TFTeam_Blue))
+			ShowVGUIPanel(iClient, "class_blue");
+		else
+			ShowVGUIPanel(iClient, "class_red");
+	}
+						
+	g_bWaitingForTeamSwitch[iClient] = false;
 }
 
 //
