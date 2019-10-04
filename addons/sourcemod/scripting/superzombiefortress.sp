@@ -1008,6 +1008,8 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 		sZomTeam = "red";
 		sZomVgui = "class_red";
 	}
+	
+	int iTeam = GetClientTeam(client);
 
 	if (IsClientInGame(client))
 	{
@@ -1024,10 +1026,13 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 				}
 
 				// ...as a spectator who didn't start as an infected, set them as infected after grace period ends, after warning them.
-				if (GetClientTeam(client) <= 1 && !g_bStartedAsZombie[client])
+				if (iTeam <= 1 && !g_bStartedAsZombie[client])
 				{
 					if (!g_bWaitingForTeamSwitch[client])
 					{
+						if (iTeam == 0) // If they're unassigned, let them spectate for now.
+							ChangeClientTeam(client, INT(TFTeam_Spectator));
+							
 						CPrintToChat(client, "{red}You will join the Infected team when grace period ends.");
 						g_bWaitingForTeamSwitch[client] = true;
 					}
@@ -1040,8 +1045,8 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 			// it before.
 			else if (StrEqual(cmd1, "spectate", false))
 			{
-				if (GetClientTeam(client) <= 1 && g_bWaitingForTeamSwitch[client])
-				{
+				if (iTeam <= 1 && g_bWaitingForTeamSwitch[client])
+				{					
 					CPrintToChat(client, "{red}You will no longer automatically join the Infected team when grace period ends.");
 					g_bWaitingForTeamSwitch[client] = false;
 				}
@@ -1052,7 +1057,7 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 			// deny and set them as infected instead.
 			else if (StrEqual(cmd1, sSurTeam, false))
 			{
-				if (GetClientTeam(client) <= 1 && !g_bWaitingForTeamSwitch[client])
+				if (iTeam <= 1 && !g_bWaitingForTeamSwitch[client])
 				{
 					// However, if they started as infected, they can spawn as infected again, normally.
 					if (g_bStartedAsZombie[client])
@@ -1062,6 +1067,9 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 					}
 					else
 					{
+						if (iTeam == 0) // If they're unassigned, let them spectate for now.
+							ChangeClientTeam(client, INT(TFTeam_Spectator));
+							
 						CPrintToChat(client, "{red}Can not join the Survivor team at this time. You will join the Infected team when grace period ends.");
 						g_bWaitingForTeamSwitch[client] = true;
 					}
