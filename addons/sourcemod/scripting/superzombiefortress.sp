@@ -1019,7 +1019,7 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 			if (StrEqual(cmd1, sZomTeam, false) || StrEqual(cmd1, "auto", false) || StrEqual(cmd1, "autoteam", false))
 			{
 				// ...as survivor, don't let them.
-				if (iTeam == 2)
+				if (iTeam == surTeam())
 				{
 					CPrintToChat(client, "{red}You can not switch to the opposing team during grace period.");
 					return Plugin_Handled;
@@ -1030,7 +1030,7 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 				{
 					if (!g_bWaitingForTeamSwitch[client])
 					{
-						if (iTeam == 0) // If they're unassigned, let them spectate for now.
+						if (iTeam == INT(TFTeam_Unassigned)) // If they're unassigned, let them spectate for now.
 							ChangeClientTeam(client, INT(TFTeam_Spectator));
 							
 						CPrintToChat(client, "{red}You will join the Infected team when grace period ends.");
@@ -1067,7 +1067,7 @@ public Action hook_JoinTeam(int client, const char[] command, int argc)
 					}
 					else
 					{
-						if (iTeam == 0) // If they're unassigned, let them spectate for now.
+						if (iTeam == INT(TFTeam_Unassigned)) // If they're unassigned, let them spectate for now.
 							ChangeClientTeam(client, INT(TFTeam_Spectator));
 							
 						CPrintToChat(client, "{red}Can not join the Survivor team at this time. You will join the Infected team when grace period ends.");
