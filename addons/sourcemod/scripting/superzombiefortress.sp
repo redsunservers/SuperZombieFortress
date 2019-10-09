@@ -629,8 +629,7 @@ public void OnClientDisconnect(int client)
 	DropCarryingItem(client);
 	if (client == g_iZombieTank) g_iZombieTank = 0;
 	
-	if (g_bWaitingForTeamSwitch[client]) 
-		g_bWaitingForTeamSwitch[client] = false;
+	g_bWaitingForTeamSwitch[client] = false;
 	
 	Weapons_ClientDisconnect(client);
 }
