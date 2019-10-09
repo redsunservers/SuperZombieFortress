@@ -1555,13 +1555,13 @@ public Action event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					{
 						if (GetCookie(i, cookieFirstTimeSurvivor) < 2)
 						{
-							DataPack hPack1 = new DataPack();
+							DataPack hPack1;
 							CreateDataTimer(0.5, DisplayTutorialMessage, hPack1);
 							hPack1.WriteCell(i);
 							hPack1.WriteFloat(4.0);
 							hPack1.WriteString("Do not let the Tank get close to you, his attacks are very lethal.");
 
-							DataPack hPack2 = new DataPack();
+							DataPack hPack2;
 							CreateDataTimer(4.5, DisplayTutorialMessage, hPack2);
 							hPack2.WriteCell(i);
 							hPack2.WriteFloat(4.0);
@@ -5604,49 +5604,49 @@ public Action OnPickup(int iEntity, int iClient)
 
 stock void InitiateSurvivorTutorial(int iClient)
 {
-	DataPack hPack1 = new DataPack();
+	DataPack hPack1;
 	CreateDataTimer(1.0, DisplayTutorialMessage, hPack1);
 	hPack1.WriteCell(iClient);
 	hPack1.WriteFloat(5.0);
 	hPack1.WriteString("Welcome to Super Zombie Fortress!");
 
-	DataPack hPack2 = new DataPack();
+	DataPack hPack2;
 	CreateDataTimer(6.0, DisplayTutorialMessage, hPack2);
 	hPack2.WriteCell(iClient);
 	hPack2.WriteFloat(5.0);
 	hPack2.WriteString("You are currently playing as a Survivor.");
 
-	DataPack hPack3 = new DataPack();
+	DataPack hPack3;
 	CreateDataTimer(11.0, DisplayTutorialMessage, hPack3);
 	hPack3.WriteCell(iClient);
 	hPack3.WriteFloat(5.0);
 	hPack3.WriteString("As a Survivor, your goal is to complete the map objective.");
 
-	DataPack hPack4 = new DataPack();
+	DataPack hPack4;
 	CreateDataTimer(16.0, DisplayTutorialMessage, hPack4);
 	hPack4.WriteCell(iClient);
 	hPack4.WriteFloat(5.0);
 	hPack4.WriteString("You may have noticed you do not have any weapons.");
 
-	DataPack hPack5 = new DataPack();
+	DataPack hPack5;
 	CreateDataTimer(21.0, DisplayTutorialMessage, hPack5);
 	hPack5.WriteCell(iClient);
 	hPack5.WriteFloat(5.0);
 	hPack5.WriteString("You can pick up weapons by calling for medic or attacking it.");
 
-	DataPack hPack6 = new DataPack();
+	DataPack hPack6;
 	CreateDataTimer(26.0, DisplayTutorialMessage, hPack6);
 	hPack6.WriteCell(iClient);
 	hPack6.WriteFloat(5.0);
 	hPack6.WriteString("There are normal infected but also special infected, so watch out for those!");
 
-	DataPack hPack7 = new DataPack();
+	DataPack hPack7;
 	CreateDataTimer(31.0, DisplayTutorialMessage, hPack7);
 	hPack7.WriteCell(iClient);
 	hPack7.WriteFloat(5.0);
 	hPack7.WriteString("You can check out more information by typing '/szf' into the chat.");
 
-	DataPack hPack8 = new DataPack();
+	DataPack hPack8;
 	CreateDataTimer(36.0, DisplayTutorialMessage, hPack8);
 	hPack8.WriteCell(iClient);
 	hPack8.WriteFloat(5.0);
@@ -5657,43 +5657,43 @@ stock void InitiateSurvivorTutorial(int iClient)
 
 stock void InitiateZombieTutorial(int iClient)
 {
-	DataPack hPack1 = new DataPack();
+	DataPack hPack1;
 	CreateDataTimer(1.0, DisplayTutorialMessage, hPack1);
 	hPack1.WriteCell(iClient);
 	hPack1.WriteFloat(5.0);
 	hPack1.WriteString("Welcome to Super Zombie Fortress!");
 
-	DataPack hPack2 = new DataPack();
+	DataPack hPack2;
 	CreateDataTimer(6.0, DisplayTutorialMessage, hPack2);
 	hPack2.WriteCell(iClient);
 	hPack2.WriteFloat(5.0);
 	hPack2.WriteString("You are currently playing as a Zombie.");
 
-	DataPack hPack3 = new DataPack();
+	DataPack hPack3;
 	CreateDataTimer(11.0, DisplayTutorialMessage, hPack3);
 	hPack3.WriteCell(iClient);
 	hPack3.WriteFloat(5.0);
 	hPack3.WriteString("As a Zombie, your goal is to kill the Survivors.");
 
-	DataPack hPack4 = new DataPack();
+	DataPack hPack4;
 	CreateDataTimer(16.0, DisplayTutorialMessage, hPack4);
 	hPack4.WriteCell(iClient);
 	hPack4.WriteFloat(5.0);
 	hPack4.WriteString("You and your teammates may be selected to become special infected later on.");
 
-	DataPack hPack5 = new DataPack();
+	DataPack hPack5;
 	CreateDataTimer(21.0, DisplayTutorialMessage, hPack5);
 	hPack5.WriteCell(iClient);
 	hPack5.WriteFloat(5.0);
 	hPack5.WriteString("In addition, a tank may be spawned later in the round.");
 
-	DataPack hPack6 = new DataPack();
+	DataPack hPack6;
 	CreateDataTimer(26.0, DisplayTutorialMessage, hPack6);
 	hPack6.WriteCell(iClient);
 	hPack6.WriteFloat(5.0);
 	hPack6.WriteString("You can check out more information by typing '/szf' into the chat.");
 
-	DataPack hPack7 = new DataPack();
+	DataPack hPack7;
 	CreateDataTimer(31.0, DisplayTutorialMessage, hPack7);
 	hPack7.WriteCell(iClient);
 	hPack7.WriteFloat(5.0);
