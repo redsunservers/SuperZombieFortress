@@ -4,48 +4,47 @@
 #define ENT_ONPICKUP	"FireUser1"
 #define ENT_ONKILL		"FireUser2"
 
-enum eWeaponsType
+enum WeaponType
 {
-	eWeaponsType_Invalid,
-	eWeaponsType_Static,
-	eWeaponsType_Default,
-	eWeaponsType_Spawn,
-	eWeaponsType_Rare,
-	eWeaponsType_RareSpawn,
-	eWeaponsType_StaticSpawn,
-	eWeaponsType_DefaultNoPickup,
+	WeaponType_Invalid,
+	WeaponType_Static,
+	WeaponType_Default,
+	WeaponType_Spawn,
+	WeaponType_Rare,
+	WeaponType_RareSpawn,
+	WeaponType_StaticSpawn,
+	WeaponType_DefaultNoPickup,
 };
 
-bool g_bCanPickup[MAXPLAYERS+1] = false;
-bool g_bTriggerEntity[2048] = true;
-float g_fLastCallout[MAXPLAYERS+1] = 0.0;
+static bool g_bCanPickup[MAXPLAYERS+1] = false;
+static bool g_bTriggerEntity[2048] = true;
+static float g_fLastCallout[MAXPLAYERS+1] = 0.0;
 
-// Cookies
-Handle weaponsPicked;
-Handle weaponsRarePicked;
-Handle weaponsCalled;
+//Cookies
+Cookie g_cWeaponsPicked;
+Cookie g_cWeaponsRarePicked;
+Cookie g_cWeaponsCalled;
 
-public void Weapons_Setup()
+void Weapons_Setup()
 {
-	AddCommandListener(EventVoiceMenu, "voicemenu");
-	HookEvent("teamplay_round_start", EventStart);
-	HookEvent("player_spawn", EventReset);
-	HookEvent("player_death", EventReset);
+	HookEvent("teamplay_round_start", Event_WeaponsRoundStart);
+	HookEvent("player_spawn", Event_ResetPickup);
+	HookEvent("player_death", Event_ResetPickup);
 
-	weaponsPicked = RegClientCookie("weaponspicked", "is this the flowey map?", CookieAccess_Protected);
-	weaponsRarePicked = RegClientCookie("weaponsrarepicked", "is this the flowey map?", CookieAccess_Protected);
-	weaponsCalled = RegClientCookie("weaponscalled", "is this the flowey map?", CookieAccess_Protected);
+	g_cWeaponsPicked = new Cookie("weaponspicked", "is this the flowey map?", CookieAccess_Protected);
+	g_cWeaponsRarePicked = new Cookie("weaponsrarepicked", "is this the flowey map?", CookieAccess_Protected);
+	g_cWeaponsCalled = new Cookie("weaponscalled", "is this the flowey map?", CookieAccess_Protected);
 	
 	Weapons_Init();
 }
 
-public void Weapons_ClientDisconnect(int iClient)
+void Weapons_ClientDisconnect(int iClient)
 {
 	g_bCanPickup[iClient] = true;
 	g_fLastCallout[iClient] = 0.0;
 }
 
-public Action EventStart(Event event, const char[] name, bool dontBroadcast)
+public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	int iEntity = -1;
 	int iRare;
@@ -54,18 +53,18 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 	
 	while ((iEntity = FindEntityByClassname2(iEntity, "prop_dynamic")) != -1)
 	{
-		eWeaponsType type = GetWeaponType(iEntity);
+		WeaponType nWeaponType = GetWeaponType(iEntity);
 		
-		switch (type)
+		switch (nWeaponType)
 		{
-			case eWeaponsType_Spawn:
+			case WeaponType_Spawn:
 			{
 				if (aWeaponsCommon.Length > 0)
 				{
 					//Make sure every spawn weapons is different
 					int iRandom = GetRandomInt(0, aWeaponsCommon.Length - 1);
 					
-					eWeapon wep;
+					Weapon wep;
 					aWeaponsCommon.GetArray(iRandom, wep);
 					
 					SetWeaponModel(iEntity, wep);
@@ -79,58 +78,58 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 				}
 			}
 			
-			case eWeaponsType_Rare:
+			case WeaponType_Rare:
 			{
-				// if rare weapon cap is unreached, make it a "rare" weapon
+				//If rare weapon cap is unreached, make it a "rare" weapon
 				if (iRare < MAX_RARE)
 				{
 					SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
 					iRare++;
 				}
 
-				// else make it a uncommon weapon
+				//Else make it a uncommon weapon
 				else
 				{
 					SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
 				}
 			}
 			
-			case eWeaponsType_RareSpawn:
+			case WeaponType_RareSpawn:
 			{
 				SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
 			}
 			
-			case eWeaponsType_Default, eWeaponsType_DefaultNoPickup:
+			case WeaponType_Default, WeaponType_DefaultNoPickup:
 			{
-				// if rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
+				//If rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
 				if (iRare < MAX_RARE && !GetRandomInt(0, 5))
 				{
 					SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
 					iRare++;
 				}
 
-				// pick-ups
-				else if (!GetRandomInt(0, 9) && type != eWeaponsType_DefaultNoPickup)
+				//Pick-ups
+				else if (!GetRandomInt(0, 9) && nWeaponType != WeaponType_DefaultNoPickup)
 				{
 					SetRandomPickup(iEntity);
 				}
 
-				// else make it either common or uncommon weapon
+				//Else make it either common or uncommon weapon
 				else
 				{
-					int common_count = GetRarityWeaponCount(eWeaponsRarity_Common);
-					int uncommon_count = GetRarityWeaponCount(eWeaponsRarity_Uncommon);
+					int iCommon = GetRarityWeaponCount(eWeaponsRarity_Common);
+					int iUncommon = GetRarityWeaponCount(eWeaponsRarity_Uncommon);
 					
-					if (GetRandomInt(0, common_count + uncommon_count) < common_count)
+					if (GetRandomInt(0, iCommon + iUncommon) < iCommon)
 						SetRandomWeapon(iEntity, eWeaponsRarity_Common);
 					else
 						SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
 				}
 			}
 			
-			case eWeaponsType_Static, eWeaponsType_StaticSpawn:
+			case WeaponType_Static, WeaponType_StaticSpawn:
 			{
-				// check if there reskin weapons to replace
+				//Check if there reskin weapons to replace
 				char sModel[256];
 				GetEntPropString(iEntity, Prop_Data, "m_ModelName", sModel, sizeof(sModel));
 				int iIndex = GetReskinIndex(sModel);
@@ -139,55 +138,36 @@ public Action EventStart(Event event, const char[] name, bool dontBroadcast)
 					Weapons_ReplaceEntityModel(iEntity, iIndex);
 			}
 			
-			default:
+			default:	//Not a SZF weapon
+			{
 				continue;
+			}
 		}
 		
 		AcceptEntityInput(iEntity, "DisableShadow");
 		AcceptEntityInput(iEntity, "EnableCollision");
 
-		// relocate weapon to higher height, looks much better
+		//Relocate weapon to higher height, looks much better
 		float flPosition[3];
 		GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", flPosition);
 		flPosition[2] += 0.8;
 		TeleportEntity(iEntity, flPosition, NULL_VECTOR, NULL_VECTOR);
 
-		g_bTriggerEntity[iEntity] = true; // indicate reset of the OnUser triggers
+		g_bTriggerEntity[iEntity] = true; //Indicate reset of the OnUser triggers
 	}
 	
 	delete aWeaponsCommon;
 }
 
-public Action EventReset(Event event, const char[] name, bool dontBroadcast)
+public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadcast)
 {
-	int iClient = GetClientOfUserId(GetEventInt(event, "userid"));
+	int iClient = GetClientOfUserId(event.GetInt("userid"));
 
 	if (IsValidClient(iClient))
 	{
 		g_bCanPickup[iClient] = true;
 		g_fLastCallout[iClient] = 0.0;
 	}
-}
-
-public Action EventVoiceMenu(int iClient, const char[] command, int argc)
-{
-	if (!IsClientInGame(iClient) || !IsPlayerAlive(iClient))
-		return Plugin_Continue;
-	
-	char cmd1[32], cmd2[32];
-	GetCmdArg(1, cmd1, sizeof(cmd1));
-	GetCmdArg(2, cmd2, sizeof(cmd2));
-
-	if(StrEqual(cmd1, "0") && StrEqual(cmd2, "0"))
-	{
-		// if an item was succesfully grabbed
-		if (AttemptGrabItem(iClient))
-			return Plugin_Handled;
-
-		return Plugin_Continue;
-	}
-
-	return Plugin_Continue;
 }
 
 bool AttemptGrabItem(int iClient)
@@ -197,27 +177,27 @@ bool AttemptGrabItem(int iClient)
 	
 	int iTarget = GetClientPointVisible(iClient);
 
-	if (iTarget <= 0 || !IsClassname(iTarget, "prop_dynamic") || GetWeaponType(iTarget) == eWeaponsType_Invalid)
+	if (iTarget <= 0 || !IsClassname(iTarget, "prop_dynamic") || GetWeaponType(iTarget) == WeaponType_Invalid)
 		return false;
 	
 	char strModel[256];
 	GetEntityModel(iTarget, strModel, sizeof(strModel));
 	
-	eWeapon wep;
+	Weapon wep;
 	if (!GetWeaponFromModel(wep, strModel))
 		return false;
 	
-	bool allow_pickup = true;
-	if (wep.on_pickup != INVALID_FUNCTION)
+	bool bAllowPickup = true;
+	if (wep.callback != INVALID_FUNCTION)
 	{
-		Call_StartFunction(null, wep.on_pickup);
+		Call_StartFunction(null, wep.callback);
 		Call_PushCell(iClient);
-		Call_Finish(allow_pickup);
+		Call_Finish(bAllowPickup);
 	}
 	
-	if (wep.Rarity == eWeaponsRarity_Pickup)
+	if (wep.nRarity == eWeaponsRarity_Pickup)
 	{
-		if (!allow_pickup)
+		if (!bAllowPickup)
 			return false;
 		
 		if (wep.sSound[0] != '\0')
@@ -230,12 +210,12 @@ bool AttemptGrabItem(int iClient)
 	}
 	
 	int iIndex = wep.iIndex;
-	eWeaponsRarity nRarity = wep.Rarity;
+	eWeaponsRarity nRarity = wep.nRarity;
 	
 	if (iIndex > -1)
 	{
-		char strPlayer[128];
-		GetClientName2(iClient, strPlayer, sizeof(strPlayer));
+		char sClient[128];
+		GetClientName2(iClient, sClient, sizeof(sClient));
 
 		if (iIndex == 9 || iIndex == 10 || iIndex == 12)	//Shotgun
 		{
@@ -250,27 +230,25 @@ bool AttemptGrabItem(int iClient)
 		}
 		
 		int iSlot = TF2Econ_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
-		if (iSlot >= 0 && allow_pickup)
+		if (iSlot >= 0 && bAllowPickup)
 		{
 			if (nRarity == eWeaponsRarity_Rare)
 			{
 				char sName[255];
 				TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
-				SZF_CPrintToChatAll(iClient, "I have picked up a {limegreen}{param3}\x01!", true, .param3 = sName);
+				SZF_CPrintToChatAll(iClient, "I have picked up a {limegreen}{param3}\x01!", true, .sParam3 = sName);
 				
-				AddToCookie(iClient, 1, weaponsRarePicked);
-				int RareWeaponsPicked = GetCookie(iClient, weaponsRarePicked);
-
-				if (RareWeaponsPicked <= 1)
+				AddToCookie(iClient, 1, g_cWeaponsRarePicked);
+				if (GetCookie(iClient, g_cWeaponsRarePicked) <= 1)
 				{
-					DataPack hPack1;
-					CreateDataTimer(0.5, DisplayTutorialMessage, hPack1);
+					DataPack hPack1 = new DataPack();
+					CreateDataTimer(0.5, Timer_DisplayTutorialMessage, hPack1);
 					hPack1.WriteCell(iClient);
 					hPack1.WriteFloat(2.0);
 					hPack1.WriteString("You have picked up a very effective weapon.");
 
-					DataPack hPack2;
-					CreateDataTimer(2.5, DisplayTutorialMessage, hPack2);
+					DataPack hPack2 = new DataPack();
+					CreateDataTimer(2.5, Timer_DisplayTutorialMessage, hPack2);
 					hPack2.WriteCell(iClient);
 					hPack2.WriteFloat(3.0);
 					hPack2.WriteString("Some weapons have a lower chance of appearing, like this one.");
@@ -285,14 +263,13 @@ bool AttemptGrabItem(int iClient)
 		{
 			char sName[255];
 			TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
-			SZF_CPrintToChatAll(iClient, "{limegreen}{param3} \x01here!", true, .param3 = sName);
+			SZF_CPrintToChatAll(iClient, "{limegreen}{param3} \x01here!", true, .sParam3 = sName);
 			
-			AddToCookie(iClient, 1, weaponsCalled);
-			int WeaponsCalled = GetCookie(iClient, weaponsCalled);
-			if (WeaponsCalled <= 1)
+			AddToCookie(iClient, 1, g_cWeaponsCalled);
+			if (GetCookie(iClient, g_cWeaponsCalled) <= 1)
 			{
-				DataPack hPack1;
-				CreateDataTimer(0.5, DisplayTutorialMessage, hPack1);
+				DataPack hPack1 = new DataPack();
+				CreateDataTimer(0.5, Timer_DisplayTutorialMessage, hPack1);
 				hPack1.WriteCell(iClient);
 				hPack1.WriteFloat(4.0);
 				hPack1.WriteString("Calling out specific weapons allows other teammates to pick up the weapon.");
@@ -309,7 +286,7 @@ bool AttemptGrabItem(int iClient)
 	return false;
 }
 
-public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
+void PickupWeapon(int iClient, Weapon wep, int iTarget)
 {
 	if (wep.sSound[0] == '\0')
 		EmitSoundToClient(iClient, "ui/item_heavy_gun_pickup.wav");
@@ -317,54 +294,30 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 		EmitSoundToClient(iClient, wep.sSound);
 
 	g_bCanPickup[iClient] = false;
-	CreateTimer(PICKUP_COOLDOWN, ResetPickup, iClient);
+	CreateTimer(PICKUP_COOLDOWN, Timer_ResetPickup, iClient);
 	
-	switch (TF2_GetPlayerClass(iClient))
+	char sSound[PLATFORM_MAX_PATH];
+	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	
+	switch (nClass)
 	{
-		case TFClass_Soldier:
-		{
-			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Soldier)-1);
-			EmitSoundToAll(g_strWeaponVO_Soldier[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-		}
-		
-		case TFClass_Pyro:
-		{
-			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Pyro)-1);
-			EmitSoundToAll(g_strWeaponVO_Pyro[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-		}
-		
-		case TFClass_DemoMan:
-		{
-			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_DemoMan)-1);
-			EmitSoundToAll(g_strWeaponVO_DemoMan[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-		}
-		
-		case TFClass_Engineer:
-		{
-			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Engineer)-1);
-			EmitSoundToAll(g_strWeaponVO_Engineer[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-		}
-		
-		case TFClass_Medic:
-		{
-			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Medic)-1);
-			EmitSoundToAll(g_strWeaponVO_Medic[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-		}
-		
-		case TFClass_Sniper:
-		{
-			int iRandom = GetRandomInt(0, sizeof(g_strWeaponVO_Sniper)-1);
-			EmitSoundToAll(g_strWeaponVO_Sniper[iRandom], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-		}
+		case TFClass_Soldier: Format(sSound, sizeof(sSound), g_sVoWeaponSoldier[GetRandomInt(0, sizeof(g_sVoWeaponSoldier)-1)]);
+		case TFClass_Pyro: Format(sSound, sizeof(sSound), g_sVoWeaponPyro[GetRandomInt(0, sizeof(g_sVoWeaponPyro)-1)]);
+		case TFClass_DemoMan: Format(sSound, sizeof(sSound), g_sVoWeaponDemoman[GetRandomInt(0, sizeof(g_sVoWeaponDemoman)-1)]);
+		case TFClass_Engineer: Format(sSound, sizeof(sSound), g_sVoWeaponEngineer[GetRandomInt(0, sizeof(g_sVoWeaponEngineer)-1)]);
+		case TFClass_Medic: Format(sSound, sizeof(sSound), g_sVoWeaponMedic[GetRandomInt(0, sizeof(g_sVoWeaponMedic)-1)]);
+		case TFClass_Sniper: Format(sSound, sizeof(sSound), g_sVoWeaponSniper[GetRandomInt(0, sizeof(g_sVoWeaponSniper)-1)]);
 	}
+	
+	EmitSoundToAll(sSound, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 
-	int iSlot = TF2Econ_GetItemSlot(wep.iIndex, TF2_GetPlayerClass(iClient));
+	int iSlot = TF2Econ_GetItemSlot(wep.iIndex, nClass);
 
-	if (GetWeaponType(iTarget) != eWeaponsType_Spawn
-	&& GetWeaponType(iTarget) != eWeaponsType_RareSpawn
-	&& GetWeaponType(iTarget) != eWeaponsType_StaticSpawn)
+	if (GetWeaponType(iTarget) != WeaponType_Spawn
+	&& GetWeaponType(iTarget) != WeaponType_RareSpawn
+	&& GetWeaponType(iTarget) != WeaponType_StaticSpawn)
 	{
-		eWeapon oldwep;
+		Weapon oldwep;
 
 		int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
 		if (!IsValidEdict(iEntity))
@@ -398,14 +351,14 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 		}
 	}
 
-	// remove sniper scope and slowdown cond if have one, otherwise it can cause client crashes
+	//Remove sniper scope and slowdown cond if have one, otherwise can cause client crashes
 	if (TF2_IsPlayerInCondition(iClient, TFCond_Zoomed))
 	{
 		TF2_RemoveCondition(iClient, TFCond_Zoomed);
 		TF2_RemoveCondition(iClient, TFCond_Slowed);
 	}
 
-	// force crit reset
+	//Force crit reset
 	int iRevengeCrits = GetEntProp(iClient, Prop_Send, "m_iRevengeCrits");
 	if (iRevengeCrits > 0)
 	{
@@ -426,7 +379,7 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 		AcceptEntityInput(iWearable, "Kill");
 	}
 	
-	// generate and equip weapon
+	//Generate and equip weapon
 	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, wep.sAttribs, wep.sText);
 	
 	char sClassname[256];
@@ -468,25 +421,23 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 		}
 	}
 	
-	// add weapon pickup to player as cookie
-	AddToCookie(iClient, 1, weaponsPicked);
-	int WeaponsPicked = GetCookie(iClient, weaponsPicked);
-	if (WeaponsPicked <= 1)
+	//Add weapon pickup to player as cookie
+	AddToCookie(iClient, 1, g_cWeaponsPicked);
+	if (GetCookie(iClient, g_cWeaponsPicked) <= 1)
 	{
-		DataPack hPack1;
-		CreateDataTimer(0.5, DisplayTutorialMessage, hPack1);
-		hPack1.WriteCell(iClient);
-		hPack1.WriteFloat(2.5);
-		hPack1.WriteString("You have picked up a weapon.");
+		DataPack data;
+		CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
+		data.WriteCell(iClient);
+		data.WriteFloat(2.5);
+		data.WriteString("You have picked up a weapon.");
 
-		DataPack hPack2;
-		CreateDataTimer(3.0, DisplayTutorialMessage, hPack2);
-		hPack2.WriteCell(iClient);
-		hPack2.WriteFloat(3.5);
-		hPack2.WriteString("Finding weapons is crucial to ensure survival.");
+		CreateDataTimer(3.0, Timer_DisplayTutorialMessage, data);
+		data.WriteCell(iClient);
+		data.WriteFloat(3.5);
+		data.WriteString("Finding weapons is crucial to ensure survival.");
 	}
 
-	// trigger ENT_ONPICKUP
+	//Trigger ENT_ONPICKUP
 	if (g_bTriggerEntity[iTarget])
 	{
 		AcceptEntityInput(iTarget, ENT_ONPICKUP, iClient, iClient);
@@ -496,55 +447,49 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 	Call_StartForward(g_hForwardWeaponPickup);
 	Call_PushCell(iClient);
 	Call_PushCell(iWeapon);
-	Call_PushCell(wep.Rarity);
+	Call_PushCell(wep.nRarity);
 	Call_Finish();
 }
 
-public Action ResetPickup(Handle timer, any iClient)
+public Action Timer_ResetPickup(Handle timer, any iClient)
 {
 	if (IsValidClient(iClient))
 		g_bCanPickup[iClient] = true;
 }
 
-stock eWeaponsType GetWeaponType(int iEntity)
+stock WeaponType GetWeaponType(int iEntity)
 {
-	char strName[255];
-	GetEntPropString(iEntity, Prop_Data, "m_iName", strName, sizeof(strName));
+	char sName[255];
+	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
 
-	// strcontains versus strequals on 2048 entities obviously shows strcontains as the winner
-	if (StrContains(strName, "szf_weapon_spawn", false) == 0) return eWeaponsType_Spawn; // spawn: dont expire on pickup
-	else if (StrContains(strName, "szf_weapon_rare_spawn", false) == 0) return eWeaponsType_RareSpawn; // guaranteed rare and non-expiring
-	else if (StrContains(strName, "szf_weapon_rare", false) == 0) return eWeaponsType_Rare; // guaranteed rare
-	else if (StrContains(strName, "szf_weapon_static_spawn", false) == 0) return eWeaponsType_StaticSpawn; // static: don't change model and non-expiring
-	else if (StrContains(strName, "szf_weapon_static", false) == 0) return eWeaponsType_Static; // static: don't change model
-	else if (StrContains(strName, "szf_weapon_nopickup", false) == 0) return eWeaponsType_DefaultNoPickup; // no pickup: this weapon can never become a pickup
-	else if (StrContains(strName, "szf_weapon", false) != -1) return eWeaponsType_Default; // normal
-
-	return eWeaponsType_Invalid;
-}
-
-stock void SwitchToSlot(int iClient, int iSlot)
-{
-	if (GetPlayerWeaponSlot(iClient, iSlot) > 0)
-		EquipPlayerWeapon(iClient, weapon);
+	//Strcontains versus strequals on 2048 entities obviously shows strcontains as the winner
+	if (StrContains(sName, "szf_weapon_spawn", false) == 0) return WeaponType_Spawn; //Spawn: dont expire on pickup
+	else if (StrContains(sName, "szf_weapon_rare_spawn", false) == 0) return WeaponType_RareSpawn; //Guaranteed rare and non-expiring
+	else if (StrContains(sName, "szf_weapon_rare", false) == 0) return WeaponType_Rare; //Guaranteed rare
+	else if (StrContains(sName, "szf_weapon_static_spawn", false) == 0) return WeaponType_StaticSpawn; //Static: don't change model and non-expiring
+	else if (StrContains(sName, "szf_weapon_static", false) == 0) return WeaponType_Static; //Static: don't change model
+	else if (StrContains(sName, "szf_weapon_nopickup", false) == 0) return WeaponType_DefaultNoPickup; //No pickup: this weapon can never become a pickup
+	else if (StrContains(sName, "szf_weapon", false) != -1) return WeaponType_Default; //Normal
+	
+	return WeaponType_Invalid;
 }
 
 stock void SetRandomPickup(int iEntity)
 {
-	// reset angle
-	float flAngles[3];
+	//Reset angle
+	float vecAngles[3];
 
-	TeleportEntity(iEntity, NULL_VECTOR, flAngles, NULL_VECTOR);
+	TeleportEntity(iEntity, NULL_VECTOR, vecAngles, NULL_VECTOR);
 	SetRandomWeapon(iEntity, eWeaponsRarity_Pickup);
 }
 
 stock void SetRandomWeapon(int iEntity, eWeaponsRarity nRarity)
 {
-	ArrayList array = GetAllWeaponsWithRarity(nRarity);
-	int iRandom = GetRandomInt(0, array.Length - 1);
+	ArrayList aList = GetAllWeaponsWithRarity(nRarity);
+	int iRandom = GetRandomInt(0, aList.Length - 1);
 	
-	eWeapon wep;
-	array.GetArray(iRandom, wep);
+	Weapon wep;
+	aList.GetArray(iRandom, wep);
 	
 	SetWeaponModel(iEntity, wep);
 	
@@ -554,13 +499,13 @@ stock void SetRandomWeapon(int iEntity, eWeaponsRarity nRarity)
 		SetEntityRenderColor(iEntity, wep.iColor[0], wep.iColor[1], wep.iColor[2], 255);
 	}
 	
-	delete array;
+	delete aList;
 }
 
-stock void SetWeaponModel(int iEntity, eWeapon wep)
+stock void SetWeaponModel(int iEntity, Weapon wep)
 {
-	char strOldModel[256];
-	GetEntityModel(iEntity, strOldModel, sizeof(strOldModel));
+	char sOldModel[256];
+	GetEntityModel(iEntity, sOldModel, sizeof(sOldModel));
 	
 	float vecOrigin[3];
 	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
@@ -568,23 +513,13 @@ stock void SetWeaponModel(int iEntity, eWeapon wep)
 	float vecAngles[3];
 	GetEntPropVector(iEntity, Prop_Send, "m_angRotation", vecAngles);
 	
-	// Offsets (will only work for pickups for now)
-	if (wep.Rarity == eWeaponsRarity_Pickup)
-	{
-		vecOrigin[0] += wep.flOffsetOrigin[0];
-		vecOrigin[1] += wep.flOffsetOrigin[1];
-		vecOrigin[2] += wep.flOffsetOrigin[2];
-		
-		vecAngles[0] += wep.flOffsetAngles[0];
-		vecAngles[1] += wep.flOffsetAngles[1];
-		vecAngles[2] += wep.flOffsetAngles[2];
+	//Offsets (will only work for pickups for now)
+	if (wep.nRarity == eWeaponsRarity_Pickup)
+		TeleportEntity(iEntity, wep.vecOrigin, wep.vecAngles, NULL_VECTOR);
 	
-		TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
-	}
-	
-	// Because sniper wearable have a really offplace origin prop, we have to move entity to a more reasonable spot
-	if (StrEqual(strOldModel, "models/player/items/sniper/knife_shield.mdl")
-		|| StrEqual(strOldModel, "models/player/items/sniper/xms_sniper_commandobackpack.mdl"))
+	//Because sniper wearable have a really offplace origin prop, we have to move entity to a more reasonable spot
+	if (StrEqual(sOldModel, "models/player/items/sniper/knife_shield.mdl")
+		|| StrEqual(sOldModel, "models/player/items/sniper/xms_sniper_commandobackpack.mdl"))
 	{
 		float vecDirection[3];
 		GetAngleVectors(vecAngles, vecDirection, NULL_VECTOR, NULL_VECTOR);
@@ -614,15 +549,15 @@ stock void SetWeaponModel(int iEntity, eWeapon wep)
 	}
 }
 
-// Grabs the entity model by looking in the precache database of the server
-stock void GetEntityModel(int iEntity, char[] strModel, int iMaxSize, char[] strPropName = "m_nModelIndex")
+//Grabs the entity model by looking in the precache database of the server
+stock void GetEntityModel(int iEntity, char[] sModel, int iMaxSize, char[] sPropName = "m_nModelIndex")
 {
-	int iIndex = GetEntProp(iEntity, Prop_Send, strPropName);
-	GetModelPath(iIndex, strModel, iMaxSize);
+	int iIndex = GetEntProp(iEntity, Prop_Send, sPropName);
+	GetModelPath(iIndex, sModel, iMaxSize);
 }
 
-stock void GetModelPath(int iIndex, char[] strModel, int iMaxSize)
+stock void GetModelPath(int iIndex, char[] sModel, int iMaxSize)
 {
 	int iTable = FindStringTable("modelprecache");
-	ReadStringTable(iTable, iIndex, strModel, iMaxSize);
+	ReadStringTable(iTable, iIndex, sModel, iMaxSize);
 }

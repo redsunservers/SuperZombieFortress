@@ -1,199 +1,198 @@
-enum
+enum SoundType
 {
-	SOUND_TYPE_NONE = 0,
-	SOUND_TYPE_QUIET,
-	SOUND_TYPE_ATTACK,
-	SOUND_TYPE_EVENT,
-	SOUND_TYPE_MUSIC
+	SoundType_None,
+	SoundType_Quiet,
+	SoundType_Attack,
+	SoundType_Event,
+	SoundType_Music,
 };
 
-enum
+enum Sound
 {
-	SOUND_NONE = 0,
+	Sound_None,
 	
-	SOUND_QUIET_NONE,
-	SOUND_QUIET_SLOW,
-	SOUND_QUIET_MEDIUM,
-	SOUND_QUIET_FAST,
-	SOUND_QUIET_RABIES,
-	SOUND_QUIET_MAX,
+	SoundQuiet_Min,
+	SoundQuiet_Slow,
+	SoundQuiet_Medium,
+	SoundQuiet_Fast,
+	SoundQuiet_Rabies,
+	SoundQuiet_Max,
 	
-	SOUND_ATTACK_NONE,
-	SOUND_ATTACK_DRUMS,
-	SOUND_ATTACK_SLAYERMILD,
-	SOUND_ATTACK_SLAYER,
-	SOUND_ATTACK_TRUMPET,
-	SOUND_ATTACK_SNARE,
-	SOUND_ATTACK_BANJO,
-	SOUND_ATTACK_MAX,
+	SoundAttack_Min,
+	SoundAttack_Drums,
+	SoundAttack_SlayerMild,
+	SoundAttack_Slayer,
+	SoundAttack_Trumpet,
+	SoundAttack_Snare,
+	SoundAttack_Banjo,
+	SoundAttack_Max,
 	
-	SOUND_EVENT_NONE,
-	SOUND_EVENT_DEAD,
-	SOUND_EVENT_INCOMING,
-	SOUND_EVENT_DROWN,
-	SOUND_EVENT_NEARDEATH,
-	SOUND_EVENT_NEARDEATH2,
-	SOUND_EVENT_JARATE,
-	SOUND_EVENT_MAX,
+	SoundEvent_Min,
+	SoundEvent_Dead,
+	SoundEvent_Incoming,
+	SoundEvent_Drown,
+	SoundEvent_NearDeath,
+	SoundEvent_NearDeath2,
+	SoundEvent_Jarate,
+	SoundEvent_Max,
 	
-	SOUND_MUSIC_NONE,
-	SOUND_MUSIC_PREPARE,
-	SOUND_MUSIC_TANK,
-	SOUND_MUSIC_LASTSTAND,
-	SOUND_MUSIC_ZOMBIEWIN,
-	SOUND_MUSIC_SURVIVORWIN,
-	SOUND_MUSIC_MAX,
+	SoundMusic_Min,
+	SoundMusic_Prepare,
+	SoundMusic_Tank,
+	SoundMusic_LastStand,
+	SoundMusic_ZombieWin,
+	SoundMusic_SurvivorWin,
+	SoundMusic_Max,
 	
-	SOUND_MAX
+	Sound_Max
 };
 
-char g_sSound[MAXPLAYERS+1][PLATFORM_MAX_PATH];
-int g_iSound[MAXPLAYERS+1];
-Handle g_hSoundTimer[MAXPLAYERS+1] = INVALID_HANDLE;
-bool g_bNoMusicForClient[MAXPLAYERS+1];
+char g_sSound[TF_MAXPLAYERS+1][PLATFORM_MAX_PATH];
+Sound g_nSound[TF_MAXPLAYERS+1];
+bool g_bNoMusicForClient[TF_MAXPLAYERS+1];
 
 /* QUIET SOUNDS */
 
-char g_strSoundHeartSlow[][PLATFORM_MAX_PATH] =
+char g_sSoundHeartSlow[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/zombat/heartbeat_slow.mp3"
 };
 
-char g_strSoundHeartMedium[][PLATFORM_MAX_PATH] =
+char g_sSoundHeartMedium[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/zombat/heartbeat_medium.mp3"
 };
 
-char g_strSoundHeartFast[][PLATFORM_MAX_PATH] =
+char g_sSoundHeartFast[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/zombat/heartbeat_fast.mp3"
 };
 
-char g_strSoundRabies[][PLATFORM_MAX_PATH] =
+char g_sSoundRabies[][PLATFORM_MAX_PATH] =
 {
-	"left4fortress/rabies01.mp3"
-	,"left4fortress/rabies02.mp3"
-	,"left4fortress/rabies03.mp3"
-	,"left4fortress/rabies04.mp3"
+	"left4fortress/rabies01.mp3",
+	"left4fortress/rabies02.mp3",
+	"left4fortress/rabies03.mp3",
+	"left4fortress/rabies04.mp3"
 };
 
 /* ZOMBIE ATTACK SOUNDS */
 
-char g_strSoundDrums[][PLATFORM_MAX_PATH] =
+char g_sSoundDrums[][PLATFORM_MAX_PATH] =
 {
-	"left4fortress/zombat/drums01.mp3"
-	,"left4fortress/zombat/drums02.mp3"
-	,"left4fortress/zombat/drums03.mp3"
-	,"left4fortress/zombat/drums04.mp3"
-	,"left4fortress/zombat/drums05.mp3"
+	"left4fortress/zombat/drums01.mp3",
+	"left4fortress/zombat/drums02.mp3",
+	"left4fortress/zombat/drums03.mp3",
+	"left4fortress/zombat/drums04.mp3",
+	"left4fortress/zombat/drums05.mp3"
 };
 
-char g_strSoundSlayerMild[][PLATFORM_MAX_PATH] =
+char g_sSoundSlayerMild[][PLATFORM_MAX_PATH] =
 {
-	"left4fortress/zombat/slayer_violin01.mp3"
-	,"left4fortress/zombat/slayer_violin02.mp3"
-	,"left4fortress/zombat/slayer_violin03.mp3"
+	"left4fortress/zombat/slayer_violin01.mp3",
+	"left4fortress/zombat/slayer_violin02.mp3",
+	"left4fortress/zombat/slayer_violin03.mp3"
 };
 
-char g_strSoundSlayer[][PLATFORM_MAX_PATH] =
+char g_sSoundSlayer[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/zombat/slayer01.mp3"
 };
 
-char g_strSoundTrumpet[][PLATFORM_MAX_PATH] =
+char g_sSoundTrumpet[][PLATFORM_MAX_PATH] =
 {
-	"left4fortress/zombat/trumpet01.mp3"
-	,"left4fortress/zombat/trumpet02.mp3"
-	,"left4fortress/zombat/trumpet03.mp3"
-	,"left4fortress/zombat/trumpet04.mp3"
-	,"left4fortress/zombat/trumpet05.mp3"
-	,"left4fortress/zombat/trumpet06.mp3"
+	"left4fortress/zombat/trumpet01.mp3",
+	"left4fortress/zombat/trumpet02.mp3",
+	"left4fortress/zombat/trumpet03.mp3",
+	"left4fortress/zombat/trumpet04.mp3",
+	"left4fortress/zombat/trumpet05.mp3",
+	"left4fortress/zombat/trumpet06.mp3"
 };
 
-char g_strSoundSnare[][PLATFORM_MAX_PATH] =
+char g_sSoundSnare[][PLATFORM_MAX_PATH] =
 {
-	"left4fortress/zombat/snare01.mp3"
-	,"left4fortress/zombat/snare02.mp3"
+	"left4fortress/zombat/snare01.mp3",
+	"left4fortress/zombat/snare02.mp3"
 };
 
-char g_strSoundBanjo[][PLATFORM_MAX_PATH] =
+char g_sSoundBanjo[][PLATFORM_MAX_PATH] =
 {
-	"left4fortress/zombat/banjo01.mp3"
-	,"left4fortress/zombat/banjo02.mp3"
-	,"left4fortress/zombat/banjo03.mp3"
-	,"left4fortress/zombat/banjo04.mp3"
-	,"left4fortress/zombat/banjo05.mp3"
-	,"left4fortress/zombat/banjo06.mp3"
-	,"left4fortress/zombat/banjo07.mp3"
+	"left4fortress/zombat/banjo01.mp3",
+	"left4fortress/zombat/banjo02.mp3",
+	"left4fortress/zombat/banjo03.mp3",
+	"left4fortress/zombat/banjo04.mp3",
+	"left4fortress/zombat/banjo05.mp3",
+	"left4fortress/zombat/banjo06.mp3",
+	"left4fortress/zombat/banjo07.mp3"
 };
 
 /* ZOMBIE EVENTS SOUND */
 
 //Zombie killed survivor
-char g_strSoundDead[][PLATFORM_MAX_PATH] =
+char g_sSoundDead[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/theend.mp3"
 };
 
 //Frenzy
-char g_strSoundIncoming[][PLATFORM_MAX_PATH] =
+char g_sSoundIncoming[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/zincoming_mob.mp3"
 };
 
 //Goo
-char g_strSoundDrown[][PLATFORM_MAX_PATH] =
+char g_sSoundDrown[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/drowning.mp3"
 };
 
 //Backstab
-char g_strSoundNearDeath[][PLATFORM_MAX_PATH] =
+char g_sSoundNearDeath[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/iamsocold.mp3"
 };
 
 /* Unused
-char g_strSoundNearDeath2[][PLATFORM_MAX_PATH] =
+char g_sSoundNearDeath2[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/youaresocold.mp3"
 };
 */
 //Boomer Jarate
-char g_strSoundJarate[][PLATFORM_MAX_PATH] =
+char g_sSoundJarate[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/jarate.mp3"
 };
 
 /* MUSIC */
 
-char g_strSoundPrepare[][PLATFORM_MAX_PATH] =
+char g_sSoundPrepare[][PLATFORM_MAX_PATH] =
 {
-	"left4fortress/prepare01.mp3"
-	,"left4fortress/prepare02.mp3"
-	,"left4fortress/prepare_rain.mp3"
+	"left4fortress/prepare01.mp3",
+	"left4fortress/prepare02.mp3",
+	"left4fortress/prepare_rain.mp3"
 };
 
-char g_strSoundTank[][PLATFORM_MAX_PATH] =
+char g_sSoundTank[][PLATFORM_MAX_PATH] =
 {
-	"left4fortress/drumandbasstank.mp3"
-	,"left4fortress/metaltank.mp3"
-	,"left4fortress/monsoontank.mp3"
-	,"left4fortress/onebadtank.mp3"
-	,"left4fortress/sundownertank.mp3"
+	"left4fortress/drumandbasstank.mp3",
+	"left4fortress/metaltank.mp3",
+	"left4fortress/monsoontank.mp3",
+	"left4fortress/onebadtank.mp3",
+	"left4fortress/sundownertank.mp3"
 };
 
-char g_strSoundLastStand[][PLATFORM_MAX_PATH] =
+char g_sSoundLastStand[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/skinonourteeth.mp3"
 };
 
-char g_strSoundZombieWin[][PLATFORM_MAX_PATH] =
+char g_sSoundZombieWin[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/death.mp3"
 };
 
-char g_strSoundSurivourWin[][PLATFORM_MAX_PATH] =
+char g_sSoundSurivourWin[][PLATFORM_MAX_PATH] =
 {
 	"left4fortress/we_survived.mp3"
 };
@@ -201,22 +200,22 @@ char g_strSoundSurivourWin[][PLATFORM_MAX_PATH] =
 /* OTHER SOUNDS */
 
 //Special infected spawned
-char g_strSoundSpawnInfected[][PLATFORM_MAX_PATH] =
+char g_sSoundSpawnInfected[][PLATFORM_MAX_PATH] =
 {
-	"misc/null.wav"				//no special infected
-	,"misc/null.wav"			//tank
-	,"left4fortress/boomerbacterias.mp3"	//boomer
-	,"left4fortress/chargerbacterias.mp3"	//charger
-	,"misc/null.wav"			//kingpin, used to use smoker's bacteria (need new sound for kingpin)
-	,"left4fortress/jockeybacterias.mp3"	//stalker
-	,"left4fortress/hunterbacterias.mp3"	//hunter
-	,"left4fortress/smokerbacterias.mp3"	//smoker
+	"misc/null.wav",						//no special infected
+	"misc/null.wav",						//tank
+	"left4fortress/boomerbacterias.mp3",	//boomer
+	"left4fortress/chargerbacterias.mp3",	//charger
+	"misc/null.wav",						//kingpin, used to use smoker's bacteria (need new sound for kingpin)
+	"left4fortress/jockeybacterias.mp3",	//stalker
+	"left4fortress/hunterbacterias.mp3",	//hunter
+	"left4fortress/smokerbacterias.mp3",	//smoker
 };
 
 /* VO */
 
 /* SOLDIER */
-char g_strCarryVO_Soldier[][PLATFORM_MAX_PATH] =
+char g_sVoCarrySoldier[][PLATFORM_MAX_PATH] =
 {
     "vo/soldier_autocappedcontrolpoint01.mp3"
 	,"vo/soldier_positivevocalization01.mp3"
@@ -235,7 +234,7 @@ char g_strCarryVO_Soldier[][PLATFORM_MAX_PATH] =
     ,"vo/soldier_battlecry06.mp3"
 };
 
-char g_strWeaponVO_Soldier[][PLATFORM_MAX_PATH] =
+char g_sVoWeaponSoldier[][PLATFORM_MAX_PATH] =
 {
     "vo/soldier_mvm_loot_common01.mp3"
 	,"vo/soldier_mvm_loot_common02.mp3"
@@ -246,7 +245,7 @@ char g_strWeaponVO_Soldier[][PLATFORM_MAX_PATH] =
     ,"vo/soldier_mvm_loot_rare04.mp3"
 };
 
-char g_strTankATK_Soldier[][PLATFORM_MAX_PATH] =
+char g_sVoTankSoldier[][PLATFORM_MAX_PATH] =
 {
     "vo/soldier_mvm_tank_shooting01.mp3"
     ,"vo/soldier_mvm_tank_shooting02.mp3"
@@ -254,7 +253,7 @@ char g_strTankATK_Soldier[][PLATFORM_MAX_PATH] =
 
 
 /* PYRO */
-char g_strCarryVO_Pyro[][PLATFORM_MAX_PATH] =
+char g_sVoCarryPyro[][PLATFORM_MAX_PATH] =
 {
     "vo/pyro_autocappedcontrolpoint01.mp3"
 	,"vo/pyro_autocappedintelligence01.mp3"
@@ -265,7 +264,7 @@ char g_strCarryVO_Pyro[][PLATFORM_MAX_PATH] =
     ,"vo/pyro_moveup01.mp3"
 };
 
-char g_strWeaponVO_Pyro[][PLATFORM_MAX_PATH] =
+char g_sVoWeaponPyro[][PLATFORM_MAX_PATH] =
 {
     "vo/pyro_battlecry01.mp3"
     ,"vo/pyro_battlecry02.mp3"
@@ -274,7 +273,7 @@ char g_strWeaponVO_Pyro[][PLATFORM_MAX_PATH] =
 
 
 /* Demoman -- does not have tank lines */
-char g_strCarryVO_DemoMan[][PLATFORM_MAX_PATH] =
+char g_sVoCarryDemoman[][PLATFORM_MAX_PATH] =
 {
     "vo/demoman_go01.mp3"
 	,"vo/demoman_go02.mp3"
@@ -292,7 +291,7 @@ char g_strCarryVO_DemoMan[][PLATFORM_MAX_PATH] =
     ,"vo/demoman_gibberish13.mp3"
 };
 
-char g_strWeaponVO_DemoMan[][PLATFORM_MAX_PATH] =
+char g_sVoWeaponDemoman[][PLATFORM_MAX_PATH] =
 {
     "vo/demoman_mvm_loot_common01.mp3"
     ,"vo/demoman_mvm_loot_common02.mp3"
@@ -305,7 +304,7 @@ char g_strWeaponVO_DemoMan[][PLATFORM_MAX_PATH] =
 
 
 /* Engineer */
-char g_strCarryVO_Engineer[][PLATFORM_MAX_PATH] =
+char g_sVoCarryEngineer[][PLATFORM_MAX_PATH] =
 {
     "vo/engineer_autocappedcontrolpoint01.mp3"
 	,"vo/engineer_autocappedcontrolpoint02.mp3"
@@ -318,7 +317,7 @@ char g_strCarryVO_Engineer[][PLATFORM_MAX_PATH] =
     ,"vo/engineer_laughevil06.mp3"
 };
 
-char g_strWeaponVO_Engineer[][PLATFORM_MAX_PATH] =
+char g_sVoWeaponEngineer[][PLATFORM_MAX_PATH] =
 {
     "vo/engineer_mvm_loot_common01.mp3"
     ,"vo/engineer_mvm_loot_common02.mp3"
@@ -331,7 +330,7 @@ char g_strWeaponVO_Engineer[][PLATFORM_MAX_PATH] =
     ,"vo/engineer_mvm_loot_rare04.mp3"
 };
 
-char g_strTankATK_Engineer[][PLATFORM_MAX_PATH] =
+char g_sVoTankEngineer[][PLATFORM_MAX_PATH] =
 {
     "vo/engineer_mvm_tank_shooting01.mp3"
     ,"vo/engineer_meleedare01.mp3"
@@ -340,7 +339,7 @@ char g_strTankATK_Engineer[][PLATFORM_MAX_PATH] =
 
 
 /* Medic */
-char g_strCarryVO_Medic[][PLATFORM_MAX_PATH] =
+char g_sVoCarryMedic[][PLATFORM_MAX_PATH] =
 {
     "vo/medic_go01.mp3"
     ,"vo/medic_go05.mp3"
@@ -353,7 +352,7 @@ char g_strCarryVO_Medic[][PLATFORM_MAX_PATH] =
     ,"vo/medic_yes03.mp3"
 };
 
-char g_strWeaponVO_Medic[][PLATFORM_MAX_PATH] =
+char g_sVoWeaponMedic[][PLATFORM_MAX_PATH] =
 {
     "vo/medic_mvm_loot_common01.mp3"
     ,"vo/medic_mvm_loot_common02.mp3"
@@ -366,7 +365,7 @@ char g_strWeaponVO_Medic[][PLATFORM_MAX_PATH] =
     ,"vo/medic_specialcompleted03.mp3"
 };
 
-char g_strTankATK_Medic[][PLATFORM_MAX_PATH] =
+char g_sVoTankMedic[][PLATFORM_MAX_PATH] =
 {
     "vo/medic_mvm_tank_shooting01.mp3"
     ,"vo/medic_mvm_tank_shooting02.mp3"
@@ -374,7 +373,7 @@ char g_strTankATK_Medic[][PLATFORM_MAX_PATH] =
 
 
 /* Sniper -- does not have tank lines */
-char g_strCarryVO_Sniper[][PLATFORM_MAX_PATH] =
+char g_sVoCarrySniper[][PLATFORM_MAX_PATH] =
 {
     "vo/sniper_autocappedcontrolpoint01.mp3"
     ,"vo/sniper_autocappedcontrolpoint02.mp3"
@@ -402,7 +401,7 @@ char g_strCarryVO_Sniper[][PLATFORM_MAX_PATH] =
     ,"vo/sniper_specialweapon09.mp3"
 };
 
-char g_strWeaponVO_Sniper[][PLATFORM_MAX_PATH] =
+char g_sVoWeaponSniper[][PLATFORM_MAX_PATH] =
 {
     "vo/sniper_specialweapon01.mp3"
     ,"vo/sniper_specialweapon02.mp3"
@@ -416,7 +415,7 @@ char g_strWeaponVO_Sniper[][PLATFORM_MAX_PATH] =
 };
 
 /* Common Infected */
-char g_strZombieVO_Common_Default[][PLATFORM_MAX_PATH] =
+char g_sVoZombieCommonDefault[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/idle_breath_01.mp3"
     ,"left4fortress/zombie_vo/idle_breath_02.mp3"
@@ -424,7 +423,7 @@ char g_strZombieVO_Common_Default[][PLATFORM_MAX_PATH] =
     ,"left4fortress/zombie_vo/idle_breath_04.mp3"
 };
 
-char g_strZombieVO_Common_Pain[][PLATFORM_MAX_PATH] =
+char g_sVoZombieCommonPain[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/been_shot_12.mp3"
     ,"left4fortress/zombie_vo/been_shot_13.mp3"
@@ -437,7 +436,7 @@ char g_strZombieVO_Common_Pain[][PLATFORM_MAX_PATH] =
     ,"left4fortress/zombie_vo/been_shot_24.mp3"
 };
 
-char g_strZombieVO_Common_Rage[][PLATFORM_MAX_PATH] =
+char g_sVoZombieCommonRage[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/rage_at_victim21.mp3"
     ,"left4fortress/zombie_vo/rage_at_victim22.mp3"
@@ -445,7 +444,7 @@ char g_strZombieVO_Common_Rage[][PLATFORM_MAX_PATH] =
     ,"left4fortress/zombie_vo/rage_at_victim26.mp3"
 };
 
-char g_strZombieVO_Common_Mumbling[][PLATFORM_MAX_PATH] =
+char g_sVoZombieCommonMumbling[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/mumbling01.mp3"
     ,"left4fortress/zombie_vo/mumbling02.mp3"
@@ -457,7 +456,7 @@ char g_strZombieVO_Common_Mumbling[][PLATFORM_MAX_PATH] =
     ,"left4fortress/zombie_vo/mumbling08.mp3"
 };
 
-char g_strZombieVO_Common_Shoved[][PLATFORM_MAX_PATH] =
+char g_sVoZombieCommonShoved[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/shoved_1.mp3"
     ,"left4fortress/zombie_vo/shoved_2.mp3"
@@ -465,7 +464,7 @@ char g_strZombieVO_Common_Shoved[][PLATFORM_MAX_PATH] =
     ,"left4fortress/zombie_vo/shoved_4.mp3"
 };
 
-char g_strZombieVO_Common_Death[][PLATFORM_MAX_PATH] =
+char g_sVoZombieCommonDeath[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/death_22.mp3"
     ,"left4fortress/zombie_vo/death_23.mp3"
@@ -478,21 +477,21 @@ char g_strZombieVO_Common_Death[][PLATFORM_MAX_PATH] =
 };
 
 /* Boomer */
-char g_strZombieVO_Boomer_Default[][PLATFORM_MAX_PATH] =
+char g_sVoZombieBoomerDefault[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/male_boomer_lurk_02.mp3"
     ,"left4fortress/zombie_vo/male_boomer_lurk_03.mp3"
     ,"left4fortress/zombie_vo/male_boomer_lurk_04.mp3"
 };
 
-char g_strZombieVO_Boomer_Pain[][PLATFORM_MAX_PATH] =
+char g_sVoZombieBoomerPain[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/male_boomer_pain_1.mp3"
     ,"left4fortress/zombie_vo/male_boomer_pain_2.mp3"
     ,"left4fortress/zombie_vo/male_boomer_pain_3.mp3"
 };
 
-char g_strZombieVO_Boomer_Explode[][PLATFORM_MAX_PATH] =
+char g_sVoZombieBoomerExplode[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/male_boomer_disruptvomit_05.mp3"
     ,"left4fortress/zombie_vo/male_boomer_disruptvomit_06.mp3"
@@ -500,42 +499,42 @@ char g_strZombieVO_Boomer_Explode[][PLATFORM_MAX_PATH] =
 };
 
 /* Charger */
-char g_strZombieVO_Charger_Default[][PLATFORM_MAX_PATH] =
+char g_sVoZombieChargerDefault[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/charger_spotprey_01.mp3"
     ,"left4fortress/zombie_vo/charger_spotprey_02.mp3"
     ,"left4fortress/zombie_vo/charger_spotprey_03.mp3"
 };
 
-char g_strZombieVO_Charger_Pain[][PLATFORM_MAX_PATH] =
+char g_sVoZombieChargerPain[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/charger_pain_01.mp3"
     ,"left4fortress/zombie_vo/charger_pain_02.mp3"
     ,"left4fortress/zombie_vo/charger_pain_03.mp3"
 };
 
-char g_strZombieVO_Charger_Charge[][PLATFORM_MAX_PATH] =
+char g_sVoZombieChargerCharge[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/charger_charge_01.mp3"
     ,"left4fortress/zombie_vo/charger_charge_02.mp3"
 };
 
 /* Hunter */
-char g_strZombieVO_Hunter_Default[][PLATFORM_MAX_PATH] =
+char g_sVoZombieHunterDefault[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/hunter_stalk_04.mp3"
     ,"left4fortress/zombie_vo/hunter_stalk_05.mp3"
     ,"left4fortress/zombie_vo/hunter_stalk_06.mp3"
 };
 
-char g_strZombieVO_Hunter_Pain[][PLATFORM_MAX_PATH] =
+char g_sVoZombieHunterPain[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/hunter_pain_12.mp3"
     ,"left4fortress/zombie_vo/hunter_pain_13.mp3"
     ,"left4fortress/zombie_vo/hunter_pain_14.mp3"
 };
 
-char g_strZombieVO_Hunter_Leap[][PLATFORM_MAX_PATH] =
+char g_sVoZombieHunterLeap[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/hunter_attackmix_01.mp3"
     ,"left4fortress/zombie_vo/hunter_attackmix_02.mp3"
@@ -543,14 +542,14 @@ char g_strZombieVO_Hunter_Leap[][PLATFORM_MAX_PATH] =
 };
 
 /* Smoker */
-char g_strZombieVO_Smoker_Default[][PLATFORM_MAX_PATH] =
+char g_sVoZombieSmokerDefault[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/smoker_lurk_11.mp3"
     ,"left4fortress/zombie_vo/smoker_lurk_12.mp3"
     ,"left4fortress/zombie_vo/smoker_lurk_13.mp3"
 };
 
-char g_strZombieVO_Smoker_Pain[][PLATFORM_MAX_PATH] =
+char g_sVoZombieSmokerPain[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/smoker_pain_02.mp3"
     ,"left4fortress/zombie_vo/smoker_pain_03.mp3"
@@ -558,7 +557,7 @@ char g_strZombieVO_Smoker_Pain[][PLATFORM_MAX_PATH] =
 };
 
 /* Tank */
-char g_strZombieVO_Tank_Default[][PLATFORM_MAX_PATH] =
+char g_sVoZombieTankDefault[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/tank_voice_01.mp3"
     ,"left4fortress/zombie_vo/tank_voice_02.mp3"
@@ -566,7 +565,7 @@ char g_strZombieVO_Tank_Default[][PLATFORM_MAX_PATH] =
     ,"left4fortress/zombie_vo/tank_voice_04.mp3"
 };
 
-char g_strZombieVO_Tank_Pain[][PLATFORM_MAX_PATH] =
+char g_sVoZombieTankPain[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/tank_pain_01.mp3"
     ,"left4fortress/zombie_vo/tank_pain_02.mp3"
@@ -574,7 +573,7 @@ char g_strZombieVO_Tank_Pain[][PLATFORM_MAX_PATH] =
     ,"left4fortress/zombie_vo/tank_pain_04.mp3"
 };
 
-char g_strZombieVO_Tank_OnFire[][PLATFORM_MAX_PATH] =
+char g_sVoZombieTankOnFire[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/tank_fire_02.mp3"
     ,"left4fortress/zombie_vo/tank_fire_03.mp3"
@@ -582,7 +581,7 @@ char g_strZombieVO_Tank_OnFire[][PLATFORM_MAX_PATH] =
     ,"left4fortress/zombie_vo/tank_fire_05.mp3"
 };
 
-char g_strZombieVO_Tank_Attack[][PLATFORM_MAX_PATH] =
+char g_sVoZombieTankAttack[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/tank_attack_01.mp3"
     ,"left4fortress/zombie_vo/tank_attack_02.mp3"
@@ -590,7 +589,7 @@ char g_strZombieVO_Tank_Attack[][PLATFORM_MAX_PATH] =
     ,"left4fortress/zombie_vo/tank_attack_04.mp3"
 };
 
-char g_strZombieVO_Tank_Death[][PLATFORM_MAX_PATH] =
+char g_sVoZombieTankDeath[][PLATFORM_MAX_PATH] =
 {
     "left4fortress/zombie_vo/tank_death_01.mp3"
     ,"left4fortress/zombie_vo/tank_death_02.mp3"
@@ -601,85 +600,85 @@ char g_strZombieVO_Tank_Death[][PLATFORM_MAX_PATH] =
 void SoundPrecache()
 {    
     //For left4fortress sounds, we need to use both precache and add to download table to each sounds
-	for (int i = 0; i < sizeof(g_strSoundHeartSlow); i++) PrecacheSound2(g_strSoundHeartSlow[i]);
-	for (int i = 0; i < sizeof(g_strSoundHeartMedium); i++) PrecacheSound2(g_strSoundHeartMedium[i]);
-	for (int i = 0; i < sizeof(g_strSoundHeartFast); i++) PrecacheSound2(g_strSoundHeartFast[i]);
-	for (int i = 0; i < sizeof(g_strSoundRabies); i++) PrecacheSound2(g_strSoundRabies[i]);
+	for (int i = 0; i < sizeof(g_sSoundHeartSlow); i++) PrecacheSound2(g_sSoundHeartSlow[i]);
+	for (int i = 0; i < sizeof(g_sSoundHeartMedium); i++) PrecacheSound2(g_sSoundHeartMedium[i]);
+	for (int i = 0; i < sizeof(g_sSoundHeartFast); i++) PrecacheSound2(g_sSoundHeartFast[i]);
+	for (int i = 0; i < sizeof(g_sSoundRabies); i++) PrecacheSound2(g_sSoundRabies[i]);
 	
-	for (int i = 0; i < sizeof(g_strSoundDrums); i++) PrecacheSound2(g_strSoundDrums[i]);
-	for (int i = 0; i < sizeof(g_strSoundSlayerMild); i++) PrecacheSound2(g_strSoundSlayerMild[i]);
-	for (int i = 0; i < sizeof(g_strSoundSlayer); i++) PrecacheSound2(g_strSoundSlayer[i]);
-	for (int i = 0; i < sizeof(g_strSoundTrumpet); i++) PrecacheSound2(g_strSoundTrumpet[i]);
-	for (int i = 0; i < sizeof(g_strSoundSnare); i++) PrecacheSound2(g_strSoundSnare[i]);
-	for (int i = 0; i < sizeof(g_strSoundBanjo); i++) PrecacheSound2(g_strSoundBanjo[i]);
+	for (int i = 0; i < sizeof(g_sSoundDrums); i++) PrecacheSound2(g_sSoundDrums[i]);
+	for (int i = 0; i < sizeof(g_sSoundSlayerMild); i++) PrecacheSound2(g_sSoundSlayerMild[i]);
+	for (int i = 0; i < sizeof(g_sSoundSlayer); i++) PrecacheSound2(g_sSoundSlayer[i]);
+	for (int i = 0; i < sizeof(g_sSoundTrumpet); i++) PrecacheSound2(g_sSoundTrumpet[i]);
+	for (int i = 0; i < sizeof(g_sSoundSnare); i++) PrecacheSound2(g_sSoundSnare[i]);
+	for (int i = 0; i < sizeof(g_sSoundBanjo); i++) PrecacheSound2(g_sSoundBanjo[i]);
 	
-	for (int i = 0; i < sizeof(g_strSoundDead); i++) PrecacheSound2(g_strSoundDead[i]);
-	for (int i = 0; i < sizeof(g_strSoundIncoming); i++) PrecacheSound2(g_strSoundIncoming[i]);
-	for (int i = 0; i < sizeof(g_strSoundDrown); i++) PrecacheSound2(g_strSoundDrown[i]);
-	for (int i = 0; i < sizeof(g_strSoundNearDeath); i++) PrecacheSound2(g_strSoundNearDeath[i]);
-	//for (int i = 0; i < sizeof(g_strSoundNearDeath2); i++) PrecacheSound2(g_strSoundNearDeath2[i]);
-	for (int i = 0; i < sizeof(g_strSoundJarate); i++) PrecacheSound2(g_strSoundJarate[i]);
+	for (int i = 0; i < sizeof(g_sSoundDead); i++) PrecacheSound2(g_sSoundDead[i]);
+	for (int i = 0; i < sizeof(g_sSoundIncoming); i++) PrecacheSound2(g_sSoundIncoming[i]);
+	for (int i = 0; i < sizeof(g_sSoundDrown); i++) PrecacheSound2(g_sSoundDrown[i]);
+	for (int i = 0; i < sizeof(g_sSoundNearDeath); i++) PrecacheSound2(g_sSoundNearDeath[i]);
+	//for (int i = 0; i < sizeof(g_sSoundNearDeath2); i++) PrecacheSound2(g_sSoundNearDeath2[i]);
+	for (int i = 0; i < sizeof(g_sSoundJarate); i++) PrecacheSound2(g_sSoundJarate[i]);
 	
-	for (int i = 0; i < sizeof(g_strSoundPrepare); i++) PrecacheSound2(g_strSoundPrepare[i]);
-	for (int i = 0; i < sizeof(g_strSoundTank); i++) PrecacheSound2(g_strSoundTank[i]);
-	for (int i = 0; i < sizeof(g_strSoundLastStand); i++) PrecacheSound2(g_strSoundLastStand[i]);
-	for (int i = 0; i < sizeof(g_strSoundZombieWin); i++) PrecacheSound2(g_strSoundZombieWin[i]);
-	for (int i = 0; i < sizeof(g_strSoundSurivourWin); i++) PrecacheSound2(g_strSoundSurivourWin[i]);
+	for (int i = 0; i < sizeof(g_sSoundPrepare); i++) PrecacheSound2(g_sSoundPrepare[i]);
+	for (int i = 0; i < sizeof(g_sSoundTank); i++) PrecacheSound2(g_sSoundTank[i]);
+	for (int i = 0; i < sizeof(g_sSoundLastStand); i++) PrecacheSound2(g_sSoundLastStand[i]);
+	for (int i = 0; i < sizeof(g_sSoundZombieWin); i++) PrecacheSound2(g_sSoundZombieWin[i]);
+	for (int i = 0; i < sizeof(g_sSoundSurivourWin); i++) PrecacheSound2(g_sSoundSurivourWin[i]);
 	
-	for (int i = 0; i < sizeof(g_strSoundSpawnInfected); i++) PrecacheSound2(g_strSoundSpawnInfected[i]);
+	for (int i = 0; i < sizeof(g_sSoundSpawnInfected); i++) PrecacheSound2(g_sSoundSpawnInfected[i]);
 	
 	//---//
 	
-	for (int i = 0; i < sizeof(g_strCarryVO_Soldier); i++) PrecacheSound(g_strCarryVO_Soldier[i]);
-	for (int i = 0; i < sizeof(g_strWeaponVO_Soldier); i++) PrecacheSound(g_strWeaponVO_Soldier[i]);
-	for (int i = 0; i < sizeof(g_strTankATK_Soldier); i++) PrecacheSound(g_strTankATK_Soldier[i]);
+	for (int i = 0; i < sizeof(g_sVoCarrySoldier); i++) PrecacheSound(g_sVoCarrySoldier[i]);
+	for (int i = 0; i < sizeof(g_sVoWeaponSoldier); i++) PrecacheSound(g_sVoWeaponSoldier[i]);
+	for (int i = 0; i < sizeof(g_sVoTankSoldier); i++) PrecacheSound(g_sVoTankSoldier[i]);
 	
-	for (int i = 0; i < sizeof(g_strCarryVO_Pyro); i++) PrecacheSound(g_strCarryVO_Pyro[i]);
-	for (int i = 0; i < sizeof(g_strWeaponVO_Pyro); i++) PrecacheSound(g_strWeaponVO_Pyro[i]);
+	for (int i = 0; i < sizeof(g_sVoCarryPyro); i++) PrecacheSound(g_sVoCarryPyro[i]);
+	for (int i = 0; i < sizeof(g_sVoWeaponPyro); i++) PrecacheSound(g_sVoWeaponPyro[i]);
 	
-	for (int i = 0; i < sizeof(g_strCarryVO_DemoMan); i++) PrecacheSound(g_strCarryVO_DemoMan[i]);
-	for (int i = 0; i < sizeof(g_strWeaponVO_DemoMan); i++) PrecacheSound(g_strWeaponVO_DemoMan[i]);
+	for (int i = 0; i < sizeof(g_sVoCarryDemoman); i++) PrecacheSound(g_sVoCarryDemoman[i]);
+	for (int i = 0; i < sizeof(g_sVoWeaponDemoman); i++) PrecacheSound(g_sVoCarryDemoman[i]);
 	
-	for (int i = 0; i < sizeof(g_strCarryVO_Engineer); i++) PrecacheSound(g_strCarryVO_Engineer[i]);
-	for (int i = 0; i < sizeof(g_strWeaponVO_Engineer); i++) PrecacheSound(g_strWeaponVO_Engineer[i]);
-	for (int i = 0; i < sizeof(g_strTankATK_Engineer); i++) PrecacheSound(g_strTankATK_Engineer[i]);
+	for (int i = 0; i < sizeof(g_sVoCarryEngineer); i++) PrecacheSound(g_sVoCarryEngineer[i]);
+	for (int i = 0; i < sizeof(g_sVoWeaponEngineer); i++) PrecacheSound(g_sVoWeaponEngineer[i]);
+	for (int i = 0; i < sizeof(g_sVoTankEngineer); i++) PrecacheSound(g_sVoTankEngineer[i]);
 	
-	for (int i = 0; i < sizeof(g_strCarryVO_Medic); i++) PrecacheSound(g_strCarryVO_Medic[i]);
-	for (int i = 0; i < sizeof(g_strWeaponVO_Medic); i++) PrecacheSound(g_strWeaponVO_Medic[i]);
-	for (int i = 0; i < sizeof(g_strTankATK_Medic); i++) PrecacheSound(g_strTankATK_Medic[i]);
+	for (int i = 0; i < sizeof(g_sVoCarryMedic); i++) PrecacheSound(g_sVoCarryMedic[i]);
+	for (int i = 0; i < sizeof(g_sVoWeaponMedic); i++) PrecacheSound(g_sVoWeaponMedic[i]);
+	for (int i = 0; i < sizeof(g_sVoTankMedic); i++) PrecacheSound(g_sVoTankMedic[i]);
 	
-	for (int i = 0; i < sizeof(g_strCarryVO_Sniper); i++) PrecacheSound(g_strCarryVO_Sniper[i]);
-	for (int i = 0; i < sizeof(g_strWeaponVO_Sniper); i++) PrecacheSound(g_strWeaponVO_Sniper[i]);
+	for (int i = 0; i < sizeof(g_sVoCarrySniper); i++) PrecacheSound(g_sVoCarrySniper[i]);
+	for (int i = 0; i < sizeof(g_sVoWeaponSniper); i++) PrecacheSound(g_sVoWeaponSniper[i]);
     
     //---//
     
-	for (int i = 0; i < sizeof(g_strZombieVO_Common_Default); i++) PrecacheSound2(g_strZombieVO_Common_Default[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Common_Pain); i++) PrecacheSound2(g_strZombieVO_Common_Pain[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Common_Rage); i++) PrecacheSound2(g_strZombieVO_Common_Rage[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Common_Mumbling); i++) PrecacheSound2(g_strZombieVO_Common_Mumbling[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Common_Shoved); i++) PrecacheSound2(g_strZombieVO_Common_Shoved[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Common_Death); i++) PrecacheSound2(g_strZombieVO_Common_Death[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieCommonDefault); i++) PrecacheSound2(g_sVoZombieCommonDefault[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieCommonPain); i++) PrecacheSound2(g_sVoZombieCommonPain[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieCommonRage); i++) PrecacheSound2(g_sVoZombieCommonRage[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieCommonMumbling); i++) PrecacheSound2(g_sVoZombieCommonMumbling[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieCommonShoved); i++) PrecacheSound2(g_sVoZombieCommonShoved[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieCommonDeath); i++) PrecacheSound2(g_sVoZombieCommonDeath[i]);
 
-	for (int i = 0; i < sizeof(g_strZombieVO_Boomer_Default); i++) PrecacheSound2(g_strZombieVO_Boomer_Default[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Boomer_Pain); i++) PrecacheSound2(g_strZombieVO_Boomer_Pain[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Boomer_Explode); i++) PrecacheSound2(g_strZombieVO_Boomer_Explode[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieBoomerDefault); i++) PrecacheSound2(g_sVoZombieBoomerDefault[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieBoomerPain); i++) PrecacheSound2(g_sVoZombieBoomerPain[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieBoomerExplode); i++) PrecacheSound2(g_sVoZombieBoomerExplode[i]);
 
-	for (int i = 0; i < sizeof(g_strZombieVO_Charger_Default); i++) PrecacheSound2(g_strZombieVO_Charger_Default[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Charger_Pain); i++) PrecacheSound2(g_strZombieVO_Charger_Pain[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Charger_Charge); i++) PrecacheSound2(g_strZombieVO_Charger_Charge[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieChargerDefault); i++) PrecacheSound2(g_sVoZombieChargerDefault[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieChargerPain); i++) PrecacheSound2(g_sVoZombieChargerPain[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieChargerCharge); i++) PrecacheSound2(g_sVoZombieChargerCharge[i]);
 
-	for (int i = 0; i < sizeof(g_strZombieVO_Hunter_Default); i++) PrecacheSound2(g_strZombieVO_Hunter_Default[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Hunter_Pain); i++) PrecacheSound2(g_strZombieVO_Hunter_Pain[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Hunter_Leap); i++) PrecacheSound2(g_strZombieVO_Hunter_Leap[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieHunterDefault); i++) PrecacheSound2(g_sVoZombieHunterDefault[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieHunterPain); i++) PrecacheSound2(g_sVoZombieHunterPain[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieHunterLeap); i++) PrecacheSound2(g_sVoZombieHunterLeap[i]);
 
-	for (int i = 0; i < sizeof(g_strZombieVO_Smoker_Default); i++) PrecacheSound2(g_strZombieVO_Smoker_Default[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Smoker_Pain); i++) PrecacheSound2(g_strZombieVO_Smoker_Pain[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieSmokerDefault); i++) PrecacheSound2(g_sVoZombieSmokerDefault[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieSmokerPain); i++) PrecacheSound2(g_sVoZombieSmokerPain[i]);
 
-	for (int i = 0; i < sizeof(g_strZombieVO_Tank_Default); i++) PrecacheSound2(g_strZombieVO_Tank_Default[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Tank_Pain); i++) PrecacheSound2(g_strZombieVO_Tank_Pain[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Tank_OnFire); i++) PrecacheSound2(g_strZombieVO_Tank_OnFire[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Tank_Attack); i++) PrecacheSound2(g_strZombieVO_Tank_Attack[i]);
-	for (int i = 0; i < sizeof(g_strZombieVO_Tank_Death); i++) PrecacheSound2(g_strZombieVO_Tank_Death[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieTankDefault); i++) PrecacheSound2(g_sVoZombieTankDefault[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieTankPain); i++) PrecacheSound2(g_sVoZombieTankPain[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieTankOnFire); i++) PrecacheSound2(g_sVoZombieTankOnFire[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieTankAttack); i++) PrecacheSound2(g_sVoZombieTankAttack[i]);
+	for (int i = 0; i < sizeof(g_sVoZombieTankDeath); i++) PrecacheSound2(g_sVoZombieTankDeath[i]);
 }
 
 stock void PrecacheSound2(const char[] sSoundPath)
@@ -692,59 +691,53 @@ stock void PrecacheSound2(const char[] sSoundPath)
 	AddFileToDownloadsTable(s);
 }
 
-void PlaySoundAll(int iSound, float flTimer = 0.0)
+void PlaySoundAll(Sound nSound, float flTimer = 0.0)
 {
-	for (int i = 1; i <= MaxClients; i++)
-		if (IsClientInGame(i))
-			PlaySound(i, iSound, flTimer);
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsClientInGame(iClient))
+			PlaySound(iClient, nSound, flTimer);
 }
 
-void PlaySound(int iClient, int iSound, float flTimer = 0.0)
+void PlaySound(int iClient, Sound nSound, float flTimer = 0.0)
 {
 	//Check if there music override first
 	if (IsMusicOverrideOn()) return;
 	if (g_bNoMusicForClient[iClient]) return;
 	
 	//We need to check if we are allowed to override current sound from the sound we going to use
-	int iType = GetSoundType(iSound);
-	int iCurrentSound = GetCurrentSound(iClient);
-	int iCurrentType = GetSoundType(iCurrentSound);
+	SoundType nType = GetSoundType(nSound);
+	Sound nCurrentSound = GetCurrentSound(iClient);
+	SoundType nCurrentType = GetSoundType(nCurrentSound);
 	
 	//If we want to play sound thats already playing, no point replaying it again
-	if (iSound == iCurrentSound) return;
+	if (nSound == nCurrentSound) return;
 	
-	//If the sound we want to play is greater or the same to current sound from enum SOUND_TYPE, then we are allowed to override sound, otherwise return
-	if (iType < iCurrentType) return;
+	//If the sound we want to play is greater or the same to current sound from enum SoundType, then we are allowed to override sound, otherwise return
+	if (nType < nCurrentType) return;
 	
 	//End current sound before we start new sound
 	EndSound(iClient);
 	
 	//Get sound we want to play
-	char strPath[PLATFORM_MAX_PATH];
-	GetRandomSound(iSound, strPath, sizeof(strPath));
+	char sPath[PLATFORM_MAX_PATH];
+	GetRandomSound(nSound, sPath, sizeof(sPath));
 		
 	//Play sound to client
 	if (IsClientInGame(iClient))
 	{
-		EmitSoundToClient(iClient, strPath);
+		EmitSoundToClient(iClient, sPath);
 		
 		//Set sound global variables as that sound
-		strcopy(g_sSound[iClient], sizeof(g_sSound), strPath);
-		g_iSound[iClient] = iSound;
+		strcopy(g_sSound[iClient], sizeof(g_sSound), sPath);
+		g_nSound[iClient] = nSound;
 		
 		//if timer specified, create timer to end sound
 		if (flTimer > 0.0)
 		{
-			if (g_hSoundTimer[iClient] != INVALID_HANDLE)
-			{
-				//Not sure if this is needed
-				g_hSoundTimer[iClient] = INVALID_HANDLE;
-			}
-			
-			DataPack pack;
-			g_hSoundTimer[iClient] = CreateDataTimer(flTimer, Timer_EndSound, pack);
-			pack.WriteCell(iClient);
-			pack.WriteCell(iSound);
+			DataPack data;
+			CreateDataTimer(flTimer, Timer_EndSound, data);
+			data.WriteCell(iClient);
+			data.WriteCell(nSound);
 		}
 	}
 }
@@ -753,19 +746,19 @@ void SoundAttack(int iVictim, int iAttacker)
 {
 	TFClassType iClass = TF2_GetPlayerClass(iAttacker);
 	bool bDramatic = (g_bBackstabbed[iVictim] || GetClientHealth(iVictim) <= 50);
-	int iSound = SOUND_NONE;
+	Sound nSound = Sound_None;
 	float flDuration = 0.0;
 	
 	if (iClass == TFClass_Scout)
 	{
 		if (bDramatic)
 		{
-			iSound = SOUND_ATTACK_DRUMS;
+			nSound = SoundAttack_Drums;
 			flDuration = 5.74;
 		}
 		else
 		{
-			iSound = SOUND_ATTACK_TRUMPET;
+			nSound = SoundAttack_Trumpet;
 			flDuration = 0.80;
 		}
 	}
@@ -773,12 +766,12 @@ void SoundAttack(int iVictim, int iAttacker)
 	{
 		if (bDramatic)
 		{
-			iSound = SOUND_ATTACK_BANJO;
+			nSound = SoundAttack_Banjo;
 			flDuration = 5.74;
 		}
 		else
 		{
-			iSound = SOUND_ATTACK_SNARE;
+			nSound = SoundAttack_Snare;
 			flDuration = 5.74;
 		}
 	}
@@ -786,17 +779,17 @@ void SoundAttack(int iVictim, int iAttacker)
 	{
 		if (bDramatic)
 		{
-			iSound = SOUND_ATTACK_SLAYERMILD;
+			nSound = SoundAttack_SlayerMild;
 			flDuration = 2.90;
 		}
 		else
 		{
-			iSound = SOUND_ATTACK_SLAYER;
+			nSound = SoundAttack_Slayer;
 			flDuration = 5.74;
 		}
 	}
 	
-	if (iSound == SOUND_NONE) return;
+	if (nSound == Sound_None) return;
 	
 	//Play sound to all nearby players
 	float vecVictimOrigin[3], vecOrigin[3]; 
@@ -805,12 +798,12 @@ void SoundAttack(int iVictim, int iAttacker)
 	{
 		if (IsValidLivingSurvivor(i))
 		{
-			int iCurrentSound = GetSoundType(GetCurrentSound(i));
+			SoundType nCurrentSound = GetSoundType(GetCurrentSound(i));
 			GetClientAbsOrigin(i, vecOrigin);
 			if (GetVectorDistance(vecOrigin, vecVictimOrigin) <= 128.0	//Is survivor nearby victim
-				&& iCurrentSound != SOUND_TYPE_ATTACK)	//Is his current sound type not attack, so we dont override it as it would create spam
+				&& nCurrentSound != SoundType_Attack)	//Is his current sound type not attack, so we dont override it as it would create spam
 			{
-				PlaySound(i, iSound, flDuration);
+				PlaySound(i, nSound, flDuration);
 			}
 		}
 	}
@@ -820,11 +813,11 @@ void SoundTimer()	//This timer fires every 1 second from timer_main
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		int iCurrentSound = GetCurrentSound(i);
-		int iCurrentSoundType = GetSoundType(iCurrentSound);
+		Sound nCurrentSound = GetCurrentSound(i);
+		SoundType nCurrentSoundType = GetSoundType(nCurrentSound);
 		if (IsValidSurvivor(i))	//Zombies is already spooky enough, dont need to give him more spooky sounds
 		{
-			if (iCurrentSoundType == SOUND_TYPE_NONE || (iCurrentSoundType == SOUND_TYPE_QUIET && iCurrentSound != SOUND_QUIET_RABIES))
+			if (nCurrentSoundType == SoundType_None || (nCurrentSoundType == SoundType_Quiet && nCurrentSound != SoundQuiet_Rabies))
 			{
 				//We find nearest zombie to do heartbeat
 				float flNearestDistance = 9999.0;
@@ -845,32 +838,32 @@ void SoundTimer()	//This timer fires every 1 second from timer_main
 				}
 				
 				//heartbeat based on how close zombie is
-				int iSound;
+				Sound nSound;
 				float flDuration;
 				if (flNearestDistance <= 192.0)
 				{
-					iSound = SOUND_QUIET_FAST;
+					nSound = SoundQuiet_Fast;
 					flDuration = 0.9;
 				}
 				else if (flNearestDistance <= 384.0)
 				{
-					iSound = SOUND_QUIET_MEDIUM;
+					nSound = SoundQuiet_Medium;
 					flDuration = 2.9;
 				}
 				else if (flNearestDistance <= 576.0)
 				{
-					iSound = SOUND_QUIET_SLOW;
+					nSound = SoundQuiet_Slow;
 					flDuration = 5.9;
 				}
 				else	//No zombies nearby, lets play rabies instead
 				{
-					iSound = SOUND_QUIET_RABIES;
+					nSound = SoundQuiet_Rabies;
 					flDuration = 39.9;
 				}
 				
 				//If current sound is the same, no point playing it again
-				if (iSound != iCurrentSound)
-					PlaySound(i, iSound, flDuration);
+				if (nSound != nCurrentSound)
+					PlaySound(i, nSound, flDuration);
 			}
 		}
 	}
@@ -880,17 +873,17 @@ public Action Timer_EndSound(Handle timer, DataPack pack)
 {
 	pack.Reset();
 	int iClient = pack.ReadCell();
-	int iSound = pack.ReadCell();
+	Sound nSound = pack.ReadCell();
 	
 	//Check if client current sound is still the same as specified in timer
-	if (GetCurrentSound(iClient) == iSound)
+	if (GetCurrentSound(iClient) == nSound)
 		EndSound(iClient);
 }
 
 void EndSound(int iClient)
 {
 	//If there currently no sound on, no point doing it
-	if (GetSoundType(iClient) == SOUND_TYPE_NONE) return;
+	if (GetCurrentSound(iClient) == Sound_None) return;
 	
 	//End whatever current music from g_sSound to all clients
 	if (IsClientInGame(iClient))
@@ -898,57 +891,57 @@ void EndSound(int iClient)
 	
 	//Reset global variables
 	strcopy(g_sSound[iClient], sizeof(g_sSound), "misc/null.wav"); //Having nothing here gives an "empty soundpath is not precached" warning to the server every time a music sound stops for each client
-	g_iSound[iClient] = SOUND_NONE;
+	g_nSound[iClient] = Sound_None;
 }
 
-void GetRandomSound(int iSound, char strPath[PLATFORM_MAX_PATH], int iLength)
+void GetRandomSound(Sound nSound, char sPath[PLATFORM_MAX_PATH], int iLength)
 {
-	strcopy(strPath, iLength, "misc/null.wav"); //Having nothing here doesn't seem to matter, but let's keep it consistent
+	strcopy(sPath, iLength, "misc/null.wav"); //Having nothing here doesn't seem to matter, but let's keep it consistent
 	
-	switch (iSound)
+	switch (nSound)
 	{
-		case SOUND_QUIET_SLOW:			strcopy(strPath, iLength, g_strSoundHeartSlow[GetRandomInt(0, sizeof(g_strSoundHeartSlow)-1)]);
-		case SOUND_QUIET_MEDIUM:		strcopy(strPath, iLength, g_strSoundHeartMedium[GetRandomInt(0, sizeof(g_strSoundHeartMedium)-1)]);
-		case SOUND_QUIET_FAST:			strcopy(strPath, iLength, g_strSoundHeartFast[GetRandomInt(0, sizeof(g_strSoundHeartFast)-1)]);
-		case SOUND_QUIET_RABIES:		strcopy(strPath, iLength, g_strSoundRabies[GetRandomInt(0, sizeof(g_strSoundRabies)-1)]);
+		case SoundQuiet_Slow:			strcopy(sPath, iLength, g_sSoundHeartSlow[GetRandomInt(0, sizeof(g_sSoundHeartSlow)-1)]);
+		case SoundQuiet_Medium:			strcopy(sPath, iLength, g_sSoundHeartMedium[GetRandomInt(0, sizeof(g_sSoundHeartMedium)-1)]);
+		case SoundQuiet_Fast:			strcopy(sPath, iLength, g_sSoundHeartFast[GetRandomInt(0, sizeof(g_sSoundHeartFast)-1)]);
+		case SoundQuiet_Rabies:			strcopy(sPath, iLength, g_sSoundRabies[GetRandomInt(0, sizeof(g_sSoundRabies)-1)]);
 		
-		case SOUND_ATTACK_DRUMS:		strcopy(strPath, iLength, g_strSoundDrums[GetRandomInt(0, sizeof(g_strSoundDrums)-1)]);
-		case SOUND_ATTACK_SLAYERMILD:	strcopy(strPath, iLength, g_strSoundSlayerMild[GetRandomInt(0, sizeof(g_strSoundSlayerMild)-1)]);
-		case SOUND_ATTACK_SLAYER:		strcopy(strPath, iLength, g_strSoundSlayer[GetRandomInt(0, sizeof(g_strSoundSlayer)-1)]);
-		case SOUND_ATTACK_TRUMPET:		strcopy(strPath, iLength, g_strSoundTrumpet[GetRandomInt(0, sizeof(g_strSoundTrumpet)-1)]);
-		case SOUND_ATTACK_SNARE:		strcopy(strPath, iLength, g_strSoundSnare[GetRandomInt(0, sizeof(g_strSoundSnare)-1)]);
-		case SOUND_ATTACK_BANJO:		strcopy(strPath, iLength, g_strSoundBanjo[GetRandomInt(0, sizeof(g_strSoundBanjo)-1)]);
+		case SoundAttack_Drums:			strcopy(sPath, iLength, g_sSoundDrums[GetRandomInt(0, sizeof(g_sSoundDrums)-1)]);
+		case SoundAttack_SlayerMild:	strcopy(sPath, iLength, g_sSoundSlayerMild[GetRandomInt(0, sizeof(g_sSoundSlayerMild)-1)]);
+		case SoundAttack_Slayer:		strcopy(sPath, iLength, g_sSoundSlayer[GetRandomInt(0, sizeof(g_sSoundSlayer)-1)]);
+		case SoundAttack_Trumpet:		strcopy(sPath, iLength, g_sSoundTrumpet[GetRandomInt(0, sizeof(g_sSoundTrumpet)-1)]);
+		case SoundAttack_Snare:			strcopy(sPath, iLength, g_sSoundSnare[GetRandomInt(0, sizeof(g_sSoundSnare)-1)]);
+		case SoundAttack_Banjo:			strcopy(sPath, iLength, g_sSoundBanjo[GetRandomInt(0, sizeof(g_sSoundBanjo)-1)]);
 		
-		case SOUND_EVENT_DEAD:			strcopy(strPath, iLength, g_strSoundDead[GetRandomInt(0, sizeof(g_strSoundDead)-1)]);
-		case SOUND_EVENT_INCOMING:		strcopy(strPath, iLength, g_strSoundIncoming[GetRandomInt(0, sizeof(g_strSoundIncoming)-1)]);
-		case SOUND_EVENT_DROWN:			strcopy(strPath, iLength, g_strSoundDrown[GetRandomInt(0, sizeof(g_strSoundDrown)-1)]);
-		case SOUND_EVENT_NEARDEATH:		strcopy(strPath, iLength, g_strSoundNearDeath[GetRandomInt(0, sizeof(g_strSoundNearDeath)-1)]);
-		//case SOUND_EVENT_NEARDEATH2:	strcopy(strPath, iLength, g_strSoundNearDeath2[GetRandomInt(0, sizeof(g_strSoundNearDeath2)-1)]);
-		case SOUND_EVENT_JARATE:		strcopy(strPath, iLength, g_strSoundJarate[GetRandomInt(0, sizeof(g_strSoundJarate)-1)]);
+		case SoundEvent_Dead:			strcopy(sPath, iLength, g_sSoundDead[GetRandomInt(0, sizeof(g_sSoundDead)-1)]);
+		case SoundEvent_Incoming:		strcopy(sPath, iLength, g_sSoundIncoming[GetRandomInt(0, sizeof(g_sSoundIncoming)-1)]);
+		case SoundEvent_Drown:			strcopy(sPath, iLength, g_sSoundDrown[GetRandomInt(0, sizeof(g_sSoundDrown)-1)]);
+		case SoundEvent_NearDeath:		strcopy(sPath, iLength, g_sSoundNearDeath[GetRandomInt(0, sizeof(g_sSoundNearDeath)-1)]);
+		//case SoundEvent_NearDeath2:	strcopy(sPath, iLength, g_sSoundNearDeath2[GetRandomInt(0, sizeof(g_sSoundNearDeath2)-1)]);
+		case SoundEvent_Jarate:			strcopy(sPath, iLength, g_sSoundJarate[GetRandomInt(0, sizeof(g_sSoundJarate)-1)]);
 		
-		case SOUND_MUSIC_PREPARE:		strcopy(strPath, iLength, g_strSoundPrepare[GetRandomInt(0, sizeof(g_strSoundPrepare)-1)]);
-		case SOUND_MUSIC_TANK:			strcopy(strPath, iLength, g_strSoundTank[GetRandomInt(0, sizeof(g_strSoundTank)-1)]);
-		case SOUND_MUSIC_LASTSTAND:		strcopy(strPath, iLength, g_strSoundLastStand[GetRandomInt(0, sizeof(g_strSoundLastStand)-1)]);
-		case SOUND_MUSIC_ZOMBIEWIN:		strcopy(strPath, iLength, g_strSoundZombieWin[GetRandomInt(0, sizeof(g_strSoundZombieWin)-1)]);
-		case SOUND_MUSIC_SURVIVORWIN:	strcopy(strPath, iLength, g_strSoundSurivourWin[GetRandomInt(0, sizeof(g_strSoundSurivourWin)-1)]);
+		case SoundMusic_Prepare:		strcopy(sPath, iLength, g_sSoundPrepare[GetRandomInt(0, sizeof(g_sSoundPrepare)-1)]);
+		case SoundMusic_Tank:			strcopy(sPath, iLength, g_sSoundTank[GetRandomInt(0, sizeof(g_sSoundTank)-1)]);
+		case SoundMusic_LastStand:		strcopy(sPath, iLength, g_sSoundLastStand[GetRandomInt(0, sizeof(g_sSoundLastStand)-1)]);
+		case SoundMusic_ZombieWin:		strcopy(sPath, iLength, g_sSoundZombieWin[GetRandomInt(0, sizeof(g_sSoundZombieWin)-1)]);
+		case SoundMusic_SurvivorWin:	strcopy(sPath, iLength, g_sSoundSurivourWin[GetRandomInt(0, sizeof(g_sSoundSurivourWin)-1)]);
 	}
 }
 
-int GetCurrentSound(int iClient)
+Sound GetCurrentSound(int iClient)
 {
-	return g_iSound[iClient];
+	return g_nSound[iClient];
 }
 
-int GetSoundType(int iSound)
+SoundType GetSoundType(Sound nSound)
 {
-	if (iSound == SOUND_NONE) return SOUND_TYPE_NONE;
-	else if (iSound >= SOUND_QUIET_NONE && iSound <= SOUND_QUIET_MAX) return SOUND_TYPE_QUIET;
-	else if (iSound >= SOUND_ATTACK_NONE && iSound <= SOUND_ATTACK_MAX) return SOUND_TYPE_ATTACK;
-	else if (iSound >= SOUND_EVENT_NONE && iSound <= SOUND_EVENT_MAX) return SOUND_TYPE_EVENT;
-	else if (iSound >= SOUND_MUSIC_NONE && iSound <= SOUND_MUSIC_MAX) return SOUND_TYPE_MUSIC;
+	if (nSound == Sound_None) return SoundType_None;
+	else if (SoundQuiet_Min <= nSound <= SoundQuiet_Max) return SoundType_Quiet;
+	else if (SoundAttack_Min <= nSound <= SoundAttack_Max) return SoundType_Attack;
+	else if (SoundEvent_Min <= nSound <= SoundEvent_Max) return SoundType_Event;
+	else if (SoundMusic_Min <= nSound <= SoundMusic_Max) return SoundType_Music;
 	
 	//Would be really strange if we reach that part
-	return -1;
+	return SoundType_None;
 }
 
 bool IsMusicOverrideOn()
@@ -962,11 +955,11 @@ bool IsMusicOverrideOn()
 	return false;
 }
 
-public Action MusicToggle(int iClient, int iArgs)
+public Action Command_MusicToggle(int iClient, int iArgs)
 {
 	if (IsValidClient(iClient))
 	{
-		char cPreference[32];
+		char sPreference[32];
 
 		if (g_bNoMusicForClient[iClient])
 		{
@@ -979,8 +972,8 @@ public Action MusicToggle(int iClient, int iArgs)
 			CPrintToChat(iClient, "{limegreen}Music has been disabled.");
 		}
 
-		Format(cPreference, sizeof(cPreference), "%i", g_bNoMusicForClient[iClient]);
-		SetClientCookie(iClient, cookieNoMusicForPlayer, cPreference);
+		Format(sPreference, sizeof(sPreference), "%d", g_bNoMusicForClient[iClient]);
+		SetClientCookie(iClient, g_cNoMusicForPlayer, sPreference);
 	}
 
 	return Plugin_Handled;

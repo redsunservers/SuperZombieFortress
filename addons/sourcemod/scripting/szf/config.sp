@@ -1,6 +1,6 @@
 #define CONFIG_WEAPONS "configs/szf/weapons.cfg"
 
-enum struct eConfigMelee
+enum struct ConfigMelee
 {
 	int iIndex;
 	int iIndexPrefab;
@@ -9,19 +9,19 @@ enum struct eConfigMelee
 	char sAttrib[256];
 }
 
-eConfigMelee g_eConfigMeleeDefault;
+ConfigMelee g_ConfigMeleeDefault;
 ArrayList g_aConfigMelee;
 
-public void Config_InitTemplates()
+void Config_InitTemplates()
 {
-	g_aConfigMelee = new ArrayList(sizeof(eConfigMelee));
+	g_aConfigMelee = new ArrayList(sizeof(ConfigMelee));
 }
 
-public void Config_LoadTemplates()
+void Config_LoadTemplates()
 {
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	
-	if (kv == null) return;
+	if (kv == null)
+		return;
 	
 	g_aConfigMelee.Clear();
 	
@@ -41,7 +41,7 @@ public void Config_LoadTemplates()
 				{
 					//We only care about attrib for default
 					kv.GetString("attrib", sBuffer, sizeof(sBuffer));
-					Format(g_eConfigMeleeDefault.sAttrib, sizeof(g_eConfigMeleeDefault.sAttrib), sBuffer);
+					Format(g_ConfigMeleeDefault.sAttrib, sizeof(g_ConfigMeleeDefault.sAttrib), sBuffer);
 				}
 				else if (StringToIntEx(sBuffer, iIndex) == 0)
 				{
@@ -50,7 +50,7 @@ public void Config_LoadTemplates()
 				else
 				{
 					//Load stuffs in index
-					eConfigMelee eMelee;
+					ConfigMelee eMelee;
 					
 					eMelee.iIndex = iIndex;
 					eMelee.iIndexPrefab = kv.GetNum("prefab", -1);
@@ -63,7 +63,7 @@ public void Config_LoadTemplates()
 					Format(eMelee.sAttrib, sizeof(eMelee.sAttrib), sBuffer);
 					
 					//Push all into arraylist
-					g_aConfigMelee.PushArray(eMelee, sizeof(eMelee));
+					g_aConfigMelee.PushArray(eMelee);
 				}
 			} 
 			while (kv.GotoNextKey(false));
@@ -75,134 +75,125 @@ public void Config_LoadTemplates()
 	delete kv;
 }
 
-public ArrayList Config_LoadWeaponData()
+ArrayList Config_LoadWeaponData()
 {
-	StringMap rarity_map = new StringMap();
-	rarity_map.SetValue("common", eWeaponsRarity_Common);
-	rarity_map.SetValue("uncommon", eWeaponsRarity_Uncommon);
-	rarity_map.SetValue("rare", eWeaponsRarity_Rare);
-	rarity_map.SetValue("pickup", eWeaponsRarity_Pickup);
-	
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	ArrayList array = new ArrayList(sizeof(eWeapon));
-	int iLength;
+	if (kv == null)
+		return null;
 	
-	if (kv != null)
+	static StringMap mRarity;
+	if (mRarity == null)
 	{
-		if (kv.JumpToKey("general", false))
+		mRarity = new StringMap();
+		mRarity.SetValue("common", eWeaponsRarity_Common);
+		mRarity.SetValue("uncommon", eWeaponsRarity_Uncommon);
+		mRarity.SetValue("rare", eWeaponsRarity_Rare);
+		mRarity.SetValue("pickup", eWeaponsRarity_Pickup);
+	}
+	
+	ArrayList aWeapons = new ArrayList(sizeof(Weapon));
+	int iLength = 0;
+	
+	if (kv.JumpToKey("general", false))
+	{
+		if (kv.GotoFirstSubKey(false))
 		{
-			if (kv.GotoFirstSubKey(false))
+			do
 			{
-				do
+				Weapon wep;
+				
+				char sBuffer[256];
+				kv.GetSectionName(sBuffer, sizeof(sBuffer));
+				
+				int index = StringToInt(sBuffer);
+					
+				wep.iIndex = index;
+				
+				kv.GetString("rarity", sBuffer, sizeof(sBuffer), "common");
+				CStrToLower(sBuffer);
+				
+				mRarity.GetValue(sBuffer, wep.nRarity);
+				
+				kv.GetString("model", wep.sModel, sizeof(wep.sModel));
+				if (wep.sModel[0] == '\0') 
 				{
-					eWeapon wep;
+					LogError("Weapon must have a model.");
+					continue;
+				}
+				
+				//Check if the model is already taken by another weapon
+				Weapon duplicate;
+				for (int i = 0; i < iLength; i++) 
+				{
+					aWeapons.GetArray(i, duplicate);
 					
-					char sBuffer[256];
-					kv.GetSectionName(sBuffer, sizeof(sBuffer));
-					
-					int index = StringToInt(sBuffer);
-					
-					wep.iIndex = index;
-					
-					kv.GetString("rarity", sBuffer, sizeof(sBuffer), "common");
-					CStrToLower(sBuffer);
-					
-					rarity_map.GetValue(sBuffer, wep.Rarity);
-					
-					kv.GetString("model", wep.sModel, sizeof(wep.sModel));
-					if (wep.sModel[0] == '\0') 
+					if (StrEqual(wep.sModel, duplicate.sModel))
 					{
-						LogError("Weapon must have a model.");
+						LogError("%i: Model \"%s\" is already taken by weapon %i.", wep.iIndex, wep.sModel, duplicate.iIndex);
 						continue;
 					}
-					
-					// Check if the model is already taken by another weapon
-					eWeapon duplicate;
-					for (int i = 0; i < iLength; i++) 
-					{
-						array.GetArray(i, duplicate);
-						
-						if (StrEqual(wep.sModel, duplicate.sModel))
-						{
-							LogError("%i: Model \"%s\" is already taken by weapon %i.", wep.iIndex, wep.sModel, duplicate.iIndex);
-							continue;
-						}
-					}
-					
-					kv.GetString("text", wep.sText, sizeof(wep.sText));
-					kv.GetString("attrib", wep.sAttribs, sizeof(wep.sAttribs));
-					kv.GetString("sound", wep.sSound, sizeof(wep.sSound));
-					
-					kv.GetString("callback", sBuffer, sizeof(sBuffer));
-					wep.on_pickup = view_as<eWeapon_OnPickup>(GetFunctionByName(null, sBuffer));
-					
-					int color[4];
-					kv.GetColor4("color", color);
-					
-					wep.iColor[0] = color[0];
-					wep.iColor[1] = color[1];
-					wep.iColor[2] = color[2];
-					
-					float flOffsetOrigin[3];
-					float flOffsetAngles[3];
-					kv.GetVector("offset_origin", flOffsetOrigin);
-					kv.GetVector("offset_angles", flOffsetAngles);
-					
-					wep.flOffsetOrigin[0] = flOffsetOrigin[0];
-					wep.flOffsetOrigin[1] = flOffsetOrigin[1];
-					wep.flOffsetOrigin[2] = flOffsetOrigin[2];
-					
-					wep.flOffsetAngles[0] = flOffsetAngles[0];
-					wep.flOffsetAngles[1] = flOffsetAngles[1];
-					wep.flOffsetAngles[2] = flOffsetAngles[2];
-					
-					array.PushArray(wep);
-					++iLength;
-				} 
-				while (kv.GotoNextKey(false));
-			}
+				}
+				
+				kv.GetString("text", wep.sText, sizeof(wep.sText));
+				kv.GetString("attrib", wep.sAttribs, sizeof(wep.sAttribs));
+				kv.GetString("sound", wep.sSound, sizeof(wep.sSound));
+				
+				kv.GetString("callback", sBuffer, sizeof(sBuffer));
+				wep.callback = view_as<Weapon_OnPickup>(GetFunctionByName(null, sBuffer));
+				
+				int iColor[4];
+				kv.GetColor4("color", iColor);
+				
+				wep.iColor[0] = iColor[0];
+				wep.iColor[1] = iColor[1];
+				wep.iColor[2] = iColor[2];
+				
+				kv.GetVector("offset_origin", wep.vecOrigin);
+				kv.GetVector("offset_angles", wep.vecAngles);
+				
+				aWeapons.PushArray(wep);
+				iLength++;
+			} 
+			while (kv.GotoNextKey(false));
 		}
 	}
 	
 	delete kv;
-	delete rarity_map;
-	
-	return array;
+	return aWeapons;
 }
 
-public StringMap Config_LoadWeaponReskinData()
+StringMap Config_LoadWeaponReskinData()
 {
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	StringMap stringmap = new StringMap();
+	if (kv == null)
+		return null;
+		
+	StringMap mReskin = new StringMap();
 	
-	if (kv != null)
+	if (kv.JumpToKey("reskin", false))
 	{
-		if (kv.JumpToKey("reskin", false))
+		if (kv.GotoFirstSubKey(false))
 		{
-			if (kv.GotoFirstSubKey(false))
+			do
 			{
-				do
-				{
-					char sBuffer[256];
-					kv.GetSectionName(sBuffer, sizeof(sBuffer));
-					int iIndex = StringToInt(sBuffer);
-					kv.GetString(NULL_STRING, sBuffer, sizeof(sBuffer), "");
-					
-					stringmap.SetValue(sBuffer, iIndex);
-				}
-				while (kv.GotoNextKey(false));
+				char sBuffer[256];
+				kv.GetSectionName(sBuffer, sizeof(sBuffer));
+				int iIndex = StringToInt(sBuffer);
+				kv.GetString(NULL_STRING, sBuffer, sizeof(sBuffer), "");
+				
+				mReskin.SetValue(sBuffer, iIndex);
 			}
+			while (kv.GotoNextKey(false));
 		}
 	}
 	
 	delete kv;
-	return stringmap;
+	return mReskin;
 }
 
-public KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)
+KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)
 {
 	char sConfigPath[PLATFORM_MAX_PATH];
-	
 	BuildPath(Path_SM, sConfigPath, sizeof(sConfigPath), sConfigFile);
 	if(!FileExists(sConfigPath))
 	{
