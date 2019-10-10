@@ -169,6 +169,7 @@ stock bool mapIsZF()
 {
 	char mapname[4];
 	GetCurrentMap(mapname, sizeof(mapname));
+	GetMapDisplayName(mapname, mapname, sizeof(mapname));
 	if (strncmp(mapname, "zf", 2, false) == 0) return true;
 	if (strncmp(mapname, "szf", 3, false) == 0) return true;
 	return false;
@@ -178,6 +179,7 @@ stock bool mapIsPL()
 {
 	char mapname[4];
 	GetCurrentMap(mapname, sizeof(mapname));
+	GetMapDisplayName(mapname, mapname, sizeof(mapname));
 	return strncmp(mapname, "pl_", 3, false) == 0;
 }
 
@@ -185,6 +187,7 @@ stock bool mapIsCP()
 {
 	char mapname[4];
 	GetCurrentMap(mapname, sizeof(mapname));
+	GetMapDisplayName(mapname, mapname, sizeof(mapname));
 	return strncmp(mapname, "cp_", 3, false) == 0;
 }
 
