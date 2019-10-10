@@ -263,13 +263,13 @@ bool AttemptGrabItem(int iClient)
 
 				if (RareWeaponsPicked <= 1)
 				{
-					DataPack hPack1 = new DataPack();
+					DataPack hPack1;
 					CreateDataTimer(0.5, DisplayTutorialMessage, hPack1);
 					hPack1.WriteCell(iClient);
 					hPack1.WriteFloat(2.0);
 					hPack1.WriteString("You have picked up a very effective weapon.");
 
-					DataPack hPack2 = new DataPack();
+					DataPack hPack2;
 					CreateDataTimer(2.5, DisplayTutorialMessage, hPack2);
 					hPack2.WriteCell(iClient);
 					hPack2.WriteFloat(3.0);
@@ -291,7 +291,7 @@ bool AttemptGrabItem(int iClient)
 			int WeaponsCalled = GetCookie(iClient, weaponsCalled);
 			if (WeaponsCalled <= 1)
 			{
-				DataPack hPack1 = new DataPack();
+				DataPack hPack1;
 				CreateDataTimer(0.5, DisplayTutorialMessage, hPack1);
 				hPack1.WriteCell(iClient);
 				hPack1.WriteFloat(4.0);
@@ -473,13 +473,13 @@ public void PickupWeapon(int iClient, eWeapon wep, int iTarget)
 	int WeaponsPicked = GetCookie(iClient, weaponsPicked);
 	if (WeaponsPicked <= 1)
 	{
-		DataPack hPack1 = new DataPack();
+		DataPack hPack1;
 		CreateDataTimer(0.5, DisplayTutorialMessage, hPack1);
 		hPack1.WriteCell(iClient);
 		hPack1.WriteFloat(2.5);
 		hPack1.WriteString("You have picked up a weapon.");
 
-		DataPack hPack2 = new DataPack();
+		DataPack hPack2;
 		CreateDataTimer(3.0, DisplayTutorialMessage, hPack2);
 		hPack2.WriteCell(iClient);
 		hPack2.WriteFloat(3.5);
