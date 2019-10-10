@@ -17,7 +17,7 @@
 
 #define PLUGIN_VERSION "3.1.7"
 
-#define TF_MAXPLAYERS		32
+#define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
 
 #define BACKSTABDURATION_FULL		5.5
 #define BACKSTABDURATION_REDUCED	3.5
@@ -78,18 +78,18 @@ float g_flSurvivorsLastDeath = 0.0;
 int g_iSurvivorsKilledCounter;
 int g_iZombiesKilledCounter;
 int g_iZombiesKilledSpree;
-int g_iZombiesKilledSurvivor[TF_MAXPLAYERS+1];
+int g_iZombiesKilledSurvivor[TF_MAXPLAYERS];
 
 //Client State
-int g_iMorale[TF_MAXPLAYERS+1];
-int g_iHorde[TF_MAXPLAYERS+1];
-int g_iCapturingPoint[TF_MAXPLAYERS+1];
-int g_iRageTimer[TF_MAXPLAYERS+1];
-bool g_iScreamerNearby[TF_MAXPLAYERS+1];
+int g_iMorale[TF_MAXPLAYERS];
+int g_iHorde[TF_MAXPLAYERS];
+int g_iCapturingPoint[TF_MAXPLAYERS];
+int g_iRageTimer[TF_MAXPLAYERS];
+bool g_iScreamerNearby[TF_MAXPLAYERS];
 
-bool g_bStartedAsZombie[TF_MAXPLAYERS+1];
-float g_flStopChatSpam[TF_MAXPLAYERS+1];
-bool g_bWaitingForTeamSwitch[TF_MAXPLAYERS+1];
+bool g_bStartedAsZombie[TF_MAXPLAYERS];
+float g_flStopChatSpam[TF_MAXPLAYERS];
+bool g_bWaitingForTeamSwitch[TF_MAXPLAYERS];
 
 int g_iSprite; //Smoker beam
 
@@ -118,14 +118,14 @@ float g_flZombieDamageScale = 1.0;
 
 ArrayList g_aFastRespawn;
 
-bool g_bBackstabbed[TF_MAXPLAYERS+1];
+bool g_bBackstabbed[TF_MAXPLAYERS];
 
-int g_iDamage[TF_MAXPLAYERS+1];
-int g_iDamageTakenLife[TF_MAXPLAYERS+1];
-int g_iDamageDealtLife[TF_MAXPLAYERS+1];
+int g_iDamage[TF_MAXPLAYERS];
+int g_iDamageTakenLife[TF_MAXPLAYERS];
+int g_iDamageDealtLife[TF_MAXPLAYERS];
 
-float g_flDamageDealtAgainstTank[TF_MAXPLAYERS+1];
-float g_flTankLifetime[TF_MAXPLAYERS+1];
+float g_flDamageDealtAgainstTank[TF_MAXPLAYERS];
+float g_flTankLifetime[TF_MAXPLAYERS];
 bool g_bTankRefreshed;
 
 bool g_bFirstRound = true;
@@ -133,7 +133,7 @@ bool g_bFirstRound = true;
 int g_iControlPointsInfo[20][2];
 int g_iControlPoints;
 bool g_bCapturingLastPoint;
-int g_iCarryingItem[TF_MAXPLAYERS+1] = -1;
+int g_iCarryingItem[TF_MAXPLAYERS] = -1;
 
 float g_flTimeProgress;
 
@@ -191,26 +191,26 @@ int g_iGooId;
 bool g_bZombieRage;
 int g_iZombieTank;
 bool g_bZombieRageAllowRespawn;
-int g_iGooMultiplier[TF_MAXPLAYERS+1];
-bool g_bGooified[TF_MAXPLAYERS+1];
-bool g_bHitOnce[TF_MAXPLAYERS+1];
-bool g_bHopperIsUsingPounce[TF_MAXPLAYERS+1];
-float g_flGooCooldown[TF_MAXPLAYERS+1];
+int g_iGooMultiplier[TF_MAXPLAYERS];
+bool g_bGooified[TF_MAXPLAYERS];
+bool g_bHitOnce[TF_MAXPLAYERS];
+bool g_bHopperIsUsingPounce[TF_MAXPLAYERS];
+float g_flGooCooldown[TF_MAXPLAYERS];
 
-bool g_bSpawnAsSpecialInfected[TF_MAXPLAYERS+1];
-Infected g_nInfected[TF_MAXPLAYERS+1];
-Infected g_nNextInfected[TF_MAXPLAYERS+1];
-int g_iKillsThisLife[TF_MAXPLAYERS+1];
-int g_iEyelanderHead[TF_MAXPLAYERS+1];
-int g_iMaxHealth[TF_MAXPLAYERS+1];
-int g_iSuperHealthSubtract[TF_MAXPLAYERS+1];
+bool g_bSpawnAsSpecialInfected[TF_MAXPLAYERS];
+Infected g_nInfected[TF_MAXPLAYERS];
+Infected g_nNextInfected[TF_MAXPLAYERS];
+int g_iKillsThisLife[TF_MAXPLAYERS];
+int g_iEyelanderHead[TF_MAXPLAYERS];
+int g_iMaxHealth[TF_MAXPLAYERS];
+int g_iSuperHealthSubtract[TF_MAXPLAYERS];
 int g_iStartSurvivors;
-bool g_ShouldBacteriaPlay[TF_MAXPLAYERS+1] = true;
-bool g_bReplaceRageWithSpecialInfectedSpawn[TF_MAXPLAYERS+1];
-int g_iSmokerBeamHits[TF_MAXPLAYERS+1];
-int g_iSmokerBeamHitVictim[TF_MAXPLAYERS+1];
-float g_flTimeStartAsZombie[TF_MAXPLAYERS+1];
-bool g_bForceZombieStart[TF_MAXPLAYERS+1];
+bool g_ShouldBacteriaPlay[TF_MAXPLAYERS] = true;
+bool g_bReplaceRageWithSpecialInfectedSpawn[TF_MAXPLAYERS];
+int g_iSmokerBeamHits[TF_MAXPLAYERS];
+int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
+float g_flTimeStartAsZombie[TF_MAXPLAYERS];
+bool g_bForceZombieStart[TF_MAXPLAYERS];
 
 //Map overwrites
 float g_flCapScale = -1.0;

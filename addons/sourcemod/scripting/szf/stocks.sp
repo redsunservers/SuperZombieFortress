@@ -77,7 +77,7 @@ stock int IsSurvivor(int iClient)
 ////////////////////////////////////////////////////////////
 stock bool IsValidClient(int iClient)
 {
-	return 0 < iClient <= MaxClients && IsClientInGame(iClient);
+	return 0 < iClient <= MaxClients && IsClientInGame(iClient) && !IsClientSourceTV(iClient) && !IsClientReplay(iClient);
 }
 
 stock bool IsValidSurvivor(int iClient)
