@@ -18,7 +18,7 @@ enum WeaponType
 
 static bool g_bCanPickup[TF_MAXPLAYERS] = false;
 static bool g_bTriggerEntity[2048] = true;
-static float g_fLastCallout[TF_MAXPLAYERS] = 0.0;
+static float g_flLastCallout[TF_MAXPLAYERS] = 0.0;
 
 //Cookies
 Cookie g_cWeaponsPicked;
@@ -41,7 +41,7 @@ void Weapons_Setup()
 void Weapons_ClientDisconnect(int iClient)
 {
 	g_bCanPickup[iClient] = true;
-	g_fLastCallout[iClient] = 0.0;
+	g_flLastCallout[iClient] = 0.0;
 }
 
 public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontBroadcast)
@@ -166,7 +166,7 @@ public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadca
 	if (IsValidClient(iClient))
 	{
 		g_bCanPickup[iClient] = true;
-		g_fLastCallout[iClient] = 0.0;
+		g_flLastCallout[iClient] = 0.0;
 	}
 }
 
@@ -180,11 +180,11 @@ bool AttemptGrabItem(int iClient)
 	if (iTarget <= 0 || !IsClassname(iTarget, "prop_dynamic") || GetWeaponType(iTarget) == WeaponType_Invalid)
 		return false;
 	
-	char strModel[256];
-	GetEntityModel(iTarget, strModel, sizeof(strModel));
+	char sModel[256];
+	GetEntityModel(iTarget, sModel, sizeof(sModel));
 	
 	Weapon wep;
-	if (!GetWeaponFromModel(wep, strModel))
+	if (!GetWeaponFromModel(wep, sModel))
 		return false;
 	
 	bool bAllowPickup = true;
@@ -258,7 +258,7 @@ bool AttemptGrabItem(int iClient)
 			
 			return true;
 		}
-		else if (nRarity == eWeaponsRarity_Rare && g_fLastCallout[iClient] + 5.0 < GetGameTime())
+		else if (nRarity == eWeaponsRarity_Rare && g_flLastCallout[iClient] + 5.0 < GetGameTime())
 		{
 			char sName[255];
 			TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
@@ -274,7 +274,7 @@ bool AttemptGrabItem(int iClient)
 				data.WriteString("Calling out specific weapons allows other teammates to pick up the weapon.");
 			}
 			
-			g_fLastCallout[iClient] = GetGameTime();
+			g_flLastCallout[iClient] = GetGameTime();
 			
 			Call_StartForward(g_hForwardWeaponCallout);
 			Call_PushCell(iClient);

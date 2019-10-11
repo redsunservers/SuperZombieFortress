@@ -402,23 +402,23 @@ stock void TF2_SetCloakMeter(int iClient, float flCloak)
 // + Range 0.0 to 1.0
 //
 ////////////////////////////////////////////////////////////
-stock void TF2_AddUber(int iClient, float iUber)
+stock void TF2_AddUber(int iClient, float flCharge)
 {
 	int iWeapon = GetPlayerWeaponSlot(iClient, WeaponSlot_Secondary);
 	if(iWeapon > MaxClients && TF2_GetPlayerClass(iClient) == TFClass_Medic)
 	{
-		iUber += GetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel");
-		SetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel", fMin(iUber, 1.0));
+		flCharge += GetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel");
+		SetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel", fMin(flCharge, 1.0));
 	}
 }
 
-stock void TF2_RemoveUber(int iClient, float iUber)
+stock void TF2_RemoveUber(int iClient, float flCharge)
 {
 	int iWeapon = GetPlayerWeaponSlot(iClient, WeaponSlot_Secondary);
 	if(iWeapon > MaxClients && TF2_GetPlayerClass(iClient) == TFClass_Medic)
 	{
-		float curPct -= GetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel");
-		SetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel", fMax(iUber , 0.0));
+		flCharge -= GetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel");
+		SetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel", fMax(flCharge , 0.0));
 	}
 }
 

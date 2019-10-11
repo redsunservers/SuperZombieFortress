@@ -205,7 +205,7 @@ int g_iEyelanderHead[TF_MAXPLAYERS];
 int g_iMaxHealth[TF_MAXPLAYERS];
 int g_iSuperHealthSubtract[TF_MAXPLAYERS];
 int g_iStartSurvivors;
-bool g_ShouldBacteriaPlay[TF_MAXPLAYERS] = true;
+bool g_bShouldBacteriaPlay[TF_MAXPLAYERS] = true;
 bool g_bReplaceRageWithSpecialInfectedSpawn[TF_MAXPLAYERS];
 int g_iSmokerBeamHits[TF_MAXPLAYERS];
 int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
@@ -1714,7 +1714,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				}
 			}
 			
-			if (g_ShouldBacteriaPlay[iClient])
+			if (g_bShouldBacteriaPlay[iClient])
 			{
 				EmitSoundToClient(iClient, g_sSoundSpawnInfected[g_nInfected[iClient]]);
 				
@@ -1722,7 +1722,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					if (IsValidSurvivor(i))
 						EmitSoundToClient(i, g_sSoundSpawnInfected[g_nInfected[iClient]]);
 				
-				g_ShouldBacteriaPlay[iClient] = false;
+				g_bShouldBacteriaPlay[iClient] = false;
 			}
 		}
 	}
@@ -1810,7 +1810,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		g_iDamage[iVictim] = GetAverageDamage();
 		
 		int iWinner = 0;
-		float fHighest = 0.0;
+		float flHighest = 0.0;
 		
 		EmitSoundToAll(g_sVoZombieTankDeath[GetRandomInt(0, sizeof(g_sVoZombieTankDeath)-1)]);
 		
@@ -1821,9 +1821,9 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			
 			if (IsValidLivingSurvivor(i))
 			{
-				if (fHighest < g_flDamageDealtAgainstTank[i])
+				if (flHighest < g_flDamageDealtAgainstTank[i])
 				{
-					fHighest = g_flDamageDealtAgainstTank[i];
+					flHighest = g_flDamageDealtAgainstTank[i];
 					iWinner = i;
 				}
 				
@@ -1831,13 +1831,13 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			}
 		}
 		
-		if (fHighest > 0.0)
+		if (flHighest > 0.0)
 		{
 			SetHudTextParams(-1.0, 0.3, 8.0, 200, 255, 200, 128, 1);
 			
 			for (int i = 1; i <= MaxClients; i++)
 				if (IsValidClient(i))
-					ShowHudText(i, 5, "The Tank '%N' has died\nMost damage: %N (%d)", iVictim, iWinner, RoundFloat(fHighest));
+					ShowHudText(i, 5, "The Tank '%N' has died\nMost damage: %N (%d)", iVictim, iWinner, RoundFloat(flHighest));
 		}
 		
 		if (g_iDamageDealtLife[iVictim] <= 50 && g_iDamageTakenLife[iVictim] <= 150 && !g_bTankRefreshed)
@@ -1850,13 +1850,13 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		Call_StartForward(g_hForwardTankDeath);
 		Call_PushCell(iVictim);
 		Call_PushCell(iWinner);
-		Call_PushCell(RoundFloat(fHighest));
+		Call_PushCell(RoundFloat(flHighest));
 		Call_Finish();
 	}
 	
 	g_iEyelanderHead[iVictim] = 0;
 	g_iMaxHealth[iVictim] = -1;
-	g_ShouldBacteriaPlay[iVictim] = true;
+	g_bShouldBacteriaPlay[iVictim] = true;
 	g_bReplaceRageWithSpecialInfectedSpawn[iVictim] = false;
 	
 	Infected g_nInfectedIndex = g_nInfected[iVictim];
@@ -1881,10 +1881,10 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		}
 		
 		//Remove dropped ammopacks from zombies.
-		int index = -1;
-		while ((index = FindEntityByClassname(index, "tf_ammo_pack")) != -1)
-			if (GetEntPropEnt(index, Prop_Send, "m_hOwnerEntity") == iVictim)
-				AcceptEntityInput(index, "Kill");
+		int iEntity = -1;
+		while ((iEntity = FindEntityByClassname(iEntity, "tf_ammo_pack")) != -1)
+			if (GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iVictim)
+				AcceptEntityInput(iEntity, "Kill");
 		
 		//Zombie rage: instant respawn
 		if (g_bZombieRage && g_nRoundState == SZFRoundState_Active)
@@ -2159,17 +2159,17 @@ public Action Timer_Main(Handle hTimer) //1 second
 					}
 					
 					//Screen shake if tank is close by
-					float flPosClient[3];
-					float flPosTank[3];
+					float vecPosClient[3];
+					float vecPosTank[3];
 					float flDistance;
-					GetClientEyePosition(iClient, flPosTank);
+					GetClientEyePosition(iClient, vecPosTank);
 
 					for (int i = 1; i <= MaxClients; i++)
 					{
 						if (IsClientInGame(i) && IsPlayerAlive(i) && IsSurvivor(i))
 						{
-							GetClientEyePosition(i, flPosClient);
-							flDistance = GetVectorDistance(flPosTank, flPosClient);
+							GetClientEyePosition(i, vecPosClient);
+							flDistance = GetVectorDistance(vecPosTank, vecPosClient);
 							flDistance /= 20.0;
 							if (flDistance <= 50.0)
 							{
@@ -2211,18 +2211,18 @@ public Action Timer_Main(Handle hTimer) //1 second
 				//Stalker
 				if (g_nInfected[iClient] == Infected_Stalker)
 				{
-					float flPosClient[3];
-					float flPosPredator[3];
+					float vecPosClient[3];
+					float vecPosPredator[3];
 					float flDistance;
 					bool bTooClose = false;
-					GetClientEyePosition(iClient, flPosPredator);
+					GetClientEyePosition(iClient, vecPosPredator);
 
 					for (int i = 1; i <= MaxClients; i++)
 					{
 						if (IsValidLivingSurvivor(i))
 						{
-							GetClientEyePosition(i, flPosClient);
-							flDistance = GetVectorDistance(flPosPredator, flPosClient);
+							GetClientEyePosition(i, vecPosClient);
+							flDistance = GetVectorDistance(vecPosPredator, vecPosClient);
 							if (flDistance <= 250.0)
 								bTooClose = true;
 						}
@@ -2649,13 +2649,13 @@ void Handle_SurvivorAbilities()
 			{
 				if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_raygun"))
 				{
-					float fEnergy = GetEntPropFloat(iSecondary, Prop_Send, "m_flEnergy");
-					ShowHudText(iClient, 5, "Bison: %d\%", RoundFloat(fEnergy)*5);
+					float flEnergy = GetEntPropFloat(iSecondary, Prop_Send, "m_flEnergy");
+					ShowHudText(iClient, 5, "Bison: %d\%", RoundFloat(flEnergy)*5);
 				}
 				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_buff_item"))
 				{
-					float fRage = GetEntPropFloat(iClient, Prop_Send, "m_flRageMeter");
-					ShowHudText(iClient, 5, "Rage: %d/100", RoundToZero(fRage));
+					float flRage = GetEntPropFloat(iClient, Prop_Send, "m_flRageMeter");
+					ShowHudText(iClient, 5, "Rage: %d/100", RoundToZero(flRage));
 				}
 				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_jar_gas"))
 				{
@@ -2664,8 +2664,8 @@ void Handle_SurvivorAbilities()
 				}
 				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_charged_smg"))
 				{
-					float fRage = GetEntPropFloat(iSecondary, Prop_Send, "m_flMinicritCharge");
-					ShowHudText(iClient, 5, "Crikey: %d/100", RoundToZero(fRage));
+					float flRage = GetEntPropFloat(iSecondary, Prop_Send, "m_flMinicritCharge");
+					ShowHudText(iClient, 5, "Crikey: %d/100", RoundToZero(flRage));
 				}
 			}
 
@@ -3871,7 +3871,7 @@ public Action Timer_StopZombieRage(Handle hTimer)
 				CPrintToChat(iClient, "%sZombies are resting...", (IsZombie(iClient)) ? "{red}" : "{green}");
 }
 
-int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true)
+int FastRespawnNearby(int iClient, float flDistance, bool bMustBeInvisible = true)
 {
 	if (g_aFastRespawn == null) return -1;
 	
@@ -3896,7 +3896,7 @@ int FastRespawnNearby(int iClient, float fDistance, bool bMustBeInvisible = true
 		flEntryDistance = GetVectorDistance(vecPosClient, vecPosEntry);
 		flEntryDistance /= 50.0;
 		
-		if (flEntryDistance > fDistance)
+		if (flEntryDistance > flDistance)
 			bAllow = false;
 		
 		//Check if survivors can see it
@@ -4092,11 +4092,11 @@ void HandleSurvivorLoadout(int iClient)
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
 	{
 		//Get default attrib from config to apply all melee weapons
-		char atts[32][32];
-		int iCount = ExplodeString(g_ConfigMeleeDefault.sAttrib, " ; ", atts, 32, 32);
+		char sAttribs[32][32];
+		int iCount = ExplodeString(g_ConfigMeleeDefault.sAttrib, " ; ", sAttribs, 32, 32);
 		if (iCount > 1)
 			for (int i = 0; i < iCount; i+= 2)
-				TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[i]), StringToFloat(atts[i+1]));
+				TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[i]), StringToFloat(sAttribs[i+1]));
 		
 		//Get attrib from index to apply
 		int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
@@ -4130,7 +4130,7 @@ void HandleSurvivorLoadout(int iClient)
 					
 					//Re-apply global attrib
 					for (int j = 0; j < iCount; j+= 2)
-						TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[j]), StringToFloat(atts[j+1]));
+						TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[j]), StringToFloat(sAttribs[j+1]));
 				}
 				
 				//Print text with cooldown to prevent spam
@@ -4141,10 +4141,10 @@ void HandleSurvivorLoadout(int iClient)
 				}
 				
 				//Apply attribute
-				iCount = ExplodeString(Melee.sAttrib, " ; ", atts, 32, 32);
+				iCount = ExplodeString(Melee.sAttrib, " ; ", sAttribs, 32, 32);
 				if (iCount > 1)
 					for (int j = 0; j < iCount; j+= 2)
-						TF2Attrib_SetByDefIndex(iEntity, StringToInt(atts[j]), StringToFloat(atts[j+1]));
+						TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[j]), StringToFloat(sAttribs[j+1]));
 				
 				break;
 			}
@@ -4322,12 +4322,12 @@ void GooDamageCheck()
 				{
 					float vecPosClient[3];
 					GetClientEyePosition(iClient, vecPosClient);
-					float fDistance = GetVectorDistance(gooStruct.vecOrigin, vecPosClient) / 50.0;
-					if (fDistance <= DISTANCE_GOO)
+					float flDistance = GetVectorDistance(gooStruct.vecOrigin, vecPosClient) / 50.0;
+					if (flDistance <= DISTANCE_GOO)
 					{
 						//Deal damage
 						g_iGooMultiplier[iClient] += GOO_INCREASE_RATE;
-						float fPercentageDistance = (DISTANCE_GOO-fDistance) / DISTANCE_GOO;
+						float fPercentageDistance = (DISTANCE_GOO-flDistance) / DISTANCE_GOO;
 						if (fPercentageDistance < 0.5) fPercentageDistance = 0.5;
 						float flDamage = float(g_iGooMultiplier[iClient])/float(GOO_INCREASE_RATE) * fPercentageDistance;
 						if (flDamage < 1.0) flDamage = 1.0;
@@ -4991,30 +4991,30 @@ bool DropCarryingItem(int iClient, bool bDrop = true)
 	
 	if (bDrop)
 	{
-		float vOrigin[3];
-		GetClientEyePosition(iClient, vOrigin);
+		float vecOrigin[3];
+		GetClientEyePosition(iClient, vecOrigin);
 		
 		if (!IsEntityStuck(iTarget) && !ObstactleBetweenEntities(iClient, iTarget))
 		{
-			vOrigin[0] += 20.0;
-			vOrigin[2] -= 30.0;
+			vecOrigin[0] += 20.0;
+			vecOrigin[2] -= 30.0;
 		}
 		
-		TeleportEntity(iTarget, vOrigin, NULL_VECTOR, NULL_VECTOR);
+		TeleportEntity(iTarget, vecOrigin, NULL_VECTOR, NULL_VECTOR);
 	}
 	
 	return true;
 }
 
-stock void AnglesToVelocity(float fAngle[3], float fVelocity[3], float fSpeed = 1.0)
+stock void AnglesToVelocity(float vecAngle[3], float vecVelocity[3], float flSpeed = 1.0)
 {
-	fVelocity[0] = Cosine(DegToRad(fAngle[1]));
-	fVelocity[1] = Sine(DegToRad(fAngle[1]));
-	fVelocity[2] = Sine(DegToRad(fAngle[0])) * -1.0;
+	vecVelocity[0] = Cosine(DegToRad(vecAngle[1]));
+	vecVelocity[1] = Sine(DegToRad(vecAngle[1]));
+	vecVelocity[2] = Sine(DegToRad(vecAngle[0])) * -1.0;
 	
-	NormalizeVector(fVelocity, fVelocity);
+	NormalizeVector(vecVelocity, vecVelocity);
 	
-	ScaleVector(fVelocity, fSpeed);
+	ScaleVector(vecVelocity, flSpeed);
 }
 
 stock bool IsEntityStuck(int iEntity)
@@ -5131,14 +5131,14 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 	return Plugin_Continue;
 }
 
-stock bool IsClassname(int iEntity, char[] strClassname)
+stock bool IsClassname(int iEntity, char[] sClassname)
 {
 	if (iEntity <= 0) return false;
 	if (!IsValidEdict(iEntity)) return false;
 	
-	char strClassname2[32];
-	GetEdictClassname(iEntity, strClassname2, sizeof(strClassname2));
-	if (StrEqual(strClassname, strClassname2, false)) return true;
+	char sClassname2[32];
+	GetEdictClassname(iEntity, sClassname2, sizeof(sClassname2));
+	if (StrEqual(sClassname, sClassname2, false)) return true;
 	
 	return false;
 }
@@ -5324,7 +5324,7 @@ public void DoBoomerExplosion(int iClient, float flRadius)
 {
 	//No need to set rage cooldown: he's fucking dead LMAO
 	float vecClientPos[3];
-	float vexSurvivorPos[3];
+	float vecSurvivorPos[3];
 	GetClientEyePosition(iClient, vecClientPos);
 
 	ShowParticle("asplode_hoodoo_debris", 6.0, vecClientPos);
@@ -5337,11 +5337,11 @@ public void DoBoomerExplosion(int iClient, float flRadius)
 	{
 		if (IsValidLivingSurvivor(i))
 		{
-			GetClientEyePosition(i, vexSurvivorPos);
-			float fDistance = GetVectorDistance(vecClientPos, vexSurvivorPos);
-			if (fDistance <= flRadius)
+			GetClientEyePosition(i, vecSurvivorPos);
+			float flDistance = GetVectorDistance(vecClientPos, vecSurvivorPos);
+			if (flDistance <= flRadius)
 			{
-				float flDuration = 12.0 - (fDistance * 0.01);
+				float flDuration = 12.0 - (flDistance * 0.01);
 				TF2_AddCondition(i, TFCond_Jarated, flDuration);
 				PlaySound(i, SoundEvent_Jarate, flDuration);
 				
@@ -5489,12 +5489,12 @@ public void DoSmokerBeam(int iClient)
 		//Calculate pull velocity towards Smoker
 		if (!g_bBackstabbed[iClient])
 		{
-			float vVelocity[3];
+			float vecVelocity[3];
 			GetClientAbsOrigin(iHit, vecHitPos);
-			MakeVectorFromPoints(vecOrigin, vecHitPos, vVelocity);
-			NormalizeVector(vVelocity, vVelocity);
-			ScaleVector(vVelocity, fMin(-450.0 + GetClientHealth(iHit), -10.0) );
-			TeleportEntity(iHit, NULL_VECTOR, NULL_VECTOR, vVelocity);
+			MakeVectorFromPoints(vecOrigin, vecHitPos, vecVelocity);
+			NormalizeVector(vecVelocity, vecVelocity);
+			ScaleVector(vecVelocity, fMin(-450.0 + GetClientHealth(iHit), -10.0) );
+			TeleportEntity(iHit, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 		}
 		
 		//If target changed, change stored target AND reset beam hit count
