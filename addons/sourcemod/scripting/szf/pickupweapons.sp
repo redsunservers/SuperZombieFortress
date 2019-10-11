@@ -241,20 +241,19 @@ bool AttemptGrabItem(int iClient)
 				AddToCookie(iClient, 1, g_cWeaponsRarePicked);
 				if (GetCookie(iClient, g_cWeaponsRarePicked) <= 1)
 				{
-					DataPack hPack1 = new DataPack();
-					CreateDataTimer(0.5, Timer_DisplayTutorialMessage, hPack1);
-					hPack1.WriteCell(iClient);
-					hPack1.WriteFloat(2.0);
-					hPack1.WriteString("You have picked up a very effective weapon.");
-
-					DataPack hPack2 = new DataPack();
-					CreateDataTimer(2.5, Timer_DisplayTutorialMessage, hPack2);
-					hPack2.WriteCell(iClient);
-					hPack2.WriteFloat(3.0);
-					hPack2.WriteString("Some weapons have a lower chance of appearing, like this one.");
+					DataPack data;
+					CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
+					data.WriteCell(iClient);
+					data.WriteFloat(2.0);
+					data.WriteString("You have picked up a very effective weapon.");
+					
+					CreateDataTimer(2.5, Timer_DisplayTutorialMessage, data);
+					data.WriteCell(iClient);
+					data.WriteFloat(3.0);
+					data.WriteString("Some weapons have a lower chance of appearing, like this one.");
 				}
 			}
-
+			
 			PickupWeapon(iClient, wep, iTarget);
 			
 			return true;
@@ -268,11 +267,11 @@ bool AttemptGrabItem(int iClient)
 			AddToCookie(iClient, 1, g_cWeaponsCalled);
 			if (GetCookie(iClient, g_cWeaponsCalled) <= 1)
 			{
-				DataPack hPack1 = new DataPack();
-				CreateDataTimer(0.5, Timer_DisplayTutorialMessage, hPack1);
-				hPack1.WriteCell(iClient);
-				hPack1.WriteFloat(4.0);
-				hPack1.WriteString("Calling out specific weapons allows other teammates to pick up the weapon.");
+				DataPack data;
+				CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
+				data.WriteCell(iClient);
+				data.WriteFloat(4.0);
+				data.WriteString("Calling out specific weapons allows other teammates to pick up the weapon.");
 			}
 			
 			g_fLastCallout[iClient] = GetGameTime();
