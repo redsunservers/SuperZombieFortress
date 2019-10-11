@@ -2799,7 +2799,7 @@ void Handle_HoardeBonus()
 	int iLength = 0;
 	int[] iClients = new int[MaxClients];
 	int[] iClientsHoardeId = new int[MaxClients];
-	float vecClientsPos[MAXPLAYERS][3];
+	float vecClientsPos[TF_MAXPLAYERS][3];
 	
 	int[] iHoardeSize = new int[MaxClients];
 	
