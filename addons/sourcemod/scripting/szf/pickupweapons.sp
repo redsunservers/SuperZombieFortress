@@ -16,9 +16,9 @@ enum WeaponType
 	WeaponType_DefaultNoPickup,
 };
 
-static bool g_bCanPickup[MAXPLAYERS+1] = false;
+static bool g_bCanPickup[TF_MAXPLAYERS] = false;
 static bool g_bTriggerEntity[2048] = true;
-static float g_fLastCallout[MAXPLAYERS+1] = 0.0;
+static float g_fLastCallout[TF_MAXPLAYERS] = 0.0;
 
 //Cookies
 Cookie g_cWeaponsPicked;
@@ -515,7 +515,12 @@ stock void SetWeaponModel(int iEntity, Weapon wep)
 	
 	//Offsets (will only work for pickups for now)
 	if (wep.nRarity == eWeaponsRarity_Pickup)
-		TeleportEntity(iEntity, wep.vecOrigin, wep.vecAngles, NULL_VECTOR);
+	{
+		AddVectors(vecOrigin, wep.vecOrigin, vecOrigin);
+		AddVectors(vecAngles, wep.vecAngles, vecAngles);
+		
+		TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
+	}
 	
 	//Because sniper wearable have a really offplace origin prop, we have to move entity to a more reasonable spot
 	if (StrEqual(sOldModel, "models/player/items/sniper/knife_shield.mdl")

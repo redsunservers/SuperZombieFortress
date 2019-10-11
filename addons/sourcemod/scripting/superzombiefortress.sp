@@ -1965,12 +1965,11 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				//+ Soldiers receive 2 rockets per kill.
 				//+ Demomen receive 1 pipe per kill.
 				//+ Snipers receive 2 ammo per kill.
-				TFClassType killerClass = TF2_GetPlayerClass(iKillers[i]);
-				switch (killerClass)
+				switch (TF2_GetPlayerClass(iKillers[i]))
 				{
-					case TFClass_Soldier: TF2_AddAmmo(iKillers[i], 0, 2);
-					case TFClass_DemoMan: TF2_AddAmmo(iKillers[i], 0, 1);
-					case TFClass_Sniper:  TF2_AddAmmo(iKillers[i], 0, 2);
+					case TFClass_Soldier: TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, 2);
+					case TFClass_DemoMan: TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, 1);
+					case TFClass_Sniper:  TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, 2);
 				}
 				
 				//Handle morale bonuses.
@@ -2797,7 +2796,7 @@ void Handle_ZombieAbilities()
 
 void Handle_HoardeBonus()
 {
-	int iLength;
+	int iLength = 0;
 	int[] iClients = new int[MaxClients];
 	int[] iClientsHoardeId = new int[MaxClients];
 	float vecClientsPos[MAXPLAYERS][3];
@@ -2822,26 +2821,26 @@ void Handle_HoardeBonus()
 	//       primary decision criteria.
 	int iHoarde = 0;
 	ArrayStack aStack = new ArrayStack();
-	for (int iClient = 0; iClient < iLength; iClient++)
+	for (int i = 0; i < iLength; i++)
 	{
 		//2a. Create new hoarde group.
-		if (iClientsHoardeId[iClient] == -1)
+		if (iClientsHoardeId[i] == -1)
 		{
-			aStack.Push(iClient);
-			iClientsHoardeId[iClient] = iHoarde;
+			aStack.Push(i);
+			iClientsHoardeId[i] = iHoarde;
 			iHoardeSize[iHoarde] = 1;
 		}
 		
 		//2b. Build current hoarde created in step 2a.
 		//        Use a depth-first adjacency search.
-		int i;
-		while (aStack.Pop(i))
+		while (!aStack.Empty)
 		{
-			for (int j = iClient+1; j < iLength; j++)
+			int iPop = aStack.Pop();
+			for (int j = i+1; j < iLength; j++)
 			{
 				if (iClientsHoardeId[j] == -1)
 				{
-					if (GetVectorDistance(vecClientsPos[j], vecClientsPos[i], true) <= 200000)
+					if (GetVectorDistance(vecClientsPos[j], vecClientsPos[iPop], true) <= 200000)
 					{
 						aStack.Push(j);
 						iClientsHoardeId[j] = iHoarde;
@@ -2859,8 +2858,8 @@ void Handle_HoardeBonus()
 	//3. Set hoarde bonuses.
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		g_iHorde[iClient] = 0;
-	for (int iClient = 0; iClient < iLength; iClient++)
-		g_iHorde[iClients[iClient]] = iHoardeSize[iClientsHoardeId[iClient]] - 1;
+	for (int i = 0; i < iLength; i++)
+		g_iHorde[iClients[i]] = iHoardeSize[iClientsHoardeId[i]] - 1;
 }
 
 ////////////////////////////////////////////////////////////
@@ -4683,9 +4682,9 @@ public Action Timer_RemoveParticle(Handle hTimer, int iParticle)
 {
 	if (iParticle >= 0 && IsValidEntity(iParticle))
 	{
-		char classname[32];
-		GetEdictClassname(iParticle, classname, sizeof(classname));
-		if (StrEqual(classname, "info_particle_system", false))
+		char sClassname[32];
+		GetEdictClassname(iParticle, sClassname, sizeof(sClassname));
+		if (StrEqual(sClassname, "info_particle_system", false))
 		{
 			AcceptEntityInput(iParticle, "stop");
 			AcceptEntityInput(iParticle, "Kill");

@@ -137,7 +137,7 @@ stock TFClassType GetRandomSurvivorClass()
 ////////////////////////////////////////////////////////////
 stock bool IsMapSZF()
 {
-	char sMap[4];
+	char sMap[8];
 	GetCurrentMap(sMap, sizeof(sMap));
 	GetMapDisplayName(sMap, sMap, sizeof(sMap));
 	if (StrContains(sMap, "zf_") == 0) return true;
@@ -147,7 +147,7 @@ stock bool IsMapSZF()
 
 stock bool IsMapPL()
 {
-	char sMap[4];
+	char sMap[8];
 	GetCurrentMap(sMap, sizeof(sMap));
 	GetMapDisplayName(sMap, sMap, sizeof(sMap));
 	return StrContains(sMap, "pl_") == 0;
@@ -155,7 +155,7 @@ stock bool IsMapPL()
 
 stock bool IsMapCP()
 {
-	char sMap[4];
+	char sMap[8];
 	GetCurrentMap(sMap, sizeof(sMap));
 	GetMapDisplayName(sMap, sMap, sizeof(sMap));
 	return StrContains(sMap, "cp_") == 0;
@@ -217,6 +217,8 @@ stock int TF2_GetSlotIndex(int iClient, int iSlot)
 
 stock int TF2_GetActiveSlot(int iClient)
 {
+	int iWeapon = TF2_GetActiveWeapon(iClient);
+	
 	for (int iSlot = 0; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
 		if (GetPlayerWeaponSlot(iClient, iSlot) == iWeapon)
 			return iSlot;
@@ -464,7 +466,7 @@ stock int TF2_GetClip(int iClient, int iSlot)
 {
 	int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
 	if (iWeapon > MaxClients)
-		return GetEntProp(iClient, Prop_Send, "m_iClip1");
+		return GetEntProp(iWeapon, Prop_Send, "m_iClip1");
 	
 	return 0;
 }
@@ -473,7 +475,7 @@ stock void TF2_SetClip(int iClient, int iSlot, int iClip)
 {
 	int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
 	if (iWeapon > MaxClients)
-		return GetEntProp(iClient, Prop_Send, "m_iClip1", iClip);
+		SetEntProp(iWeapon, Prop_Send, "m_iClip1", iClip);
 }
 
 stock void TF2_AddClip(int iClient, int iSlot, int iClip)
@@ -495,7 +497,7 @@ stock int TF2_GetAmmo(int iClient, int iSlot)
 	{
 		int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
 		if (iAmmoType > -1)
-			return GetEntProp(iClient, Prop_Send, "m_iAmmo", iAmmoType);
+			return GetEntProp(iClient, Prop_Send, "m_iAmmo", _, iAmmoType);
 	}
 	return 0;
 }

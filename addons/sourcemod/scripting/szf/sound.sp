@@ -47,9 +47,9 @@ enum Sound
 	Sound_Max
 };
 
-char g_sSound[TF_MAXPLAYERS+1][PLATFORM_MAX_PATH];
-Sound g_nSound[TF_MAXPLAYERS+1];
-bool g_bNoMusicForClient[TF_MAXPLAYERS+1];
+char g_sSound[TF_MAXPLAYERS][PLATFORM_MAX_PATH];
+Sound g_nSound[TF_MAXPLAYERS];
+bool g_bNoMusicForClient[TF_MAXPLAYERS];
 
 /* QUIET SOUNDS */
 
