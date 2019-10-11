@@ -32,7 +32,6 @@ enum Sound
 	SoundEvent_Incoming,
 	SoundEvent_Drown,
 	SoundEvent_NearDeath,
-	SoundEvent_NearDeath2,
 	SoundEvent_Jarate,
 	SoundEvent_Max,
 	
@@ -152,12 +151,6 @@ char g_sSoundNearDeath[][PLATFORM_MAX_PATH] =
 	"left4fortress/iamsocold.mp3"
 };
 
-/* Unused
-char g_sSoundNearDeath2[][PLATFORM_MAX_PATH] =
-{
-	"left4fortress/youaresocold.mp3"
-};
-*/
 //Boomer Jarate
 char g_sSoundJarate[][PLATFORM_MAX_PATH] =
 {
@@ -616,7 +609,6 @@ void SoundPrecache()
 	for (int i = 0; i < sizeof(g_sSoundIncoming); i++) PrecacheSound2(g_sSoundIncoming[i]);
 	for (int i = 0; i < sizeof(g_sSoundDrown); i++) PrecacheSound2(g_sSoundDrown[i]);
 	for (int i = 0; i < sizeof(g_sSoundNearDeath); i++) PrecacheSound2(g_sSoundNearDeath[i]);
-	//for (int i = 0; i < sizeof(g_sSoundNearDeath2); i++) PrecacheSound2(g_sSoundNearDeath2[i]);
 	for (int i = 0; i < sizeof(g_sSoundJarate); i++) PrecacheSound2(g_sSoundJarate[i]);
 	
 	for (int i = 0; i < sizeof(g_sSoundPrepare); i++) PrecacheSound2(g_sSoundPrepare[i]);
@@ -916,7 +908,6 @@ void GetRandomSound(Sound nSound, char sPath[PLATFORM_MAX_PATH], int iLength)
 		case SoundEvent_Incoming:		strcopy(sPath, iLength, g_sSoundIncoming[GetRandomInt(0, sizeof(g_sSoundIncoming)-1)]);
 		case SoundEvent_Drown:			strcopy(sPath, iLength, g_sSoundDrown[GetRandomInt(0, sizeof(g_sSoundDrown)-1)]);
 		case SoundEvent_NearDeath:		strcopy(sPath, iLength, g_sSoundNearDeath[GetRandomInt(0, sizeof(g_sSoundNearDeath)-1)]);
-		//case SoundEvent_NearDeath2:	strcopy(sPath, iLength, g_sSoundNearDeath2[GetRandomInt(0, sizeof(g_sSoundNearDeath2)-1)]);
 		case SoundEvent_Jarate:			strcopy(sPath, iLength, g_sSoundJarate[GetRandomInt(0, sizeof(g_sSoundJarate)-1)]);
 		
 		case SoundMusic_Prepare:		strcopy(sPath, iLength, g_sSoundPrepare[GetRandomInt(0, sizeof(g_sSoundPrepare)-1)]);
