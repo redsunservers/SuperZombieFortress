@@ -210,384 +210,383 @@ char g_sSoundSpawnInfected[][PLATFORM_MAX_PATH] =
 /* SOLDIER */
 char g_sVoCarrySoldier[][PLATFORM_MAX_PATH] =
 {
-    "vo/soldier_autocappedcontrolpoint01.mp3"
-	,"vo/soldier_positivevocalization01.mp3"
-	,"vo/soldier_positivevocalization02.mp3"
-    ,"vo/soldier_positivevocalization03.mp3"
-	,"vo/soldier_PickAxeTaunt01.mp3"
-    ,"vo/soldier_PickAxeTaunt02.mp3"
-    ,"vo/soldier_PickAxeTaunt03.mp3"
-    ,"vo/soldier_PickAxeTaunt04.mp3"
-    ,"vo/soldier_PickAxeTaunt05.mp3"
-    ,"vo/soldier_laughevil01.mp3"
-    ,"vo/soldier_laughevil03.mp3"
-    ,"vo/soldier_go01.mp3"
-    ,"vo/soldier_go02.mp3"
-    ,"vo/soldier_battlecry02.mp3"
-    ,"vo/soldier_battlecry06.mp3"
+	"vo/soldier_autocappedcontrolpoint01.mp3",
+	"vo/soldier_positivevocalization01.mp3",
+	"vo/soldier_positivevocalization02.mp3",
+	"vo/soldier_positivevocalization03.mp3",
+	"vo/soldier_PickAxeTaunt01.mp3",
+	"vo/soldier_PickAxeTaunt02.mp3",
+	"vo/soldier_PickAxeTaunt03.mp3",
+	"vo/soldier_PickAxeTaunt04.mp3",
+	"vo/soldier_PickAxeTaunt05.mp3",
+	"vo/soldier_laughevil01.mp3",
+	"vo/soldier_laughevil03.mp3",
+	"vo/soldier_go01.mp3",
+	"vo/soldier_go02.mp3",
+	"vo/soldier_battlecry02.mp3",
+	"vo/soldier_battlecry06.mp3"
 };
 
 char g_sVoWeaponSoldier[][PLATFORM_MAX_PATH] =
 {
-    "vo/soldier_mvm_loot_common01.mp3"
-	,"vo/soldier_mvm_loot_common02.mp3"
-	,"vo/soldier_mvm_loot_common03.mp3"
-	,"vo/soldier_mvm_loot_rare01.mp3"
-	,"vo/soldier_mvm_loot_rare02.mp3"
-    ,"vo/soldier_mvm_loot_rare03.mp3"
-    ,"vo/soldier_mvm_loot_rare04.mp3"
+	"vo/soldier_mvm_loot_common01.mp3",
+	"vo/soldier_mvm_loot_common02.mp3",
+	"vo/soldier_mvm_loot_common03.mp3",
+	"vo/soldier_mvm_loot_rare01.mp3",
+	"vo/soldier_mvm_loot_rare02.mp3",
+	"vo/soldier_mvm_loot_rare03.mp3",
+	"vo/soldier_mvm_loot_rare04.mp3"
 };
 
 char g_sVoTankSoldier[][PLATFORM_MAX_PATH] =
 {
-    "vo/soldier_mvm_tank_shooting01.mp3"
-    ,"vo/soldier_mvm_tank_shooting02.mp3"
+	"vo/soldier_mvm_tank_shooting01.mp3",
+	"vo/soldier_mvm_tank_shooting02.mp3"
 };
 
 
 /* PYRO */
 char g_sVoCarryPyro[][PLATFORM_MAX_PATH] =
 {
-    "vo/pyro_autocappedcontrolpoint01.mp3"
-	,"vo/pyro_autocappedintelligence01.mp3"
-	,"vo/pyro_go01.mp3"
-    ,"vo/pyro_goodjob01.mp3"
-    ,"vo/pyro_laughevil02.mp3"
-    ,"vo/pyro_laughevil03.mp3"
-    ,"vo/pyro_moveup01.mp3"
+	"vo/pyro_autocappedcontrolpoint01.mp3",
+	"vo/pyro_autocappedintelligence01.mp3",
+	"vo/pyro_go01.mp3",
+	"vo/pyro_goodjob01.mp3",
+	"vo/pyro_laughevil02.mp3",
+	"vo/pyro_laughevil03.mp3",
+	"vo/pyro_moveup01.mp3"
 };
 
 char g_sVoWeaponPyro[][PLATFORM_MAX_PATH] =
 {
-    "vo/pyro_battlecry01.mp3"
-    ,"vo/pyro_battlecry02.mp3"
-	,"vo/pyro_positivevocalization01.mp3"
+	"vo/pyro_battlecry01.mp3",
+	"vo/pyro_battlecry02.mp3",
+	"vo/pyro_positivevocalization01.mp3"
 };
 
 
 /* Demoman -- does not have tank lines */
 char g_sVoCarryDemoman[][PLATFORM_MAX_PATH] =
 {
-    "vo/demoman_go01.mp3"
-	,"vo/demoman_go02.mp3"
-	,"vo/demoman_go03.mp3"
-	,"vo/demoman_helpmecapture02.mp3"
-    ,"vo/demoman_helpmecapture03.mp3"
-    ,"vo/demoman_laughevil01.mp3"
-    ,"vo/demoman_laughevil03.mp3"
-    ,"vo/demoman_laughevil05.mp3"
-    ,"vo/demoman_laughshort02.mp3"
-    ,"vo/demoman_laughshort04.mp3"
-    ,"vo/demoman_laughshort06.mp3"
-    ,"vo/demoman_gibberish02.mp3"
-	,"vo/demoman_gibberish08.mp3"
-    ,"vo/demoman_gibberish13.mp3"
+	"vo/demoman_go01.mp3",
+	"vo/demoman_go02.mp3",
+	"vo/demoman_go03.mp3",
+	"vo/demoman_helpmecapture02.mp3",
+	"vo/demoman_helpmecapture03.mp3",
+	"vo/demoman_laughevil01.mp3",
+	"vo/demoman_laughevil03.mp3",
+	"vo/demoman_laughevil05.mp3",
+	"vo/demoman_laughshort02.mp3",
+	"vo/demoman_laughshort04.mp3",
+	"vo/demoman_laughshort06.mp3",
+	"vo/demoman_gibberish02.mp3",
+	"vo/demoman_gibberish08.mp3",
+	"vo/demoman_gibberish13.mp3"
 };
 
 char g_sVoWeaponDemoman[][PLATFORM_MAX_PATH] =
 {
-    "vo/demoman_mvm_loot_common01.mp3"
-    ,"vo/demoman_mvm_loot_common02.mp3"
-    ,"vo/demoman_mvm_loot_common03.mp3"
-    ,"vo/demoman_mvm_loot_common04.mp3"
-    ,"vo/demoman_mvm_loot_godlike01.mp3"
-    ,"vo/demoman_mvm_loot_rare01.mp3"
-    ,"vo/demoman_mvm_loot_rare02.mp3"
+	"vo/demoman_mvm_loot_common01.mp3",
+	"vo/demoman_mvm_loot_common02.mp3",
+	"vo/demoman_mvm_loot_common03.mp3",
+	"vo/demoman_mvm_loot_common04.mp3",
+	"vo/demoman_mvm_loot_godlike01.mp3",
+	"vo/demoman_mvm_loot_rare01.mp3",
+	"vo/demoman_mvm_loot_rare02.mp3"
 };
 
 
 /* Engineer */
 char g_sVoCarryEngineer[][PLATFORM_MAX_PATH] =
 {
-    "vo/engineer_autocappedcontrolpoint01.mp3"
-	,"vo/engineer_autocappedcontrolpoint02.mp3"
-    ,"vo/engineer_autocappedintelligence01.mp3"
-    ,"vo/engineer_autocappedintelligence02.mp3"
-    ,"vo/engineer_autocappedintelligence03.mp3"
-    ,"vo/engineer_cheers04.mp3"
-    ,"vo/engineer_laughevil01.mp3"
-    ,"vo/engineer_laughevil04.mp3"
-    ,"vo/engineer_laughevil06.mp3"
+	"vo/engineer_autocappedcontrolpoint01.mp3",
+	"vo/engineer_autocappedcontrolpoint02.mp3",
+	"vo/engineer_autocappedintelligence01.mp3",
+	"vo/engineer_autocappedintelligence02.mp3",
+	"vo/engineer_autocappedintelligence03.mp3",
+	"vo/engineer_cheers04.mp3",
+	"vo/engineer_laughevil01.mp3",
+	"vo/engineer_laughevil04.mp3",
+	"vo/engineer_laughevil06.mp3"
 };
 
 char g_sVoWeaponEngineer[][PLATFORM_MAX_PATH] =
 {
-    "vo/engineer_mvm_loot_common01.mp3"
-    ,"vo/engineer_mvm_loot_common02.mp3"
-    ,"vo/engineer_mvm_loot_godlike01.mp3"
-    ,"vo/engineer_mvm_loot_godlike02.mp3"
-    ,"vo/engineer_mvm_loot_godlike03.mp3"
-    ,"vo/engineer_mvm_loot_rare01.mp3"
-    ,"vo/engineer_mvm_loot_rare02.mp3"
-    ,"vo/engineer_mvm_loot_rare03.mp3"
-    ,"vo/engineer_mvm_loot_rare04.mp3"
+	"vo/engineer_mvm_loot_common01.mp3",
+	"vo/engineer_mvm_loot_common02.mp3",
+	"vo/engineer_mvm_loot_godlike01.mp3",
+	"vo/engineer_mvm_loot_godlike02.mp3",
+	"vo/engineer_mvm_loot_godlike03.mp3",
+	"vo/engineer_mvm_loot_rare01.mp3",
+	"vo/engineer_mvm_loot_rare02.mp3",
+	"vo/engineer_mvm_loot_rare03.mp3",
+	"vo/engineer_mvm_loot_rare04.mp3"
 };
 
 char g_sVoTankEngineer[][PLATFORM_MAX_PATH] =
 {
-    "vo/engineer_mvm_tank_shooting01.mp3"
-    ,"vo/engineer_meleedare01.mp3"
+	"vo/engineer_mvm_tank_shooting01.mp3",
+	"vo/engineer_meleedare01.mp3"
 };
-
 
 
 /* Medic */
 char g_sVoCarryMedic[][PLATFORM_MAX_PATH] =
 {
-    "vo/medic_go01.mp3"
-    ,"vo/medic_go05.mp3"
-    ,"vo/medic_goodjob02.mp3"
-    ,"vo/medic_laughevil01.mp3"
-    ,"vo/medic_laughevil03.mp3"
-    ,"vo/medic_positivevocalization03.mp3"
-    ,"vo/medic_specialcompleted04.mp3"
-    ,"vo/medic_specialcompleted07.mp3"
-    ,"vo/medic_yes03.mp3"
+	"vo/medic_go01.mp3",
+	"vo/medic_go05.mp3",
+	"vo/medic_goodjob02.mp3",
+	"vo/medic_laughevil01.mp3",
+	"vo/medic_laughevil03.mp3",
+	"vo/medic_positivevocalization03.mp3",
+	"vo/medic_specialcompleted04.mp3",
+	"vo/medic_specialcompleted07.mp3",
+	"vo/medic_yes03.mp3"
 };
 
 char g_sVoWeaponMedic[][PLATFORM_MAX_PATH] =
 {
-    "vo/medic_mvm_loot_common01.mp3"
-    ,"vo/medic_mvm_loot_common02.mp3"
-    ,"vo/medic_mvm_loot_common03.mp3"
-    ,"vo/medic_mvm_loot_rare02.mp3"
-    ,"vo/medic_mvm_loot_godlike01.mp3"
-    ,"vo/medic_mvm_loot_godlike02.mp3"
-    ,"vo/medic_mvm_loot_godlike03.mp3"
-    ,"vo/medic_specialcompleted02.mp3"
-    ,"vo/medic_specialcompleted03.mp3"
+	"vo/medic_mvm_loot_common01.mp3",
+	"vo/medic_mvm_loot_common02.mp3",
+	"vo/medic_mvm_loot_common03.mp3",
+	"vo/medic_mvm_loot_rare02.mp3",
+	"vo/medic_mvm_loot_godlike01.mp3",
+	"vo/medic_mvm_loot_godlike02.mp3",
+	"vo/medic_mvm_loot_godlike03.mp3",
+	"vo/medic_specialcompleted02.mp3",
+	"vo/medic_specialcompleted03.mp3"
 };
 
 char g_sVoTankMedic[][PLATFORM_MAX_PATH] =
 {
-    "vo/medic_mvm_tank_shooting01.mp3"
-    ,"vo/medic_mvm_tank_shooting02.mp3"
+	"vo/medic_mvm_tank_shooting01.mp3",
+	"vo/medic_mvm_tank_shooting02.mp3"
 };
 
 
 /* Sniper -- does not have tank lines */
 char g_sVoCarrySniper[][PLATFORM_MAX_PATH] =
 {
-    "vo/sniper_autocappedcontrolpoint01.mp3"
-    ,"vo/sniper_autocappedcontrolpoint02.mp3"
-    ,"vo/sniper_autocappedcontrolpoint03.mp3"
-    ,"vo/sniper_autocappedintelligence01.mp3"
-    ,"vo/sniper_autocappedintelligence02.mp3"
-    ,"vo/sniper_autocappedintelligence04.mp3"
-    ,"vo/sniper_autocappedintelligence05.mp3"
-    ,"vo/sniper_award01.mp3"
-    ,"vo/sniper_award06.mp3"
-    ,"vo/sniper_award07.mp3"
-    ,"vo/sniper_award08.mp3"
-    ,"vo/sniper_award11.mp3"
-    ,"vo/sniper_award12.mp3"
-    ,"vo/sniper_award13.mp3"
-    ,"vo/sniper_battlecry02.mp3"
-    ,"vo/sniper_go03.mp3"
-    ,"vo/sniper_helpmecapture01.mp3"
-    ,"vo/sniper_laughevil01.mp3"
-    ,"vo/sniper_laughevil02.mp3"
-    ,"vo/sniper_moveup01.mp3"
-    ,"vo/sniper_specialweapon02.mp3"
-    ,"vo/sniper_specialweapon05.mp3"
-    ,"vo/sniper_specialweapon07.mp3"
-    ,"vo/sniper_specialweapon09.mp3"
+    "vo/sniper_autocappedcontrolpoint01.mp3",
+    "vo/sniper_autocappedcontrolpoint02.mp3",
+    "vo/sniper_autocappedcontrolpoint03.mp3",
+    "vo/sniper_autocappedintelligence01.mp3",
+    "vo/sniper_autocappedintelligence02.mp3",
+    "vo/sniper_autocappedintelligence04.mp3",
+    "vo/sniper_autocappedintelligence05.mp3",
+    "vo/sniper_award01.mp3",
+    "vo/sniper_award06.mp3",
+    "vo/sniper_award07.mp3",
+    "vo/sniper_award08.mp3",
+    "vo/sniper_award11.mp3",
+    "vo/sniper_award12.mp3",
+    "vo/sniper_award13.mp3",
+    "vo/sniper_battlecry02.mp3",
+    "vo/sniper_go03.mp3",
+    "vo/sniper_helpmecapture01.mp3",
+    "vo/sniper_laughevil01.mp3",
+    "vo/sniper_laughevil02.mp3",
+    "vo/sniper_moveup01.mp3",
+    "vo/sniper_specialweapon02.mp3",
+    "vo/sniper_specialweapon05.mp3",
+    "vo/sniper_specialweapon07.mp3",
+    "vo/sniper_specialweapon09.mp3"
 };
 
 char g_sVoWeaponSniper[][PLATFORM_MAX_PATH] =
 {
-    "vo/sniper_specialweapon01.mp3"
-    ,"vo/sniper_specialweapon02.mp3"
-    ,"vo/sniper_specialweapon03.mp3"
-    ,"vo/sniper_specialweapon04.mp3"
-    ,"vo/sniper_specialweapon05.mp3"
-    ,"vo/sniper_specialweapon06.mp3"
-    ,"vo/sniper_specialweapon07.mp3"
-    ,"vo/sniper_specialweapon08.mp3"
-    ,"vo/sniper_specialweapon09.mp3"
+    "vo/sniper_specialweapon01.mp3",
+    "vo/sniper_specialweapon02.mp3",
+    "vo/sniper_specialweapon03.mp3",
+    "vo/sniper_specialweapon04.mp3",
+    "vo/sniper_specialweapon05.mp3",
+    "vo/sniper_specialweapon06.mp3",
+    "vo/sniper_specialweapon07.mp3",
+    "vo/sniper_specialweapon08.mp3",
+    "vo/sniper_specialweapon09.mp3"
 };
 
 /* Common Infected */
 char g_sVoZombieCommonDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/idle_breath_01.mp3"
-    ,"left4fortress/zombie_vo/idle_breath_02.mp3"
-    ,"left4fortress/zombie_vo/idle_breath_03.mp3"
-    ,"left4fortress/zombie_vo/idle_breath_04.mp3"
+    "left4fortress/zombie_vo/idle_breath_01.mp3",
+    "left4fortress/zombie_vo/idle_breath_02.mp3",
+    "left4fortress/zombie_vo/idle_breath_03.mp3",
+    "left4fortress/zombie_vo/idle_breath_04.mp3"
 };
 
 char g_sVoZombieCommonPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/been_shot_12.mp3"
-    ,"left4fortress/zombie_vo/been_shot_13.mp3"
-    ,"left4fortress/zombie_vo/been_shot_14.mp3"
-    ,"left4fortress/zombie_vo/been_shot_18.mp3"
-    ,"left4fortress/zombie_vo/been_shot_19.mp3"
-    ,"left4fortress/zombie_vo/been_shot_20.mp3"
-    ,"left4fortress/zombie_vo/been_shot_21.mp3"
-    ,"left4fortress/zombie_vo/been_shot_22.mp3"
-    ,"left4fortress/zombie_vo/been_shot_24.mp3"
+    "left4fortress/zombie_vo/been_shot_12.mp3",
+    "left4fortress/zombie_vo/been_shot_13.mp3",
+    "left4fortress/zombie_vo/been_shot_14.mp3",
+    "left4fortress/zombie_vo/been_shot_18.mp3",
+    "left4fortress/zombie_vo/been_shot_19.mp3",
+    "left4fortress/zombie_vo/been_shot_20.mp3",
+    "left4fortress/zombie_vo/been_shot_21.mp3",
+    "left4fortress/zombie_vo/been_shot_22.mp3",
+    "left4fortress/zombie_vo/been_shot_24.mp3"
 };
 
 char g_sVoZombieCommonRage[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/rage_at_victim21.mp3"
-    ,"left4fortress/zombie_vo/rage_at_victim22.mp3"
-    ,"left4fortress/zombie_vo/rage_at_victim25.mp3"
-    ,"left4fortress/zombie_vo/rage_at_victim26.mp3"
+    "left4fortress/zombie_vo/rage_at_victim21.mp3",
+    "left4fortress/zombie_vo/rage_at_victim22.mp3",
+    "left4fortress/zombie_vo/rage_at_victim25.mp3",
+    "left4fortress/zombie_vo/rage_at_victim26.mp3"
 };
 
 char g_sVoZombieCommonMumbling[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/mumbling01.mp3"
-    ,"left4fortress/zombie_vo/mumbling02.mp3"
-    ,"left4fortress/zombie_vo/mumbling03.mp3"
-    ,"left4fortress/zombie_vo/mumbling04.mp3"
-    ,"left4fortress/zombie_vo/mumbling05.mp3"
-    ,"left4fortress/zombie_vo/mumbling06.mp3"
-    ,"left4fortress/zombie_vo/mumbling07.mp3"
-    ,"left4fortress/zombie_vo/mumbling08.mp3"
+    "left4fortress/zombie_vo/mumbling01.mp3",
+    "left4fortress/zombie_vo/mumbling02.mp3",
+    "left4fortress/zombie_vo/mumbling03.mp3",
+    "left4fortress/zombie_vo/mumbling04.mp3",
+    "left4fortress/zombie_vo/mumbling05.mp3",
+    "left4fortress/zombie_vo/mumbling06.mp3",
+    "left4fortress/zombie_vo/mumbling07.mp3",
+    "left4fortress/zombie_vo/mumbling08.mp3"
 };
 
 char g_sVoZombieCommonShoved[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/shoved_1.mp3"
-    ,"left4fortress/zombie_vo/shoved_2.mp3"
-    ,"left4fortress/zombie_vo/shoved_3.mp3"
-    ,"left4fortress/zombie_vo/shoved_4.mp3"
+    "left4fortress/zombie_vo/shoved_1.mp3",
+    "left4fortress/zombie_vo/shoved_2.mp3",
+    "left4fortress/zombie_vo/shoved_3.mp3",
+    "left4fortress/zombie_vo/shoved_4.mp3"
 };
 
 char g_sVoZombieCommonDeath[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/death_22.mp3"
-    ,"left4fortress/zombie_vo/death_23.mp3"
-    ,"left4fortress/zombie_vo/death_24.mp3"
-    ,"left4fortress/zombie_vo/death_25.mp3"
-    ,"left4fortress/zombie_vo/death_26.mp3"
-    ,"left4fortress/zombie_vo/death_27.mp3"
-    ,"left4fortress/zombie_vo/death_28.mp3"
-    ,"left4fortress/zombie_vo/death_29.mp3"
+    "left4fortress/zombie_vo/death_22.mp3",
+    "left4fortress/zombie_vo/death_23.mp3",
+    "left4fortress/zombie_vo/death_24.mp3",
+    "left4fortress/zombie_vo/death_25.mp3",
+    "left4fortress/zombie_vo/death_26.mp3",
+    "left4fortress/zombie_vo/death_27.mp3",
+    "left4fortress/zombie_vo/death_28.mp3",
+    "left4fortress/zombie_vo/death_29.mp3"
 };
 
 /* Boomer */
 char g_sVoZombieBoomerDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/male_boomer_lurk_02.mp3"
-    ,"left4fortress/zombie_vo/male_boomer_lurk_03.mp3"
-    ,"left4fortress/zombie_vo/male_boomer_lurk_04.mp3"
+    "left4fortress/zombie_vo/male_boomer_lurk_02.mp3",
+    "left4fortress/zombie_vo/male_boomer_lurk_03.mp3",
+    "left4fortress/zombie_vo/male_boomer_lurk_04.mp3",
 };
 
 char g_sVoZombieBoomerPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/male_boomer_pain_1.mp3"
-    ,"left4fortress/zombie_vo/male_boomer_pain_2.mp3"
-    ,"left4fortress/zombie_vo/male_boomer_pain_3.mp3"
+    "left4fortress/zombie_vo/male_boomer_pain_1.mp3",
+    "left4fortress/zombie_vo/male_boomer_pain_2.mp3",
+    "left4fortress/zombie_vo/male_boomer_pain_3.mp3"
 };
 
 char g_sVoZombieBoomerExplode[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/male_boomer_disruptvomit_05.mp3"
-    ,"left4fortress/zombie_vo/male_boomer_disruptvomit_06.mp3"
-    ,"left4fortress/zombie_vo/male_boomer_disruptvomit_07.mp3"
+    "left4fortress/zombie_vo/male_boomer_disruptvomit_05.mp3",
+    "left4fortress/zombie_vo/male_boomer_disruptvomit_06.mp3",
+    "left4fortress/zombie_vo/male_boomer_disruptvomit_07.mp3"
 };
 
 /* Charger */
 char g_sVoZombieChargerDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/charger_spotprey_01.mp3"
-    ,"left4fortress/zombie_vo/charger_spotprey_02.mp3"
-    ,"left4fortress/zombie_vo/charger_spotprey_03.mp3"
+    "left4fortress/zombie_vo/charger_spotprey_01.mp3",
+    "left4fortress/zombie_vo/charger_spotprey_02.mp3",
+    "left4fortress/zombie_vo/charger_spotprey_03.mp3"
 };
 
 char g_sVoZombieChargerPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/charger_pain_01.mp3"
-    ,"left4fortress/zombie_vo/charger_pain_02.mp3"
-    ,"left4fortress/zombie_vo/charger_pain_03.mp3"
+    "left4fortress/zombie_vo/charger_pain_01.mp3",
+    "left4fortress/zombie_vo/charger_pain_02.mp3",
+    "left4fortress/zombie_vo/charger_pain_03.mp3"
 };
 
 char g_sVoZombieChargerCharge[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/charger_charge_01.mp3"
-    ,"left4fortress/zombie_vo/charger_charge_02.mp3"
+    "left4fortress/zombie_vo/charger_charge_01.mp3",
+    "left4fortress/zombie_vo/charger_charge_02.mp3"
 };
 
 /* Hunter */
 char g_sVoZombieHunterDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/hunter_stalk_04.mp3"
-    ,"left4fortress/zombie_vo/hunter_stalk_05.mp3"
-    ,"left4fortress/zombie_vo/hunter_stalk_06.mp3"
+    "left4fortress/zombie_vo/hunter_stalk_04.mp3",
+    "left4fortress/zombie_vo/hunter_stalk_05.mp3",
+    "left4fortress/zombie_vo/hunter_stalk_06.mp3"
 };
 
 char g_sVoZombieHunterPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/hunter_pain_12.mp3"
-    ,"left4fortress/zombie_vo/hunter_pain_13.mp3"
-    ,"left4fortress/zombie_vo/hunter_pain_14.mp3"
+    "left4fortress/zombie_vo/hunter_pain_12.mp3",
+    "left4fortress/zombie_vo/hunter_pain_13.mp3",
+    "left4fortress/zombie_vo/hunter_pain_14.mp3"
 };
 
 char g_sVoZombieHunterLeap[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/hunter_attackmix_01.mp3"
-    ,"left4fortress/zombie_vo/hunter_attackmix_02.mp3"
-    ,"left4fortress/zombie_vo/hunter_attackmix_03.mp3"
+    "left4fortress/zombie_vo/hunter_attackmix_01.mp3",
+    "left4fortress/zombie_vo/hunter_attackmix_02.mp3",
+    "left4fortress/zombie_vo/hunter_attackmix_03.mp3"
 };
 
 /* Smoker */
 char g_sVoZombieSmokerDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/smoker_lurk_11.mp3"
-    ,"left4fortress/zombie_vo/smoker_lurk_12.mp3"
-    ,"left4fortress/zombie_vo/smoker_lurk_13.mp3"
+    "left4fortress/zombie_vo/smoker_lurk_11.mp3",
+    "left4fortress/zombie_vo/smoker_lurk_12.mp3",
+    "left4fortress/zombie_vo/smoker_lurk_13.mp3"
 };
 
 char g_sVoZombieSmokerPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/smoker_pain_02.mp3"
-    ,"left4fortress/zombie_vo/smoker_pain_03.mp3"
-    ,"left4fortress/zombie_vo/smoker_pain_04.mp3"
+    "left4fortress/zombie_vo/smoker_pain_02.mp3",
+    "left4fortress/zombie_vo/smoker_pain_03.mp3",
+    "left4fortress/zombie_vo/smoker_pain_04.mp3"
 };
 
 /* Tank */
 char g_sVoZombieTankDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/tank_voice_01.mp3"
-    ,"left4fortress/zombie_vo/tank_voice_02.mp3"
-    ,"left4fortress/zombie_vo/tank_voice_03.mp3"
-    ,"left4fortress/zombie_vo/tank_voice_04.mp3"
+    "left4fortress/zombie_vo/tank_voice_01.mp3",
+    "left4fortress/zombie_vo/tank_voice_02.mp3",
+    "left4fortress/zombie_vo/tank_voice_03.mp3",
+    "left4fortress/zombie_vo/tank_voice_04.mp3"
 };
 
 char g_sVoZombieTankPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/tank_pain_01.mp3"
-    ,"left4fortress/zombie_vo/tank_pain_02.mp3"
-    ,"left4fortress/zombie_vo/tank_pain_03.mp3"
-    ,"left4fortress/zombie_vo/tank_pain_04.mp3"
+    "left4fortress/zombie_vo/tank_pain_01.mp3",
+    "left4fortress/zombie_vo/tank_pain_02.mp3",
+    "left4fortress/zombie_vo/tank_pain_03.mp3",
+    "left4fortress/zombie_vo/tank_pain_04.mp3"
 };
 
 char g_sVoZombieTankOnFire[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/tank_fire_02.mp3"
-    ,"left4fortress/zombie_vo/tank_fire_03.mp3"
-    ,"left4fortress/zombie_vo/tank_fire_04.mp3"
-    ,"left4fortress/zombie_vo/tank_fire_05.mp3"
+    "left4fortress/zombie_vo/tank_fire_02.mp3",
+    "left4fortress/zombie_vo/tank_fire_03.mp3",
+    "left4fortress/zombie_vo/tank_fire_04.mp3",
+    "left4fortress/zombie_vo/tank_fire_05.mp3"
 };
 
 char g_sVoZombieTankAttack[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/tank_attack_01.mp3"
-    ,"left4fortress/zombie_vo/tank_attack_02.mp3"
-    ,"left4fortress/zombie_vo/tank_attack_03.mp3"
-    ,"left4fortress/zombie_vo/tank_attack_04.mp3"
+    "left4fortress/zombie_vo/tank_attack_01.mp3",
+    "left4fortress/zombie_vo/tank_attack_02.mp3",
+    "left4fortress/zombie_vo/tank_attack_03.mp3",
+    "left4fortress/zombie_vo/tank_attack_04.mp3"
 };
 
 char g_sVoZombieTankDeath[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/tank_death_01.mp3"
-    ,"left4fortress/zombie_vo/tank_death_02.mp3"
-    ,"left4fortress/zombie_vo/tank_death_03.mp3"
-    ,"left4fortress/zombie_vo/tank_death_04.mp3"
+    "left4fortress/zombie_vo/tank_death_01.mp3",
+    "left4fortress/zombie_vo/tank_death_02.mp3",
+    "left4fortress/zombie_vo/tank_death_03.mp3",
+    "left4fortress/zombie_vo/tank_death_04.mp3"
 };
 
 void SoundPrecache()
