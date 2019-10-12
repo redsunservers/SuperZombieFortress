@@ -20,8 +20,7 @@ void Config_InitTemplates()
 void Config_LoadTemplates()
 {
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	if (kv == null)
-		return;
+	if (kv == null) return;
 	
 	g_aConfigMelee.Clear();
 	
@@ -50,20 +49,20 @@ void Config_LoadTemplates()
 				else
 				{
 					//Load stuffs in index
-					ConfigMelee eMelee;
+					ConfigMelee Melee;
 					
-					eMelee.iIndex = iIndex;
-					eMelee.iIndexPrefab = kv.GetNum("prefab", -1);
-					eMelee.iIndexReplace = kv.GetNum("weapon", -1);
+					Melee.iIndex = iIndex;
+					Melee.iIndexPrefab = kv.GetNum("prefab", -1);
+					Melee.iIndexReplace = kv.GetNum("weapon", -1);
 					
 					kv.GetString("text", sBuffer, sizeof(sBuffer));
-					Format(eMelee.sText, sizeof(eMelee.sText), sBuffer);
+					Format(Melee.sText, sizeof(Melee.sText), sBuffer);
 					
 					kv.GetString("attrib", sBuffer, sizeof(sBuffer));
-					Format(eMelee.sAttrib, sizeof(eMelee.sAttrib), sBuffer);
+					Format(Melee.sAttrib, sizeof(Melee.sAttrib), sBuffer);
 					
 					//Push all into arraylist
-					g_aConfigMelee.PushArray(eMelee);
+					g_aConfigMelee.PushArray(Melee);
 				}
 			} 
 			while (kv.GotoNextKey(false));
@@ -78,8 +77,7 @@ void Config_LoadTemplates()
 ArrayList Config_LoadWeaponData()
 {
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	if (kv == null)
-		return null;
+	if (kv == null) return null;
 	
 	static StringMap mRarity;
 	if (mRarity == null)
@@ -105,9 +103,7 @@ ArrayList Config_LoadWeaponData()
 				char sBuffer[256];
 				kv.GetSectionName(sBuffer, sizeof(sBuffer));
 				
-				int index = StringToInt(sBuffer);
-					
-				wep.iIndex = index;
+				wep.iIndex = StringToInt(sBuffer);
 				
 				kv.GetString("rarity", sBuffer, sizeof(sBuffer), "common");
 				CStrToLower(sBuffer);
@@ -165,9 +161,8 @@ ArrayList Config_LoadWeaponData()
 StringMap Config_LoadWeaponReskinData()
 {
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	if (kv == null)
-		return null;
-		
+	if (kv == null) return null;
+	
 	StringMap mReskin = new StringMap();
 	
 	if (kv.JumpToKey("reskin", false))
@@ -203,7 +198,7 @@ KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)
 	
 	KeyValues kv = new KeyValues(sConfigSection);
 	kv.SetEscapeSequences(true);
-
+	
 	if(!kv.ImportFromFile(sConfigPath))
 	{
 		LogMessage("Failed to parse SZF config file: %s!", sConfigPath);

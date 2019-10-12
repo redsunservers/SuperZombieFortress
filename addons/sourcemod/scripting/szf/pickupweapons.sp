@@ -30,7 +30,7 @@ void Weapons_Setup()
 	HookEvent("teamplay_round_start", Event_WeaponsRoundStart);
 	HookEvent("player_spawn", Event_ResetPickup);
 	HookEvent("player_death", Event_ResetPickup);
-
+	
 	g_cWeaponsPicked = new Cookie("weaponspicked", "is this the flowey map?", CookieAccess_Protected);
 	g_cWeaponsRarePicked = new Cookie("weaponsrarepicked", "is this the flowey map?", CookieAccess_Protected);
 	g_cWeaponsCalled = new Cookie("weaponscalled", "is this the flowey map?", CookieAccess_Protected);
@@ -77,7 +77,6 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 					continue;
 				}
 			}
-			
 			case WeaponType_Rare:
 			{
 				//If rare weapon cap is unreached, make it a "rare" weapon
@@ -86,19 +85,16 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 					SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
 					iRare++;
 				}
-
 				//Else make it a uncommon weapon
 				else
 				{
 					SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
 				}
 			}
-			
 			case WeaponType_RareSpawn:
 			{
 				SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
 			}
-			
 			case WeaponType_Default, WeaponType_DefaultNoPickup:
 			{
 				//If rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
@@ -126,7 +122,6 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 						SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
 				}
 			}
-			
 			case WeaponType_Static, WeaponType_StaticSpawn:
 			{
 				//Check if there reskin weapons to replace
@@ -137,7 +132,6 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 				if (iIndex >= 0)
 					Weapons_ReplaceEntityModel(iEntity, iIndex);
 			}
-			
 			default:	//Not a SZF weapon
 			{
 				continue;
@@ -146,13 +140,13 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 		
 		AcceptEntityInput(iEntity, "DisableShadow");
 		AcceptEntityInput(iEntity, "EnableCollision");
-
+		
 		//Relocate weapon to higher height, looks much better
 		float flPosition[3];
 		GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", flPosition);
 		flPosition[2] += 0.8;
 		TeleportEntity(iEntity, flPosition, NULL_VECTOR, NULL_VECTOR);
-
+		
 		g_bTriggerEntity[iEntity] = true; //Indicate reset of the OnUser triggers
 	}
 	
@@ -162,7 +156,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadcast)
 {
 	int iClient = GetClientOfUserId(event.GetInt("userid"));
-
+	
 	if (IsValidClient(iClient))
 	{
 		g_bCanPickup[iClient] = true;
@@ -176,7 +170,7 @@ bool AttemptGrabItem(int iClient)
 	if (!g_bCanPickup[iClient]) return false;
 	
 	int iTarget = GetClientPointVisible(iClient);
-
+	
 	if (iTarget <= 0 || !IsClassname(iTarget, "prop_dynamic") || GetWeaponType(iTarget) == WeaponType_Invalid)
 		return false;
 	
@@ -216,7 +210,7 @@ bool AttemptGrabItem(int iClient)
 	{
 		char sClient[128];
 		GetClientName2(iClient, sClient, sizeof(sClient));
-
+		
 		if (iIndex == 9 || iIndex == 10 || iIndex == 12)	//Shotgun
 		{
 			switch (TF2_GetPlayerClass(iClient))
@@ -281,7 +275,7 @@ bool AttemptGrabItem(int iClient)
 			Call_Finish();
 		}
 	}
-
+	
 	return false;
 }
 
@@ -291,7 +285,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		EmitSoundToClient(iClient, "ui/item_heavy_gun_pickup.wav");
 	else
 		EmitSoundToClient(iClient, wep.sSound);
-
+	
 	g_bCanPickup[iClient] = false;
 	CreateTimer(PICKUP_COOLDOWN, Timer_ResetPickup, iClient);
 	
@@ -309,15 +303,15 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	}
 	
 	EmitSoundToAll(sSound, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-
+	
 	int iSlot = TF2Econ_GetItemSlot(wep.iIndex, nClass);
-
+	
 	if (GetWeaponType(iTarget) != WeaponType_Spawn
 	&& GetWeaponType(iTarget) != WeaponType_RareSpawn
 	&& GetWeaponType(iTarget) != WeaponType_StaticSpawn)
 	{
 		Weapon oldwep;
-
+		
 		int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
 		if (!IsValidEdict(iEntity))
 		{
@@ -339,10 +333,9 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		if (oldwep.iIndex > 0)
 		{
 			EmitSoundToClient(iClient, "ui/item_heavy_gun_drop.wav");
-			
 			SetWeaponModel(iTarget, oldwep);
 		}
-
+		
 		else
 		{
 			AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
@@ -429,13 +422,13 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		data.WriteCell(iClient);
 		data.WriteFloat(2.5);
 		data.WriteString("You have picked up a weapon.");
-
+		
 		CreateDataTimer(3.0, Timer_DisplayTutorialMessage, data);
 		data.WriteCell(iClient);
 		data.WriteFloat(3.5);
 		data.WriteString("Finding weapons is crucial to ensure survival.");
 	}
-
+	
 	//Trigger ENT_ONPICKUP
 	if (g_bTriggerEntity[iTarget])
 	{
@@ -460,7 +453,7 @@ stock WeaponType GetWeaponType(int iEntity)
 {
 	char sName[255];
 	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
-
+	
 	//Strcontains versus strequals on 2048 entities obviously shows strcontains as the winner
 	if (StrContains(sName, "szf_weapon_spawn", false) == 0) return WeaponType_Spawn; //Spawn: dont expire on pickup
 	else if (StrContains(sName, "szf_weapon_rare_spawn", false) == 0) return WeaponType_RareSpawn; //Guaranteed rare and non-expiring
@@ -477,7 +470,7 @@ stock void SetRandomPickup(int iEntity)
 {
 	//Reset angle
 	float vecAngles[3];
-
+	
 	TeleportEntity(iEntity, NULL_VECTOR, vecAngles, NULL_VECTOR);
 	SetRandomWeapon(iEntity, eWeaponsRarity_Pickup);
 }
@@ -544,11 +537,11 @@ stock void SetWeaponModel(int iEntity, Weapon wep)
 		float vecDirection[3];
 		GetAngleVectors(vecAngles, vecDirection, NULL_VECTOR, NULL_VECTOR);
 		ScaleVector(vecDirection, 64.0);
-
+		
 		vecOrigin[0] -= vecDirection[1] * Sine(DegToRad(vecAngles[2]));
 		vecOrigin[1] += vecDirection[0] * Sine(DegToRad(vecAngles[2]));
 		vecOrigin[2] -= 64.0 * Cosine(DegToRad(vecAngles[2]));
-
+		
 		TeleportEntity(iEntity, vecOrigin, NULL_VECTOR, NULL_VECTOR);
 	}
 }

@@ -367,231 +367,231 @@ char g_sVoTankMedic[][PLATFORM_MAX_PATH] =
 /* Sniper -- does not have tank lines */
 char g_sVoCarrySniper[][PLATFORM_MAX_PATH] =
 {
-    "vo/sniper_autocappedcontrolpoint01.mp3",
-    "vo/sniper_autocappedcontrolpoint02.mp3",
-    "vo/sniper_autocappedcontrolpoint03.mp3",
-    "vo/sniper_autocappedintelligence01.mp3",
-    "vo/sniper_autocappedintelligence02.mp3",
-    "vo/sniper_autocappedintelligence04.mp3",
-    "vo/sniper_autocappedintelligence05.mp3",
-    "vo/sniper_award01.mp3",
-    "vo/sniper_award06.mp3",
-    "vo/sniper_award07.mp3",
-    "vo/sniper_award08.mp3",
-    "vo/sniper_award11.mp3",
-    "vo/sniper_award12.mp3",
-    "vo/sniper_award13.mp3",
-    "vo/sniper_battlecry02.mp3",
-    "vo/sniper_go03.mp3",
-    "vo/sniper_helpmecapture01.mp3",
-    "vo/sniper_laughevil01.mp3",
-    "vo/sniper_laughevil02.mp3",
-    "vo/sniper_moveup01.mp3",
-    "vo/sniper_specialweapon02.mp3",
-    "vo/sniper_specialweapon05.mp3",
-    "vo/sniper_specialweapon07.mp3",
-    "vo/sniper_specialweapon09.mp3"
+	"vo/sniper_autocappedcontrolpoint01.mp3",
+	"vo/sniper_autocappedcontrolpoint02.mp3",
+	"vo/sniper_autocappedcontrolpoint03.mp3",
+	"vo/sniper_autocappedintelligence01.mp3",
+	"vo/sniper_autocappedintelligence02.mp3",
+	"vo/sniper_autocappedintelligence04.mp3",
+	"vo/sniper_autocappedintelligence05.mp3",
+	"vo/sniper_award01.mp3",
+	"vo/sniper_award06.mp3",
+	"vo/sniper_award07.mp3",
+	"vo/sniper_award08.mp3",
+	"vo/sniper_award11.mp3",
+	"vo/sniper_award12.mp3",
+	"vo/sniper_award13.mp3",
+	"vo/sniper_battlecry02.mp3",
+	"vo/sniper_go03.mp3",
+	"vo/sniper_helpmecapture01.mp3",
+	"vo/sniper_laughevil01.mp3",
+	"vo/sniper_laughevil02.mp3",
+	"vo/sniper_moveup01.mp3",
+	"vo/sniper_specialweapon02.mp3",
+	"vo/sniper_specialweapon05.mp3",
+	"vo/sniper_specialweapon07.mp3",
+	"vo/sniper_specialweapon09.mp3"
 };
 
 char g_sVoWeaponSniper[][PLATFORM_MAX_PATH] =
 {
-    "vo/sniper_specialweapon01.mp3",
-    "vo/sniper_specialweapon02.mp3",
-    "vo/sniper_specialweapon03.mp3",
-    "vo/sniper_specialweapon04.mp3",
-    "vo/sniper_specialweapon05.mp3",
-    "vo/sniper_specialweapon06.mp3",
-    "vo/sniper_specialweapon07.mp3",
-    "vo/sniper_specialweapon08.mp3",
-    "vo/sniper_specialweapon09.mp3"
+	"vo/sniper_specialweapon01.mp3",
+	"vo/sniper_specialweapon02.mp3",
+	"vo/sniper_specialweapon03.mp3",
+	"vo/sniper_specialweapon04.mp3",
+	"vo/sniper_specialweapon05.mp3",
+	"vo/sniper_specialweapon06.mp3",
+	"vo/sniper_specialweapon07.mp3",
+	"vo/sniper_specialweapon08.mp3",
+	"vo/sniper_specialweapon09.mp3"
 };
 
 /* Common Infected */
 char g_sVoZombieCommonDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/idle_breath_01.mp3",
-    "left4fortress/zombie_vo/idle_breath_02.mp3",
-    "left4fortress/zombie_vo/idle_breath_03.mp3",
-    "left4fortress/zombie_vo/idle_breath_04.mp3"
+	"left4fortress/zombie_vo/idle_breath_01.mp3",
+	"left4fortress/zombie_vo/idle_breath_02.mp3",
+	"left4fortress/zombie_vo/idle_breath_03.mp3",
+	"left4fortress/zombie_vo/idle_breath_04.mp3"
 };
 
 char g_sVoZombieCommonPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/been_shot_12.mp3",
-    "left4fortress/zombie_vo/been_shot_13.mp3",
-    "left4fortress/zombie_vo/been_shot_14.mp3",
-    "left4fortress/zombie_vo/been_shot_18.mp3",
-    "left4fortress/zombie_vo/been_shot_19.mp3",
-    "left4fortress/zombie_vo/been_shot_20.mp3",
-    "left4fortress/zombie_vo/been_shot_21.mp3",
-    "left4fortress/zombie_vo/been_shot_22.mp3",
-    "left4fortress/zombie_vo/been_shot_24.mp3"
+	"left4fortress/zombie_vo/been_shot_12.mp3",
+	"left4fortress/zombie_vo/been_shot_13.mp3",
+	"left4fortress/zombie_vo/been_shot_14.mp3",
+	"left4fortress/zombie_vo/been_shot_18.mp3",
+	"left4fortress/zombie_vo/been_shot_19.mp3",
+	"left4fortress/zombie_vo/been_shot_20.mp3",
+	"left4fortress/zombie_vo/been_shot_21.mp3",
+	"left4fortress/zombie_vo/been_shot_22.mp3",
+	"left4fortress/zombie_vo/been_shot_24.mp3"
 };
 
 char g_sVoZombieCommonRage[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/rage_at_victim21.mp3",
-    "left4fortress/zombie_vo/rage_at_victim22.mp3",
-    "left4fortress/zombie_vo/rage_at_victim25.mp3",
-    "left4fortress/zombie_vo/rage_at_victim26.mp3"
+	"left4fortress/zombie_vo/rage_at_victim21.mp3",
+	"left4fortress/zombie_vo/rage_at_victim22.mp3",
+	"left4fortress/zombie_vo/rage_at_victim25.mp3",
+	"left4fortress/zombie_vo/rage_at_victim26.mp3"
 };
 
 char g_sVoZombieCommonMumbling[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/mumbling01.mp3",
-    "left4fortress/zombie_vo/mumbling02.mp3",
-    "left4fortress/zombie_vo/mumbling03.mp3",
-    "left4fortress/zombie_vo/mumbling04.mp3",
-    "left4fortress/zombie_vo/mumbling05.mp3",
-    "left4fortress/zombie_vo/mumbling06.mp3",
-    "left4fortress/zombie_vo/mumbling07.mp3",
-    "left4fortress/zombie_vo/mumbling08.mp3"
+	"left4fortress/zombie_vo/mumbling01.mp3",
+	"left4fortress/zombie_vo/mumbling02.mp3",
+	"left4fortress/zombie_vo/mumbling03.mp3",
+	"left4fortress/zombie_vo/mumbling04.mp3",
+	"left4fortress/zombie_vo/mumbling05.mp3",
+	"left4fortress/zombie_vo/mumbling06.mp3",
+	"left4fortress/zombie_vo/mumbling07.mp3",
+	"left4fortress/zombie_vo/mumbling08.mp3"
 };
 
 char g_sVoZombieCommonShoved[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/shoved_1.mp3",
-    "left4fortress/zombie_vo/shoved_2.mp3",
-    "left4fortress/zombie_vo/shoved_3.mp3",
-    "left4fortress/zombie_vo/shoved_4.mp3"
+	"left4fortress/zombie_vo/shoved_1.mp3",
+	"left4fortress/zombie_vo/shoved_2.mp3",
+	"left4fortress/zombie_vo/shoved_3.mp3",
+	"left4fortress/zombie_vo/shoved_4.mp3"
 };
 
 char g_sVoZombieCommonDeath[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/death_22.mp3",
-    "left4fortress/zombie_vo/death_23.mp3",
-    "left4fortress/zombie_vo/death_24.mp3",
-    "left4fortress/zombie_vo/death_25.mp3",
-    "left4fortress/zombie_vo/death_26.mp3",
-    "left4fortress/zombie_vo/death_27.mp3",
-    "left4fortress/zombie_vo/death_28.mp3",
-    "left4fortress/zombie_vo/death_29.mp3"
+	"left4fortress/zombie_vo/death_22.mp3",
+	"left4fortress/zombie_vo/death_23.mp3",
+	"left4fortress/zombie_vo/death_24.mp3",
+	"left4fortress/zombie_vo/death_25.mp3",
+	"left4fortress/zombie_vo/death_26.mp3",
+	"left4fortress/zombie_vo/death_27.mp3",
+	"left4fortress/zombie_vo/death_28.mp3",
+	"left4fortress/zombie_vo/death_29.mp3"
 };
 
 /* Boomer */
 char g_sVoZombieBoomerDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/male_boomer_lurk_02.mp3",
-    "left4fortress/zombie_vo/male_boomer_lurk_03.mp3",
-    "left4fortress/zombie_vo/male_boomer_lurk_04.mp3",
+	"left4fortress/zombie_vo/male_boomer_lurk_02.mp3",
+	"left4fortress/zombie_vo/male_boomer_lurk_03.mp3",
+	"left4fortress/zombie_vo/male_boomer_lurk_04.mp3",
 };
 
 char g_sVoZombieBoomerPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/male_boomer_pain_1.mp3",
-    "left4fortress/zombie_vo/male_boomer_pain_2.mp3",
-    "left4fortress/zombie_vo/male_boomer_pain_3.mp3"
+	"left4fortress/zombie_vo/male_boomer_pain_1.mp3",
+	"left4fortress/zombie_vo/male_boomer_pain_2.mp3",
+	"left4fortress/zombie_vo/male_boomer_pain_3.mp3"
 };
 
 char g_sVoZombieBoomerExplode[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/male_boomer_disruptvomit_05.mp3",
-    "left4fortress/zombie_vo/male_boomer_disruptvomit_06.mp3",
-    "left4fortress/zombie_vo/male_boomer_disruptvomit_07.mp3"
+	"left4fortress/zombie_vo/male_boomer_disruptvomit_05.mp3",
+	"left4fortress/zombie_vo/male_boomer_disruptvomit_06.mp3",
+	"left4fortress/zombie_vo/male_boomer_disruptvomit_07.mp3"
 };
 
 /* Charger */
 char g_sVoZombieChargerDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/charger_spotprey_01.mp3",
-    "left4fortress/zombie_vo/charger_spotprey_02.mp3",
-    "left4fortress/zombie_vo/charger_spotprey_03.mp3"
+	"left4fortress/zombie_vo/charger_spotprey_01.mp3",
+	"left4fortress/zombie_vo/charger_spotprey_02.mp3",
+	"left4fortress/zombie_vo/charger_spotprey_03.mp3"
 };
 
 char g_sVoZombieChargerPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/charger_pain_01.mp3",
-    "left4fortress/zombie_vo/charger_pain_02.mp3",
-    "left4fortress/zombie_vo/charger_pain_03.mp3"
+	"left4fortress/zombie_vo/charger_pain_01.mp3",
+	"left4fortress/zombie_vo/charger_pain_02.mp3",
+	"left4fortress/zombie_vo/charger_pain_03.mp3"
 };
 
 char g_sVoZombieChargerCharge[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/charger_charge_01.mp3",
-    "left4fortress/zombie_vo/charger_charge_02.mp3"
+	"left4fortress/zombie_vo/charger_charge_01.mp3",
+	"left4fortress/zombie_vo/charger_charge_02.mp3"
 };
 
 /* Hunter */
 char g_sVoZombieHunterDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/hunter_stalk_04.mp3",
-    "left4fortress/zombie_vo/hunter_stalk_05.mp3",
-    "left4fortress/zombie_vo/hunter_stalk_06.mp3"
+	"left4fortress/zombie_vo/hunter_stalk_04.mp3",
+	"left4fortress/zombie_vo/hunter_stalk_05.mp3",
+	"left4fortress/zombie_vo/hunter_stalk_06.mp3"
 };
 
 char g_sVoZombieHunterPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/hunter_pain_12.mp3",
-    "left4fortress/zombie_vo/hunter_pain_13.mp3",
-    "left4fortress/zombie_vo/hunter_pain_14.mp3"
+	"left4fortress/zombie_vo/hunter_pain_12.mp3",
+	"left4fortress/zombie_vo/hunter_pain_13.mp3",
+	"left4fortress/zombie_vo/hunter_pain_14.mp3"
 };
 
 char g_sVoZombieHunterLeap[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/hunter_attackmix_01.mp3",
-    "left4fortress/zombie_vo/hunter_attackmix_02.mp3",
-    "left4fortress/zombie_vo/hunter_attackmix_03.mp3"
+	"left4fortress/zombie_vo/hunter_attackmix_01.mp3",
+	"left4fortress/zombie_vo/hunter_attackmix_02.mp3",
+	"left4fortress/zombie_vo/hunter_attackmix_03.mp3"
 };
 
 /* Smoker */
 char g_sVoZombieSmokerDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/smoker_lurk_11.mp3",
-    "left4fortress/zombie_vo/smoker_lurk_12.mp3",
-    "left4fortress/zombie_vo/smoker_lurk_13.mp3"
+	"left4fortress/zombie_vo/smoker_lurk_11.mp3",
+	"left4fortress/zombie_vo/smoker_lurk_12.mp3",
+	"left4fortress/zombie_vo/smoker_lurk_13.mp3"
 };
 
 char g_sVoZombieSmokerPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/smoker_pain_02.mp3",
-    "left4fortress/zombie_vo/smoker_pain_03.mp3",
-    "left4fortress/zombie_vo/smoker_pain_04.mp3"
+	"left4fortress/zombie_vo/smoker_pain_02.mp3",
+	"left4fortress/zombie_vo/smoker_pain_03.mp3",
+	"left4fortress/zombie_vo/smoker_pain_04.mp3"
 };
 
 /* Tank */
 char g_sVoZombieTankDefault[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/tank_voice_01.mp3",
-    "left4fortress/zombie_vo/tank_voice_02.mp3",
-    "left4fortress/zombie_vo/tank_voice_03.mp3",
-    "left4fortress/zombie_vo/tank_voice_04.mp3"
+	"left4fortress/zombie_vo/tank_voice_01.mp3",
+	"left4fortress/zombie_vo/tank_voice_02.mp3",
+	"left4fortress/zombie_vo/tank_voice_03.mp3",
+	"left4fortress/zombie_vo/tank_voice_04.mp3"
 };
 
 char g_sVoZombieTankPain[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/tank_pain_01.mp3",
-    "left4fortress/zombie_vo/tank_pain_02.mp3",
-    "left4fortress/zombie_vo/tank_pain_03.mp3",
-    "left4fortress/zombie_vo/tank_pain_04.mp3"
+	"left4fortress/zombie_vo/tank_pain_01.mp3",
+	"left4fortress/zombie_vo/tank_pain_02.mp3",
+	"left4fortress/zombie_vo/tank_pain_03.mp3",
+	"left4fortress/zombie_vo/tank_pain_04.mp3"
 };
 
 char g_sVoZombieTankOnFire[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/tank_fire_02.mp3",
-    "left4fortress/zombie_vo/tank_fire_03.mp3",
-    "left4fortress/zombie_vo/tank_fire_04.mp3",
-    "left4fortress/zombie_vo/tank_fire_05.mp3"
+	"left4fortress/zombie_vo/tank_fire_02.mp3",
+	"left4fortress/zombie_vo/tank_fire_03.mp3",
+	"left4fortress/zombie_vo/tank_fire_04.mp3",
+	"left4fortress/zombie_vo/tank_fire_05.mp3"
 };
 
 char g_sVoZombieTankAttack[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/tank_attack_01.mp3",
-    "left4fortress/zombie_vo/tank_attack_02.mp3",
-    "left4fortress/zombie_vo/tank_attack_03.mp3",
-    "left4fortress/zombie_vo/tank_attack_04.mp3"
+	"left4fortress/zombie_vo/tank_attack_01.mp3",
+	"left4fortress/zombie_vo/tank_attack_02.mp3",
+	"left4fortress/zombie_vo/tank_attack_03.mp3",
+	"left4fortress/zombie_vo/tank_attack_04.mp3"
 };
 
 char g_sVoZombieTankDeath[][PLATFORM_MAX_PATH] =
 {
-    "left4fortress/zombie_vo/tank_death_01.mp3",
-    "left4fortress/zombie_vo/tank_death_02.mp3",
-    "left4fortress/zombie_vo/tank_death_03.mp3",
-    "left4fortress/zombie_vo/tank_death_04.mp3"
+	"left4fortress/zombie_vo/tank_death_01.mp3",
+	"left4fortress/zombie_vo/tank_death_02.mp3",
+	"left4fortress/zombie_vo/tank_death_03.mp3",
+	"left4fortress/zombie_vo/tank_death_04.mp3"
 };
 
 void SoundPrecache()
-{    
-    //For left4fortress sounds, we need to use both precache and add to download table to each sounds
+{	
+	//For left4fortress sounds, we need to use both precache and add to download table to each sounds
 	for (int i = 0; i < sizeof(g_sSoundHeartSlow); i++) PrecacheSound2(g_sSoundHeartSlow[i]);
 	for (int i = 0; i < sizeof(g_sSoundHeartMedium); i++) PrecacheSound2(g_sSoundHeartMedium[i]);
 	for (int i = 0; i < sizeof(g_sSoundHeartFast); i++) PrecacheSound2(g_sSoundHeartFast[i]);
@@ -640,31 +640,31 @@ void SoundPrecache()
 	
 	for (int i = 0; i < sizeof(g_sVoCarrySniper); i++) PrecacheSound(g_sVoCarrySniper[i]);
 	for (int i = 0; i < sizeof(g_sVoWeaponSniper); i++) PrecacheSound(g_sVoWeaponSniper[i]);
-    
-    //---//
-    
+	
+	//---//
+	
 	for (int i = 0; i < sizeof(g_sVoZombieCommonDefault); i++) PrecacheSound2(g_sVoZombieCommonDefault[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieCommonPain); i++) PrecacheSound2(g_sVoZombieCommonPain[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieCommonRage); i++) PrecacheSound2(g_sVoZombieCommonRage[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieCommonMumbling); i++) PrecacheSound2(g_sVoZombieCommonMumbling[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieCommonShoved); i++) PrecacheSound2(g_sVoZombieCommonShoved[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieCommonDeath); i++) PrecacheSound2(g_sVoZombieCommonDeath[i]);
-
+	
 	for (int i = 0; i < sizeof(g_sVoZombieBoomerDefault); i++) PrecacheSound2(g_sVoZombieBoomerDefault[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieBoomerPain); i++) PrecacheSound2(g_sVoZombieBoomerPain[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieBoomerExplode); i++) PrecacheSound2(g_sVoZombieBoomerExplode[i]);
-
+	
 	for (int i = 0; i < sizeof(g_sVoZombieChargerDefault); i++) PrecacheSound2(g_sVoZombieChargerDefault[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieChargerPain); i++) PrecacheSound2(g_sVoZombieChargerPain[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieChargerCharge); i++) PrecacheSound2(g_sVoZombieChargerCharge[i]);
-
+	
 	for (int i = 0; i < sizeof(g_sVoZombieHunterDefault); i++) PrecacheSound2(g_sVoZombieHunterDefault[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieHunterPain); i++) PrecacheSound2(g_sVoZombieHunterPain[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieHunterLeap); i++) PrecacheSound2(g_sVoZombieHunterLeap[i]);
-
+	
 	for (int i = 0; i < sizeof(g_sVoZombieSmokerDefault); i++) PrecacheSound2(g_sVoZombieSmokerDefault[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieSmokerPain); i++) PrecacheSound2(g_sVoZombieSmokerPain[i]);
-
+	
 	for (int i = 0; i < sizeof(g_sVoZombieTankDefault); i++) PrecacheSound2(g_sVoZombieTankDefault[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieTankPain); i++) PrecacheSound2(g_sVoZombieTankPain[i]);
 	for (int i = 0; i < sizeof(g_sVoZombieTankOnFire); i++) PrecacheSound2(g_sVoZombieTankOnFire[i]);
@@ -712,7 +712,7 @@ void PlaySound(int iClient, Sound nSound, float flTimer = 0.0)
 	//Get sound we want to play
 	char sPath[PLATFORM_MAX_PATH];
 	GetRandomSound(nSound, sPath, sizeof(sPath));
-		
+	
 	//Play sound to client
 	if (IsClientInGame(iClient))
 	{
@@ -802,11 +802,11 @@ void SoundAttack(int iVictim, int iAttacker)
 
 void SoundTimer()	//This timer fires every 1 second from timer_main
 {
-	for (int i = 1; i <= MaxClients; i++)
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		Sound nCurrentSound = GetCurrentSound(i);
+		Sound nCurrentSound = GetCurrentSound(iClient);
 		SoundType nCurrentSoundType = GetSoundType(nCurrentSound);
-		if (IsValidSurvivor(i))	//Zombies is already spooky enough, dont need to give him more spooky sounds
+		if (IsValidSurvivor(iClient))	//Zombies is already spooky enough, dont need to give him more spooky sounds
 		{
 			if (nCurrentSoundType == SoundType_None || (nCurrentSoundType == SoundType_Quiet && nCurrentSound != SoundQuiet_Rabies))
 			{
@@ -815,13 +815,13 @@ void SoundTimer()	//This timer fires every 1 second from timer_main
 				float flDistance;
 				
 				float vecClientOrigin[3], vecOrigin[3]; 
-				GetClientAbsOrigin(i, vecClientOrigin);
+				GetClientAbsOrigin(iClient, vecClientOrigin);
 				
-				for (int j = 1; j <= MaxClients; j++)
+				for (int i = 1; i <= MaxClients; i++)
 				{
-					if (IsValidLivingZombie(j) && TF2_GetPlayerClass(j) != TFClass_Spy)	//Check if it a zombie and not spy, spy being sneaky boi
+					if (IsValidLivingZombie(i) && TF2_GetPlayerClass(i) != TFClass_Spy)	//Check if it a zombie and not spy, spy being sneaky boi
 					{
-						GetClientAbsOrigin(j, vecOrigin);
+						GetClientAbsOrigin(i, vecOrigin);
 						flDistance = GetVectorDistance(vecClientOrigin, vecOrigin);
 						if (flDistance < flNearestDistance)
 							flNearestDistance = flDistance;
@@ -854,7 +854,7 @@ void SoundTimer()	//This timer fires every 1 second from timer_main
 				
 				//If current sound is the same, no point playing it again
 				if (nSound != nCurrentSound)
-					PlaySound(i, nSound, flDuration);
+					PlaySound(iClient, nSound, flDuration);
 			}
 		}
 	}
@@ -950,7 +950,7 @@ public Action Command_MusicToggle(int iClient, int iArgs)
 	if (IsValidClient(iClient))
 	{
 		char sPreference[32];
-
+		
 		if (g_bNoMusicForClient[iClient])
 		{
 			g_bNoMusicForClient[iClient] = false;
@@ -961,10 +961,10 @@ public Action Command_MusicToggle(int iClient, int iArgs)
 			g_bNoMusicForClient[iClient] = true;
 			CPrintToChat(iClient, "{limegreen}Music has been disabled.");
 		}
-
+		
 		Format(sPreference, sizeof(sPreference), "%d", g_bNoMusicForClient[iClient]);
 		SetClientCookie(iClient, g_cNoMusicForPlayer, sPreference);
 	}
-
+	
 	return Plugin_Handled;
 }

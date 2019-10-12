@@ -59,7 +59,20 @@ enum Infected
 	Infected_Smoker,
 }
 
+enum struct GooInfo
+{
+	float vecOrigin[3];
+	int iAttacker;
+	int iGooId;
+}
+
 SZFRoundState g_nRoundState = SZFRoundState_Setup;
+
+Infected g_nInfected[TF_MAXPLAYERS];
+Infected g_nNextInfected[TF_MAXPLAYERS];
+
+ArrayList g_aGoo;
+int g_iGooId;
 
 TFTeam TFTeam_Zombie = TFTeam_Blue;
 TFTeam TFTeam_Survivor = TFTeam_Red;
@@ -175,18 +188,8 @@ float g_flTankCooldown;
 float g_flRageCooldown;
 float g_flRageRespawnStress;
 float g_flInfectedCooldown[view_as<int>(Infected)];	//GameTime
-int g_iInfectedCooldown[view_as<int>(Infected)];			//Client who started the cooldown
+int g_iInfectedCooldown[view_as<int>(Infected)];	//Client who started the cooldown
 float g_flSelectSpecialCooldown;
-
-enum struct GooInfo
-{
-	float vecOrigin[3];
-	int iAttacker;
-	int iGooId;
-}
-
-ArrayList g_aGoo;
-int g_iGooId;
 
 bool g_bZombieRage;
 int g_iZombieTank;
@@ -198,8 +201,6 @@ bool g_bHopperIsUsingPounce[TF_MAXPLAYERS];
 float g_flGooCooldown[TF_MAXPLAYERS];
 
 bool g_bSpawnAsSpecialInfected[TF_MAXPLAYERS];
-Infected g_nInfected[TF_MAXPLAYERS];
-Infected g_nNextInfected[TF_MAXPLAYERS];
 int g_iKillsThisLife[TF_MAXPLAYERS];
 int g_iEyelanderHead[TF_MAXPLAYERS];
 int g_iMaxHealth[TF_MAXPLAYERS];
@@ -392,14 +393,14 @@ public void OnPluginEnd()
 			EndSound(iClient);
 }
 
-public Action Command_Build(int client, const char[] command, int argc)
+public Action Command_Build(int iClient, const char[] sCommand, int iArgs)
 {
-	if (!client) return Plugin_Continue;
+	if (!iClient) return Plugin_Continue;
 
 	//Get arguments
-	char sObjectMode[32];
-	GetCmdArg(1, sObjectMode, sizeof(sObjectMode));
-	TFObjectType nObjectType = view_as<TFObjectType>(StringToInt(sObjectMode));
+	char sObjectType[32];
+	GetCmdArg(1, sObjectType, sizeof(sObjectType));
+	TFObjectType nObjectType = view_as<TFObjectType>(StringToInt(sObjectType));
 
 	//if not sentry or dispenser, then block building
 	if (nObjectType != TFObject_Dispenser && nObjectType != TFObject_Sentry)
@@ -411,9 +412,9 @@ public Action Command_Build(int client, const char[] command, int argc)
 public Action Command_ZombieRage(int iArgs)
 {
 	char sDuration[256];
-	
 	GetCmdArgString(sDuration, sizeof(sDuration));
 	float flDuration = StringToFloat(sDuration);
+	
 	ZombieRage(flDuration);
 	
 	return Plugin_Handled;
@@ -422,6 +423,7 @@ public Action Command_ZombieRage(int iArgs)
 public Action Command_Tank(int iArgs)
 {
 	ZombieTank();
+	
 	return Plugin_Handled;
 }
 
@@ -482,20 +484,21 @@ public Action Admin_ZombieTank(int iClient, int iArgs)
 public Action Admin_ZombieRage(int iClient, int iArgs)
 {
 	ZombieRage();
+	
 	return Plugin_Handled;
 }
 
-public any Native_GetSurvivorTeam(Handle plugin, int numParams)
+public any Native_GetSurvivorTeam(Handle hPlugin, int iNumParams)
 {
 	return TFTeam_Survivor;
 }
 
-public any Native_GetZombieTeam(Handle plugin, int numParams)
+public any Native_GetZombieTeam(Handle hPlugin, int iNumParams)
 {
 	return TFTeam_Zombie;
 }
 
-public any Native_GetLastSurvivor(Handle plugin, int numParams)
+public any Native_GetLastSurvivor(Handle hPlugin, int iNumParams)
 {
 	if (!g_bLastSurvivor)
 		return 0;
@@ -507,7 +510,7 @@ public any Native_GetLastSurvivor(Handle plugin, int numParams)
 	return 0;
 }
 
-public any Native_GetWeaponPickupCount(Handle plugin, int numParams)
+public any Native_GetWeaponPickupCount(Handle hPlugin, int iNumParams)
 {
 	int iClient = GetNativeCell(1);
 	if (iClient <= 0 || iClient > MaxClients)
@@ -518,7 +521,7 @@ public any Native_GetWeaponPickupCount(Handle plugin, int numParams)
 	return GetCookie(iClient, g_cWeaponsPicked);
 }
 
-public any Native_GetWeaponRarePickupCount(Handle plugin, int numParams)
+public any Native_GetWeaponRarePickupCount(Handle hPlugin, int iNumParams)
 {
 	int iClient = GetNativeCell(1);
 	if (iClient <= 0 || iClient > MaxClients)
@@ -529,7 +532,7 @@ public any Native_GetWeaponRarePickupCount(Handle plugin, int numParams)
 	return GetCookie(iClient, g_cWeaponsRarePicked);
 }
 
-public any Native_GetWeaponCalloutCount(Handle plugin, int numParams)
+public any Native_GetWeaponCalloutCount(Handle hPlugin, int iNumParams)
 {
 	int iClient = GetNativeCell(1);
 	if (iClient <= 0 || iClient > MaxClients)
@@ -580,7 +583,7 @@ public void OnMapEnd()
 	
 	g_nRoundState = SZFRoundState_End;
 	SZFDisable();
-
+	
 	UnhookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
 	UnhookEntityOutput("math_counter", "OutValue", OnCounterValue);
 }
@@ -593,21 +596,21 @@ void GetMapSettings()
 		char sTargetName[64];
 		GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
 		if (StrContains(sTargetName, "szf_survivalmode", false) == 0) g_bSurvival = true;
-		if (StrContains(sTargetName, "szf_nomusic", false) == 0) g_bNoMusic = true;
-		if (StrContains(sTargetName, "szf_director_notank", false) == 0) g_bNoDirectorTanks = true;
-		if (StrContains(sTargetName, "szf_director_norage", false) == 0) g_bNoDirectorRages = true;
-		if (StrContains(sTargetName, "szf_director_spawnteleport", false) == 0) g_bDirectorSpawnTeleport = true;
+		else if (StrContains(sTargetName, "szf_nomusic", false) == 0) g_bNoMusic = true;
+		else if (StrContains(sTargetName, "szf_director_notank", false) == 0) g_bNoDirectorTanks = true;
+		else if (StrContains(sTargetName, "szf_director_norage", false) == 0) g_bNoDirectorRages = true;
+		else if (StrContains(sTargetName, "szf_director_spawnteleport", false) == 0) g_bDirectorSpawnTeleport = true;
 	}
 }
 
 public void OnClientPutInServer(int iClient)
 {
 	CreateTimer(10.0, Timer_InitialHelp, iClient, TIMER_FLAG_NO_MAPCHANGE);
-
+	
 	DHookEntity(g_hHookGetMaxHealth, false, iClient);
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
-
+	
 	g_iDamage[iClient] = GetAverageDamage();
 }
 
@@ -635,7 +638,7 @@ public void OnClientDisconnect(int iClient)
 public void Client_OnPreThinkPost(int iClient)
 {
 	if (!g_bEnabled) return;
-
+	
 	if (IsValidLivingClient(iClient))
 	{
 		//Handle speed bonuses.
@@ -646,67 +649,72 @@ public void Client_OnPreThinkPost(int iClient)
 			
 			if (IsZombie(iClient))
 			{
-				//Non-tanks: hoarde bonus to movement speed and ignite speed bonus
-				if (g_nInfected[iClient] == Infected_None)
+				switch (g_nInfected[iClient])
 				{
-					//Movement speed increase
-					switch (nClass)
+					//Non-tanks: hoarde bonus to movement speed and ignite speed bonus
+					case Infected_None:
 					{
-						case TFClass_Scout: flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
-						case TFClass_Heavy: flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[iClient]);
-						case TFClass_Spy:   flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
+						//Movement speed increase
+						switch (nClass)
+						{
+							case TFClass_Scout: flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
+							case TFClass_Heavy: flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[iClient]);
+							case TFClass_Spy:   flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
+						}
+						
+						if (g_bZombieRage) flSpeed += 40.0; //Map-wide zombie enrage event
+						if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire)) flSpeed += 20.0; //On fire
+						if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow)) flSpeed += 20.0; //Kingpin effect
+						if (GetClientHealth(iClient) > SDK_GetMaxHealth(iClient)) flSpeed += 20.0; //Has overheal due to normal rage
+						
+						//Movement speed decrease
+						if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated)) flSpeed -= 30.0; //Jarate'd by sniper
+						if (GetClientHealth(iClient) < 50) flSpeed -= 50.0 - float(GetClientHealth(iClient)); //If under 50 health, tick away one speed per hp lost
 					}
-
-					if (g_bZombieRage) flSpeed += 40.0; //Map-wide zombie enrage event
-					if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire)) flSpeed += 20.0; //On fire
-					if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow)) flSpeed += 20.0; //Kingpin effect
-					if (GetClientHealth(iClient) > SDK_GetMaxHealth(iClient)) flSpeed += 20.0; //Has overheal due to normal rage
-
-					//Movement speed decrease
-					if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated)) flSpeed -= 30.0; //Jarate'd by sniper
-					if (GetClientHealth(iClient) < 50) flSpeed -= 50.0 - float(GetClientHealth(iClient)); //If under 50 health, tick away one speed per hp lost
-				}
-
-				//Tank: movement speed bonus based on damage taken and ignite speed bonus
-				else if (g_nInfected[iClient] == Infected_Tank)
-				{
-					flSpeed = 400.0;
 					
-					//Reduce speed when tank deals damage to survivors 
-					flSpeed -= fMin(60.0, (float(g_iDamageDealtLife[iClient]) / 10.0));
+					//Tank: movement speed bonus based on damage taken and ignite speed bonus
+					case Infected_Tank:
+					{
+						flSpeed = 400.0;
+						
+						//Reduce speed when tank deals damage to survivors 
+						flSpeed -= fMin(60.0, (float(g_iDamageDealtLife[iClient]) / 10.0));
+						
+						//Reduce speed when tank takes damage from survivors 
+						flSpeed -= fMin(80.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
+	
+						if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire)) flSpeed += 40.0; //On fire
+						if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated)) flSpeed -= 30.0; //Jarate'd by sniper
+					}
 					
-					//Reduce speed when tank takes damage from survivors 
-					flSpeed -= fMin(80.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
-
-					if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire)) flSpeed += 40.0; //On fire
-					if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated)) flSpeed -= 30.0; //Jarate'd by sniper
-				}
-
-				//Charger: like in l4d, his charge is fucking fast so we also have it here, WEEEEEEE
-				else if (g_nInfected[iClient] == Infected_Charger && TF2_IsPlayerInCondition(iClient, TFCond_Charging))
-				{
-					flSpeed = 1200.0; //Original charge speed is 1000.0, will this black sorcery work?
-				}
-
-				//Kingpin: speed nerf
-				else if (g_nInfected[iClient] == Infected_Kingpin)
-				{
-					flSpeed -= 100.0;
-				}
-
-				//Hunter: speed buff
-				else if (g_nInfected[iClient] == Infected_Hunter)
-				{
-					flSpeed += 40.0;
-				}
-
-				//Cloaked: super speed if cloaked
-				else if (g_nInfected[iClient] == Infected_Stalker && TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
-				{
-					flSpeed += 120.0;
+					//Charger: like in l4d, his charge is fucking fast so we also have it here, WEEEEEEE
+					case Infected_Charger:
+					{
+						if (TF2_IsPlayerInCondition(iClient, TFCond_Charging))
+							flSpeed = 1200.0; //Original charge speed is 1000.0, will this black sorcery work?
+					}
+					
+					//Kingpin: speed nerf
+					case Infected_Kingpin:
+					{
+						flSpeed -= 100.0;
+					}
+					
+					//Hunter: speed buff
+					case Infected_Hunter:
+					{
+						flSpeed += 40.0;
+					}
+					
+					//Cloaked: super speed if cloaked
+					case Infected_Stalker:
+					{
+						if (TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
+							flSpeed += 120.0;
+					}
 				}
 			}
-
+			
 			if (IsSurvivor(iClient))
 			{
 				//If under 50 health, tick away one speed per hp lost
@@ -714,12 +722,12 @@ public void Client_OnPreThinkPost(int iClient)
 				{
 					flSpeed -= 50.0 - float(GetClientHealth(iClient));
 				}
-
+				
 				if (TF2_IsPlayerInCondition(iClient, TFCond_Charging))
 				{
 					flSpeed = 600.0;
 				}
-
+				
 				if (g_bBackstabbed[iClient])
 				{
 					flSpeed *= 0.66;
@@ -743,11 +751,8 @@ public void Client_OnPreThinkPost(int iClient)
 		if (IsZombie(iClient) && g_nInfected[iClient] == Infected_Hunter && g_bHopperIsUsingPounce[iClient])
 		{
 			if (GetEntityFlags(iClient) & FL_ONGROUND == FL_ONGROUND)
-			{
 				g_bHopperIsUsingPounce[iClient] = false;
-			}
 		}
-
 	}
 	
 	UpdateClientCarrying(iClient);
@@ -784,12 +789,14 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			{
 				flDamage = flDamage * g_flZombieDamageScale * 0.7; //Default: 0.7
 			}
+			
 			//Damage scaling Survivors
 			if (IsValidSurvivor(iAttacker) && !TF2_IsSentry(iInflicter))
 			{
 				float flMoraleBonus = fMin(GetMorale(iAttacker) * 0.005, 0.25); //50 morale: 0.25
 				flDamage = flDamage / g_flZombieDamageScale * (1.1 + flMoraleBonus); //Default: 1.1
 			}
+			
 			//If backstabbed
 			if (g_bBackstabbed[iVictim])
 			{
@@ -799,10 +806,10 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				iDamageType &= ~DMG_CRIT;
 				iDamageCustom = 0;
 			}
-
+			
 			bChanged = true;
 		}
-
+		
 		if (IsValidSurvivor(iVictim) && IsValidZombie(iAttacker))
 		{
 			SoundAttack(iVictim, iAttacker);
@@ -812,7 +819,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				flDamage *= 0.825;
 				bChanged = true;
 			}
-
+			
 			if (TF2_IsPlayerInCondition(iAttacker, TFCond_CritCola)
 				|| TF2_IsPlayerInCondition(iAttacker, TFCond_Buffed)
 				|| TF2_IsPlayerInCondition(iAttacker, TFCond_CritHype))
@@ -821,7 +828,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				flDamage *= 0.85;
 				bChanged = true;
 			}
-
+			
 			//Taunt, backstabs and highly critical damage
 			if (iDamageCustom == TF_CUSTOM_TAUNT_HIGH_NOON
 				|| iDamageCustom == TF_CUSTOM_TAUNT_GRAND_SLAM
@@ -832,7 +839,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				{
 					if (IsRazorbackActive(iVictim))
 						return Plugin_Continue;
-
+					
 					if (g_nInfected[iAttacker] == Infected_Stalker)
 						SetEntityHealth(iVictim, GetClientHealth(iVictim) - 50);
 					else
@@ -991,6 +998,7 @@ public Action Command_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 				CPrintToChat(iClient, "{red}You can not switch to the opposing team during grace period.");
 				return Plugin_Handled;
 			}
+			
 			//...as a spectator who didn't start as an infected, set them as infected after grace period ends, after warning them.
 			if (nTeam <= TFTeam_Spectator && !g_bStartedAsZombie[iClient])
 			{
@@ -1002,6 +1010,7 @@ public Action Command_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 					CPrintToChat(iClient, "{red}You will join the Infected team when grace period ends.");
 					g_bWaitingForTeamSwitch[iClient] = true;
 				}
+				
 				return Plugin_Handled;
 			}	
 		}
@@ -1015,6 +1024,7 @@ public Action Command_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 				CPrintToChat(iClient, "{green}You will no longer automatically join the Infected team when grace period ends.");
 				g_bWaitingForTeamSwitch[iClient] = false;
 			}
+			
 			return Plugin_Continue;
 		}
 		
@@ -1039,6 +1049,7 @@ public Action Command_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 					g_bWaitingForTeamSwitch[iClient] = true;
 				}
 			}
+			
 			return Plugin_Handled;
 		}
 		
@@ -1068,6 +1079,7 @@ public Action Command_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 		else
 			return Plugin_Handled;
 	}
+	
 	return Plugin_Continue;
 }
 
@@ -1075,10 +1087,10 @@ public Action Command_JoinClass(int iClient, const char[] sCommand, int iArgs)
 {
 	if (!g_bEnabled) return Plugin_Continue;
 	if (iArgs < 1) return Plugin_Handled;
-
+	
 	char sArg[32];
 	GetCmdArg(1, sArg, sizeof(sArg));
-
+	
 	if (IsZombie(iClient))
 	{
 		//If an invalid zombie class is selected, print a message and
@@ -1095,6 +1107,7 @@ public Action Command_JoinClass(int iClient, const char[] sCommand, int iArgs)
 			CPrintToChat(iClient, "{red}Survivors can't change classes during a round.");
 			return Plugin_Handled;
 		}
+		
 		//If an invalid survivor class is selected, print a message
 		//and accept the joincalss command. ZF spawn logic will
 		//correct this issue when the player spawns.
@@ -1108,7 +1121,7 @@ public Action Command_JoinClass(int iClient, const char[] sCommand, int iArgs)
 			CPrintToChat(iClient, "{red}Valid survivors: Soldier, Pyro, Demo, Engineer, Medic and Sniper.");
 		}
 	}
-
+	
 	return Plugin_Continue;
 }
 
@@ -1274,7 +1287,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 		{
 			g_iZombiesKilledSurvivor[iClient] = 0;
 			EndSound(iClient);
-
+			
 			if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
 			{
 				iClients[iLength] = iClient;
@@ -1382,7 +1395,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	//Handle grace period timers.
 	CreateTimer(0.5, Timer_GraceStartPost, TIMER_FLAG_NO_MAPCHANGE);
 	CreateTimer(45.0, Timer_GraceEnd, TIMER_FLAG_NO_MAPCHANGE);
-
+	
 	SetGlow();
 	UpdateZombieDamageScale();
 }
@@ -1542,7 +1555,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				}
 				
 				g_iSuperHealthSubtract[iClient] = iSubtract;
-				TF2_AddCondition(iClient, TFCond_Kritzkrieged, 999.0);
+				TF2_AddCondition(iClient, TFCond_Kritzkrieged, TFCondDuration_Infinite);
 				
 				SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
 				SetEntityRenderColor(iClient, 0, 255, 0, 255);
@@ -2036,7 +2049,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled) return Plugin_Continue;
-
+	
 	int iVictim = GetClientOfUserId(event.GetInt("userid"));
 	int iAttacker = GetClientOfUserId(event.GetInt("attacker"));
 	int iDamageAmount = event.GetInt("damageamount");
@@ -2053,62 +2066,60 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 
 public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontBroadcast)
 {
-    if (!g_bEnabled) return Plugin_Continue;
-
-    int iIndex = event.GetInt("index");
-    TFObjectType nObjectType = view_as<TFObjectType>(event.GetInt("object"));
-
-    //1. Handle dispenser rules.
-    //       Disable dispensers when they begin construction.
-    //       Increase max health to 300 (default level 1 is 150).
-    if (nObjectType == TFObject_Dispenser)
-    {
-		SetEntProp(iIndex, Prop_Send, "m_bDisabled", 1); //fuck you
-		SetEntProp(iIndex, Prop_Send, "m_bCarried", 1); //die already
-		SetEntProp(iIndex, Prop_Send, "m_iMaxHealth", 300);
-		AcceptEntityInput(iIndex, "Disable"); //just stop doing that beam thing you cunt
-    }
-
-    return Plugin_Continue;
+	if (!g_bEnabled) return Plugin_Continue;
+	
+	int iEntity = event.GetInt("index");
+	TFObjectType nObjectType = view_as<TFObjectType>(event.GetInt("object"));
+	
+	//1. Handle dispenser rules.
+	//       Disable dispensers when they begin construction.
+	//       Increase max health to 300 (default level 1 is 150).
+	if (nObjectType == TFObject_Dispenser)
+	{
+		SetEntProp(iEntity, Prop_Send, "m_bDisabled", 1); //fuck you
+		SetEntProp(iEntity, Prop_Send, "m_bCarried", 1); //die already
+		SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", 300);
+		AcceptEntityInput(iEntity, "Disable"); //just stop doing that beam thing you cunt
+	}
+	
+	return Plugin_Continue;
 }
 
 public Action Event_CPCapture(Event event, const char[] name, bool dontBroadcast)
 {
 	if (g_iControlPoints <= 0) return;
-
+	
 	int iCaptureIndex = event.GetInt("cp");
 	if (iCaptureIndex < 0) return;
 	if (iCaptureIndex >= g_iControlPoints) return;
-
+	
 	for (int i = 0; i < g_iControlPoints; i++)
 	{
 		if (g_iControlPointsInfo[i][0] == iCaptureIndex)
-		{
 			g_iControlPointsInfo[i][1] = 2;
-		}
 	}
-
+	
 	//Control point capture: increase morale
-	for (int i = 0; i < MaxClients; i++)
+	for (int iClient = 0; iClient < MaxClients; iClient++)
 	{
-		if (g_iCapturingPoint[i] == iCaptureIndex)
+		if (g_iCapturingPoint[iClient] == iCaptureIndex)
 		{
-			AddMorale(i, 20);
-			g_iCapturingPoint[i] = -1;
+			AddMorale(iClient, 20);
+			g_iCapturingPoint[iClient] = -1;
 		}
 	}
-
+	
 	CheckRemainingCP();
 }
 
 public Action Event_CPCaptureStart(Event event, const char[] name, bool dontBroadcast)
 {
 	if (g_iControlPoints <= 0) return;
-
+	
 	int iCaptureIndex = event.GetInt("cp");
 	if (iCaptureIndex < 0) return;
 	if (iCaptureIndex >= g_iControlPoints) return;
-
+	
 	for (int i = 0; i < g_iControlPoints; i++)
 		if (g_iControlPointsInfo[i][0] == iCaptureIndex)
 			g_iControlPointsInfo[i][1] = 1;
@@ -2163,7 +2174,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 					float vecPosTank[3];
 					float flDistance;
 					GetClientEyePosition(iClient, vecPosTank);
-
+					
 					for (int i = 1; i <= MaxClients; i++)
 					{
 						if (IsClientInGame(i) && IsPlayerAlive(i) && IsSurvivor(i))
@@ -2172,13 +2183,11 @@ public Action Timer_Main(Handle hTimer) //1 second
 							flDistance = GetVectorDistance(vecPosTank, vecPosClient);
 							flDistance /= 20.0;
 							if (flDistance <= 50.0)
-							{
 								Shake(i, fMin(50.0 - flDistance, 5.0), 1.2);
-							}
 						}
 					}
 				}
-
+				
 				//Kingpin
 				if (g_nInfected[iClient] == Infected_Kingpin)
 				{
@@ -2216,7 +2225,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 					float flDistance;
 					bool bTooClose = false;
 					GetClientEyePosition(iClient, vecPosPredator);
-
+					
 					for (int i = 1; i <= MaxClients; i++)
 					{
 						if (IsValidLivingSurvivor(i))
@@ -2227,7 +2236,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 								bTooClose = true;
 						}
 					}
-
+					
 					if (!bTooClose && !TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
 						TF2_AddCondition(iClient, TFCond_Cloaked, -1.0);
 					else if (bTooClose && TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
@@ -2281,7 +2290,7 @@ public Action Timer_MoraleDecay(Handle hTimer) //Timer scales based on how many 
 	return Plugin_Continue;
 }
 
-public Action Timer_MainSlow(Handle hTimer) //4 min
+public Action Timer_MainSlow(Handle hTimer) //4 mins
 {
 	if (!g_bEnabled) return Plugin_Stop;
 	PrintInfoChat(0);
@@ -2333,22 +2342,22 @@ public Action Timer_GraceStartPost(Handle hTimer)
 	int iEntity = -1;
 	while((iEntity = FindEntityByClassname(iEntity, "func_regenerate")) != -1)
 		AcceptEntityInput(iEntity, "Disable");
-
+	
 	//Remove all dropped ammopacks.
 	iEntity = -1;
 	while ((iEntity = FindEntityByClassname(iEntity, "tf_ammo_pack")) != -1)
 		AcceptEntityInput(iEntity, "Kill");
-
+	
 	//Remove all ragdolls.
 	iEntity = -1;
 	while ((iEntity = FindEntityByClassname(iEntity, "tf_ragdoll")) != -1)
 		AcceptEntityInput(iEntity, "Kill");
-
+	
 	//Disable all payload cart dispensers.
 	iEntity = -1;
 	while((iEntity = FindEntityByClassname(iEntity, "mapobj_cart_dispenser")) != -1)
 		SetEntProp(iEntity, Prop_Send, "m_bDisabled", 1);
-
+	
 	//Disable all respawn room visualizers (non-ZF maps only)
 	if (!IsMapSZF())
 	{
@@ -2395,7 +2404,7 @@ public Action Timer_PostSpawn(Handle hTimer, int iClient)
 			if (GetCookie(iClient, g_cFirstTimeZombie) < 1)
 				InitiateZombieTutorial(iClient);
 		}
-
+		
 		if (IsSurvivor(iClient))
 		{
 			HandleSurvivorLoadout(iClient);
@@ -2405,7 +2414,7 @@ public Action Timer_PostSpawn(Handle hTimer, int iClient)
 			}
 		}
 	}
-
+	
 	return Plugin_Continue;
 }
 
@@ -2417,7 +2426,7 @@ public Action Timer_Zombify(Handle hTimer, int iClient)
 		CPrintToChat(iClient, "{red}You have perished and turned into a zombie...");
 		SpawnClient(iClient, TFTeam_Zombie);
 	}
-
+	
 	return Plugin_Continue;
 }
 
@@ -2455,7 +2464,7 @@ public void OnGameFrame()
 				TF2_SetCloakMeter(iClient, 60.0);
 			}
 		}
-
+		
 		if (g_nRoundState == SZFRoundState_Active)
 		{
 			if (IsValidClient(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient) && iCount == 1)
@@ -3062,7 +3071,7 @@ public void PrintInfoChat(int iClient)
 {
 	char sMessage[256];
 	Format(sMessage, sizeof(sMessage), "{lightsalmon}Welcome to Super Zombie Fortress.\nYou can open the instruction menu using {limegreen}/szf{lightsalmon}.");
-
+	
 	if (iClient == 0)
 		CPrintToChatAll(sMessage);
 	else
@@ -3582,14 +3591,14 @@ stock int GetReplaceRageWithSpecialInfectedSpawnCount()
 void UpdateZombieDamageScale()
 {
 	g_flZombieDamageScale = 1.0;
-
+	
 	if (g_iStartSurvivors <= 0) return;
 	if (!g_bEnabled) return;
 	if (g_nRoundState != SZFRoundState_Active) return;
-
+	
 	int iSurvivors = GetSurvivorCount();
 	if (iSurvivors < 1) iSurvivors = 1; //Division by 0 error
-
+	
 	int iZombies = GetZombieCount();
 	if (iZombies < 1) iZombies = 1; //Division by 0 error
 	
@@ -3605,14 +3614,14 @@ void UpdateZombieDamageScale()
 		//iCurrentCP: +1 if CP currently capping, +2 if CP capped
 		int iCurrentCP = 0;
 		int iMaxCP = g_iControlPoints * 2;
-	
+		
 		for (int i = 0; i < g_iControlPoints; i++)
 			iCurrentCP += g_iControlPointsInfo[i][1];
 		
 		//If there atleast 1 CP, set progress by amount of CP capped
 		if (iMaxCP > 0)
 			flProgress = float(iCurrentCP) / float(iMaxCP);
-			
+		
 		//If the map is too big for the amount of CPs, progress incerases with time
 		if (g_flTimeProgress > flProgress)
 		{
@@ -3628,9 +3637,8 @@ void UpdateZombieDamageScale()
 			else
 				flProgress = g_flTimeProgress;
 		}
-		
 	}
-
+	
 	//If progress found, calculate by amount of survivors and zombies
 	if (0.0 <= flProgress <= 1.0)
 	{
@@ -3684,7 +3692,6 @@ void UpdateZombieDamageScale()
 				ZombieTank();
 			}
 		}
-		
 		//If a random frenzy chance was triggered, determine whether to frenzy or if to trigger a tank
 		else if (GetGameTime() > g_flRageCooldown)
 		{
@@ -3970,8 +3977,6 @@ void FastRespawnDataCollect()
 	if (g_aFastRespawn == null)
 		g_aFastRespawn = new ArrayList(3);
 	
-	float vecPos[3];
-	
 	g_aFastRespawn.Clear(); //Clear before adding new stuffs
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
@@ -3981,6 +3986,7 @@ void FastRespawnDataCollect()
 			&& !(GetEntityFlags(iClient) & FL_DUCKING)
 			&& GetEntityFlags(iClient) & FL_ONGROUND)
 		{
+			float vecPos[3];
 			GetClientAbsOrigin(iClient, vecPos);
 			g_aFastRespawn.PushArray(vecPos);
 		}
@@ -3990,7 +3996,6 @@ void FastRespawnDataCollect()
 stock void VectorTowards(float vecOrigin[3], float vecTarget[3], float vecAngle[3])
 {
 	float vecResults[3];
-
 	MakeVectorFromPoints(vecOrigin, vecTarget, vecResults);
 	GetVectorAngles(vecResults, vecAngle);
 }
@@ -4029,7 +4034,7 @@ stock bool CanRecieveDamage(int iClient)
 	if (!IsClientInGame(iClient)) return true;
 	if (TF2_IsPlayerInCondition(iClient, TFCond_Ubercharged)) return false;
 	if (TF2_IsPlayerInCondition(iClient, TFCond_Bonked)) return false;
-
+	
 	return true;
 }
 
@@ -4056,7 +4061,7 @@ stock bool ObstactleBetweenEntities(int iEntity1, int iEntity2)
 {
 	float vecOrigin1[3];
 	float vecOrigin2[3];
-
+	
 	if (IsValidClient(iEntity1))
 		GetClientEyePosition(iEntity1, vecOrigin1);
 	else
@@ -4627,9 +4632,9 @@ public Action OnBananaTouch(int iEntity, int iClient)
 		//Disable Sandvich and kill it
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
 		AcceptEntityInput(iEntity, "Kill");
-
+		
 		DealDamage(iOwner, iToucher, 30.0);
-
+		
 		return Plugin_Handled;
 	}
 	
@@ -4697,7 +4702,7 @@ int GetMostDamageZom()
 {
 	ArrayList aClients = new ArrayList();
 	int iHighest = 0;
-
+	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		if (IsValidZombie(iClient))
 			if (g_iDamage[iClient] > iHighest) iHighest = g_iDamage[iClient];
@@ -4719,8 +4724,8 @@ int GetMostDamageZom()
 
 bool ZombiesHaveTank()
 {
-	for (int i = 1; i <= MaxClients; i++)
-		if (IsValidLivingZombie(i) && g_nInfected[i] == Infected_Tank)
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidLivingZombie(iClient) && g_nInfected[iClient] == Infected_Tank)
 			return true;
 	
 	return false;
@@ -4858,7 +4863,7 @@ void DetermineControlPoints()
 {
 	g_bCapturingLastPoint = false;
 	g_iControlPoints = 0;
-
+	
 	for (int i = 0; i < sizeof(g_iControlPointsInfo); i++)
 		g_iControlPointsInfo[i][0] = -1;
 	
@@ -5031,16 +5036,14 @@ stock bool IsEntityStuck(int iEntity)
 	return (TR_DidHit());
 }
 
-public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MAX_PATH], int &Ent, int &channel, float &volume, int &level, int &pitch, int &flags)
+public Action SoundHook(int iClients[64], int &iLength, char sSound[PLATFORM_MAX_PATH], int &iClient, int &iChannel, float &flVolume, int &iLevel, int &iPitch, int &iFlags)
 {
-	int iClient = Ent;
-	
 	if (!IsValidClient(iClient))
 		return Plugin_Continue;
 	
-	if (StrContains(sound, "vo/", false) != -1 && IsZombie(iClient))
+	if (StrContains(sSound, "vo/", false) != -1 && IsZombie(iClient))
 	{
-		if (StrContains(sound, "zombie_vo/", false) != -1)
+		if (StrContains(sSound, "zombie_vo/", false) != -1)
 			return Plugin_Continue; //So rage sounds (for normal & most special infected alike) don't get blocked
 		
 		switch (g_nInfected[iClient])
@@ -5048,18 +5051,18 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 			//Normal infected & kingpin(pitch only)
 			case Infected_None, Infected_Kingpin:
 			{
-				if (StrContains(sound, "_pain", false) != -1)
+				if (StrContains(sSound, "_pain", false) != -1)
 				{
-					if (GetClientHealth(iClient) < 50 || StrContains(sound, "crticial", false) != -1)  //The typo is intended because that's how the soundfiles are named
+					if (GetClientHealth(iClient) < 50 || StrContains(sSound, "crticial", false) != -1)  //The typo is intended because that's how the soundfiles are named
 						EmitSoundToAll(g_sVoZombieCommonDeath[GetRandomInt(0, sizeof(g_sVoZombieCommonDeath) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 					else
 						EmitSoundToAll(g_sVoZombieCommonPain[GetRandomInt(0, sizeof(g_sVoZombieCommonPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
-				else if (StrContains(sound, "_laugh", false) != -1 || StrContains(sound, "_no", false) != -1 || StrContains(sound, "_yes", false) != -1)
+				else if (StrContains(sSound, "_laugh", false) != -1 || StrContains(sSound, "_no", false) != -1 || StrContains(sSound, "_yes", false) != -1)
 				{
 					EmitSoundToAll(g_sVoZombieCommonMumbling[GetRandomInt(0, sizeof(g_sVoZombieCommonMumbling) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
-				else if (StrContains(sound, "_go", false) != -1 || StrContains(sound, "_jarate", false) != -1)
+				else if (StrContains(sSound, "_go", false) != -1 || StrContains(sSound, "_jarate", false) != -1)
 				{
 					EmitSoundToAll(g_sVoZombieCommonShoved[GetRandomInt(0, sizeof(g_sVoZombieCommonShoved) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
@@ -5069,13 +5072,13 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 				}
 				
 				if (g_nInfected[iClient] == Infected_Kingpin)
-					pitch = 80;
+					iPitch = 80;
 			}
 			
 			//Tank
 			case Infected_Tank:
 			{
-				if (StrContains(sound, "_pain", false) != -1)
+				if (StrContains(sSound, "_pain", false) != -1)
 				{
 					if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
 						EmitSoundToAll(g_sVoZombieTankOnFire[GetRandomInt(0, sizeof(g_sVoZombieTankOnFire) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
@@ -5091,7 +5094,7 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 			//Charger
 			case Infected_Charger:
 			{
-				if (StrContains(sound, "_pain", false) != -1)
+				if (StrContains(sSound, "_pain", false) != -1)
 					EmitSoundToAll(g_sVoZombieChargerPain[GetRandomInt(0, sizeof(g_sVoZombieChargerPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				else
 					EmitSoundToAll(g_sVoZombieChargerDefault[GetRandomInt(0, sizeof(g_sVoZombieChargerDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
@@ -5100,7 +5103,7 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 			//Hunter
 			case Infected_Hunter:
 			{
-				if (StrContains(sound, "_pain", false) != -1)
+				if (StrContains(sSound, "_pain", false) != -1)
 					EmitSoundToAll(g_sVoZombieHunterPain[GetRandomInt(0, sizeof(g_sVoZombieHunterPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				else
 					EmitSoundToAll(g_sVoZombieHunterDefault[GetRandomInt(0, sizeof(g_sVoZombieHunterDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
@@ -5109,7 +5112,7 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 			//Boomer
 			case Infected_Boomer:
 			{
-				if (StrContains(sound, "_pain", false) != -1)
+				if (StrContains(sSound, "_pain", false) != -1)
 					EmitSoundToAll(g_sVoZombieBoomerPain[GetRandomInt(0, sizeof(g_sVoZombieBoomerPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				else
 					EmitSoundToAll(g_sVoZombieBoomerDefault[GetRandomInt(0, sizeof(g_sVoZombieBoomerPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
@@ -5118,7 +5121,7 @@ public Action SoundHook(int clients[64], int &numClients, char sound[PLATFORM_MA
 			//Smoker
 			case Infected_Smoker:
 			{
-				if (StrContains(sound, "_pain", false) != -1)
+				if (StrContains(sSound, "_pain", false) != -1)
 					EmitSoundToAll(g_sVoZombieSmokerPain[GetRandomInt(0, sizeof(g_sVoZombieSmokerPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				else
 					EmitSoundToAll(g_sVoZombieSmokerDefault[GetRandomInt(0, sizeof(g_sVoZombieSmokerDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
@@ -5287,7 +5290,7 @@ stock void InitiateZombieTutorial(int iClient)
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
 	data.WriteString("Enjoy the round and get them!");
-
+	
 	SetCookie(iClient, 1, g_cFirstTimeZombie);
 }
 
@@ -5295,7 +5298,7 @@ public Action Timer_DisplayTutorialMessage(Handle hTimer, DataPack data)
 {
 	char sDisplay[255];
 	data.Reset();
-
+	
 	int iClient = data.ReadCell();
 	float flDuration = data.ReadFloat();
 	data.ReadString(sDisplay, sizeof(sDisplay));
@@ -5326,10 +5329,10 @@ public void DoBoomerExplosion(int iClient, float flRadius)
 	float vecClientPos[3];
 	float vecSurvivorPos[3];
 	GetClientEyePosition(iClient, vecClientPos);
-
+	
 	ShowParticle("asplode_hoodoo_debris", 6.0, vecClientPos);
 	ShowParticle("asplode_hoodoo_dust", 6.0, vecClientPos);
-
+	
 	int[] iClientsTemp = new int[MaxClients];
 	int iCount = 0;
 	
@@ -5402,7 +5405,7 @@ public void DoHunterJump(int iClient)
 	vecVelocity[0] = Cosine(DegToRad(vecEyeAngles[0])) * Cosine(DegToRad(vecEyeAngles[1])) * 920;
 	vecVelocity[1] = Cosine(DegToRad(vecEyeAngles[0])) * Sine(DegToRad(vecEyeAngles[1])) * 920;
 	vecVelocity[2] = 460.0;
-
+	
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 }
 
@@ -5426,7 +5429,7 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 				SetEntityMoveType(iClient, MOVETYPE_WALK);
 			}
 		}
-
+		
 		//Stalker
 		if (g_nInfected[iClient] == Infected_Stalker)
 		{

@@ -93,7 +93,7 @@ void GetWeaponFromIndex(Weapon buffer, int index)
 
 ArrayList GetAllWeaponsWithRarity(eWeaponsRarity rarity)
 {
-	ArrayList array = new ArrayList(sizeof(Weapon));
+	ArrayList aList = new ArrayList(sizeof(Weapon));
 	
 	int iLength = GetRarityWeaponCount(rarity);
 	for (int i = 0; i < iLength; i++)
@@ -101,10 +101,10 @@ ArrayList GetAllWeaponsWithRarity(eWeaponsRarity rarity)
 		Weapon wep;
 		g_Weapons.GetArray(g_WepIndexesByRarity[rarity].Get(i), wep);
 		
-		array.PushArray(wep);
+		aList.PushArray(wep);
 	}
 	
-	return array;
+	return aList;
 }
 
 int GetRarityWeaponCount(eWeaponsRarity rarity)
@@ -143,7 +143,6 @@ public bool Weapons_OnPickup_Health(int client)
 	if (GetClientHealth(client) < SDK_GetMaxHealth(client))
 	{
 		SpawnPickup(client, "item_healthkit_full");
-		
 		return true;
 	}
 	

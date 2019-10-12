@@ -35,6 +35,7 @@ int g_iZombieSoulIndex[view_as<int>(TFClassType)];
 // Math Utils
 //
 ////////////////////////////////////////////////////////////
+
 stock int max(int a, int b)
 {
 	return (a > b) ? a : b;
@@ -60,14 +61,15 @@ stock float fMin(float a, float b)
 // SZF Team Utils
 //
 ////////////////////////////////////////////////////////////
+
 stock int IsZombie(int iClient)
 {
-	return (TF2_GetClientTeam(iClient) == TFTeam_Zombie);
+	return TF2_GetClientTeam(iClient) == TFTeam_Zombie;
 }
 
 stock int IsSurvivor(int iClient)
 {
-	return (TF2_GetClientTeam(iClient) == TFTeam_Survivor);
+	return TF2_GetClientTeam(iClient) == TFTeam_Survivor;
 }
 
 ////////////////////////////////////////////////////////////
@@ -75,6 +77,7 @@ stock int IsSurvivor(int iClient)
 // Client Validity Utils
 //
 ////////////////////////////////////////////////////////////
+
 stock bool IsValidClient(int iClient)
 {
 	return 0 < iClient <= MaxClients && IsClientInGame(iClient) && !IsClientSourceTV(iClient) && !IsClientReplay(iClient);
@@ -110,6 +113,7 @@ stock bool IsValidLivingZombie(int iClient)
 // SZF Class Utils
 //
 ////////////////////////////////////////////////////////////
+
 stock bool IsValidZombieClass(TFClassType nClass)
 {
 	return g_bValidZombie[nClass];
@@ -135,6 +139,7 @@ stock TFClassType GetRandomSurvivorClass()
 // Map Utils
 //
 ////////////////////////////////////////////////////////////
+
 stock bool IsMapSZF()
 {
 	char sMap[8];
@@ -166,6 +171,7 @@ stock bool IsMapCP()
 // Round Utils
 //
 ////////////////////////////////////////////////////////////
+
 stock void TF2_EndRound(TFTeam nTeam)
 {
 	int iIndex = FindEntityByClassname(-1, "team_control_point_master");
@@ -174,7 +180,7 @@ stock void TF2_EndRound(TFTeam nTeam)
 		iIndex = CreateEntityByName("team_control_point_master");
 		DispatchSpawn(iIndex);
 	}
-
+	
 	if (iIndex == -1)
 	{
 		LogError("[SZF] Can't create 'team_control_point_master,' can't end round!");
@@ -192,6 +198,7 @@ stock void TF2_EndRound(TFTeam nTeam)
 // Weapon State Utils
 //
 ////////////////////////////////////////////////////////////
+
 stock int TF2_GetActiveWeapon(int iClient)
 {
 	return GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon");
@@ -235,9 +242,9 @@ stock bool TF2_IsEquipped(int iClient, int iIndex)
 	return false;
 }
 
-stock bool TF2_IsWielding(int iClient, int weaponId)
+stock bool TF2_IsWielding(int iClient, int iIndex)
 {
-	return (TF2_GetActiveWeaponIndex(iClient) == weaponId);
+	return TF2_GetActiveWeaponIndex(iClient) == iIndex;
 }
 
 stock bool TF2_IsSlotClassname(int iClient, int iSlot, char[] sClassname)
@@ -250,6 +257,7 @@ stock bool TF2_IsSlotClassname(int iClient, int iSlot, char[] sClassname)
 		if (StrEqual(sClassname, sClassname2))
 			return true;
 	}
+	
 	return false;
 }
 
@@ -258,6 +266,7 @@ stock bool TF2_IsSlotClassname(int iClient, int iSlot, char[] sClassname)
 // Speed Utils
 //
 ////////////////////////////////////////////////////////////
+
 stock void SetClientSpeed(int iClient, float flSpeed)
 {
 	// m_flMaxSpeed appears to be reset/recalculated when:
@@ -280,7 +289,7 @@ stock float GetClientBaseSpeed(int iClient)
 		case TFClass_Spy: return 280.0;	//Default 320.0 <Slowed>
 		case TFClass_Heavy: return 230.0; //Default 230.0
 	}
-
+	
 	return 0.0;
 }
 
@@ -300,11 +309,11 @@ stock float GetClientBonusSpeed(int iClient)
 			if (TF2_IsWielding(iClient, WEAPON_ESCAPEPLAN))
 			{
 				int iHealth = GetClientHealth(iClient);
-				if(iHealth > 160) return 0.0;
-				if(iHealth > 120) return 24.0;
-				if(iHealth > 80) return 48.0;
-				if(iHealth > 40) return 96.0;
-				if(iHealth > 0) return 144.0;
+				if (iHealth > 160) return 0.0;
+				if (iHealth > 120) return 24.0;
+				if (iHealth > 80) return 48.0;
+				if (iHealth > 40) return 96.0;
+				if (iHealth > 0) return 144.0;
 			}
 		}
 		case TFClass_Pyro:
@@ -349,9 +358,10 @@ stock float GetClientBonusSpeed(int iClient)
 // Entity Name Utils
 //
 ////////////////////////////////////////////////////////////
+
 stock bool IsClassnameContains(int iEntity, const char[] sClassname)
 {
-	if(IsValidEdict(iEntity) && IsValidEntity(iEntity))
+	if (IsValidEdict(iEntity) && IsValidEntity(iEntity))
 	{
 		char sClassname2[32];
 		GetEdictClassname(iEntity, sClassname2, sizeof(sClassname2));
@@ -371,6 +381,7 @@ stock bool TF2_IsSentry(int ent)
 // Glow Utils
 //
 ////////////////////////////////////////////////////////////
+
 stock void TF2_SetGlow(int iClient, bool bEnable)
 {
 	SetEntProp(iClient, Prop_Send, "m_bGlowEnabled", bEnable);
@@ -382,6 +393,7 @@ stock void TF2_SetGlow(int iClient, bool bEnable)
 // + Range 0.0 to 100.0
 //
 ////////////////////////////////////////////////////////////
+
 stock float TF2_GetCloakMeter(int iClient)
 {
 	if (TF2_GetPlayerClass(iClient) == TFClass_Spy)
@@ -402,6 +414,7 @@ stock void TF2_SetCloakMeter(int iClient, float flCloak)
 // + Range 0.0 to 1.0
 //
 ////////////////////////////////////////////////////////////
+
 stock void TF2_AddUber(int iClient, float flCharge)
 {
 	int iWeapon = GetPlayerWeaponSlot(iClient, WeaponSlot_Secondary);
@@ -499,6 +512,7 @@ stock int TF2_GetAmmo(int iClient, int iSlot)
 		if (iAmmoType > -1)
 			return GetEntProp(iClient, Prop_Send, "m_iAmmo", _, iAmmoType);
 	}
+	
 	return 0;
 }
 
@@ -530,10 +544,11 @@ stock void TF2_RemoveAmmo(int iClient, int iSlot, int iAmmo)
 // Spawn Utils
 //
 ////////////////////////////////////////////////////////////
+
 stock void SpawnClient(int iClient, TFTeam nTeam)
 {
-	// 1. Prevent players from spawning if they're on an invalid team.
-	//		Prevent players from spawning as an invalid class.
+	//1. Prevent players from spawning if they're on an invalid team.
+	//        Prevent players from spawning as an invalid class.
 	if (IsClientInGame(iClient) && (IsSurvivor(iClient) || IsZombie(iClient)))
 	{
 		TFClassType nClass = TF2_GetPlayerClass(iClient);
@@ -630,14 +645,14 @@ stock void TF2_FlagWeaponDontDrop(int iWeapon, bool bVisibleHack = true)
 	int iOffset = GetEntSendPropOffs(iWeapon, "m_Item", true);
 	if (iOffset <= 0)
 		return;
-
+	
 	Address weaponAddress = GetEntityAddress(iWeapon);
 	if (weaponAddress == Address_Null)
 		return;
-
+	
 	Address addr = view_as<Address>((view_as<int>(weaponAddress)) + iOffset + OFFSET_DONT_DROP); //Going to hijack CEconItemView::m_iInventoryPosition.
 	//Need to build later on an anti weapon drop, using OnEntityCreated or something...
-
+	
 	StoreToAddress(addr, FLAG_DONT_DROP_WEAPON, NumberType_Int32);
 	if (bVisibleHack) SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", 1);
 }
@@ -652,7 +667,7 @@ stock int GetCookie(int iClient, Cookie cookie)
 {
 	if (!IsClientConnected(iClient) || !AreClientCookiesCached(iClient))
 		return 0;
-
+	
 	char sValue[8];
 	cookie.Get(iClient, sValue, sizeof(sValue));
 	return StringToInt(sValue);
@@ -662,7 +677,7 @@ stock void AddToCookie(int iClient, int iAmount, Cookie cookie)
 {
 	if (!IsClientConnected(iClient) || !AreClientCookiesCached(iClient))
 		return;
-
+	
 	char sValue[8];
 	cookie.Get(iClient, sValue, sizeof(sValue));
 	iAmount += StringToInt(sValue);
@@ -674,7 +689,7 @@ stock void SetCookie(int iClient, int iAmount, Cookie cookie)
 {
 	if (!IsClientConnected(iClient) || !AreClientCookiesCached(iClient))
 		return;
-
+	
 	char sValue[8];
 	IntToString(iAmount, sValue, sizeof(sValue));
 	cookie.Set(iClient, sValue);
@@ -709,7 +724,7 @@ stock void AddModelToDownload(char[] sModel)
 		".vvd",
 		".phy"
 	};
-
+	
 	for (int iExt = 0; iExt < sizeof(sModelExtensions); iExt++)
 	{
 		Format(sPath, sizeof(sPath), "models/%s%s", sModel, sModelExtensions[iExt]);
@@ -721,10 +736,10 @@ stock int FindEntityByTargetname(const char[] sTargetName, const char[] sClassna
 {
 	char sBuffer[32];
 	int iEntity = -1;
-
+	
 	while(strcmp(sClassname, sTargetName) != 0 && (iEntity = FindEntityByClassname(iEntity, classname)) != -1)
 		GetEntPropString(iEntity, Prop_Data, "m_iName", sBuffer, sizeof(sBuffer));
-
+	
 	return iEntity;
 }
 
@@ -762,19 +777,19 @@ public Action Timer_KillEntity(Handle hTimer, int iRef)
 }
 
 //Yoinked from https://github.com/DFS-Servers/Super-Zombie-Fortress/blob/master/addons/sourcemod/scripting/include/szf_util_base.inc
-stock void SZF_CPrintToChatAll(int iClient, char[] strText, bool bTeam = false, const char[] sParam1="", const char[] sParam2="", const char[] sParam3="", const char[] sParam4="")
+stock void SZF_CPrintToChatAll(int iClient, char[] sText, bool bTeam = false, const char[] sParam1="", const char[] sParam2="", const char[] sParam3="", const char[] sParam4="")
 {
 	if (bTeam && !IsValidClient(iClient))
 		return;
-
+	
 	char sName[80], sMessage[255];
 	if (0 < iClient <= MaxClients)
 	{
 		GetClientName2(iClient, sName, sizeof(sName));
 		if (bTeam)
-			Format(sMessage, sizeof(sMessage), "\x01(TEAM) %s\x01 : %s", sName, strText);
+			Format(sMessage, sizeof(sMessage), "\x01(TEAM) %s\x01 : %s", sName, sText);
 		else
-			Format(sMessage, sizeof(sMessage), "\x01%s\x01 : %s\x01", sName, strText);
+			Format(sMessage, sizeof(sMessage), "\x01%s\x01 : %s\x01", sName, sText);
 	}
 	
 	ReplaceString(sMessage, sizeof(sMessage), "{param1}", "%s1");
@@ -844,11 +859,11 @@ stock void ApplyVoodooCursedSoul(int iClient)
 //SDKHooks_TakeDamage doesn't call OnTakeDamage, so we need to scale separately for 'indirect' damage
 stock void DealDamage(int iAttacker, int iVictim, float flDamage)
 {
-    if (g_flZombieDamageScale < 1.0)
-        flDamage *= g_flZombieDamageScale;
-
-    if (g_bBackstabbed[iVictim] && flDamage > STUNNED_DAMAGE_CAP)
-        flDamage = STUNNED_DAMAGE_CAP;
-    
-    SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, flDamage, DMG_PREVENT_PHYSICS_FORCE);
+	if (g_flZombieDamageScale < 1.0)
+		flDamage *= g_flZombieDamageScale;
+	
+	if (g_bBackstabbed[iVictim] && flDamage > STUNNED_DAMAGE_CAP)
+		flDamage = STUNNED_DAMAGE_CAP;
+	
+	SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, flDamage, DMG_PREVENT_PHYSICS_FORCE);
 }
