@@ -1,21 +1,21 @@
-typedef eWeapon_OnPickup = function bool (int client); // Return false to prevent client from picking up the item.
+typedef Weapon_OnPickup = function bool (int client); //Return false to prevent client from picking up the item.
 
 static ArrayList g_Weapons;
-static ArrayList g_WepIndexesByRarity[view_as<int>(eWeaponsRarity)]; // Array indexes of g_Weapons array
+static ArrayList g_WepIndexesByRarity[view_as<int>(eWeaponsRarity)]; //Array indexes of g_Weapons array
 static StringMap g_WeaponsReskin;
 
-enum struct eWeapon
+enum struct Weapon
 {
 	int iIndex;
-	eWeaponsRarity Rarity;
+	eWeaponsRarity nRarity;
 	char sModel[PLATFORM_MAX_PATH];
 	char sSound[PLATFORM_MAX_PATH];
 	char sText[256];
 	char sAttribs[256];
 	int iColor[3];
-	float flOffsetOrigin[3];
-	float flOffsetAngles[3];
-	eWeapon_OnPickup on_pickup;
+	float vecOrigin[3];
+	float vecAngles[3];
+	Weapon_OnPickup callback;
 }
 
 void Weapons_Init()
@@ -24,16 +24,16 @@ void Weapons_Init()
 	g_WeaponsReskin = Config_LoadWeaponReskinData();
 	
 	int iLength = g_Weapons.Length;
-	for (int i = 0; i < INT(eWeaponsRarity); i++)
+	for (int i = 0; i < view_as<int>(eWeaponsRarity); i++)
 	{
 		g_WepIndexesByRarity[i] = new ArrayList();
 		
 		for (int j = 0; j < iLength; j++)
 		{
-			eWeapon wep;
+			Weapon wep;
 			g_Weapons.GetArray(j, wep);
 			
-			if (wep.Rarity == view_as<eWeaponsRarity>(i))
+			if (wep.nRarity == view_as<eWeaponsRarity>(i))
 				g_WepIndexesByRarity[i].Push(j);
 		}
 	}
@@ -44,7 +44,7 @@ void Weapons_Precache()
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++)
 	{
-		eWeapon wep;
+		Weapon wep;
 		g_Weapons.GetArray(i, wep);
 		
 		PrecacheModel(wep.sModel);
@@ -57,12 +57,12 @@ void Weapons_Precache()
 	PrecacheSound("ui/item_heavy_gun_drop.wav");
 }
 
-bool GetWeaponFromModel(eWeapon buffer, char[] model)
+bool GetWeaponFromModel(Weapon buffer, char[] model)
 {
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++) 
 	{
-		eWeapon wep;
+		Weapon wep;
 		g_Weapons.GetArray(i, wep);
 		
 		if (StrEqual(model, wep.sModel))
@@ -75,12 +75,12 @@ bool GetWeaponFromModel(eWeapon buffer, char[] model)
 	return false;
 }
 
-void GetWeaponFromIndex(eWeapon buffer, int index)
+void GetWeaponFromIndex(Weapon buffer, int index)
 {
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++) 
 	{
-		eWeapon wep;
+		Weapon wep;
 		g_Weapons.GetArray(i, wep);
 		
 		if (index == wep.iIndex)
@@ -93,18 +93,18 @@ void GetWeaponFromIndex(eWeapon buffer, int index)
 
 ArrayList GetAllWeaponsWithRarity(eWeaponsRarity rarity)
 {
-	ArrayList array = new ArrayList(sizeof(eWeapon));
+	ArrayList aList = new ArrayList(sizeof(Weapon));
 	
 	int iLength = GetRarityWeaponCount(rarity);
 	for (int i = 0; i < iLength; i++)
 	{
-		eWeapon wep;
+		Weapon wep;
 		g_Weapons.GetArray(g_WepIndexesByRarity[rarity].Get(i), wep);
 		
-		array.PushArray(wep);
+		aList.PushArray(wep);
 	}
 	
-	return array;
+	return aList;
 }
 
 int GetRarityWeaponCount(eWeaponsRarity rarity)
@@ -126,7 +126,7 @@ void Weapons_ReplaceEntityModel(int ent, int index)
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++) 
 	{
-		eWeapon wep;
+		Weapon wep;
 		g_Weapons.GetArray(i, wep);
 		
 		if (index == wep.iIndex)
@@ -143,7 +143,6 @@ public bool Weapons_OnPickup_Health(int client)
 	if (GetClientHealth(client) < SDK_GetMaxHealth(client))
 	{
 		SpawnPickup(client, "item_healthkit_full");
-		
 		return true;
 	}
 	
