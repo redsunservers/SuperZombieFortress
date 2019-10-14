@@ -211,12 +211,13 @@ bool AttemptGrabItem(int iClient)
 		char sClient[128];
 		GetClientName2(iClient, sClient, sizeof(sClient));
 		
-		if (iIndex == 9 || iIndex == 10 || iIndex == 12)	//Shotgun
+		if (iIndex > 8 && iIndex < 13)	//Shotgun
 		{
 			switch (TF2_GetPlayerClass(iClient))
 			{
 				case TFClass_Soldier: iIndex = 10;
 				case TFClass_Pyro: iIndex = 12;
+				case TFClass_Heavy: iIndex = 11;
 				case TFClass_Engineer: iIndex = 9;
 			}
 			
@@ -294,12 +295,15 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	
 	switch (nClass)
 	{
+		case TFClass_Scout: Format(sSound, sizeof(sSound), g_sVoWeaponScout[GetRandomInt(0, sizeof(g_sVoWeaponScout)-1)]);
 		case TFClass_Soldier: Format(sSound, sizeof(sSound), g_sVoWeaponSoldier[GetRandomInt(0, sizeof(g_sVoWeaponSoldier)-1)]);
 		case TFClass_Pyro: Format(sSound, sizeof(sSound), g_sVoWeaponPyro[GetRandomInt(0, sizeof(g_sVoWeaponPyro)-1)]);
 		case TFClass_DemoMan: Format(sSound, sizeof(sSound), g_sVoWeaponDemoman[GetRandomInt(0, sizeof(g_sVoWeaponDemoman)-1)]);
+		case TFClass_Heavy: Format(sSound, sizeof(sSound), g_sVoWeaponHeavy[GetRandomInt(0, sizeof(g_sVoWeaponHeavy)-1)]);
 		case TFClass_Engineer: Format(sSound, sizeof(sSound), g_sVoWeaponEngineer[GetRandomInt(0, sizeof(g_sVoWeaponEngineer)-1)]);
 		case TFClass_Medic: Format(sSound, sizeof(sSound), g_sVoWeaponMedic[GetRandomInt(0, sizeof(g_sVoWeaponMedic)-1)]);
 		case TFClass_Sniper: Format(sSound, sizeof(sSound), g_sVoWeaponSniper[GetRandomInt(0, sizeof(g_sVoWeaponSniper)-1)]);
+		case TFClass_Spy: Format(sSound, sizeof(sSound), g_sVoWeaponSpy[GetRandomInt(0, sizeof(g_sVoWeaponSpy)-1)]);
 	}
 	
 	EmitSoundToAll(sSound, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
@@ -324,7 +328,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		if (iEntity > MaxClients && IsValidEdict(iEntity))
 		{
 			int iOldIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
-			if (iOldIndex == 9 || iOldIndex == 10 || iOldIndex == 12)	//Shotgun
+			if (iOldIndex > 8 && iOldIndex < 13)	//Shotgun
 				iOldIndex = 9;
 			
 			GetWeaponFromIndex(oldwep, iOldIndex);
