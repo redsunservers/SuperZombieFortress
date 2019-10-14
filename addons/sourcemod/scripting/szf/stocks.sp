@@ -12,7 +12,7 @@
 #define WEAPON_CLAIDHEAMHMOR 327
 #define WEAPON_PERSIAN 404
 
-// Heavy
+//Heavy
 #define WEAPON_GRU 239
 #define WEAPON_FGRU 1084
 #define WEAPON_BREADBITE 1110
