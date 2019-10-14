@@ -384,8 +384,6 @@ public void OnPluginStart()
 	Config_InitTemplates();
 	Config_LoadTemplates();
 	
-	Weapons_Setup();
-	
 	//Incase of late-load
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		if (IsClientInGame(iClient))
@@ -2926,7 +2924,7 @@ void Handle_HoardeBonus()
 	int iLength = 0;
 	int[] iClients = new int[MaxClients];
 	int[] iClientsHoardeId = new int[MaxClients];
-	float vecClientsPos[TF_MAXPLAYERS+1][3];
+	float vecClientsPos[TF_MAXPLAYERS][3];
 	
 	int[] iHoardeSize = new int[MaxClients];
 	
@@ -3010,6 +3008,7 @@ void SZFEnable()
 	g_flTimeProgress = 0.0;
 	
 	SetTeams();
+	Weapons_Setup();
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		ResetClientState(iClient);
