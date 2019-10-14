@@ -1,15 +1,25 @@
+//Scout
+#define WEAPON_BFB 772
+
 //Soldier
 #define WEAPON_ESCAPEPLAN 775
 
+//Pyro
+#define WEAPON_POWERJACK 214
+
 //Demoman
 #define WEAPON_SKULLCUTTER 172
+#define WEAPON_CLAIDHEAMHMOR 327
 #define WEAPON_PERSIAN 404
+
+// Heavy
+#define WEAPON_GRU 239
+#define WEAPON_FGRU 1084
+#define WEAPON_BREADBITE 1110
+#define WEAPON_EVICTIONNOTICE 426
 
 //Medic
 #define WEAPON_OVERDOSE 412
-
-//Pyro
-#define WEAPON_POWERJACK 214
 
 //Required for TF2_FlagWeaponNoDrop
 #define FLAG_DONT_DROP_WEAPON 				0x23E173A2
@@ -277,17 +287,35 @@ stock void SetClientSpeed(int iClient, float flSpeed)
 
 stock float GetClientBaseSpeed(int iClient)
 {
-	switch (TF2_GetPlayerClass(iClient))
+	if (IsValidZombie(client))
 	{
-		case TFClass_Soldier: return 240.0;	//Default 240.0
-		case TFClass_DemoMan: return 280.0;	//Default 280.0
-		case TFClass_Medic: return 300.0; //Default 320.0 <Slowed>
-		case TFClass_Pyro: return 280.0; //Default 300.0 <Slowed>
-		case TFClass_Engineer: return 300.0; //Default 300.0
-		case TFClass_Sniper: return 300.0; //Default 300.0
-		case TFClass_Scout: return 330.0; //Default 400.0 <Slowed>
-		case TFClass_Spy: return 280.0;	//Default 320.0 <Slowed>
-		case TFClass_Heavy: return 230.0; //Default 230.0
+		switch (TF2_GetPlayerClass(iClient))
+		{
+			case TFClass_Scout: return 330.0;	// Default 400.0 <Slowed>
+			case TFClass_Soldier: return 240.0;	// Default 240.0
+			case TFClass_Pyro: return 250.0;	// Default 300.0 <Slowed>
+			case TFClass_DemoMan: return 280.0;	// Default 280.0
+			case TFClass_Heavy: return 230.0;	// Default 230.0
+			case TFClass_Engineer: return 270.0;	// Default 300.0 <Slowed>
+			case TFClass_Medic: return 280.0;	// Default 320.0 <Slowed>
+			case TFClass_Sniper: return 280.0;	// Default 300.0 <Slowed>
+			case TFClass_Spy: return 280.0;		// Default 320.0 <Slowed>
+		}
+	}
+	else
+	{
+		switch (TF2_GetPlayerClass(iClient))
+		{
+			case TFClass_Scout: return 340.0;	// Default 400.0 <Slowed>
+			case TFClass_Soldier: return 240.0;	// Default 240.0
+			case TFClass_Pyro: return 280.0;	// Default 300.0 <Slowed>
+			case TFClass_DemoMan: return 280.0;	// Default 280.0
+			case TFClass_Heavy: return 230.0;	// Default 230.0
+			case TFClass_Engineer: return 300.0;	// Default 300.0
+			case TFClass_Medic: return 300.0;	// Default 320.0 <Slowed>
+			case TFClass_Sniper: return 300.0;	// Default 300.0
+			case TFClass_Spy: return 300.0;		// Default 320.0 <Slowed>
+		}
 	}
 	
 	return 0.0;
@@ -299,6 +327,11 @@ stock float GetClientBonusSpeed(int iClient)
 	{
 		case TFClass_Scout:
 		{
+			if (isEquipped(client, WEAPON_BFB))
+			{
+				return 4.5*GetEntPropFloat(client, Prop_Send, "m_flHypeMeter");
+			}
+			
 			if (TF2_IsPlayerInCondition(iClient, TFCond_CritCola))
 			{
 				return 20.0;
@@ -328,6 +361,7 @@ stock float GetClientBonusSpeed(int iClient)
 			//Eyelander
 			if (TF2_IsSlotClassname(iClient, 2, "tf_weapon_sword")
 				&& !TF2_IsEquipped(iClient, WEAPON_SKULLCUTTER)
+				&& !TF2_IsEquipped(iClient, WEAPON_CLAIDHEAMHMOR)
 				&& !TF2_IsEquipped(iClient, WEAPON_PERSIAN))
 			{
 				int iHeads = GetEntProp(iClient, Prop_Send, "m_iDecapitations");
@@ -336,6 +370,20 @@ stock float GetClientBonusSpeed(int iClient)
 			else if (TF2_IsEquipped(iClient, WEAPON_SKULLCUTTER))
 			{
 				return -42.0;
+			}
+		}
+		case TFClass_Heavy:
+		{
+			if (isWielding(client, WEAPON_GRU)
+				|| isWielding(client, WEAPON_FGRU)
+				|| isWielding(client, WEAPON_BREADBITE))
+			{
+				return 70.0;
+			}
+			
+			if (isWielding(client, ZFWEAP_EVICTIONNOTICE))
+			{
+				return 35.0;
 			}
 		}
 		case TFClass_Medic:
