@@ -74,7 +74,7 @@ void Config_LoadTemplates()
 	delete kv;
 }
 
-ArrayList Config_LoadWeaponData()
+ArrayList Config_LoadWeaponData(bool bExclude)
 {
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
 	if (kv == null) return null;
@@ -117,24 +117,27 @@ ArrayList Config_LoadWeaponData()
 					continue;
 				}
 
-				// Skip weapons that are disabled
-				if (kv.GetNum("allclass", -1)==0 && g_cvAllClass.BoolValue)
+				if (bExclude)
 				{
-					continue;
+					// Skip weapons that are disabled
+					if (kv.GetNum("allclass", -1)==0 && g_cvAllClass.BoolValue)
+					{
+						continue;
+					}
+					else if (kv.GetNum("allclass", -1)==1 && !g_cvAllClass.BoolValue)
+					{
+						continue;
+					}
+
+					if (kv.GetNum("hardcore", -1)==0 && g_cvHardcore.BoolValue)
+					{
+						continue;
+					}
+					else if (kv.GetNum("hardcore", -1)==1 && !g_cvHardcore.BoolValue)
+					{
+						continue;
+					}
 				}
-				else if (kv.GetNum("allclass", -1)==1 && !g_cvAllClass.BoolValue)
-				{
-					continue;
-				}
-					
-				if (kv.GetNum("hardcore", -1)==0 && g_cvHardcore.BoolValue)
-				{
-					continue;
-				}
-				else if (kv.GetNum("hardcore", -1)==1 && !g_cvHardcore.BoolValue)
-				{
-					continue;
-				}	
 				
 				//Check if the model is already taken by another weapon
 				Weapon duplicate;
