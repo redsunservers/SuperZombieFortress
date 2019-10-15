@@ -42,6 +42,7 @@ enum
 enum SZFRoundState
 {
 	SZFRoundState_Setup,
+	SZFRoundState_Waiting,
 	SZFRoundState_Grace,
 	SZFRoundState_Active,
 	SZFRoundState_End,
@@ -1272,7 +1273,11 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	g_iZombieTank = 0;
 	RemoveAllGoo();
 	
-	g_nRoundState = SZFRoundState_Grace;
+	if (g_nRoundState == SZFRoundState_Setup)
+		g_nRoundState = SZFRoundState_Waiting;
+	else
+		g_nRoundState = SZFRoundState_Grace;
+	
 	CPrintToChatAll("{green}Grace period begun. Survivors can change classes.");
 	
 	//Assign players to zombie and survivor teams.
@@ -1410,8 +1415,7 @@ public Action Event_SetupEnd(Event event, const char[] name, bool dontBroadcast)
 void EndGracePeriod()
 {
 	if (!g_bEnabled) return;
-	if (g_nRoundState == SZFRoundState_Active) return;
-	if (g_nRoundState == SZFRoundState_End) return;
+	if (g_nRoundState != SZFRoundState_Grace) return; //No point in ending grace period if it's not grace period it in the first place.
 	
 	g_nRoundState = SZFRoundState_Active;
 	CPrintToChatAll("{orange}Grace period complete. Survivors can no longer change classes.");
