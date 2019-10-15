@@ -29,7 +29,7 @@ void Weapons_Setup(bool bExclude)
 {
 	if (bExclude)
 	{
-		Weapons_Init(false);
+		Weapons_Init(true);
 	}
 	else
 	{
@@ -41,7 +41,7 @@ void Weapons_Setup(bool bExclude)
 		g_cWeaponsRarePicked = new Cookie("weaponsrarepicked", "is this the flowey map?", CookieAccess_Protected);
 		g_cWeaponsCalled = new Cookie("weaponscalled", "is this the flowey map?", CookieAccess_Protected);
 
-		Weapons_Init(true);
+		Weapons_Init(false);
 	}
 }
 
