@@ -1245,6 +1245,11 @@ public Action Command_MainMenu(int iClient, int iArgs)
 public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled) return;
+	if (g_nRoundState == SZFRoundState_Setup)
+	{
+		g_nRoundState = SZFRoundState_Waiting;
+		return;
+	}
 	
 	DetermineControlPoints();
 	
@@ -1273,10 +1278,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	g_iZombieTank = 0;
 	RemoveAllGoo();
 	
-	if (g_nRoundState == SZFRoundState_Setup)
-		g_nRoundState = SZFRoundState_Waiting;
-	else
-		g_nRoundState = SZFRoundState_Grace;
+	g_nRoundState = SZFRoundState_Grace;
 	
 	CPrintToChatAll("{green}Grace period begun. Survivors can change classes.");
 	
