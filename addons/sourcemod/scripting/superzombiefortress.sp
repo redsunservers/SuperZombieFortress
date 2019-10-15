@@ -381,6 +381,8 @@ public void OnPluginStart()
 	
 	Config_InitTemplates();
 	Config_LoadTemplates();
+
+	Weapons_Setup(false);
 	
 	//Incase of late-load
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
@@ -3006,7 +3008,7 @@ void SZFEnable()
 	g_flTimeProgress = 0.0;
 	
 	SetTeams();
-	Weapons_Setup();
+	Weapons_Setup(true);
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		ResetClientState(iClient);
