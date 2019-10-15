@@ -1279,7 +1279,6 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	RemoveAllGoo();
 	
 	g_nRoundState = SZFRoundState_Grace;
-	
 	CPrintToChatAll("{green}Grace period begun. Survivors can change classes.");
 	
 	//Assign players to zombie and survivor teams.
