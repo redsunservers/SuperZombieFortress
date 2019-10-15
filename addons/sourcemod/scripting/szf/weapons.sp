@@ -18,9 +18,9 @@ enum struct Weapon
 	Weapon_OnPickup callback;
 }
 
-void Weapons_Init()
+void Weapons_Init(bool bExclude)
 {
-	g_Weapons = Config_LoadWeaponData();
+	g_Weapons = Config_LoadWeaponData(bExclude);
 	g_WeaponsReskin = Config_LoadWeaponReskinData();
 	
 	int iLength = g_Weapons.Length;
