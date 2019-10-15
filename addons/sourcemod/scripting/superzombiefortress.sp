@@ -42,7 +42,6 @@ enum
 enum SZFRoundState
 {
 	SZFRoundState_Setup,
-	SZFRoundState_Waiting,
 	SZFRoundState_Grace,
 	SZFRoundState_Active,
 	SZFRoundState_End,
@@ -1242,14 +1241,24 @@ public Action Command_MainMenu(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
+public void TF2_OnWaitingForPlayersStart()
+{
+	if (!g_bEnabled) return;
+	
+	g_nRoundState = SZFRoundState_Setup;
+}
+
+public void TF2_OnWaitingForPlayersEnd()
+{
+	if (!g_bEnabled) return;
+	
+	g_nRoundState = SZFRoundState_Grace;
+}
+
 public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled) return;
-	if (g_nRoundState == SZFRoundState_Setup)
-	{
-		g_nRoundState = SZFRoundState_Waiting;
-		return;
-	}
+	if (g_nRoundState == SZFRoundState_Setup) return;
 	
 	DetermineControlPoints();
 	
@@ -1279,6 +1288,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	RemoveAllGoo();
 	
 	g_nRoundState = SZFRoundState_Grace;
+	
 	CPrintToChatAll("{green}Grace period begun. Survivors can change classes.");
 	
 	//Assign players to zombie and survivor teams.
