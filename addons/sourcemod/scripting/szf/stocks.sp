@@ -287,7 +287,7 @@ stock void SetClientSpeed(int iClient, float flSpeed)
 
 stock float GetClientBaseSpeed(int iClient)
 {
-	if (IsValidZombie(client))
+	if (IsValidZombie(iClient))
 	{
 		switch (TF2_GetPlayerClass(iClient))
 		{
@@ -327,9 +327,9 @@ stock float GetClientBonusSpeed(int iClient)
 	{
 		case TFClass_Scout:
 		{
-			if (isEquipped(client, WEAPON_BFB))
+			if (TF2_IsEquipped(iClient, WEAPON_BFB))
 			{
-				return 4.5*GetEntPropFloat(client, Prop_Send, "m_flHypeMeter");
+				return 4.5*GetEntPropFloat(iClient, Prop_Send, "m_flHypeMeter");
 			}
 			
 			if (TF2_IsPlayerInCondition(iClient, TFCond_CritCola))
@@ -374,14 +374,14 @@ stock float GetClientBonusSpeed(int iClient)
 		}
 		case TFClass_Heavy:
 		{
-			if (isWielding(client, WEAPON_GRU)
-				|| isWielding(client, WEAPON_FGRU)
-				|| isWielding(client, WEAPON_BREADBITE))
+			if (TF2_IsWielding(iClient, WEAPON_GRU)
+				|| TF2_IsWielding(iClient, WEAPON_FGRU)
+				|| TF2_IsWielding(iClient, WEAPON_BREADBITE))
 			{
 				return 70.0;
 			}
 			
-			if (isWielding(client, ZFWEAP_EVICTIONNOTICE))
+			if (TF2_IsWielding(iClient, WEAPON_EVICTIONNOTICE))
 			{
 				return 35.0;
 			}

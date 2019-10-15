@@ -128,7 +128,6 @@ ConVar g_cvFrenzyChance;
 ConVar g_cvFrenzyTankChance;
 ConVar g_cvHardcore;
 ConVar g_cvAllClass;
-ConVar g_cvDebug;
 
 float g_flZombieDamageScale = 1.0;
 
@@ -330,7 +329,6 @@ public void OnPluginStart()
 	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy", _, true, 0.0);
 	g_cvHardcore = CreateConVar("sm_szf_hardcore", "1", "<0/1> No ammo on kill or health regen", _, true, 0.0, true, 1.0);
 	g_cvAllClass = CreateConVar("sm_szf_allclass", "1", "<0/1> Remove class restrictions on both teams", _, true, 0.0, true, 1.0);
-	g_cvDebug = CreateConVar("sm_szf_debug", "0", "<0/1> Print/Display debug messages", FCVAR_DONTRECORD, true, 0.0, true, 1.0);
 	
 	//Hook events
 	HookEvent("teamplay_round_start", Event_RoundStart);
@@ -665,15 +663,15 @@ public void Client_OnPreThinkPost(int iClient)
 						//Movement speed increase
 						switch (nClass)
 						{
-							case TFClass_Scout:    flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[client]);
-							case TFClass_Soldier:  flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[client]);
-							case TFClass_Pyro:     flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[client]);
-							case TFClass_DemoMan:  flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[client]);
-							case TFClass_Heavy:    flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[client]);
-							case TFClass_Engineer: flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[client]);
-							case TFClass_Medic:    flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[client]);
-							case TFClass_Sniper:   flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[client]);
-							case TFClass_Spy:      flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[client]);
+							case TFClass_Scout:    flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
+							case TFClass_Soldier:  flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[iClient]);
+							case TFClass_Pyro:     flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[iClient]);
+							case TFClass_DemoMan:  flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[iClient]);
+							case TFClass_Heavy:    flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[iClient]);
+							case TFClass_Engineer: flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
+							case TFClass_Medic:    flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
+							case TFClass_Sniper:   flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
+							case TFClass_Spy:      flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
 						}
 						
 						if (g_bZombieRage) flSpeed += 40.0; //Map-wide zombie enrage event
@@ -1766,7 +1764,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					}
 					else
 					{
-						if (TF2_GetPlayerClass(client) != TFClass_Scout)
+						if (TF2_GetPlayerClass(iClient) != TFClass_Scout)
 						{
 							TF2_SetPlayerClass(iClient, TFClass_Scout, true, true);
 							TF2_RespawnPlayer(iClient);
@@ -1781,7 +1779,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				
 				case Infected_Stalker:
 				{
-					if (TF2_GetPlayerClass(client) != TFClass_Spy)
+					if (TF2_GetPlayerClass(iClient) != TFClass_Spy)
 					{
 						TF2_SetPlayerClass(iClient, TFClass_Spy, true, !g_cvAllClass.BoolValue);
 						TF2_RespawnPlayer(iClient);
@@ -1795,7 +1793,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				
 				case Infected_Smoker:
 				{
-					if (GetConVarBool(zf_cvAllClass))
+					if (g_cvAllClass.BoolValue)
 					{
 						if (TF2_GetPlayerClass(iClient) != TFClass_Sniper)
 						{
@@ -2844,15 +2842,15 @@ void Handle_ZombieAbilities()
 			{
 				switch (nClass)
 				{
-					case TFClass_Scout:    bonus = 2;
-					case TFClass_Soldier:  bonus = 1;
-					case TFClass_Pyro:     bonus = 1;
-					case TFClass_DemoMan:  bonus = 1;
-					case TFClass_Heavy:    bonus = 1;
-					case TFClass_Engineer: bonus = 2;
-					case TFClass_Medic:    bonus = 0;
-					case TFClass_Sniper:   bonus = 2;
-					case TFClass_Spy:      bonus = 2;
+					case TFClass_Scout:    iBonus = 2;
+					case TFClass_Soldier:  iBonus = 1;
+					case TFClass_Pyro:     iBonus = 1;
+					case TFClass_DemoMan:  iBonus = 1;
+					case TFClass_Heavy:    iBonus = 1;
+					case TFClass_Engineer: iBonus = 2;
+					case TFClass_Medic:    iBonus = 0;
+					case TFClass_Sniper:   iBonus = 2;
+					case TFClass_Spy:      iBonus = 2;
 				}
 				
 				//Handle additional regeneration
@@ -2868,15 +2866,15 @@ void Handle_ZombieAbilities()
 			{
 				switch (nClass)
 				{
-					case TFClass_Scout:    bonus = -3;
-					case TFClass_Soldier:  bonus = -5;
-					case TFClass_Pyro:     bonus = -4;
-					case TFClass_DemoMan:  bonus = -4;
-					case TFClass_Heavy:    bonus = -6;
-					case TFClass_Engineer: bonus = -3;
-					case TFClass_Medic:    bonus = -4;
-					case TFClass_Sniper:   bonus = -3;
-					case TFClass_Spy:      bonus = -3;
+					case TFClass_Scout:    iBonus = -3;
+					case TFClass_Soldier:  iBonus = -5;
+					case TFClass_Pyro:     iBonus = -4;
+					case TFClass_DemoMan:  iBonus = -4;
+					case TFClass_Heavy:    iBonus = -6;
+					case TFClass_Engineer: iBonus = -3;
+					case TFClass_Medic:    iBonus = -4;
+					case TFClass_Sniper:   iBonus = -3;
+					case TFClass_Spy:      iBonus = -3;
 				}
 				
 				iHealth += iBonus;
@@ -3375,16 +3373,16 @@ public int Panel_HandleSurClass(Menu menu, MenuAction action, int param1, int pa
 		{
 			switch (param2)
 			{
-				case 1: panel_PrintSurInfo(param1, TFClass_Scout);
-				case 2: panel_PrintSurInfo(param1, TFClass_Soldier);
-				case 3: panel_PrintSurInfo(param1, TFClass_Pyro);
-				case 4: panel_PrintSurInfo(param1, TFClass_DemoMan);
-				case 5: panel_PrintSurInfo(param1, TFClass_Heavy);
-				case 6: panel_PrintSurInfo(param1, TFClass_Medic);
-				case 7: panel_PrintSurInfo(param1, TFClass_Engineer);
-				case 8: panel_PrintSurInfo(param1, TFClass_Sniper);
-				case 9: panel_PrintSurInfo(param1, TFClass_Spy);
-				case 10: panel_PrintMain(param1);
+				case 1: Panel_PrintSurInfo(param1, TFClass_Scout);
+				case 2: Panel_PrintSurInfo(param1, TFClass_Soldier);
+				case 3: Panel_PrintSurInfo(param1, TFClass_Pyro);
+				case 4: Panel_PrintSurInfo(param1, TFClass_DemoMan);
+				case 5: Panel_PrintSurInfo(param1, TFClass_Heavy);
+				case 6: Panel_PrintSurInfo(param1, TFClass_Medic);
+				case 7: Panel_PrintSurInfo(param1, TFClass_Engineer);
+				case 8: Panel_PrintSurInfo(param1, TFClass_Sniper);
+				case 9: Panel_PrintSurInfo(param1, TFClass_Spy);
+				case 10: Panel_PrintMain(param1);
 				default: return;
 			}
 		}
@@ -3392,13 +3390,13 @@ public int Panel_HandleSurClass(Menu menu, MenuAction action, int param1, int pa
 		{
 			switch (param2)
 			{
-				case 1: panel_PrintSurInfo(param1, TFClass_Soldier);
-				case 2: panel_PrintSurInfo(param1, TFClass_Pyro);
-				case 3: panel_PrintSurInfo(param1, TFClass_DemoMan);
-				case 4: panel_PrintSurInfo(param1, TFClass_Medic);
-				case 5: panel_PrintSurInfo(param1, TFClass_Engineer);
-				case 6: panel_PrintSurInfo(param1, TFClass_Sniper);
-				case 7: panel_PrintMain(param1);
+				case 1: Panel_PrintSurInfo(param1, TFClass_Soldier);
+				case 2: Panel_PrintSurInfo(param1, TFClass_Pyro);
+				case 3: Panel_PrintSurInfo(param1, TFClass_DemoMan);
+				case 4: Panel_PrintSurInfo(param1, TFClass_Medic);
+				case 5: Panel_PrintSurInfo(param1, TFClass_Engineer);
+				case 6: Panel_PrintSurInfo(param1, TFClass_Sniper);
+				case 7: Panel_PrintMain(param1);
 				default: return;
 			}
 		}
@@ -3444,16 +3442,16 @@ public int Panel_HandleZomClass(Menu menu, MenuAction action, int param1, int pa
 		{
 			switch (param2)
 			{
-				case 1: panel_PrintZomInfo(param1, TFClass_Scout);
-				case 2: panel_PrintZomInfo(param1, TFClass_Soldier);
-				case 3: panel_PrintZomInfo(param1, TFClass_Pyro);
-				case 4: panel_PrintZomInfo(param1, TFClass_DemoMan);
-				case 5: panel_PrintZomInfo(param1, TFClass_Heavy);
-				case 6: panel_PrintZomInfo(param1, TFClass_Medic);
-				case 7: panel_PrintZomInfo(param1, TFClass_Engineer);
-				case 8: panel_PrintZomInfo(param1, TFClass_Sniper);
-				case 9: panel_PrintZomInfo(param1, TFClass_Spy);
-				case 10: panel_PrintMain(param1);
+				case 1: Panel_PrintZomInfo(param1, TFClass_Scout);
+				case 2: Panel_PrintZomInfo(param1, TFClass_Soldier);
+				case 3: Panel_PrintZomInfo(param1, TFClass_Pyro);
+				case 4: Panel_PrintZomInfo(param1, TFClass_DemoMan);
+				case 5: Panel_PrintZomInfo(param1, TFClass_Heavy);
+				case 6: Panel_PrintZomInfo(param1, TFClass_Medic);
+				case 7: Panel_PrintZomInfo(param1, TFClass_Engineer);
+				case 8: Panel_PrintZomInfo(param1, TFClass_Sniper);
+				case 9: Panel_PrintZomInfo(param1, TFClass_Spy);
+				case 10: Panel_PrintMain(param1);
 				default: return;
 			}
 		}
@@ -3461,9 +3459,9 @@ public int Panel_HandleZomClass(Menu menu, MenuAction action, int param1, int pa
 		{
 			switch (param2)
 			{
-				case 1: panel_PrintZomInfo(param1, TFClass_Scout);
-				case 2: panel_PrintZomInfo(param1, TFClass_Heavy);
-				case 3: panel_PrintZomInfo(param1, TFClass_Spy);
+				case 1: Panel_PrintZomInfo(param1, TFClass_Scout);
+				case 2: Panel_PrintZomInfo(param1, TFClass_Heavy);
+				case 3: Panel_PrintZomInfo(param1, TFClass_Spy);
 				case 4: Panel_PrintMain(param1);
 				default: return;
 			}
@@ -3471,7 +3469,7 @@ public int Panel_HandleZomClass(Menu menu, MenuAction action, int param1, int pa
 	}
 }
 
-public void Panel_PrintClass(int iClient, TFClassType nClass)
+public void Panel_PrintSurInfo(int iClient, TFClassType nClass)
 {
 	Panel panel = new Panel();
 	switch (nClass)
@@ -3661,7 +3659,7 @@ public void Panel_PrintZomInfo(int iClient, TFClassType nClass)
 	}
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
-	panel.Send(client, Panel_HandleClass, 30);
+	panel.Send(iClient, Panel_HandleClass, 30);
 	delete panel;
 }
 
@@ -4557,7 +4555,7 @@ void HandleZombieLoadout(int iClient)
 		{
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-			if (g_iSpecialInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_buff_item"))
+			if (g_nInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_buff_item"))
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 
 			int iIndex = 6; //Shovel
@@ -4570,7 +4568,7 @@ void HandleZombieLoadout(int iClient)
 		{
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-			if (g_iSpecialInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_buff_item"))
+			if (g_nInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_buff_item"))
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 
 			TF2_CreateAndEquipWeapon(iClient, 348); //Sharpened Volcano Fragment
@@ -4581,11 +4579,11 @@ void HandleZombieLoadout(int iClient)
 			RemoveWearableWeapons(iClient);
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-			if (g_iSpecialInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_buff_item"))
+			if (g_nInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_buff_item"))
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 
 			int iIndex = 132; // Eyelander
-			if (g_iSpecialInfected[iClient] == Infected_Charger) 	iIndex = 404; // Persian Persuader
+			if (g_nInfected[iClient] == Infected_Charger) 	iIndex = 404; // Persian Persuader
 
 			TF2_CreateAndEquipWeapon(iClient, iIndex);
 		}
@@ -4608,7 +4606,7 @@ void HandleZombieLoadout(int iClient)
 		{
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 
-			int iMelee = TF2_CreateAndEquipWeapon(iClient, 142); //Gunslinger
+			iMelee = TF2_CreateAndEquipWeapon(iClient, 142); //Gunslinger
 			if (IsValidEntity(iMelee))
 			{
 				TF2Attrib_SetByName(iMelee, "max health additive bonus", 0.0); //No extra max health
@@ -4626,10 +4624,10 @@ void HandleZombieLoadout(int iClient)
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 
 			int iIndex = 8; //Bonesaw
-			if (g_iSpecialInfected[iClient] == Infected_Kingpin) 	iIndex = 304; //Amputator
+			if (g_nInfected[iClient] == Infected_Kingpin) 	iIndex = 304; //Amputator
 
-			int iMelee = TF2_CreateAndEquipWeapon(iClient, iIndex);
-			if (IsValidEntity(iMelee) && iItem == 401)
+			iMelee = TF2_CreateAndEquipWeapon(iClient, iIndex);
+			if (IsValidEntity(iMelee) && iIndex == 401)
 			{
 				TF2Attrib_SetByName(iMelee, "max health additive penalty", -50.0); //Less max health
 				TF2Attrib_SetByName(iMelee, "enables aoe heal", 0.0); //Disable taunt healing
@@ -4643,10 +4641,10 @@ void HandleZombieLoadout(int iClient)
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 
 			int iIndex = 3; //Kukri
-			if (g_iSpecialInfected[iClient] == Infected_Smoker) 	iIndex = 401; // Shahanshah
+			if (g_nInfected[iClient] == Infected_Smoker) 	iIndex = 401; // Shahanshah
 
-			int iMelee = TF2_CreateAndEquipWeapon(iClient, iIndex);
-			if (IsValidEntity(iMelee) && iItem == 304)
+			iMelee = TF2_CreateAndEquipWeapon(iClient, iIndex);
+			if (IsValidEntity(iMelee) && iIndex == 304)
 				TF2Attrib_SetByName(iMelee, "max health additive penalty", -55.0); // Less max health
 		}
 		
@@ -4797,7 +4795,7 @@ void GooDamageCheck()
 			if (IsValidLivingClient(iClient) && !g_bGooified[iClient] && g_iGooMultiplier[iClient] > 0)
 				g_iGooMultiplier[iClient]--;
 			
-			//ScreenFade(client, red, green, blue, alpha, delay, type)
+			//ScreenFade(iClient, red, green, blue, alpha, delay, type)
 			if (!bWasGooified[iClient] && g_bGooified[iClient] && IsPlayerAlive(iClient))
 			{
 				//Fade screen slightly green
@@ -5583,13 +5581,13 @@ stock bool IsClassname(int iEntity, char[] sClassname)
 	return false;
 }
 
-stock int FindChargerTarge(int client)
+stock int FindChargerTarge(int iClient)
 {
 	int iEntity = MaxClients+1;
 	while((iEntity = FindEntityByClassname2(iEntity, "tf_wearable_demoshield")) != -1)
 	{
 		int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
-		if (iIndex == 406 && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == client && !GetEntProp(iEntity, Prop_Send, "m_bDisguiseWearable"))
+		if (iIndex == 406 && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient && !GetEntProp(iEntity, Prop_Send, "m_bDisguiseWearable"))
 			return iEntity;
 	}
 	
@@ -6054,20 +6052,20 @@ stock int SDK_GetMaxAmmo(int iClient, int iSlot)
 	return -1;
 }
 
-stock void SDK_EquipWearable(int client, int iWearable)
+stock void SDK_EquipWearable(int iClient, int iWearable)
 {
 	if (g_hSDKEquipWearable != null)
-		SDKCall(g_hSDKEquipWearable, client, iWearable);
+		SDKCall(g_hSDKEquipWearable, iClient, iWearable);
 }
-stock void SDK_RemoveWearable(int client, int iWearable)
+stock void SDK_RemoveWearable(int iClient, int iWearable)
 {
 	if (g_hSDKRemoveWearable != null)
-		SDKCall(g_hSDKRemoveWearable, client, iWearable);
+		SDKCall(g_hSDKRemoveWearable, iClient, iWearable);
 }
-stock int SDK_GetEquippedWearable(int client, int iSlot)
+stock int SDK_GetEquippedWearable(int iClient, int iSlot)
 {
 	if (g_hSDKGetEquippedWearable != null)
-		return SDKCall(g_hSDKGetEquippedWearable, client, iSlot);
+		return SDKCall(g_hSDKGetEquippedWearable, iClient, iSlot);
 	
 	return -1;
 }
