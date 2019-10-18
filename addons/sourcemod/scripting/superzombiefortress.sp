@@ -1268,7 +1268,7 @@ public Action Command_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 						DoKingpinRage(iClient, 600.0);
 						
 						char sPath[64];
-						Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%i.wav", GetRandomInt(15, 16));
+						Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(15, 16));
 						EmitSoundToAll(sPath, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 					}
 					case Infected_Hunter:
@@ -3304,14 +3304,14 @@ public void Panel_PrintSurInfo(int iClient, TFClassType nClass)
 	//If they can gain/lose ammo on kill
 	if (GetSurvivorAmmo(nClass))
 	{
-		Format(sClass, sizeof(sClass), "%s %i primary ammo per kill%s.", GetSurvivorAmmo(nClass) > 0 ? "Gains" : "Loses", GetSurvivorAmmo(nClass), GetSurvivorAmmo(nClass) > 0 ? ", this can go beyond the usual maximum capacity of your weapon" : "");
+		Format(sClass, sizeof(sClass), "%s %d primary ammo per kill%s.", GetSurvivorAmmo(nClass) > 0 ? "Gains" : "Loses", GetSurvivorAmmo(nClass), GetSurvivorAmmo(nClass) > 0 ? ", this can go beyond the usual maximum capacity of your weapon" : "");
 		panel.DrawText(sClass);
 	}
 	
 	//If their speed has been modified
 	if (GetSurvivorSpeed(nClass) != TF2_GetClassSpeed(nClass))
 	{
-		Format(sClass, sizeof(sClass), "Movement speed %s to %i (from %i).", GetSurvivorSpeed(nClass) > TF2_GetClassSpeed(nClass) ? "increased" : "lowered", RoundFloat(GetSurvivorSpeed(nClass)), TF2_GetClassSpeed(nClass));
+		Format(sClass, sizeof(sClass), "Movement speed %s to %d (from %d).", GetSurvivorSpeed(nClass) > TF2_GetClassSpeed(nClass) ? "increased" : "lowered", RoundFloat(GetSurvivorSpeed(nClass)), TF2_GetClassSpeed(nClass));
 		panel.DrawText(sClass);
 	}
 	
@@ -3376,7 +3376,7 @@ public void Panel_PrintZomInfo(int iClient, TFClassType nClass)
 	//If their speed has been modified
 	if (GetZombieSpeed(nClass) != TF2_GetClassSpeed(nClass))
 	{
-		Format(sClass, sizeof(sClass), "Movement speed %s to %i (from %i).", GetZombieSpeed(nClass) > TF2_GetClassSpeed(nClass) ? "increased" : "lowered", RoundFloat(GetZombieSpeed(nClass)), TF2_GetClassSpeed(nClass));
+		Format(sClass, sizeof(sClass), "Movement speed %s to %d (from %d).", GetZombieSpeed(nClass) > TF2_GetClassSpeed(nClass) ? "increased" : "lowered", RoundFloat(GetZombieSpeed(nClass)), TF2_GetClassSpeed(nClass));
 		panel.DrawText(sClass);
 	}
 	
@@ -5628,7 +5628,7 @@ public void DoKingpinRage(int iClient, float flRadius)
 public void DoHunterJump(int iClient)
 {
 	char sPath[64];
-	Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%i.wav", GetRandomInt(18, 19));
+	Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(18, 19));
 	EmitSoundToAll(sPath, iClient, SNDLEVEL_AIRCRAFT);
 	
 	CreateTimer(0.3, Timer_SetHunterJump, iClient);
