@@ -126,8 +126,6 @@ ConVar g_cvTankHealthMax;
 ConVar g_cvTankTime;
 ConVar g_cvFrenzyChance;
 ConVar g_cvFrenzyTankChance;
-ConVar g_cvHardcore;
-ConVar g_cvAllClass;
 
 float g_flZombieDamageScale = 1.0;
 
@@ -241,6 +239,7 @@ char g_strSoundCritHit[][128] =
 };
 
 #include "szf/weapons.sp"
+#include "szf/classes.sp"
 #include "szf/stocks.sp"
 #include "szf/sound.sp"
 #include "szf/pickupweapons.sp"
@@ -327,8 +326,6 @@ public void OnPluginStart()
 	g_cvTankTime = CreateConVar("sm_szf_tank_time", "30.0", "Adjusts the damage the Tank takes per second. If the value is 70.0, the Tank will take damage that will make him die (if unhurt by survivors) after 70 seconds. 0 to disable.", _, true, 0.0);
 	g_cvFrenzyChance = CreateConVar("sm_szf_frenzy_chance", "0.0", "% Chance of a random frenzy", _, true, 0.0);
 	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy", _, true, 0.0);
-	g_cvHardcore = CreateConVar("sm_szf_hardcore", "1", "<0/1> No ammo on kill or health regen", _, true, 0.0, true, 1.0);
-	g_cvAllClass = CreateConVar("sm_szf_allclass", "1", "<0/1> Remove class restrictions on both teams", _, true, 0.0, true, 1.0);
 	
 	//Hook events
 	HookEvent("teamplay_round_start", Event_RoundStart);
@@ -381,8 +378,9 @@ public void OnPluginStart()
 	
 	Config_InitTemplates();
 	Config_LoadTemplates();
-
-	Weapons_Setup(false);
+	
+	Classes_Setup();
+	Weapons_Setup();
 	
 	//Incase of late-load
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
@@ -652,11 +650,12 @@ public void Client_OnPreThinkPost(int iClient)
 		//Handle speed bonuses.
 		if ((!TF2_IsPlayerInCondition(iClient, TFCond_Slowed) && !TF2_IsPlayerInCondition(iClient, TFCond_Dazed)) || g_bBackstabbed[iClient])
 		{
-			float flSpeed = GetClientBaseSpeed(iClient) + GetClientBonusSpeed(iClient);
 			TFClassType nClass = TF2_GetPlayerClass(iClient);
+			float flSpeed = GetClientBonusSpeed(iClient);
 			
 			if (IsZombie(iClient))
 			{
+				flSpeed += GetZombieSpeed(nClass);
 				switch (g_nInfected[iClient])
 				{
 					//Non-tanks: hoarde bonus to movement speed and ignite speed bonus
@@ -665,15 +664,11 @@ public void Client_OnPreThinkPost(int iClient)
 						//Movement speed increase
 						switch (nClass)
 						{
-							case TFClass_Scout:    flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
-							case TFClass_Soldier:  flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[iClient]);
-							case TFClass_Pyro:     flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[iClient]);
-							case TFClass_DemoMan:  flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[iClient]);
-							case TFClass_Heavy:    flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[iClient]);
-							case TFClass_Engineer: flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
-							case TFClass_Medic:    flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
-							case TFClass_Sniper:   flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
-							case TFClass_Spy:      flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
+							case TFClass_Soldier, TFClass_Pyro, TFClass_DemoMan, TFClass_Heavy:
+								flSpeed += fMin(10.0, 0.8 * g_iZombiesKilledSpree) + fMin(10.0, 1.2 * g_iHorde[iClient]);
+							
+							default:
+								flSpeed += fMin(20.0, 1.0 * g_iZombiesKilledSpree) + fMin(20.0, 2.0 * g_iHorde[iClient]);
 						}
 						
 						if (g_bZombieRage) flSpeed += 40.0; //Map-wide zombie enrage event
@@ -734,6 +729,7 @@ public void Client_OnPreThinkPost(int iClient)
 			
 			if (IsSurvivor(iClient))
 			{
+				flSpeed += GetSurvivorSpeed(nClass);
 				//If under 50 health, tick away one speed per hp lost
 				if (GetClientHealth(iClient) < 50)
 				{
@@ -1125,16 +1121,32 @@ public Action Command_JoinClass(int iClient, const char[] sCommand, int iArgs)
 	if (!g_bEnabled) return Plugin_Continue;
 	if (iArgs < 1) return Plugin_Handled;
 	
-	char sArg[32];
+	char sArg[32], sClass[32], sMsg[256];
 	GetCmdArg(1, sArg, sizeof(sArg));
 	
-	if (IsZombie(iClient) && !g_cvAllClass.BoolValue)
+	if (IsZombie(iClient))
 	{
-		//If an invalid zombie class is selected, print a message and
-		//accept joinclass command. ZF spawn logic will correct this
-		//issue when the player spawns.
-		if (!(StrEqual(sArg, "scout", false) || StrEqual(sArg, "spy", false) || StrEqual(sArg, "heavyweapons", false)))
-			CPrintToChat(iClient, "{red}Valid zombies: Scout, Heavy and Spy");
+		//Search if the player selected a valid zombie class
+		for (int i = 1; i < view_as<int>(TFClassType); i++)
+		{
+			TF2_GetClassSelect(sClass, sizeof(sClass), i);
+			if (StrEqual(sArg, sClass, false) && IsValidZombieClass(view_as<TFClassType>(i)))
+				return Plugin_Continue;
+		}
+		
+		//It's invalid, then display which classes the player can choose
+		for (int i = 1; i < sizeof(g_nZombieClass); i++)
+		{
+			//Place a comma before if it's not the first one
+			if (strlen(sMsg))
+				Format(sMsg, sizeof(sMsg), "%s, ", sMsg);
+			
+			TF2_GetClassName(sClass, sizeof(sClass), i);
+			Format(sMsg, sizeof(sMsg), "%s %s", sMsg, sClass);
+		}
+		
+		CPrintToChat(iClient, "{red}Valid zombies:%s.", sMsg);
+		return Plugin_Handled;
 	}
 	else if (IsSurvivor(iClient))
 	{
@@ -1145,19 +1157,27 @@ public Action Command_JoinClass(int iClient, const char[] sCommand, int iArgs)
 			return Plugin_Handled;
 		}
 		
-		//If an invalid survivor class is selected, print a message
-		//and accept the joincalss command. ZF spawn logic will
-		//correct this issue when the player spawns.
-		else if (!g_cvAllClass.BoolValue &&
-		      !(StrEqual(sArg, "soldier", false) ||
-			StrEqual(sArg, "pyro", false) ||
-			StrEqual(sArg, "demoman", false) ||
-			StrEqual(sArg, "engineer", false) ||
-			StrEqual(sArg, "medic", false) ||
-			StrEqual(sArg, "sniper", false)))
+		//Search if the player selected a valid survivor class
+		for (int i = 1; i < view_as<int>(TFClassType); i++)
 		{
-			CPrintToChat(iClient, "{red}Valid survivors: Soldier, Pyro, Demo, Engineer, Medic and Sniper.");
+			TF2_GetClassSelect(sClass, sizeof(sClass), i);
+			if (StrEqual(sArg, sClass, false) && IsValidSurvivorClass(view_as<TFClassType>(i)))
+				return Plugin_Continue;
 		}
+		
+		//It's invalid, then display which classes the player can choose
+		for (int i = 1; i < sizeof(g_nSurvivorClass); i++)
+		{
+			//Place a comma before if it's not the first one
+			if (strlen(sMsg))
+				Format(sMsg, sizeof(sMsg), "%s, ", sMsg);
+			
+			TF2_GetClassName(sClass, sizeof(sClass), i);
+			Format(sMsg, sizeof(sMsg), "%s %s", sMsg, sClass);
+		}
+		
+		CPrintToChat(iClient, "{red}Valid survivors:%s.", sMsg);
+		return Plugin_Handled;
 	}
 	
 	return Plugin_Continue;
@@ -1689,23 +1709,11 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			{
 				case Infected_Boomer:
 				{
-					if (g_cvAllClass.BoolValue)
+					if (TF2_GetPlayerClass(iClient) != TFClass_Soldier)
 					{
-						if (TF2_GetPlayerClass(iClient) != TFClass_Soldier)
-						{
-							TF2_SetPlayerClass(iClient, TFClass_Soldier, true, false);
-							TF2_RespawnPlayer(iClient);
-							return Plugin_Stop;
-						}
-					}
-					else
-					{
-						if (TF2_GetPlayerClass(iClient) != TFClass_Heavy)
-						{
-							TF2_SetPlayerClass(iClient, TFClass_Heavy, true, true);
-							TF2_RespawnPlayer(iClient);
-							return Plugin_Stop;
-						}
+						TF2_SetPlayerClass(iClient, TFClass_Soldier, true, false);
+						TF2_RespawnPlayer(iClient);
+						return Plugin_Stop;
 					}
 					
 					SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
@@ -1715,23 +1723,11 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				
 				case Infected_Charger:
 				{
-					if (g_cvAllClass.BoolValue)
+					if (TF2_GetPlayerClass(iClient) != TFClass_DemoMan)
 					{
-						if (TF2_GetPlayerClass(iClient) != TFClass_DemoMan)
-						{
-							TF2_SetPlayerClass(iClient, TFClass_DemoMan, true, false);
-							TF2_RespawnPlayer(iClient);
-							return Plugin_Stop;
-						}
-					}
-					else
-					{
-						if (TF2_GetPlayerClass(iClient) != TFClass_Heavy)
-						{
-							TF2_SetPlayerClass(iClient, TFClass_Heavy, true, true);
-							TF2_RespawnPlayer(iClient);
-							return Plugin_Stop;
-						}
+						TF2_SetPlayerClass(iClient, TFClass_DemoMan, true, false);
+						TF2_RespawnPlayer(iClient);
+						return Plugin_Stop;
 					}
 
 					SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
@@ -1743,7 +1739,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				{
 					if (TF2_GetPlayerClass(iClient) != TFClass_Scout)
 					{
-						TF2_SetPlayerClass(iClient, TFClass_Scout, true, !g_cvAllClass.BoolValue);
+						TF2_SetPlayerClass(iClient, TFClass_Scout, true, false);
 						TF2_RespawnPlayer(iClient);
 						return Plugin_Stop;
 					}
@@ -1755,23 +1751,11 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				
 				case Infected_Kingpin:
 				{
-					if (g_cvAllClass.BoolValue)
+					if (TF2_GetPlayerClass(iClient) != TFClass_Medic)
 					{
-						if (TF2_GetPlayerClass(iClient) != TFClass_Medic)
-						{
-							TF2_SetPlayerClass(iClient, TFClass_Medic, true, false);
-							TF2_RespawnPlayer(iClient);
-							return Plugin_Stop;
-						}
-					}
-					else
-					{
-						if (TF2_GetPlayerClass(iClient) != TFClass_Scout)
-						{
-							TF2_SetPlayerClass(iClient, TFClass_Scout, true, true);
-							TF2_RespawnPlayer(iClient);
-							return Plugin_Stop;
-						}
+						TF2_SetPlayerClass(iClient, TFClass_Medic, true, false);
+						TF2_RespawnPlayer(iClient);
+						return Plugin_Stop;
 					}
 
 					SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
@@ -1783,7 +1767,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				{
 					if (TF2_GetPlayerClass(iClient) != TFClass_Spy)
 					{
-						TF2_SetPlayerClass(iClient, TFClass_Spy, true, !g_cvAllClass.BoolValue);
+						TF2_SetPlayerClass(iClient, TFClass_Spy, true, false);
 						TF2_RespawnPlayer(iClient);
 						return Plugin_Stop;
 					}
@@ -1795,23 +1779,11 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				
 				case Infected_Smoker:
 				{
-					if (g_cvAllClass.BoolValue)
+					if (TF2_GetPlayerClass(iClient) != TFClass_Sniper)
 					{
-						if (TF2_GetPlayerClass(iClient) != TFClass_Sniper)
-						{
-							TF2_SetPlayerClass(iClient, TFClass_Sniper, true, false);
-							TF2_RespawnPlayer(iClient);
-							return Plugin_Stop;
-						}
-					}
-					else
-					{
-						if (TF2_GetPlayerClass(iClient) != TFClass_Spy)
-						{
-							TF2_SetPlayerClass(iClient, TFClass_Spy, true, true);
-							TF2_RespawnPlayer(iClient);
-							return Plugin_Stop;
-						}
+						TF2_SetPlayerClass(iClient, TFClass_Sniper, true, false);
+						TF2_RespawnPlayer(iClient);
+						return Plugin_Stop;
 					}
 
 					SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
@@ -2068,20 +2040,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			if (IsValidLivingClient(iKillers[i]))
 			{
 				//Handle ammo kill bonuses.
-				//+ Soldiers receive 2 rockets per kill.
-				//+ Demomen receive 1 pipe per kill.
-				//+ Snipers receive 2 ammo per kill.
-				//+ Spies receive 1 ammo per kill.
-				if (!g_cvHardcore.BoolValue)
-				{
-					switch (TF2_GetPlayerClass(iKillers[i]))
-					{
-						case TFClass_Soldier: TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, 2);
-						case TFClass_DemoMan: TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, 1);
-						case TFClass_Sniper:  TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, 2);
-						case TFClass_Spy:     TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, 1);
-					}
-				}
+				TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, GetSurvivorAmmo(TF2_GetPlayerClass(iKillers[i])));
 				
 				//Handle morale bonuses.
 				//+ Each kill adds morale.
@@ -2127,16 +2086,13 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				AddMorale(iKillers[i], iBase);
 				
 				//+ Each kill grants a small health bonus and increases current crit bonus.
-				if (!g_cvHardcore.BoolValue)
+				int iHealth = GetClientHealth(iKillers[i]);
+				int iMaxHealth = SDK_GetMaxHealth(iKillers[i]);
+				if (iHealth < iMaxHealth)
 				{
-					int iHealth = GetClientHealth(iKillers[i]);
-					int iMaxHealth = SDK_GetMaxHealth(iKillers[i]);
-					if (iHealth < iMaxHealth)
-					{
-						iHealth += iMorale * 2;
-						iHealth = min(iHealth, iMaxHealth);
-						//SetEntityHealth(iKillers[i], iHealth);
-					}
+					iHealth += iMorale * 2;
+					iHealth = min(iHealth, iMaxHealth);
+					//SetEntityHealth(iKillers[i], iHealth);
 				}
 			}
 		}
@@ -2690,24 +2646,16 @@ void Handle_SurvivorAbilities()
 		if (IsValidLivingSurvivor(iClient))
 		{
 			//1. Survivor health regeneration.
-			if (!g_cvHardcore.BoolValue || TF2_GetPlayerClass(iClient) == TFClass_Medic)
+			int iHealth = GetClientHealth(iClient);
+			int iMaxHealth = SDK_GetMaxHealth(iClient);
+			if (iHealth < iMaxHealth)
 			{
-				int iHealth = GetClientHealth(iClient);
-				int iMaxHealth = SDK_GetMaxHealth(iClient);
-				if (iHealth < iMaxHealth)
-				{
-					//Balance regen for medics and non-medics
-					switch (TF2_GetPlayerClass(iClient))
-					{
-						//Default values: blutsauger = 1-4, default = 2-5
-						case TFClass_Medic: iHealth -= (TF2_IsEquipped(iClient, 36)) ? 1 : 2;
-						default: iHealth += 2;
-					}
+				iHealth += GetSurvivorRegen(TF2_GetPlayerClass(iClient));
 
-					iHealth += (!g_bSurvival) ? RoundToFloor(fMin(GetMorale(iClient) * 0.166, 4.0)) : 1;
-					iHealth = min(iHealth, iMaxHealth);
-					SetEntityHealth(iClient, iHealth);
-				}
+				if (TF2_GetPlayerClass(iClient) == TFClass_Medic && TF2_IsEquipped(iClient, 36)) iHealth--;
+				iHealth += (!g_bSurvival) ? RoundToFloor(fMin(GetMorale(iClient) * 0.166, 4.0)) : 1;
+				iHealth = min(iHealth, iMaxHealth);
+				SetEntityHealth(iClient, iHealth);
 			}
 			
 			//2. Handle survivor morale.
@@ -2826,7 +2774,6 @@ void Handle_ZombieAbilities()
 	TFClassType nClass;
 	int iHealth;
 	int iMaxHealth;
-	int iBonus;
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
@@ -2839,47 +2786,21 @@ void Handle_ZombieAbilities()
 			//1. Handle zombie regeneration.
 			//       Zombies regenerate health based on class and number of nearby
 			//       zombies (hoarde bonus). Zombies decay health when overhealed.
-			iBonus = 0;
 			if (iHealth < iMaxHealth)
 			{
-				switch (nClass)
-				{
-					case TFClass_Scout:    iBonus = 2;
-					case TFClass_Soldier:  iBonus = 1;
-					case TFClass_Pyro:     iBonus = 1;
-					case TFClass_DemoMan:  iBonus = 1;
-					case TFClass_Heavy:    iBonus = 1;
-					case TFClass_Engineer: iBonus = 2;
-					case TFClass_Medic:    iBonus = 0;
-					case TFClass_Sniper:   iBonus = 2;
-					case TFClass_Spy:      iBonus = 2;
-				}
+				iHealth += GetZombieRegen(nClass);
 				
 				//Handle additional regeneration
-				iBonus += 1 * g_iHorde[iClient]; //Horde bonus
-				if (g_bZombieRage) iBonus += 3; //Zombie rage
-				if (g_iScreamerNearby[iClient]) iBonus += 2; //Kingpin
+				iHealth += 1 * g_iHorde[iClient]; //Horde bonus
+				if (g_bZombieRage) iHealth += 3; //Zombie rage
+				if (g_iScreamerNearby[iClient]) iHealth += 2; //Kingpin
 				
-				iHealth += iBonus;
 				iHealth = min(iHealth, iMaxHealth);
 				SetEntityHealth(iClient, iHealth);
 			}
 			else if (iHealth > iMaxHealth)
 			{
-				switch (nClass)
-				{
-					case TFClass_Scout:    iBonus = -3;
-					case TFClass_Soldier:  iBonus = -5;
-					case TFClass_Pyro:     iBonus = -4;
-					case TFClass_DemoMan:  iBonus = -4;
-					case TFClass_Heavy:    iBonus = -6;
-					case TFClass_Engineer: iBonus = -3;
-					case TFClass_Medic:    iBonus = -4;
-					case TFClass_Sniper:   iBonus = -3;
-					case TFClass_Spy:      iBonus = -3;
-				}
-				
-				iHealth += iBonus;
+				iHealth -= GetZombieDegen(nClass);
 				iHealth = max(iHealth, iMaxHealth);
 				SetEntityHealth(iClient, iHealth);
 			}
@@ -3008,7 +2929,6 @@ void SZFEnable()
 	g_flTimeProgress = 0.0;
 	
 	SetTeams();
-	Weapons_Setup(true);
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		ResetClientState(iClient);
@@ -3220,43 +3140,13 @@ public int Panel_HandleHelp(Menu menu, MenuAction action, int param1, int param2
 	{
 		switch (param2)
 		{
-			case 1:
-			{
-				Panel_PrintOverview(param1);
-			}
-			case 2:
-			{
-				Panel_PrintTeam(param1, TFTeam_Survivor);
-			}
-			case 3:
-			{
-				Panel_PrintTeam(param1, TFTeam_Zombie);
-			}
-			case 4:
-			{
-				if (g_cvAllClass.BoolValue)
-					Panel_PrintSurClasses(param1);
-				else
-					Panel_PrintSurClass(param1);
-			}
-			case 5:
-			{
-				if (g_cvAllClass.BoolValue)
-					Panel_PrintZomClasses(param1);
-				else
-					Panel_PrintZomClass(param1);
-			}
-			case 6:
-			{
-				if (g_cvAllClass.BoolValue)
-					Panel_PrintZomSpecials(param1);
-				else
-					Panel_PrintZomSpecial(param1);
-			}
-			default: 
-			{
-				return;
-			}
+			case 1: Panel_PrintOverview(param1);
+			case 2: Panel_PrintTeam(param1, TFTeam_Survivor);
+			case 3: Panel_PrintTeam(param1, TFTeam_Zombie);
+			case 4: Panel_PrintSurClass(param1);
+			case 5: Panel_PrintZomClass(param1);
+			case 6: Panel_PrintZomSpecial(param1);
+			default: return;
 		}
 	}
 }
@@ -3337,32 +3227,20 @@ public void Panel_PrintSurClass(int iClient)
 {
 	Panel panel = new Panel();
 	panel.SetTitle("Survivor Classes");
-	panel.DrawItem(" Soldier");
-	panel.DrawItem(" Pyro");
-	panel.DrawItem(" Demoman");
-	panel.DrawItem(" Medic");
-	panel.DrawItem(" Engineer");
-	panel.DrawItem(" Sniper");
+	
+	char sClass[32];
+	for (int i = 1; i < view_as<int>(TFClassType); i++)
+	{
+		if(IsValidSurvivorClass(view_as<TFClassType>(i)))
+		{
+			TF2_GetClassName(sClass, sizeof(sClass), i);
+			FormatEx(sClass, sizeof(sClass), " %s", sClass);
+			panel.DrawItem(sClass);
+		}
+	}
+	
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
-	panel.Send(iClient, Panel_HandleSurClass, 10);
-	delete panel;
-}
-
-public void Panel_PrintSurClasses(int iClient)
-{
-	Panel panel = new Panel();
-	panel.SetTitle("Survivor Classes");
-	panel.DrawItem(" Scout");
-	panel.DrawItem(" Soldier");
-	panel.DrawItem(" Pyro");
-	panel.DrawItem(" Demoman");
-	panel.DrawItem(" Heavy");
-	panel.DrawItem(" Medic");
-	panel.DrawItem(" Engineer");
-	panel.DrawItem(" Sniper");
-	panel.DrawItem(" Spy");
-	panel.DrawItem("Return");
 	panel.Send(iClient, Panel_HandleSurClass, 10);
 	delete panel;
 }
@@ -3371,37 +3249,11 @@ public int Panel_HandleSurClass(Menu menu, MenuAction action, int param1, int pa
 {
 	if (action == MenuAction_Select)
 	{
-		if (g_cvAllClass.BoolValue)
-		{
-			switch (param2)
-			{
-				case 1: Panel_PrintSurInfo(param1, TFClass_Scout);
-				case 2: Panel_PrintSurInfo(param1, TFClass_Soldier);
-				case 3: Panel_PrintSurInfo(param1, TFClass_Pyro);
-				case 4: Panel_PrintSurInfo(param1, TFClass_DemoMan);
-				case 5: Panel_PrintSurInfo(param1, TFClass_Heavy);
-				case 6: Panel_PrintSurInfo(param1, TFClass_Medic);
-				case 7: Panel_PrintSurInfo(param1, TFClass_Engineer);
-				case 8: Panel_PrintSurInfo(param1, TFClass_Sniper);
-				case 9: Panel_PrintSurInfo(param1, TFClass_Spy);
-				case 10: Panel_PrintMain(param1);
-				default: return;
-			}
-		}
-		else
-		{
-			switch (param2)
-			{
-				case 1: Panel_PrintSurInfo(param1, TFClass_Soldier);
-				case 2: Panel_PrintSurInfo(param1, TFClass_Pyro);
-				case 3: Panel_PrintSurInfo(param1, TFClass_DemoMan);
-				case 4: Panel_PrintSurInfo(param1, TFClass_Medic);
-				case 5: Panel_PrintSurInfo(param1, TFClass_Engineer);
-				case 6: Panel_PrintSurInfo(param1, TFClass_Sniper);
-				case 7: Panel_PrintMain(param1);
-				default: return;
-			}
-		}
+		if (param2 == GetSurvivorClassCount()+1)
+			Panel_PrintMain(param1);
+
+		if (param2 <= GetSurvivorClassCount() && param2 > 0)
+			Panel_PrintSurInfo(param1, g_nSurvivorClass[param2-1]);
 	}
 }
 
@@ -3409,29 +3261,20 @@ public void Panel_PrintZomClass(int iClient)
 {
 	Panel panel = new Panel();
 	panel.SetTitle("Zombie Classes");
-	panel.DrawItem(" Scout");
-	panel.DrawItem(" Heavy");
-	panel.DrawItem(" Spy");
+	
+	char sClass[32];
+	for (int i = 1; i < view_as<int>(TFClassType); i++)
+	{
+		if(IsValidSurvivorClass(view_as<TFClassType>(i)))
+		{
+			TF2_GetClassName(sClass, sizeof(sClass), i);
+			FormatEx(sClass, sizeof(sClass), " %s", sClass);
+			panel.DrawItem(sClass);
+		}
+	}
+	
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
-	panel.Send(iClient, Panel_HandleZomClass, 10);
-	delete panel;
-}
-
-public void Panel_PrintZomClasses(int iClient)
-{
-	Panel panel = new Panel();
-	panel.SetTitle("Zombie Classes");
-	panel.DrawItem(" Scout");
-	panel.DrawItem(" Soldier");
-	panel.DrawItem(" Pyro");
-	panel.DrawItem(" Demoman");
-	panel.DrawItem(" Heavy");
-	panel.DrawItem(" Medic");
-	panel.DrawItem(" Engineer");
-	panel.DrawItem(" Sniper");
-	panel.DrawItem(" Spy");
-	panel.DrawItem("Return");
 	panel.Send(iClient, Panel_HandleZomClass, 10);
 	delete panel;
 }
@@ -3440,84 +3283,52 @@ public int Panel_HandleZomClass(Menu menu, MenuAction action, int param1, int pa
 {
 	if (action == MenuAction_Select)
 	{
-		if (g_cvAllClass.BoolValue)
-		{
-			switch (param2)
-			{
-				case 1: Panel_PrintZomInfo(param1, TFClass_Scout);
-				case 2: Panel_PrintZomInfo(param1, TFClass_Soldier);
-				case 3: Panel_PrintZomInfo(param1, TFClass_Pyro);
-				case 4: Panel_PrintZomInfo(param1, TFClass_DemoMan);
-				case 5: Panel_PrintZomInfo(param1, TFClass_Heavy);
-				case 6: Panel_PrintZomInfo(param1, TFClass_Medic);
-				case 7: Panel_PrintZomInfo(param1, TFClass_Engineer);
-				case 8: Panel_PrintZomInfo(param1, TFClass_Sniper);
-				case 9: Panel_PrintZomInfo(param1, TFClass_Spy);
-				case 10: Panel_PrintMain(param1);
-				default: return;
-			}
-		}
-		else
-		{
-			switch (param2)
-			{
-				case 1: Panel_PrintZomInfo(param1, TFClass_Scout);
-				case 2: Panel_PrintZomInfo(param1, TFClass_Heavy);
-				case 3: Panel_PrintZomInfo(param1, TFClass_Spy);
-				case 4: Panel_PrintMain(param1);
-				default: return;
-			}
-		}
+		if (param2 == GetZombieClassCount()+1)
+			Panel_PrintMain(param1);
+
+		if (param2 <= GetZombieClassCount() && param2 > 0)
+			Panel_PrintSurInfo(param1, g_nSurvivorClass[param2-1]);
 	}
 }
 
 public void Panel_PrintSurInfo(int iClient, TFClassType nClass)
 {
 	Panel panel = new Panel();
+	
+	char sClass[256];
+	TF2_GetClassName(sClass, sizeof(sClass), view_as<int>(nClass));
+	panel.SetTitle(sClass);
+	panel.DrawText("-------------------------------------------");
+	
+	//If they can gain/lose ammo on kill
+	if (GetSurvivorAmmo(nClass))
+	{
+		Format(sClass, sizeof(sClass), "%s %i primary ammo per kill%s.", GetSurvivorAmmo(nClass) > 0 ? "Gains" : "Loses", GetSurvivorAmmo(nClass), GetSurvivorAmmo(nClass) > 0 ? ", this can go beyond the usual maximum capacity of your weapon" : "");
+		panel.DrawText(sClass);
+	}
+	
+	//If their speed has been modified
+	if (GetSurvivorSpeed(nClass) != TF2_GetClassSpeed(nClass))
+	{
+		Format(sClass, sizeof(sClass), "Movement speed %s to %i (from %i).", GetSurvivorSpeed(nClass) > TF2_GetClassSpeed(nClass) ? "increased" : "lowered", RoundFloat(GetSurvivorSpeed(nClass)), TF2_GetClassSpeed(nClass));
+		panel.DrawText(sClass);
+	}
+	
 	switch (nClass)
 	{
-		case TFClass_Scout:
-		{
-			panel.SetTitle("Scout");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("Movement speed lowered to 350 (from 400).");
-			panel.DrawText("-------------------------------------------");
-		}
-		case TFClass_Soldier:
-		{
-			panel.SetTitle("Soldier");
-			panel.DrawText("-------------------------------------------");
-			if (!g_cvHardcore.BoolValue) panel.DrawText("Gains 2 rockets per kill, this can go beyond the usual maximum capacity of your weapon.");
-			panel.DrawText("-------------------------------------------");
-		}
 		case TFClass_Pyro:
 		{
-			panel.SetTitle("Pyro");
-			panel.DrawText("-------------------------------------------");
 			panel.DrawText("Burning zombies move faster.");
 			panel.DrawText("Flamethrower ammo limited to 120.");
-			panel.DrawText("Movement speed lowered to 250 (from 300).");
-			panel.DrawText("-------------------------------------------");
-		}
-		case TFClass_DemoMan:
-		{
-			panel.SetTitle("Demoman");
-			panel.DrawText("-------------------------------------------");
-			if (!g_cvHardcore.BoolValue) panel.DrawText("Gains 1 pipe per kill, this can go beyond the usual maximum capacity of your weapon.");
 			panel.DrawText("-------------------------------------------");
 		}
 		case TFClass_Heavy:
 		{
-			panel.SetTitle("Heavy");
-			panel.DrawText("-------------------------------------------");
 			panel.DrawText("Minigun ammo limited to 120.");
-			panel.DrawText("Movement speed lowered to 200 (from 230).");
 			panel.DrawText("-------------------------------------------");
 		}
 		case TFClass_Engineer:
 		{
-			panel.SetTitle("Engineer");
-			panel.DrawText("-------------------------------------------");
 			panel.DrawText("Buildables cannot be upgraded.");
 			panel.DrawText("Can only build sentries and dispensers.");
 			panel.DrawText("Sentry ammo is limited, decays and cannot be replenished.");
@@ -3526,37 +3337,26 @@ public void Panel_PrintSurInfo(int iClient, TFClassType nClass)
 		}
 		case TFClass_Medic:
 		{
-			panel.SetTitle("Medic");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("Overheal limited to 25pct of maximum health but sticks for a longer duration.");
+			panel.DrawText("Overheal limited to 25%% of maximum health but sticks for a longer duration.");
 			panel.DrawText("-------------------------------------------");
 		}
 		case TFClass_Sniper:
 		{
-			panel.SetTitle("Sniper");
-			panel.DrawText("-------------------------------------------");
-			if (!g_cvHardcore.BoolValue) panel.DrawText("Gains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon.");
 			panel.DrawText("SMG doesn't have to reload.");
 			panel.DrawText("Jarate slows down Infected.");
 			panel.DrawText("-------------------------------------------");
 		}
 		case TFClass_Spy:
 		{
-			panel.SetTitle("Spy");
-			panel.DrawText("-------------------------------------------");
-			if (!g_cvHardcore.BoolValue) panel.DrawText("Gains 1 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon.");
 			panel.DrawText("Can't use cloak watches but can use disguises.");
 			panel.DrawText("-------------------------------------------");
 		}
 		default:
 		{
-			panel.SetTitle("Spectator");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("Is immune from the Zombie infection.");
-			panel.DrawText("Is truly neutral, not siding with any team.");
 			panel.DrawText("-------------------------------------------");
 		}
 	}
+	
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
 	panel.Send(iClient, Panel_HandleClass, 30);
@@ -3566,48 +3366,39 @@ public void Panel_PrintSurInfo(int iClient, TFClassType nClass)
 public void Panel_PrintZomInfo(int iClient, TFClassType nClass)
 {
 	Panel panel = new Panel();
+	
+	char sClass[32];
+	TF2_GetClassName(sClass, sizeof(sClass), view_as<int>(nClass));
+	panel.SetTitle(sClass);
+	panel.DrawText("-------------------------------------------");
+	
+	//If their speed has been modified
+	if (GetZombieSpeed(nClass) != TF2_GetClassSpeed(nClass))
+	{
+		Format(sClass, sizeof(sClass), "Movement speed %s to %i (from %i).", GetZombieSpeed(nClass) > TF2_GetClassSpeed(nClass) ? "increased" : "lowered", RoundFloat(GetZombieSpeed(nClass)), TF2_GetClassSpeed(nClass));
+		panel.DrawText(sClass);
+	}
+	
 	switch (nClass)
 	{
 		case TFClass_Scout:
 		{
-			panel.SetTitle("Scout");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("Uses the Sandman.");
-			panel.DrawText("Balls fired from the Sandman do not stun, it emits a toxic gas that damages Survivors who stand on it instead.");
-			panel.DrawText("Movement speed lowered to 330 (from 400).");
+			if (GetZombieIndex(nClass) == 44) panel.DrawText("Balls fired from the Sandman do not stun, it emits a toxic gas that damages Survivors who stand on it instead.");
 			panel.DrawText("-------------------------------------------");
 		}
 		case TFClass_Soldier:
 		{
-			panel.SetTitle("Soldier");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("Uses the Shovel.");
 			panel.DrawText("Suffers less knockback from attackers.");
 			panel.DrawText("Benefits less from movement speed and health regeneration bonuses while in a horde.");
 			panel.DrawText("-------------------------------------------");
 		}
-		case TFClass_Pyro:
+		case TFClass_Pyro, TFClass_DemoMan:
 		{
-			panel.SetTitle("Pyro");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("Uses the Sharpened Volcano Fragment.");
-			panel.DrawText("Benefits less from movement speed and health regeneration bonuses while in a horde.");
-			panel.DrawText("Movement speed lowered to 250 (from 300).");
-			panel.DrawText("-------------------------------------------");
-		}
-		case TFClass_DemoMan:
-		{
-			panel.SetTitle("Demoman");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("Uses the Eyelander.");
 			panel.DrawText("Benefits less from movement speed and health regeneration bonuses while in a horde.");
 			panel.DrawText("-------------------------------------------");
 		}
 		case TFClass_Heavy:
 		{
-			panel.SetTitle("Heavy");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("Uses the Fists.");
 			panel.DrawText("Blocks fatal attacks, reducing damage to 150.");
 			panel.DrawText("Suffers less knockback from attacks.");
 			panel.DrawText("Benefits less from movement speed and health regeneration bonuses while in a horde.");
@@ -3615,50 +3406,28 @@ public void Panel_PrintZomInfo(int iClient, TFClassType nClass)
 		}
 		case TFClass_Engineer:
 		{
-			panel.SetTitle("Engineer");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("Uses the Gunslinger.");
 			panel.DrawText("Buildables cannot be upgraded.");
-			panel.DrawText("Can only build mini sentries.");
-			panel.DrawText("Sentry range, ammo, damage, fire rate are all lowered.");
-			panel.DrawText("Movement speed lowered to 270 (from 300).");
+			panel.DrawText("Can only build sentries.");
+			panel.DrawText("Sentry ammo is limited, decays and cannot be replenished.");
 			panel.DrawText("-------------------------------------------");
 		}
 		case TFClass_Medic:
 		{
-			panel.SetTitle("Medic");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("Uses the Bonesaw.");
-			panel.DrawText("Has high health regneration but less health regeneration bonus while in a horde.");
-			panel.DrawText("Movement speed lowered to 280 (from 320).");
-			panel.DrawText("-------------------------------------------");
-		}
-		case TFClass_Sniper:
-		{
-			panel.SetTitle("Sniper");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("Uses the Kukri.");
-			panel.DrawText("Movement speed lowered to 280 (from 300).");
+			panel.DrawText("Benefits less from health regeneration bonuses while in a horde.");
 			panel.DrawText("-------------------------------------------");
 		}
 		case TFClass_Spy:
 		{
-			panel.SetTitle("Spy");
-			panel.DrawText("-------------------------------------------");
 			panel.DrawText("Backstabs put the victim into a 'scared' state, slowing and disabling weapon usage for 5.5 seconds.");
 			panel.DrawText("Survivors may become a bit resistant to backstabs, reducing the duration, to ensure game balance.");
-			panel.DrawText("Movement speed lowered to 280 (from 320).");
 			panel.DrawText("-------------------------------------------");
 		}
 		default:
 		{
-			panel.SetTitle("Civilian");
-			panel.DrawText("-------------------------------------------");
-			panel.DrawText("The zombie without a class.");
-			panel.DrawText("The most aggressive zombie of them all.");
 			panel.DrawText("-------------------------------------------");
 		}
 	}
+	
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
 	panel.Send(iClient, Panel_HandleClass, 30);
@@ -3678,23 +3447,6 @@ public int Panel_HandleClass(Menu menu, MenuAction action, int param1, int param
 }
 
 public int Panel_PrintZomSpecial(int iClient)
-{
-	Panel panel = new Panel();
-	panel.SetTitle("Special Infected");
-	panel.DrawItem(" Tank (Heavy)");
-	panel.DrawItem(" Boomer (Heavy)");
-	panel.DrawItem(" Charger (Heavy)");
-	panel.DrawItem(" Kingpin (Scout)");
-	panel.DrawItem(" Stalker (Spy)");
-	panel.DrawItem(" Hunter (Scout)");
-	panel.DrawItem(" Smoker (Spy)");
-	panel.DrawItem("Return");
-	panel.DrawItem("Exit");
-	panel.Send(iClient, Panel_HandleZomSpecial, 10);
-	delete panel;
-}
-
-public int Panel_PrintZomSpecials(int iClient)
 {
 	Panel panel = new Panel();
 	panel.SetTitle("Special Infected");
@@ -3760,7 +3512,6 @@ public void Panel_PrintSpecial(int iClient, Infected infected)
 			panel.DrawText("-------------------------------------------");
 			panel.DrawText("His inner rage and insanity has caused him to lose any care for how he uses his body, as long as he can take somebody with it.");
 			panel.DrawText("- Using rage to charge the Charger is able to disable a survivor for a short period, damaging based on the victim's health.");
-			if (!g_cvAllClass.BoolValue) panel.DrawText("- The Charger wears the Fists of Steel.");
 			panel.DrawText("-------------------------------------------");
 		}
 		case Infected_Kingpin:
@@ -3770,8 +3521,7 @@ public void Panel_PrintSpecial(int iClient, Infected infected)
 			panel.DrawText("The Kingpin is the director of the pack, he makes sure that the Zombies give their fullest in taking down the survivors.");
 			panel.DrawText("- Using rage, the Kingpin will rally up the Zombies with an ear-piercing yell, increasing the overall power of the zombies.");
 			panel.DrawText("- The Kingpin motivates zombies by standing near them, increasing their efficiency.");
-			if (g_cvAllClass.BoolValue) panel.DrawText("- The Kingpin is slower than a infected Medic, but takes less damage from attacks.");
-			else panel.DrawText("- The Kingpin is slower than a infected Scout, but takes less damage from attacks.");
+			panel.DrawText("- The Kingpin is slower, but takes less damage from attacks.");
 			panel.DrawText("-------------------------------------------");
 		}
 		case Infected_Stalker:
@@ -3798,11 +3548,11 @@ public void Panel_PrintSpecial(int iClient, Infected infected)
 			panel.DrawText("-------------------------------------------");
 			panel.DrawText("The Smoker relies on his toxic beam which damages survivors can pulls them towards the Smoker.");
 			panel.DrawText("- The pull power grows stronger the less health the victim has.");
-			if (!g_cvAllClass.BoolValue) panel.DrawText("- Cannot use cloak.");
 			panel.DrawText("- Cannot use rage.");
 			panel.DrawText("-------------------------------------------");
 		}
 	}
+	
 	panel.DrawItem("Return");
 	panel.DrawItem("Exit");
 	panel.Send(iClient, Panel_HandleSpecial, 30);
@@ -4534,21 +4284,28 @@ void HandleZombieLoadout(int iClient)
 			if (g_nInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_lunchbox_drink"))
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 			
-			int iIndex = 44; //Sandman
-			if (g_nInfected[iClient] == Infected_Hunter) 	iIndex = 572; //Unarmed Combat
-			if (g_nInfected[iClient] == Infected_Kingpin) 	iIndex = 939; //Bat Outta Hell
-			
-			iMelee = TF2_CreateAndEquipWeapon(iClient, iIndex);
-			if (IsValidEntity(iMelee) && iIndex == 44)
+			if (g_nInfected[iClient] == Infected_Hunter)
 			{
-				//Set Sandman ball in cooldown if spammed
-				if (g_flGooCooldown[iClient] > GetGameTime())
+				TF2_CreateAndEquipWeapon(iClient, 572); //Unarmed Combat
+			}
+			else
+			{
+				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Scout));
+				if (IsValidEntity(iMelee))
 				{
-					int iAmmoType = GetEntProp(iMelee, Prop_Send, "m_iPrimaryAmmoType");
-					if (iAmmoType > -1)
-						SetEntProp(iClient, Prop_Send, "m_iAmmo", 0, _, iAmmoType);
-					
-					SetEntPropFloat(iMelee, Prop_Send, "m_flEffectBarRegenTime", g_flGooCooldown[iClient]);
+					SetZomAttribs(iMelee, TFClass_Scout);
+					if (GetZombieIndex(TFClass_Scout) == 44) //Sandman
+					{
+						//Set Sandman ball in cooldown if spammed
+						if (g_flGooCooldown[iClient] > GetGameTime())
+						{
+							int iAmmoType = GetEntProp(iMelee, Prop_Send, "m_iPrimaryAmmoType");
+							if (iAmmoType > -1)
+								SetEntProp(iClient, Prop_Send, "m_iAmmo", 0, _, iAmmoType);
+
+							SetEntPropFloat(iMelee, Prop_Send, "m_flEffectBarRegenTime", g_flGooCooldown[iClient]);
+						}
+					}
 				}
 			}
 		}
@@ -4559,21 +4316,28 @@ void HandleZombieLoadout(int iClient)
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
 			if (g_nInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_buff_item"))
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-
-			int iIndex = 6; //Shovel
-			if (g_nInfected[iClient] == Infected_Boomer) 	iIndex = 128; //Equalizer
-
-			TF2_CreateAndEquipWeapon(iClient, iIndex);
+			
+			if (g_nInfected[iClient] == Infected_Charger)
+			{
+				TF2_CreateAndEquipWeapon(iClient, 128); //Equalizer
+			}
+			else
+			{
+				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Soldier));
+				if (IsValidEntity(iMelee))
+					SetZomAttribs(iMelee, TFClass_Soldier);
+			}
 		}
 		
 		case TFClass_Pyro:
 		{
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-			if (g_nInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_buff_item"))
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-
-			TF2_CreateAndEquipWeapon(iClient, 348); //Sharpened Volcano Fragment
+			TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
+			
+			iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Pyro));
+			if (IsValidEntity(iMelee))
+				SetZomAttribs(iMelee, TFClass_Pyro);
 		}
 		
 		case TFClass_DemoMan:
@@ -4581,13 +4345,18 @@ void HandleZombieLoadout(int iClient)
 			RemoveWearableWeapons(iClient);
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-			if (g_nInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_buff_item"))
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-
-			int iIndex = 132; // Eyelander
-			if (g_nInfected[iClient] == Infected_Charger) 	iIndex = 404; // Persian Persuader
-
-			TF2_CreateAndEquipWeapon(iClient, iIndex);
+			TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
+			
+			if (g_nInfected[iClient] == Infected_Charger)
+			{
+				TF2_CreateAndEquipWeapon(iClient, 404); //Persian Persuader
+			}
+			else
+			{
+				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_DemoMan));
+				if (IsValidEntity(iMelee))
+					SetZomAttribs(iMelee, TFClass_DemoMan);
+			}
 		}
 		
 		case TFClass_Heavy:
@@ -4597,26 +4366,26 @@ void HandleZombieLoadout(int iClient)
 			if (!TF2_IsSlotClassname(iClient, 1, "tf_weapon_lunchbox"))
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 			
-			int iIndex = 5; //Fists
-			if (g_nInfected[iClient] == Infected_Boomer) 	iIndex = 331; //Fists of Steel
-			if (g_nInfected[iClient] == Infected_Charger) 	iIndex = 587; //Apoco-Fists
-			
-			iMelee = TF2_CreateAndEquipWeapon(iClient, iIndex);
+			if (g_nInfected[iClient] == Infected_Tank)
+			{
+				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
+				TF2_CreateAndEquipWeapon(iClient, 5); //Fists
+			}
+			else
+			{
+				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Heavy));
+				if (IsValidEntity(iMelee))
+					SetZomAttribs(iMelee, TFClass_Heavy);
+			}
 		}
 		
 		case TFClass_Engineer:
 		{
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-
-			iMelee = TF2_CreateAndEquipWeapon(iClient, 142); //Gunslinger
+			
+			iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Engineer));
 			if (IsValidEntity(iMelee))
-			{
-				TF2Attrib_SetByName(iMelee, "max health additive bonus", 0.0); //No extra max health
-				TF2Attrib_SetByName(iMelee, "engy sentry damage bonus", 0.5); //-50% sentry damage
-				TF2Attrib_SetByName(iMelee, "engy sentry fire rate increased", 2.0); //-50% sentry fire rate
-				TF2Attrib_SetByName(iMelee, "engy sentry radius increased", 0.75); //-25% sentry range
-				TF2Attrib_SetByName(iMelee, "cannot pick up buildings", 1.0); //Can't carry buildings
-			}
+				SetZomAttribs(iMelee, TFClass_Engineer);
 		}
 		
 		case TFClass_Medic:
@@ -4625,14 +4394,20 @@ void HandleZombieLoadout(int iClient)
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 
-			int iIndex = 8; //Bonesaw
-			if (g_nInfected[iClient] == Infected_Kingpin) 	iIndex = 304; //Amputator
-
-			iMelee = TF2_CreateAndEquipWeapon(iClient, iIndex);
-			if (IsValidEntity(iMelee) && iIndex == 401)
+			if (g_nInfected[iClient] == Infected_Kingpin)
 			{
-				TF2Attrib_SetByName(iMelee, "max health additive penalty", -50.0); //Less max health
-				TF2Attrib_SetByName(iMelee, "enables aoe heal", 0.0); //Disable taunt healing
+				iMelee = TF2_CreateAndEquipWeapon(iClient, 173); //Vita-Saw
+				if (IsValidEntity(iMelee))
+				{
+					TF2Attrib_SetByName(iMelee, "max health additive penalty", -50.0); //Less max health
+					TF2Attrib_SetByName(iMelee, "add_head_on_kill", 0.0); //Disable heads on kill
+				}
+			}
+			else
+			{
+				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Medic));
+				if (IsValidEntity(iMelee))
+					SetZomAttribs(iMelee, TFClass_Medic);
 			}
 		}
 		
@@ -4642,12 +4417,18 @@ void HandleZombieLoadout(int iClient)
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 
-			int iIndex = 3; //Kukri
-			if (g_nInfected[iClient] == Infected_Smoker) 	iIndex = 401; // Shahanshah
-
-			iMelee = TF2_CreateAndEquipWeapon(iClient, iIndex);
-			if (IsValidEntity(iMelee) && iIndex == 304)
-				TF2Attrib_SetByName(iMelee, "max health additive penalty", -55.0); // Less max health
+			if (g_nInfected[iClient] == Infected_Smoker)
+			{
+				iMelee = TF2_CreateAndEquipWeapon(iClient, 401); // Shahanshah
+				if (IsValidEntity(iMelee))
+					TF2Attrib_SetByName(iMelee, "max health additive penalty", -55.0); // Less max health
+			}
+			else
+			{
+				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Sniper));
+				if (IsValidEntity(iMelee))
+					SetZomAttribs(iMelee, TFClass_Sniper);
+			}
 		}
 		
 		case TFClass_Spy:
@@ -4657,28 +4438,25 @@ void HandleZombieLoadout(int iClient)
 			TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 			TF2_CreateAndEquipWeapon(iClient, 30); //Cloak
 			
-			int iIndex = 4; //Knife
-			if (g_nInfected[iClient] == Infected_Stalker) 	iIndex = 574; //Wanga Prick
-			if (g_nInfected[iClient] == Infected_Smoker) 	iIndex = 356; //Kunai
+			if (g_nInfected[iClient] == Infected_Stalker)
+			{
+				iMelee = TF2_CreateAndEquipWeapon(iClient, 574); //Wanga Prick
+				if (IsValidEntity(iMelee))
+					TF2Attrib_SetByName(iMelee, "disguise on backstab", 0.0); //Remove backstab disguise
+			}
+			else
+			{
+				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Spy));
+				if (IsValidEntity(iMelee))
+					SetZomAttribs(iMelee, TFClass_Spy);
+			}
 			
-			iMelee = TF2_CreateAndEquipWeapon(iClient, iIndex);
-			if (IsValidEntity(iMelee) && iIndex == 574)
-				TF2Attrib_SetByName(iMelee, "disguise on backstab", 0.0); //Remove backstab disguise
 		}
 	}
 	
 	//Set slot to melee
 	if (iMelee > MaxClients && IsValidEdict(iMelee))
-	{
-		if (TF2_GetPlayerClass(iClient) == TFClass_Scout && g_nInfected[iClient] == Infected_None)
-		{
-			//Remove Sandman's 15 hp penalty
-			TF2Attrib_SetByName(iMelee, "max health additive penalty", 0.0);
-			TF2Attrib_ClearCache(iMelee);
-		}
-		
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
-	}
 	
 	//Set health back to what it should be after modifying weapons
 	SetEntityHealth(iClient, SDK_GetMaxHealth(iClient));
@@ -4686,6 +4464,26 @@ void HandleZombieLoadout(int iClient)
 	//Reset custom models
 	SetVariantString("");
 	AcceptEntityInput(iClient, "SetCustomModel");
+}
+
+void SetZomAttribs(int iMelee, TFClassType nClass)
+{
+	char sAttrib[256], sAttribs[32][32];
+	GetZombieAttribs(sAttrib, sizeof(sAttrib), nClass);
+	int iCount = ExplodeString(sAttrib, ";", sAttribs, 32, 32);
+	
+	if(iCount % 2)
+		--iCount;
+	
+	if(iCount <= 0)
+		return;
+	
+	for(int i = 0; i < iCount; i += 2)
+	{
+		int iAttrib = StringToInt(sAttribs[i]);
+		if(iAttrib)
+			TF2Attrib_SetByDefIndex(iMelee, iAttrib, StringToFloat(sAttribs[i+1]));
+	}
 }
 
 void SetValidSlot(int iClient)

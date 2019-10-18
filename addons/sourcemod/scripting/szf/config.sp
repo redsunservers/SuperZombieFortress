@@ -1,4 +1,5 @@
 #define CONFIG_WEAPONS "configs/szf/weapons.cfg"
+#define CONFIG_CLASSES "configs/szf/classes.cfg"
 
 enum struct ConfigMelee
 {
@@ -74,7 +75,7 @@ void Config_LoadTemplates()
 	delete kv;
 }
 
-ArrayList Config_LoadWeaponData(bool bExclude)
+ArrayList Config_LoadWeaponData()
 {
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
 	if (kv == null) return null;
@@ -117,27 +118,9 @@ ArrayList Config_LoadWeaponData(bool bExclude)
 					continue;
 				}
 
-				if (bExclude)
-				{
-					// Skip weapons that are disabled
-					if (kv.GetNum("allclass", -1)==0 && g_cvAllClass.BoolValue)
-					{
-						continue;
-					}
-					else if (kv.GetNum("allclass", -1)==1 && !g_cvAllClass.BoolValue)
-					{
-						continue;
-					}
-
-					if (kv.GetNum("hardcore", -1)==0 && g_cvHardcore.BoolValue)
-					{
-						continue;
-					}
-					else if (kv.GetNum("hardcore", -1)==1 && !g_cvHardcore.BoolValue)
-					{
-						continue;
-					}
-				}
+				//Skip weapon if their class isn't enabled
+				if (kv.GetNum("class") > 0 && kv.GetNum("class") < 10 && !IsValidSurvivorClass(view_as<TFClassType>(kv.GetNum("class"))))
+					continue;
 				
 				//Check if the model is already taken by another weapon
 				Weapon duplicate;
@@ -206,6 +189,134 @@ StringMap Config_LoadWeaponReskinData()
 	
 	delete kv;
 	return mReskin;
+}
+
+ArrayList Config_LoadSurvivorClasses()
+{
+	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
+	if (kv == null) return null;
+	
+	ArrayList aClasses = new ArrayList(sizeof(SurvivorClasses));
+	int iLength = 0;
+	
+	if (kv.JumpToKey("survivors", false))
+	{
+		if (kv.GotoFirstSubKey(false))
+		{
+			do
+			{
+				SurvivorClasses sur;
+				
+				char sBuffer2[32], sBuffer[256];
+				kv.GetSectionName(sBuffer, sizeof(sBuffer));
+				
+				for (int i = 0; i < view_as<int>(TFClassType); i++)
+				{
+					TF2_GetClassFile(sBuffer2, sizeof(sBuffer2), i);
+					if (StrEqual(sBuffer2, sBuffer))
+					{
+						sur.nClass = view_as<TFClassType>(i);
+						break;
+					}
+					else if (i == view_as<int>(TFClassType)-1)
+					{
+						sur.nClass = TFClass_Unknown;
+						LogError("Invalid survivor class '%s'.", sBuffer);
+					}
+				}
+				
+				//Check if the class is already defined
+				SurvivorClasses duplicate;
+				for (int i = 0; i < iLength; i++) 
+				{
+					aClasses.GetArray(i, duplicate);
+					
+					if (sur.nClass == duplicate.nClass)
+					{
+						LogError("Survivor class '%s' is already defined.", sur.nClass);
+						break;
+					}
+				}
+				
+				sur.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
+				sur.flSpeed = kv.GetFloat("speed", float(TF2_GetClassSpeed(sur.nClass)));
+				sur.iRegen = kv.GetNum("regen", 2);
+				sur.iAmmo = kv.GetNum("ammo");
+				
+				aClasses.PushArray(sur);
+				iLength++;
+			} 
+			while (kv.GotoNextKey(false));
+		}
+	}
+	
+	delete kv;
+	return aClasses;
+}
+
+ArrayList Config_LoadZombieClasses()
+{
+	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
+	if (kv == null) return null;
+	
+	ArrayList aClasses = new ArrayList(sizeof(ZombieClasses));
+	int iLength = 0;
+	
+	if (kv.JumpToKey("zombies", false))
+	{
+		if (kv.GotoFirstSubKey(false))
+		{
+			do
+			{
+				ZombieClasses zom;
+				
+				char sBuffer2[32], sBuffer[256];
+				kv.GetSectionName(sBuffer, sizeof(sBuffer));
+				
+				for (int i = 0; i < view_as<int>(TFClassType); i++)
+				{
+					TF2_GetClassFile(sBuffer2, sizeof(sBuffer2), i);
+					if (StrEqual(sBuffer2, sBuffer))
+					{
+						zom.nClass = view_as<TFClassType>(i);
+						break;
+					}
+					else if (i == view_as<int>(TFClassType)-1)
+					{
+						zom.nClass = TFClass_Unknown;
+						LogError("Invalid zombie class '%s'.", sBuffer);
+					}
+				}
+				
+				//Check if the class is already defined
+				ZombieClasses duplicate;
+				for (int i = 0; i < iLength; i++) 
+				{
+					aClasses.GetArray(i, duplicate);
+					
+					if (zom.nClass == duplicate.nClass)
+					{
+						LogError("Zombie class '%s' is already defined.", zom.nClass);
+						break;
+					}
+				}
+				
+				zom.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
+				zom.flSpeed = kv.GetFloat("speed", float(TF2_GetClassSpeed(zom.nClass)));
+				zom.iRegen = kv.GetNum("regen", 2);
+				zom.iDegen = kv.GetNum("degen", 3);
+				zom.iIndex = kv.GetNum("index");
+				kv.GetString("attrib", zom.sAttribs, sizeof(zom.sAttribs));
+				
+				aClasses.PushArray(zom);
+				iLength++;
+			} 
+			while (kv.GotoNextKey(false));
+		}
+	}
+	
+	delete kv;
+	return aClasses;
 }
 
 KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)

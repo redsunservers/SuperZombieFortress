@@ -25,17 +25,12 @@
 #define FLAG_DONT_DROP_WEAPON 				0x23E173A2
 #define OFFSET_DONT_DROP					36
 
-//ZF Class Objects
-TFClassType[] g_nSurvivorClass = { TFClass_Sniper, TFClass_Soldier, TFClass_DemoMan, TFClass_Medic, TFClass_Pyro, TFClass_Engineer };
-TFClassType[] g_nZombieClass = { TFClass_Scout, TFClass_Heavy, TFClass_Spy };
-
-static const bool g_bValidSurvivor[view_as<int>(TFClassType)] = { false, false, true, true, true, true, false, true, false, true};
-static const bool g_bValidZombie[view_as<int>(TFClassType)]	 = { false, true, false, false, false, false, true, false, true, false};
-
 //Zombie Soul related indexes
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
 
+char g_sClassDisplay[view_as<int>(TFClassType)][16] = { "", "Scout", "Sniper", "Soldier", "Demoman", "Medic", "Heavy", "Pyro", "Spy", "Engineer" };
+char g_sClassSelect[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demoman", "medic", "heavyweapons", "pyro", "spy", "engineer" };
 char g_sClassNames[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
 int g_iVoodooIndex[view_as<int>(TFClassType)] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
 int g_iZombieSoulIndex[view_as<int>(TFClassType)];
@@ -124,24 +119,36 @@ stock bool IsValidLivingZombie(int iClient)
 //
 ////////////////////////////////////////////////////////////
 
-stock bool IsValidZombieClass(TFClassType nClass)
+stock void TF2_GetClassName(char[] sBuffer, int iLength, int iClass)
 {
-	return g_bValidZombie[nClass];
+	strcopy(sBuffer, iLength, g_sClassDisplay[iClass]);
 }
 
-stock bool IsValidSurvivorClass(TFClassType nClass)
+stock void TF2_GetClassSelect(char[] sBuffer, int iLength, int iClass)
 {
-	return g_bValidSurvivor[nClass];
+	strcopy(sBuffer, iLength, g_sClassSelect[iClass]);
 }
 
-stock TFClassType GetRandomZombieClass()
+stock void TF2_GetClassFile(char[] sBuffer, int iLength, int iClass)
 {
-	return g_nZombieClass[GetRandomInt(0, sizeof(g_nZombieClass)-1)];
+	strcopy(sBuffer, iLength, g_sClassNames[iClass]);
 }
 
-stock TFClassType GetRandomSurvivorClass()
+stock int TF2_GetClassSpeed(TFClassType nClass)
 {
-	return g_nSurvivorClass[GetRandomInt(0, sizeof(g_nSurvivorClass)-1)];
+	switch (nClass)
+	{
+		case TFClass_Scout: return 400;
+		case TFClass_Soldier: return 240;
+		case TFClass_Pyro: return 300;
+		case TFClass_DemoMan: return 280;
+		case TFClass_Heavy: return 230;
+		case TFClass_Engineer: return 300;
+		case TFClass_Medic: return 320;
+		case TFClass_Sniper: return 300;
+		case TFClass_Spy: return 320;
+		default: return 0;
+	}
 }
 
 ////////////////////////////////////////////////////////////
@@ -283,42 +290,6 @@ stock void SetClientSpeed(int iClient, float flSpeed)
 	// + after switching weapons and before next prethinkpost
 	// + (soldier holding equalizer) every 17-19 frames
 	SetEntPropFloat(iClient, Prop_Data, "m_flMaxspeed", flSpeed);
-}
-
-stock float GetClientBaseSpeed(int iClient)
-{
-	if (IsValidZombie(iClient))
-	{
-		switch (TF2_GetPlayerClass(iClient))
-		{
-			case TFClass_Scout: return 330.0;	// Default 400.0 <Slowed>
-			case TFClass_Soldier: return 240.0;	// Default 240.0
-			case TFClass_Pyro: return 250.0;	// Default 300.0 <Slowed>
-			case TFClass_DemoMan: return 280.0;	// Default 280.0
-			case TFClass_Heavy: return 230.0;	// Default 230.0
-			case TFClass_Engineer: return 270.0;	// Default 300.0 <Slowed>
-			case TFClass_Medic: return 280.0;	// Default 320.0 <Slowed>
-			case TFClass_Sniper: return 280.0;	// Default 300.0 <Slowed>
-			case TFClass_Spy: return 280.0;		// Default 320.0 <Slowed>
-		}
-	}
-	else
-	{
-		switch (TF2_GetPlayerClass(iClient))
-		{
-			case TFClass_Scout: return 340.0;	// Default 400.0 <Slowed>
-			case TFClass_Soldier: return 240.0;	// Default 240.0
-			case TFClass_Pyro: return 280.0;	// Default 300.0 <Slowed>
-			case TFClass_DemoMan: return 280.0;	// Default 280.0
-			case TFClass_Heavy: return 230.0;	// Default 230.0
-			case TFClass_Engineer: return 300.0;	// Default 300.0
-			case TFClass_Medic: return 300.0;	// Default 320.0 <Slowed>
-			case TFClass_Sniper: return 300.0;	// Default 300.0
-			case TFClass_Spy: return 300.0;		// Default 320.0 <Slowed>
-		}
-	}
-	
-	return 0.0;
 }
 
 stock float GetClientBonusSpeed(int iClient)
