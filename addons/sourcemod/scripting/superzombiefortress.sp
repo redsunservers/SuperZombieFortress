@@ -397,21 +397,22 @@ public void OnPluginEnd()
 
 public Action Command_Build(int iClient, const char[] sCommand, int iArgs)
 {
+	if (!g_bEnabled) return Plugin_Continue;
 	if (!iClient) return Plugin_Continue;
-
+	
 	//Get arguments
 	char sObjectType[32];
 	GetCmdArg(1, sObjectType, sizeof(sObjectType));
 	TFObjectType nObjectType = view_as<TFObjectType>(StringToInt(sObjectType));
-
+	
 	//if not a sentry and is a zombie, then block building
 	if (IsZombie(iClient) && nObjectType != TFObject_Sentry)
 		return Plugin_Handled;
-
+	
 	//if not sentry or dispenser, then block building
 	if (nObjectType != TFObject_Dispenser && nObjectType != TFObject_Sentry)
 		return Plugin_Handled;
-
+	
 	return Plugin_Continue;
 }
 
