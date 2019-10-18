@@ -101,7 +101,7 @@ ArrayList Config_LoadWeaponData()
 			{
 				Weapon wep;
 				
-				char sBuffer[256];
+				char sBuffer[256], sBuffer2[10][32];
 				kv.GetSectionName(sBuffer, sizeof(sBuffer));
 				
 				wep.iIndex = StringToInt(sBuffer);
@@ -119,7 +119,17 @@ ArrayList Config_LoadWeaponData()
 				}
 
 				//Skip weapon if their class isn't enabled
-				if (kv.GetNum("class") > 0 && kv.GetNum("class") < 10 && !IsValidSurvivorClass(view_as<TFClassType>(kv.GetNum("class"))))
+				int iExclude;
+				kv.GetString("class", sBuffer, sizeof(sBuffer));
+				int iCount = ExplodeString(sBuffer, ";", sBuffer2, 10, 32);
+				for (int i = 0; i < iCount; i++)
+				{
+					TFClassType nClass = TF2_GetClass(sBuffer2[i]);
+					if (nClass != TFClass_Unknown && !IsValidSurvivorClass(nClass))
+						iExclude++;
+				}
+				
+				if (iExclude == iCount)
 					continue;
 				
 				//Check if the model is already taken by another weapon
@@ -207,23 +217,12 @@ ArrayList Config_LoadSurvivorClasses()
 			{
 				SurvivorClasses sur;
 				
-				char sBuffer2[32], sBuffer[256];
+				char sBuffer[256];
 				kv.GetSectionName(sBuffer, sizeof(sBuffer));
 				
-				for (int i = 0; i < view_as<int>(TFClassType); i++)
-				{
-					TF2_GetClassFile(sBuffer2, sizeof(sBuffer2), i);
-					if (StrEqual(sBuffer2, sBuffer))
-					{
-						sur.nClass = view_as<TFClassType>(i);
-						break;
-					}
-					else if (i == view_as<int>(TFClassType)-1)
-					{
-						sur.nClass = TFClass_Unknown;
-						LogError("Invalid survivor class '%s'.", sBuffer);
-					}
-				}
+				sur.nClass = TF2_GetClass(sBuffer);
+				if (sur.nClass == TFClass_Unknown)
+					LogError("Invalid survivor class '%s'.", sBuffer);
 				
 				//Check if the class is already defined
 				SurvivorClasses duplicate;
@@ -270,23 +269,12 @@ ArrayList Config_LoadZombieClasses()
 			{
 				ZombieClasses zom;
 				
-				char sBuffer2[32], sBuffer[256];
+				char sBuffer[256];
 				kv.GetSectionName(sBuffer, sizeof(sBuffer));
 				
-				for (int i = 0; i < view_as<int>(TFClassType); i++)
-				{
-					TF2_GetClassFile(sBuffer2, sizeof(sBuffer2), i);
-					if (StrEqual(sBuffer2, sBuffer))
-					{
-						zom.nClass = view_as<TFClassType>(i);
-						break;
-					}
-					else if (i == view_as<int>(TFClassType)-1)
-					{
-						zom.nClass = TFClass_Unknown;
-						LogError("Invalid zombie class '%s'.", sBuffer);
-					}
-				}
+				zom.nClass = TF2_GetClass(sBuffer);
+				if (zom.nClass == TFClass_Unknown)
+					LogError("Invalid zombie class '%s'.", sBuffer);
 				
 				//Check if the class is already defined
 				ZombieClasses duplicate;
@@ -305,10 +293,87 @@ ArrayList Config_LoadZombieClasses()
 				zom.flSpeed = kv.GetFloat("speed", float(TF2_GetClassSpeed(zom.nClass)));
 				zom.iRegen = kv.GetNum("regen", 2);
 				zom.iDegen = kv.GetNum("degen", 3);
-				zom.iIndex = kv.GetNum("index");
+				zom.flSpree = kv.GetFloat("spree", 1.0);
+				zom.flHorde = kv.GetFloat("horde", 2.0);
+				zom.flMaxSpree = kv.GetFloat("maxspree", 20.0);
+				zom.flMaxHorde = kv.GetFloat("maxhorde", 20.0);
+				zom.iIndex = kv.GetNum("index", 5);
 				kv.GetString("attrib", zom.sAttribs, sizeof(zom.sAttribs));
 				
 				aClasses.PushArray(zom);
+				iLength++;
+			} 
+			while (kv.GotoNextKey(false));
+		}
+	}
+	
+	delete kv;
+	return aClasses;
+}
+
+ArrayList Config_LoadInfectedClasses()
+{
+	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
+	if (kv == null) return null;
+	
+	ArrayList aClasses = new ArrayList(sizeof(InfectedClasses));
+	int iLength = 0;
+	
+	if (kv.JumpToKey("infected", false))
+	{
+		if (kv.GotoFirstSubKey(false))
+		{
+			do
+			{
+				InfectedClasses inf;
+				
+				char sBuffer[256], sBuffer2[32];
+				kv.GetSectionName(sBuffer, sizeof(sBuffer));
+				
+				for (int i = 0; i < view_as<int>(Infected); i++)
+				{
+					GetInfectedName(sBuffer2, sizeof(sBuffer2), i);
+					if (StrEqual(sBuffer2, sBuffer, false))
+					{
+						inf.nInfected = view_as<Infected>(i);
+						break;
+					}
+					else if (i == view_as<int>(Infected)-1)
+					{
+						inf.nInfected = Infected_None;
+						LogError("Invalid special infected '%s'.", sBuffer);
+					}
+				}
+				
+				//Check if special infected is already defined
+				InfectedClasses duplicate;
+				for (int i = 0; i < iLength; i++) 
+				{
+					aClasses.GetArray(i, duplicate);
+					
+					if (inf.nInfected == duplicate.nInfected)
+					{
+						LogError("Special infected '%s' is already defined.", inf.nInfected);
+						break;
+					}
+				}
+				
+				kv.GetString("class", sBuffer2, sizeof(sBuffer2));
+				inf.nClass = TF2_GetClass(sBuffer2);
+				if (inf.nClass == TFClass_Unknown)
+				{
+					LogError("Invalid special infected class '%s'.", sBuffer);
+					inf.nClass = TFClass_Heavy;
+				}
+				
+				inf.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
+				inf.flSpeed = kv.GetFloat("speed", float(TF2_GetClassSpeed(inf.nClass)));
+				inf.iRegen = kv.GetNum("regen", 2);
+				inf.iDegen = kv.GetNum("degen", 3);
+				inf.iIndex = kv.GetNum("index", 5);
+				kv.GetString("attrib", inf.sAttribs, sizeof(inf.sAttribs));
+				
+				aClasses.PushArray(inf);
 				iLength++;
 			} 
 			while (kv.GotoNextKey(false));

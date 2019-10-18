@@ -29,9 +29,9 @@
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
 
-char g_sClassDisplay[view_as<int>(TFClassType)][16] = { "", "Scout", "Sniper", "Soldier", "Demoman", "Medic", "Heavy", "Pyro", "Spy", "Engineer" };
-char g_sClassSelect[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demoman", "medic", "heavyweapons", "pyro", "spy", "engineer" };
-char g_sClassNames[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
+char g_sClassNames[view_as<int>(TFClassType)][16] = { "", "Scout", "Sniper", "Soldier", "Demoman", "Medic", "Heavy", "Pyro", "Spy", "Engineer" };
+char g_sInfectedNames[view_as<int>(Infected)][16] = { "", "Tank", "Boomer", "Charger", "Kingpin", "Stalker", "Hunter", "Smoker" };
+char g_sClassFiles[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
 int g_iVoodooIndex[view_as<int>(TFClassType)] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
 int g_iZombieSoulIndex[view_as<int>(TFClassType)];
 
@@ -121,17 +121,12 @@ stock bool IsValidLivingZombie(int iClient)
 
 stock void TF2_GetClassName(char[] sBuffer, int iLength, int iClass)
 {
-	strcopy(sBuffer, iLength, g_sClassDisplay[iClass]);
-}
-
-stock void TF2_GetClassSelect(char[] sBuffer, int iLength, int iClass)
-{
-	strcopy(sBuffer, iLength, g_sClassSelect[iClass]);
-}
-
-stock void TF2_GetClassFile(char[] sBuffer, int iLength, int iClass)
-{
 	strcopy(sBuffer, iLength, g_sClassNames[iClass]);
+}
+
+stock void GetInfectedName(char[] sBuffer, int iLength, int iInfected)
+{
+	strcopy(sBuffer, iLength, g_sInfectedNames[iInfected]);
 }
 
 stock int TF2_GetClassSpeed(TFClassType nClass)
@@ -854,7 +849,7 @@ stock int PrecacheZombieSouls()
 	//Loops through all class types available
 	for (int iClass = 1; iClass < view_as<int>(TFClassType); iClass++)
 	{
-		Format(sPath, sizeof(sPath), "models/player/items/%s/%s_zombie.mdl", g_sClassNames[iClass], g_sClassNames[iClass]);
+		Format(sPath, sizeof(sPath), "models/player/items/%s/%s_zombie.mdl", g_sClassFiles[iClass], g_sClassFiles[iClass]);
 		g_iZombieSoulIndex[iClass] = PrecacheModel(sPath);
 	}
 }
