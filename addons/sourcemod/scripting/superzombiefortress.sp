@@ -1122,14 +1122,17 @@ public Action Command_JoinClass(int iClient, const char[] sCommand, int iArgs)
 			return Plugin_Continue;
 		
 		//It's invalid, then display which classes the player can choose
-		for (int i = 1; i < sizeof(g_nZombieClass); i++)
+		for (int i = 1; i < view_as<int>(TFClassType); i++)
 		{
-			//Place a comma before if it's not the first one
-			if (strlen(sMsg))
-				Format(sMsg, sizeof(sMsg), "%s, ", sMsg);
-			
-			TF2_GetClassName(sArg, sizeof(sArg), i);
-			Format(sMsg, sizeof(sMsg), "%s %s", sMsg, sArg);
+			if (IsValidZombieClass(view_as<TFClassType>(i)))
+			{
+				//Place a comma before if it's not the first one
+				if (strlen(sMsg))
+					Format(sMsg, sizeof(sMsg), "%s,", sMsg);
+				
+				TF2_GetClassName(sArg, sizeof(sArg), i);
+				Format(sMsg, sizeof(sMsg), "%s %s", sMsg, sArg);
+			}
 		}
 		
 		CPrintToChat(iClient, "{red}Valid zombies:%s.", sMsg);
@@ -1149,14 +1152,17 @@ public Action Command_JoinClass(int iClient, const char[] sCommand, int iArgs)
 			return Plugin_Continue;
 		
 		//It's invalid, then display which classes the player can choose
-		for (int i = 1; i < sizeof(g_nSurvivorClass); i++)
+		for (int i = 1; i < view_as<int>(TFClassType); i++)
 		{
-			//Place a comma before if it's not the first one
-			if (strlen(sMsg))
-				Format(sMsg, sizeof(sMsg), "%s, ", sMsg);
-			
-			TF2_GetClassName(sArg, sizeof(sArg), i);
-			Format(sMsg, sizeof(sMsg), "%s %s", sMsg, sArg);
+			if (IsValidSurvivorClass(view_as<TFClassType>(i)))
+			{
+				//Place a comma before if it's not the first one
+				if (strlen(sMsg))
+					Format(sMsg, sizeof(sMsg), "%s,", sMsg);
+				
+				TF2_GetClassName(sArg, sizeof(sArg), i);
+				Format(sMsg, sizeof(sMsg), "%s %s", sMsg, sArg);
+			}
 		}
 		
 		CPrintToChat(iClient, "{red}Valid survivors:%s.", sMsg);
@@ -1196,7 +1202,7 @@ public Action Command_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 		{
 			if (g_nRoundState == SZFRoundState_Active && g_bSpawnAsSpecialInfected[iClient] && g_bReplaceRageWithSpecialInfectedSpawn[iClient])
 			{
-				TF2_RespawnPlayer(iClient);
+				TF2_RespawnPlayer2(iClient);
 				
 				Call_StartForward(g_hForwardQuickSpawnAsSpecialInfected);
 				Call_PushCell(iClient);
@@ -1559,7 +1565,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	{
 		//Make sure max health hook is reset properly
 		g_iMaxHealth[iClient] = -1;
-		TF2_RespawnPlayer(iClient);
+		TF2_RespawnPlayer2(iClient);
 		return Plugin_Stop;
 	}
 	
@@ -3756,7 +3762,7 @@ void UpdateZombieDamageScale()
 public Action Timer_RespawnPlayer(Handle hTimer, any iClient)
 {
 	if (IsClientInGame(iClient) && !IsPlayerAlive(iClient))
-		TF2_RespawnPlayer(iClient);
+		TF2_RespawnPlayer2(iClient);
 }
 
 public Action CheckLastPlayer(Handle hTimer)
@@ -3886,7 +3892,7 @@ int ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 				
 				if (IsZombie(iClient) && !IsPlayerAlive(iClient))
 				{
-					TF2_RespawnPlayer(iClient);
+					TF2_RespawnPlayer2(iClient);
 					g_flRageRespawnStress += 1.7;	//Add stress time 1.7 sec for every respawn zombies
 				}
 				else if (IsSurvivor(iClient) && IsPlayerAlive(iClient))
@@ -4206,7 +4212,7 @@ void HandleSurvivorLoadout(int iClient)
 	else
 	{
 		//No melee, okay.. weird
-		TF2_RespawnPlayer(iClient);
+		TF2_RespawnPlayer2(iClient);
 	}
 	
 	//Prevent Survivors with voodoo-cursed souls

@@ -584,6 +584,17 @@ stock void SpawnClient(int iClient, TFTeam nTeam)
 	}
 }
 
+stock void TF2_RespawnPlayer2(int iClient)
+{
+	if (TF2_GetPlayerClass(iClient) == TFClass_Unknown)
+	{
+		if (IsZombie(iClient)) TF2_SetPlayerClass(iClient, GetRandomZombieClass());
+		else TF2_SetPlayerClass(iClient, GetRandomSurvivorClass());
+	}
+
+	TF2_RespawnPlayer(iClient);
+}
+
 stock void SetTeamRespawnTime(TFTeam nTeam, float flTime)
 {
 	int iEntity = FindEntityByClassname(-1, "tf_gamerules");

@@ -62,6 +62,11 @@ void Classes_Setup()
 			g_nSurvivorClass[iCurrent] = sur.nClass;
 			iCurrent++;
 		}
+		
+		g_SurvivorClasses[sur.nClass].bEnabled = sur.bEnabled;
+		g_SurvivorClasses[sur.nClass].flSpeed = sur.flSpeed;
+		g_SurvivorClasses[sur.nClass].iRegen = sur.iRegen;
+		g_SurvivorClasses[sur.nClass].iAmmo = sur.iAmmo;
 	}
 	
 	g_aZombieClasses = Config_LoadZombieClasses();
@@ -78,6 +83,17 @@ void Classes_Setup()
 			g_nZombieClass[iCurrent] = zom.nClass;
 			iCurrent++;
 		}
+		
+		g_ZombieClasses[zom.nClass].bEnabled = zom.bEnabled;
+		g_ZombieClasses[zom.nClass].flSpeed = zom.flSpeed;
+		g_ZombieClasses[zom.nClass].iRegen = zom.iRegen;
+		g_ZombieClasses[zom.nClass].iDegen = zom.iDegen;
+		g_ZombieClasses[zom.nClass].flSpree = zom.flSpree;
+		g_ZombieClasses[zom.nClass].flHorde = zom.flHorde;
+		g_ZombieClasses[zom.nClass].flMaxSpree = zom.flMaxSpree;
+		g_ZombieClasses[zom.nClass].flMaxHorde = zom.flMaxHorde;
+		g_ZombieClasses[zom.nClass].iIndex = zom.iIndex;
+		strcopy(g_ZombieClasses[zom.nClass].sAttribs, 256, zom.sAttribs);
 	}
 	
 	g_aInfectedClasses = Config_LoadInfectedClasses();
@@ -94,6 +110,13 @@ void Classes_Setup()
 			g_nInfectedClass[iCurrent] = inf.nInfected;
 			iCurrent++;
 		}
+		
+		g_InfectedClasses[inf.nClass].bEnabled = inf.bEnabled;
+		g_InfectedClasses[inf.nClass].flSpeed = inf.flSpeed;
+		g_InfectedClasses[inf.nClass].iRegen = inf.iRegen;
+		g_InfectedClasses[inf.nClass].iDegen = inf.iDegen;
+		g_InfectedClasses[inf.nClass].iIndex = inf.iIndex;
+		strcopy(g_InfectedClasses[inf.nClass].sAttribs, 256, inf.sAttribs);
 	}
 }
 
