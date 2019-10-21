@@ -32,6 +32,8 @@ enum struct InfectedClasses
 	int iDegen;
 	int iIndex;
 	char sAttribs[256];
+	int iColor[4];
+	char sMsg[256];
 }
 
 TFClassType[view_as<int>(TFClassType)] g_nSurvivorClass;
@@ -63,10 +65,7 @@ void Classes_Setup()
 			iCurrent++;
 		}
 		
-		g_SurvivorClasses[sur.nClass].bEnabled = sur.bEnabled;
-		g_SurvivorClasses[sur.nClass].flSpeed = sur.flSpeed;
-		g_SurvivorClasses[sur.nClass].iRegen = sur.iRegen;
-		g_SurvivorClasses[sur.nClass].iAmmo = sur.iAmmo;
+		g_SurvivorClasses[sur.nClass] = sur;
 	}
 	
 	g_aZombieClasses = Config_LoadZombieClasses();
@@ -84,16 +83,7 @@ void Classes_Setup()
 			iCurrent++;
 		}
 		
-		g_ZombieClasses[zom.nClass].bEnabled = zom.bEnabled;
-		g_ZombieClasses[zom.nClass].flSpeed = zom.flSpeed;
-		g_ZombieClasses[zom.nClass].iRegen = zom.iRegen;
-		g_ZombieClasses[zom.nClass].iDegen = zom.iDegen;
-		g_ZombieClasses[zom.nClass].flSpree = zom.flSpree;
-		g_ZombieClasses[zom.nClass].flHorde = zom.flHorde;
-		g_ZombieClasses[zom.nClass].flMaxSpree = zom.flMaxSpree;
-		g_ZombieClasses[zom.nClass].flMaxHorde = zom.flMaxHorde;
-		g_ZombieClasses[zom.nClass].iIndex = zom.iIndex;
-		strcopy(g_ZombieClasses[zom.nClass].sAttribs, 256, zom.sAttribs);
+		g_ZombieClasses[zom.nClass] = zom;
 	}
 	
 	g_aInfectedClasses = Config_LoadInfectedClasses();
@@ -111,12 +101,7 @@ void Classes_Setup()
 			iCurrent++;
 		}
 		
-		g_InfectedClasses[inf.nClass].bEnabled = inf.bEnabled;
-		g_InfectedClasses[inf.nClass].flSpeed = inf.flSpeed;
-		g_InfectedClasses[inf.nClass].iRegen = inf.iRegen;
-		g_InfectedClasses[inf.nClass].iDegen = inf.iDegen;
-		g_InfectedClasses[inf.nClass].iIndex = inf.iIndex;
-		strcopy(g_InfectedClasses[inf.nClass].sAttribs, 256, inf.sAttribs);
+		g_InfectedClasses[inf.nClass] = inf;
 	}
 }
 
@@ -285,5 +270,16 @@ stock int GetInfectedIndex(Infected nInfected)
 stock int GetInfectedAttribs(char[] sBuffer, int iLength, Infected nInfected)
 {
 	strcopy(sBuffer, iLength, g_InfectedClasses[nInfected].sAttribs);
+	return strlen(sBuffer);
+}
+
+stock int GetInfectedColor(int iValue, Infected nInfected)
+{
+	return g_InfectedClasses[nInfected].iColor[iValue];
+}
+
+stock int GetInfectedMessage(char[] sBuffer, int iLength, Infected nInfected)
+{
+	strcopy(sBuffer, iLength, g_InfectedClasses[nInfected].sMsg);
 	return strlen(sBuffer);
 }

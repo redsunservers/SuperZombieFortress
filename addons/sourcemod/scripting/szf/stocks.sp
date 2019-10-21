@@ -129,20 +129,20 @@ stock void GetInfectedName(char[] sBuffer, int iLength, int iInfected)
 	strcopy(sBuffer, iLength, g_sInfectedNames[iInfected]);
 }
 
-stock int TF2_GetClassSpeed(TFClassType nClass)
+stock float TF2_GetClassSpeed(TFClassType nClass)
 {
 	switch (nClass)
 	{
-		case TFClass_Scout: return 400;
-		case TFClass_Soldier: return 240;
-		case TFClass_Pyro: return 300;
-		case TFClass_DemoMan: return 280;
-		case TFClass_Heavy: return 230;
-		case TFClass_Engineer: return 300;
-		case TFClass_Medic: return 320;
-		case TFClass_Sniper: return 300;
-		case TFClass_Spy: return 320;
-		default: return 0;
+		case TFClass_Scout: return 400.0;
+		case TFClass_Soldier: return 240.0;
+		case TFClass_Pyro: return 300.0;
+		case TFClass_DemoMan: return 280.0;
+		case TFClass_Heavy: return 230.0;
+		case TFClass_Engineer: return 300.0;
+		case TFClass_Medic: return 320.0;
+		case TFClass_Sniper: return 300.0;
+		case TFClass_Spy: return 320.0;
+		default: return 0.0;
 	}
 }
 

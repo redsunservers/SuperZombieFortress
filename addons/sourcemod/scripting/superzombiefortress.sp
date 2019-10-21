@@ -15,7 +15,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION "3.2.0"
+#define PLUGIN_VERSION "3.2.2"
 
 #define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
 
@@ -656,66 +656,59 @@ public void Client_OnPreThinkPost(int iClient)
 			
 			if (IsZombie(iClient))
 			{
-				switch (g_nInfected[iClient])
+				if (g_nInfected[iClient] == Infected_None)
 				{
-					//Non-tanks: hoarde bonus to movement speed and ignite speed bonus
-					case Infected_None:
-					{
-						flSpeed = GetZombieSpeed(nClass);
-						
-						//Movement speed increase
-						flSpeed += fMin(GetZombieMaxSpree(nClass), GetZombieSpree(nClass) * g_iZombiesKilledSpree) + fMin(GetZombieMaxHorde(nClass), GetZombieHorde(nClass) * g_iHorde[iClient]);
-						
-						if (g_bZombieRage) flSpeed += 40.0; //Map-wide zombie enrage event
-						if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire)) flSpeed += 20.0; //On fire
-						if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow)) flSpeed += 20.0; //Kingpin effect
-						if (GetClientHealth(iClient) > SDK_GetMaxHealth(iClient)) flSpeed += 20.0; //Has overheal due to normal rage
-						
-						//Movement speed decrease
-						if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated)) flSpeed -= 30.0; //Jarate'd by sniper
-						if (GetClientHealth(iClient) < 50) flSpeed -= 50.0 - float(GetClientHealth(iClient)); //If under 50 health, tick away one speed per hp lost
-					}
+					flSpeed = GetInfectedSpeed(g_nInfected[iClient]);
 					
-					//Tank: movement speed bonus based on damage taken and ignite speed bonus
-					case Infected_Tank:
-					{
-						flSpeed = GetInfectedSpeed(Infected_Tank);
-						
-						//Reduce speed when tank deals damage to survivors 
-						flSpeed -= fMin(60.0, (float(g_iDamageDealtLife[iClient]) / 10.0));
-						
-						//Reduce speed when tank takes damage from survivors 
-						flSpeed -= fMin(80.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
-	
-						if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire)) flSpeed += 40.0; //On fire
-						if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated)) flSpeed -= 30.0; //Jarate'd by sniper
-					}
+					//Zombies: hoarde bonus to movement speed and ignite speed bonus
+					flSpeed = GetZombieSpeed(nClass);
 					
-					//Charger: like in l4d, his charge is fucking fast so we also have it here, WEEEEEEE
-					case Infected_Charger:
+					//Movement speed increase
+					flSpeed += fMin(GetZombieMaxSpree(nClass), GetZombieSpree(nClass) * g_iZombiesKilledSpree) + fMin(GetZombieMaxHorde(nClass), GetZombieHorde(nClass) * g_iHorde[iClient]);
+					
+					if (g_bZombieRage) flSpeed += 40.0; //Map-wide zombie enrage event
+					if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire)) flSpeed += 20.0; //On fire
+					if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow)) flSpeed += 20.0; //Kingpin effect
+					if (GetClientHealth(iClient) > SDK_GetMaxHealth(iClient)) flSpeed += 20.0; //Has overheal due to normal rage
+					
+					//Movement speed decrease
+					if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated)) flSpeed -= 30.0; //Jarate'd by sniper
+					if (GetClientHealth(iClient) < 50) flSpeed -= 50.0 - float(GetClientHealth(iClient)); //If under 50 health, tick away one speed per hp lost
+				}
+				else
+				{
+					flSpeed = GetInfectedSpeed(g_nInfected[iClient]);
+					
+					switch (g_nInfected[iClient])
 					{
-						if (TF2_IsPlayerInCondition(iClient, TFCond_Charging))
+						//Tank: movement speed bonus based on damage taken and ignite speed bonus
+						case Infected_Tank:
 						{
-							flSpeed = 1200.0; //Original charge speed is 1000.0, will this black sorcery work?
+							flSpeed = GetInfectedSpeed(Infected_Tank);
+
+							//Reduce speed when tank deals damage to survivors 
+							flSpeed -= fMin(60.0, (float(g_iDamageDealtLife[iClient]) / 10.0));
+
+							//Reduce speed when tank takes damage from survivors 
+							flSpeed -= fMin(80.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
+
+							if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire)) flSpeed += 40.0; //On fire
+							if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated)) flSpeed -= 30.0; //Jarate'd by sniper
 						}
-						else
+
+						//Charger: like in l4d, his charge is fucking fast so we also have it here, WEEEEEEE
+						case Infected_Charger:
 						{
-							flSpeed = GetInfectedSpeed(Infected_Charger);
+							if (TF2_IsPlayerInCondition(iClient, TFCond_Charging))
+								flSpeed = 1200.0; //Original charge speed is 1000.0, will this black sorcery work?
 						}
-					}
-					
-					//Cloaked: super speed if cloaked
-					case Infected_Stalker:
-					{
-						flSpeed = GetInfectedSpeed(Infected_Stalker);
-						if (TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
-							flSpeed += 120.0;
-					}
-					
-					//Other special infected
-					default:
-					{
-						flSpeed = GetInfectedSpeed(g_nInfected[iClient]);
+
+						//Cloaked: super speed if cloaked
+						case Infected_Stalker:
+						{
+							if (TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
+								flSpeed += 120.0;
+						}
 					}
 				}
 			}
@@ -1620,7 +1613,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				TF2_AddCondition(iClient, TFCond_Kritzkrieged, TFCondDuration_Infinite);
 				
 				SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-				SetEntityRenderColor(iClient, 0, 255, 0, 255);
+				SetEntityRenderColor(iClient, GetInfectedColor(0, Infected_Tank), GetInfectedColor(1, Infected_Tank), GetInfectedColor(2, Infected_Tank), GetInfectedColor(3, Infected_Tank));
 				
 				EmitSoundToAll(g_sVoZombieTankOnFire[GetRandomInt(0, sizeof(g_sVoZombieTankOnFire)-1)]);
 				
@@ -1716,50 +1709,12 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				return Plugin_Stop;
 			}
 			
-			switch (g_nInfected[iClient])
-			{
-				case Infected_Boomer:
-				{
-					SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-					SetEntityRenderColor(iClient, 255, 255, 0, 255);
-					CPrintToChat(iClient, "{green}YOU ARE A BOOMER:\n{orange}- Call 'MEDIC!' to EXPLODE and JARATE nearby enemies!\n- You also explode upon dying, coating the killer and assister in JARATE.");
-				}
-				
-				case Infected_Charger:
-				{
-					SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-					SetEntityRenderColor(iClient, 255, 0, 0, 255);
-					CPrintToChat(iClient, "{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}(16 second cooldown)");
-				}
-				
-				case Infected_Hunter:
-				{
-					SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-					SetEntityRenderColor(iClient, 255, 0, 0, 255);
-					CPrintToChat(iClient, "{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}(3 on miss & 21 on hit second cooldown)");
-				}
-				
-				case Infected_Kingpin:
-				{
-					SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-					SetEntityRenderColor(iClient, 150, 0, 255, 255);
-					CPrintToChat(iClient, "{green}YOU ARE A KINGPIN:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(21 second cooldown){orange}\n- Zombies standing near you are more powerful.");
-				}
-				
-				case Infected_Stalker:
-				{
-					SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-					SetEntityRenderColor(iClient, 50, 50, 50, 155);
-					CPrintToChat(iClient, "{green}YOU ARE A STALKER:\n{orange}- If not close to any survivors, you will be cloaked and gain super speed!\n- Your backstabs do more damage.");
-				}
-				
-				case Infected_Smoker:
-				{
-					SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-					SetEntityRenderColor(iClient, 255, 0, 0, 255);
-					CPrintToChat(iClient, "{green}YOU ARE A SMOKER:\n{orange}- Right click to fire a beam to enemy players and pull them towards you! {yellow}(no cooldown)");
-				}
-			}
+			SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
+			SetEntityRenderColor(iClient, GetInfectedColor(0, g_nInfected[iClient]), GetInfectedColor(1, g_nInfected[iClient]), GetInfectedColor(2, g_nInfected[iClient]), GetInfectedColor(3, g_nInfected[iClient]));
+			
+			char sMsg[256];
+			GetInfectedMessage(sMsg, sizeof(sMsg), g_nInfected[iClient]);
+			CPrintToChat(iClient, sMsg);
 			
 			if (g_bShouldBacteriaPlay[iClient])
 			{
@@ -4242,24 +4197,6 @@ void HandleZombieLoadout(int iClient)
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
 				if (!TF2_IsSlotClassname(iClient, 1, "tf_weapon_lunchbox_drink"))
 					TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-
-				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Scout));
-				if (IsValidEntity(iMelee))
-				{
-					SetZomAttribs(iMelee, TFClass_Scout);
-					if (GetZombieIndex(TFClass_Scout) == 44) //Sandman
-					{
-						//Set Sandman ball in cooldown if spammed
-						if (g_flGooCooldown[iClient] > GetGameTime())
-						{
-							int iAmmoType = GetEntProp(iMelee, Prop_Send, "m_iPrimaryAmmoType");
-							if (iAmmoType > -1)
-								SetEntProp(iClient, Prop_Send, "m_iAmmo", 0, _, iAmmoType);
-							
-							SetEntPropFloat(iMelee, Prop_Send, "m_flEffectBarRegenTime", g_flGooCooldown[iClient]);
-						}
-					}
-				}
 			}
 			
 			case TFClass_Soldier:
@@ -4268,10 +4205,6 @@ void HandleZombieLoadout(int iClient)
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
 				if (!TF2_IsSlotClassname(iClient, 1, "tf_weapon_buff_item"))
 					TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-				
-				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Soldier));
-				if (IsValidEntity(iMelee))
-					SetZomAttribs(iMelee, TFClass_Soldier);
 			}
 			
 			case TFClass_DemoMan:
@@ -4280,10 +4213,6 @@ void HandleZombieLoadout(int iClient)
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-				
-				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_DemoMan));
-				if (IsValidEntity(iMelee))
-					SetZomAttribs(iMelee, TFClass_DemoMan);
 			}
 			
 			case TFClass_Heavy:
@@ -4292,19 +4221,11 @@ void HandleZombieLoadout(int iClient)
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
 				if (!TF2_IsSlotClassname(iClient, 1, "tf_weapon_lunchbox"))
 					TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-				
-				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Heavy));
-				if (IsValidEntity(iMelee))
-					SetZomAttribs(iMelee, TFClass_Heavy);
 			}
 			
 			case TFClass_Engineer:
 			{
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-				
-				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Engineer));
-				if (IsValidEntity(iMelee))
-					SetZomAttribs(iMelee, TFClass_Engineer);
 			}
 			
 			case TFClass_Spy:
@@ -4313,10 +4234,6 @@ void HandleZombieLoadout(int iClient)
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 				TF2_CreateAndEquipWeapon(iClient, 30); //Cloak
-				
-				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(TFClass_Spy));
-				if (IsValidEntity(iMelee))
-					SetZomAttribs(iMelee, TFClass_Spy);
 			}
 			
 			default:
@@ -4324,10 +4241,24 @@ void HandleZombieLoadout(int iClient)
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-				
-				iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(nClass));
-				if (IsValidEntity(iMelee))
-					SetZomAttribs(iMelee, nClass);
+			}
+		}
+		
+		iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(nClass));
+		if (IsValidEntity(iMelee))
+		{
+			SetZomAttribs(iMelee, nClass);
+			if (GetZombieIndex(nClass) == 44) //Sandman
+			{
+				//Set Sandman ball in cooldown if spammed
+				if (g_flGooCooldown[iClient] > GetGameTime())
+				{
+					int iAmmoType = GetEntProp(iMelee, Prop_Send, "m_iPrimaryAmmoType");
+					if (iAmmoType > -1)
+						SetEntProp(iClient, Prop_Send, "m_iAmmo", 0, _, iAmmoType);
+					
+					SetEntPropFloat(iMelee, Prop_Send, "m_flEffectBarRegenTime", g_flGooCooldown[iClient]);
+				}
 			}
 		}
 	}
@@ -4363,9 +4294,7 @@ void HandleZombieLoadout(int iClient)
 				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 				
 				if (g_nInfected[iClient] != Infected_Smoker)
-				{
 					TF2_CreateAndEquipWeapon(iClient, 30); //Cloak
-				}
 			}
 			
 			default:

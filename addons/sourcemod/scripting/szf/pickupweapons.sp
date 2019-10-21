@@ -211,7 +211,7 @@ bool AttemptGrabItem(int iClient)
 		char sClient[128];
 		GetClientName2(iClient, sClient, sizeof(sClient));
 		
-		if (iIndex > 8 && iIndex < 13)	//Shotgun
+		if (9 <= iIndex && iIndex <= 12)	//Shotgun
 		{
 			switch (TF2_GetPlayerClass(iClient))
 			{
@@ -328,7 +328,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		if (iEntity > MaxClients && IsValidEdict(iEntity))
 		{
 			int iOldIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
-			if (iOldIndex > 8 && iOldIndex < 13)	//Shotgun
+			if (9 <= iOldIndex && iOldIndex <= 12)	//Shotgun
 				iOldIndex = 9;
 			
 			GetWeaponFromIndex(oldwep, iOldIndex);

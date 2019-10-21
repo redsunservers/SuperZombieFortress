@@ -238,7 +238,7 @@ ArrayList Config_LoadSurvivorClasses()
 				}
 				
 				sur.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
-				sur.flSpeed = kv.GetFloat("speed", float(TF2_GetClassSpeed(sur.nClass)));
+				sur.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(sur.nClass));
 				sur.iRegen = kv.GetNum("regen", 2);
 				sur.iAmmo = kv.GetNum("ammo");
 				
@@ -290,7 +290,7 @@ ArrayList Config_LoadZombieClasses()
 				}
 				
 				zom.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
-				zom.flSpeed = kv.GetFloat("speed", float(TF2_GetClassSpeed(zom.nClass)));
+				zom.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(zom.nClass));
 				zom.iRegen = kv.GetNum("regen", 2);
 				zom.iDegen = kv.GetNum("degen", 3);
 				zom.flSpree = kv.GetFloat("spree", 1.0);
@@ -367,11 +367,13 @@ ArrayList Config_LoadInfectedClasses()
 				}
 				
 				inf.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
-				inf.flSpeed = kv.GetFloat("speed", float(TF2_GetClassSpeed(inf.nClass)));
+				inf.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(inf.nClass));
 				inf.iRegen = kv.GetNum("regen", 2);
 				inf.iDegen = kv.GetNum("degen", 3);
 				inf.iIndex = kv.GetNum("index", 5);
 				kv.GetString("attrib", inf.sAttribs, sizeof(inf.sAttribs));
+				kv.GetColor4("color", inf.iColor);
+				kv.GetString("message", inf.sMsg, sizeof(inf.sMsg));
 				
 				aClasses.PushArray(inf);
 				iLength++;
