@@ -101,7 +101,7 @@ void Classes_Setup()
 			iCurrent++;
 		}
 		
-		g_InfectedClasses[inf.nClass] = inf;
+		g_InfectedClasses[inf.nInfected] = inf;
 	}
 }
 

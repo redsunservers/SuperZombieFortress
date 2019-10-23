@@ -273,6 +273,23 @@ stock bool TF2_IsSlotClassname(int iClient, int iSlot, char[] sClassname)
 	return false;
 }
 
+stock int TF2_GetSlotInItem(int iIndex, TFClassType nClass)
+{
+	int iSlot = TF2Econ_GetItemSlot(iIndex, nClass);
+	if (iSlot >= 0)
+	{
+		//Spy slots is a bit messy
+		if (nClass == TFClass_Spy)
+		{
+			if (iSlot == 1) iSlot = WeaponSlot_Primary;	//Revolver
+			if (iSlot == 4) iSlot = WeaponSlot_Secondary;	//Sapper
+			if (iSlot == 6) iSlot = WeaponSlot_InvisWatch;	//Invis Watch
+		}
+	}
+	
+	return iSlot;
+}
+
 ////////////////////////////////////////////////////////////
 //
 // Speed Utils
