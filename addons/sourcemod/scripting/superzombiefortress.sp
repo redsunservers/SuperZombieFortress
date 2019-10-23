@@ -366,6 +366,7 @@ public void OnPluginStart()
 	RegAdminCmd("sm_stalker", Admin_ForcePredator, ADMFLAG_CHANGEMAP, "Become a predator on next respawn.");
 	RegAdminCmd("sm_hunter", Admin_ForceHopper, ADMFLAG_CHANGEMAP, "Become a hunter on next respawn.");
 	RegAdminCmd("sm_smoker", Admin_ForceSmoker, ADMFLAG_CHANGEMAP, "Become a smoker on next respawn.");
+	RegAdminCmd("szf_reloadconfigs", Admin_ReloadConfigs, ADMFLAG_RCON, "Reload SZF configs and SDKs.");
 	
 	AddNormalSoundHook(SoundHook);
 	
@@ -491,6 +492,19 @@ public Action Admin_ZombieTank(int iClient, int iArgs)
 public Action Admin_ZombieRage(int iClient, int iArgs)
 {
 	ZombieRage();
+	
+	return Plugin_Handled;
+}
+
+public Action Admin_ReloadConfigs(int iClient, int iArgs)
+{
+	SDK_Init();
+	
+	Config_InitTemplates();
+	Config_LoadTemplates();
+	
+	Classes_Setup();
+	Weapons_Setup();
 	
 	return Plugin_Handled;
 }
