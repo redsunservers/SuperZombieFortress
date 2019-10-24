@@ -2482,14 +2482,9 @@ public void OnGameFrame()
 		
 		if (g_nRoundState == SZFRoundState_Active)
 		{
-			if (IsValidClient(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient) && iCount == 1)
-			{
-				if (GetActivePlayerCount() >= 6 && !TF2_IsPlayerInCondition(iClient, TFCond_Buffed))
-					TF2_AddCondition(iClient, TFCond_Buffed, TFCondDuration_Infinite);
-				
-				if (GetActivePlayerCount() < 6 && TF2_IsPlayerInCondition(iClient, TFCond_Buffed))
-					TF2_RemoveCondition(iClient, TFCond_Buffed);
-			}
+			//Last man gets minicrit boost if 6 players ingame
+			if (iCount == 1 && IsValidLivingSurvivor(iClient) && GetActivePlayerCount() >= 6)
+				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
 			
 			//Charger's charge
 			if (IsValidLivingZombie(iClient) && g_nInfected[iClient] == Infected_Charger && TF2_IsPlayerInCondition(iClient, TFCond_Charging))
