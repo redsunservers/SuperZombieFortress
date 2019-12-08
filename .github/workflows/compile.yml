@@ -1,0 +1,26 @@
+name: Compile
+
+on:
+  pull_request:
+    branches: master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      
+      - name: Environments
+        run: |
+          echo ::set-env name=SM_VERSION::1.10
+      
+      - name: Install
+        run: |
+          bash scripts/install.sh
+      
+      - name: Compile
+        run: |
+          cd build/addons/sourcemod/scripting
+          ./spcomp -E superzombiefortress.sp -o ../plugins/superzombiefortress.smx

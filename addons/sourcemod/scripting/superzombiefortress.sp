@@ -15,7 +15,8 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION "3.2.1"
+#define PLUGIN_VERSION				"3.2.1"
+#define PLUGIN_VERSION_REVISION		"manual"
 
 #define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
 
@@ -249,7 +250,7 @@ public Plugin myinfo =
 	name = "Super Zombie Fortress",
 	author = "42, Sasch, Benoist3012, Haxton Sale, Frosty Scales, MekuCube (original)",
 	description = "Originally based off MekuCube's 1.05 version.",
-	version = PLUGIN_VERSION,
+	version = PLUGIN_VERSION ... "." ... PLUGIN_VERSION_REVISION,
 	url = "https://github.com/redsunservers/SuperZombieFortress"
 }
 
@@ -314,7 +315,10 @@ public void OnPluginStart()
 	tf_spy_cloak_no_attack_time = FindConVar("tf_spy_cloak_no_attack_time");
 	
 	//Register cvars
-	CreateConVar("sm_szf_version", PLUGIN_VERSION, "Current Zombie Fortress Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
+	char sBuffer[32];
+	Format(sBuffer, sizeof(sBuffer), "%s.%s", PLUGIN_VERSION, PLUGIN_VERSION_REVISION);
+	CreateConVar("sm_szf_version", sBuffer, "Current Super Zombie Fortress Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
+	
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Activate SZF for non-SZF maps.", _, true, 0.0, true, 1.0);
 	g_cvRatio = CreateConVar("sm_szf_ratio", "0.78", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
 	g_cvSwapOnPayload = CreateConVar("sm_szf_swaponpayload", "1", "<0/1> Swap teams on non-SZF payload maps.", _, true, 0.0, true, 1.0);
@@ -3092,7 +3096,7 @@ public void PrintInfoChat(int iClient)
 public void Panel_PrintMain(int iClient)
 {
 	char sBuffer[64];
-	Format(sBuffer, sizeof(sBuffer), "Super Zombie Fortress - %s", PLUGIN_VERSION);
+	Format(sBuffer, sizeof(sBuffer), "Super Zombie Fortress - %s.%s", PLUGIN_VERSION, PLUGIN_VERSION_REVISION);
 	
 	Panel panel = new Panel();
 	panel.SetTitle(sBuffer);
