@@ -612,7 +612,9 @@ public void OnClientPutInServer(int iClient)
 {
 	CreateTimer(10.0, Timer_InitialHelp, iClient, TIMER_FLAG_NO_MAPCHANGE);
 	
-	DHookEntity(g_hHookGetMaxHealth, false, iClient);
+	if (g_hHookGetMaxHealth)
+		DHookEntity(g_hHookGetMaxHealth, false, iClient);
+	
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	
@@ -4482,7 +4484,8 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	}
 	else if (StrEqual(sClassname, "tf_projectile_stun_ball"))
 	{
-		DHookEntity(g_hHookShouldBallTouch, false, iEntity, _, ShouldBallTouch);
+		if (g_hHookShouldBallTouch)
+			DHookEntity(g_hHookShouldBallTouch, false, iEntity, _, ShouldBallTouch);
 	}
 	else if (StrEqual(sClassname, "tf_dropped_weapon"))
 	{
