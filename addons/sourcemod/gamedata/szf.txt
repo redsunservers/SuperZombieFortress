@@ -29,6 +29,11 @@
 				"linux"		"432"
 				"windows"	"431"
 			}
+			"CTFStunBall::ShouldBallTouch"
+			{
+				"linux"		"262"
+				"windows"	"261"
+			}
 		}
 	}
 }

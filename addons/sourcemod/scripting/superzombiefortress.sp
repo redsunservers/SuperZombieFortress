@@ -179,6 +179,7 @@ GlobalForward g_hForwardAllowMusicPlay;
 
 //SDK functions
 Handle g_hHookGetMaxHealth;
+Handle g_hHookShouldBallTouch;
 Handle g_hSDKGetMaxHealth;
 Handle g_hSDKGetMaxAmmo;
 Handle g_hSDKEquipWearable;
@@ -4481,8 +4482,7 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	}
 	else if (StrEqual(sClassname, "tf_projectile_stun_ball"))
 	{
-		SDKHook(iEntity, SDKHook_StartTouch, BallStartTouch);
-		SDKHook(iEntity, SDKHook_Touch, BallTouch);
+		DHookEntity(g_hHookShouldBallTouch, false, iEntity, _, ShouldBallTouch);
 	}
 	else if (StrEqual(sClassname, "tf_dropped_weapon"))
 	{
@@ -4560,35 +4560,22 @@ public Action OnTriggerGooDefenseEnd(int iEntity, int iClient)
 	return Plugin_Continue;
 }
 
-public Action BallStartTouch(int iEntity, int iOther)
+public MRESReturn ShouldBallTouch(int iEntity, Handle hReturn, Handle hParams)
 {
-	if (!g_bEnabled) return Plugin_Continue;
-	if (!IsClassname(iEntity, "tf_projectile_stun_ball")) return Plugin_Continue;
+	if (!g_bEnabled) return MRES_Ignored;
 	
-	if (IsValidClient(iOther) && IsPlayerAlive(iOther) && IsSurvivor(iOther))
+	int iToucher = DHookGetParam(hParams, 1);
+	if (IsValidLivingSurvivor(iToucher))
 	{
 		int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
-		SDKUnhook(iEntity, SDKHook_StartTouch, BallStartTouch);
-		SpitterGoo(iOther, iOwner);
-		return Plugin_Stop;
-	}
-	
-	return Plugin_Continue;
-}
-
-public Action BallTouch(int iEntity, int iOther)
-{
-	if (!g_bEnabled) return Plugin_Continue;
-	if (!IsClassname(iEntity, "tf_projectile_stun_ball")) return Plugin_Continue;
-	
-	if (iOther > 0 && iOther <= MaxClients && IsClientInGame(iOther) && IsPlayerAlive(iOther) && IsSurvivor(iOther))
-	{
-		SDKUnhook(iEntity, SDKHook_StartTouch, BallStartTouch);
-		SDKUnhook(iEntity, SDKHook_Touch, BallTouch);
+		SpitterGoo(iToucher, iOwner);
 		AcceptEntityInput(iEntity, "kill");
+		
+		DHookSetReturn(hReturn, false);
+		return MRES_Supercede;
 	}
 	
-	return Plugin_Stop;
+	return MRES_Ignored;
 }
 
 public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
@@ -5546,13 +5533,15 @@ public Action Timer_SetHunterJump(Handle timer, any iClient)
 
 void SDK_Init()
 {
-	Handle hGameData = LoadGameConfigFile("sdkhooks.games");
-	if (hGameData == null) SetFailState("Could not find sdkhooks.games gamedata!");
+	GameData hGameData = new GameData("sdkhooks.games");
+	if (hGameData == null)
+		SetFailState("Could not find sdkhooks.games gamedata!");
 	
 	//This function is used to control player's max health
-	int iOffset = GameConfGetOffset(hGameData, "GetMaxHealth");
+	int iOffset = hGameData.GetOffset("GetMaxHealth");
 	g_hHookGetMaxHealth = DHookCreate(iOffset, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity, Client_GetMaxHealth);
-	if (g_hHookGetMaxHealth == null) LogMessage("Failed to create hook: CTFPlayer::GetMaxHealth!");
+	if (g_hHookGetMaxHealth == null)
+		LogMessage("Failed to create hook: CTFPlayer::GetMaxHealth!");
 	
 	//This function is used to retreive player's max health
 	StartPrepSDKCall(SDKCall_Player);
@@ -5564,7 +5553,7 @@ void SDK_Init()
 	
 	delete hGameData;
 	
-	hGameData = LoadGameConfigFile("szf");
+	hGameData = new GameData("szf");
 	
 	//This function is used to get weapon max ammo
 	StartPrepSDKCall(SDKCall_Player);
@@ -5601,6 +5590,14 @@ void SDK_Init()
 	if (g_hSDKGetEquippedWearable == null)
 		LogMessage("Failed to create call: CTFPlayer::GetEquippedWearableForLoadoutSlot!");
 	
+	// This hook calls when Sandman Ball stuns a player
+	iOffset = hGameData.GetOffset("CTFStunBall::ShouldBallTouch");
+	g_hHookShouldBallTouch = DHookCreate(iOffset, HookType_Entity, ReturnType_Bool, ThisPointer_CBaseEntity);
+	if (g_hHookShouldBallTouch == null)
+		LogMessage("Failed to create hook: CTFStunBall::ShouldBallTouch!");
+	else
+		DHookAddParam(g_hHookShouldBallTouch, HookParamType_CBaseEntity);
+	
 	delete hGameData;
 }
 
@@ -5636,11 +5633,13 @@ stock void SDK_EquipWearable(int client, int iWearable)
 	if (g_hSDKEquipWearable != null)
 		SDKCall(g_hSDKEquipWearable, client, iWearable);
 }
+
 stock void SDK_RemoveWearable(int client, int iWearable)
 {
 	if (g_hSDKRemoveWearable != null)
 		SDKCall(g_hSDKRemoveWearable, client, iWearable);
 }
+
 stock int SDK_GetEquippedWearable(int client, int iSlot)
 {
 	if (g_hSDKGetEquippedWearable != null)
