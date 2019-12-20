@@ -15,7 +15,8 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION "3.3.0"
+#define PLUGIN_VERSION				"3.3.0"
+#define PLUGIN_VERSION_REVISION		"manual"
 
 #define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
 
@@ -178,6 +179,7 @@ GlobalForward g_hForwardAllowMusicPlay;
 
 //SDK functions
 Handle g_hHookGetMaxHealth;
+Handle g_hHookShouldBallTouch;
 Handle g_hSDKGetMaxHealth;
 Handle g_hSDKGetMaxAmmo;
 Handle g_hSDKEquipWearable;
@@ -250,7 +252,7 @@ public Plugin myinfo =
 	name = "Super Zombie Fortress",
 	author = "42, Sasch, Benoist3012, Haxton Sale, Frosty Scales, MekuCube (original)",
 	description = "Originally based off MekuCube's 1.05 version.",
-	version = PLUGIN_VERSION,
+	version = PLUGIN_VERSION ... "." ... PLUGIN_VERSION_REVISION,
 	url = "https://github.com/redsunservers/SuperZombieFortress"
 }
 
@@ -315,7 +317,10 @@ public void OnPluginStart()
 	tf_spy_cloak_no_attack_time = FindConVar("tf_spy_cloak_no_attack_time");
 	
 	//Register cvars
-	CreateConVar("sm_szf_version", PLUGIN_VERSION, "Current Zombie Fortress Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
+	char sBuffer[32];
+	Format(sBuffer, sizeof(sBuffer), "%s.%s", PLUGIN_VERSION, PLUGIN_VERSION_REVISION);
+	CreateConVar("sm_szf_version", sBuffer, "Current Super Zombie Fortress Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
+	
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Activate SZF for non-SZF maps.", _, true, 0.0, true, 1.0);
 	g_cvRatio = CreateConVar("sm_szf_ratio", "0.78", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
 	g_cvSwapOnPayload = CreateConVar("sm_szf_swaponpayload", "1", "<0/1> Swap teams on non-SZF payload maps.", _, true, 0.0, true, 1.0);
@@ -628,7 +633,9 @@ public void OnClientPutInServer(int iClient)
 {
 	CreateTimer(10.0, Timer_InitialHelp, iClient, TIMER_FLAG_NO_MAPCHANGE);
 	
-	DHookEntity(g_hHookGetMaxHealth, false, iClient);
+	if (g_hHookGetMaxHealth)
+		DHookEntity(g_hHookGetMaxHealth, false, iClient);
+	
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	
@@ -2462,14 +2469,9 @@ public void OnGameFrame()
 		
 		if (g_nRoundState == SZFRoundState_Active)
 		{
-			if (IsValidClient(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient) && iCount == 1)
-			{
-				if (GetActivePlayerCount() >= 6 && !TF2_IsPlayerInCondition(iClient, TFCond_Buffed))
-					TF2_AddCondition(iClient, TFCond_Buffed, TFCondDuration_Infinite);
-				
-				if (GetActivePlayerCount() < 6 && TF2_IsPlayerInCondition(iClient, TFCond_Buffed))
-					TF2_RemoveCondition(iClient, TFCond_Buffed);
-			}
+			//Last man gets minicrit boost if 6 players ingame
+			if (iCount == 1 && IsValidLivingSurvivor(iClient) && GetActivePlayerCount() >= 6)
+				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
 			
 			//Charger's charge
 			if (IsValidLivingZombie(iClient) && g_nInfected[iClient] == Infected_Charger && TF2_IsPlayerInCondition(iClient, TFCond_Charging))
@@ -3057,7 +3059,7 @@ public void PrintInfoChat(int iClient)
 public void Panel_PrintMain(int iClient)
 {
 	char sBuffer[64];
-	Format(sBuffer, sizeof(sBuffer), "Super Zombie Fortress - %s", PLUGIN_VERSION);
+	Format(sBuffer, sizeof(sBuffer), "Super Zombie Fortress - %s.%s", PLUGIN_VERSION, PLUGIN_VERSION_REVISION);
 	
 	Panel panel = new Panel();
 	panel.SetTitle(sBuffer);
@@ -4591,8 +4593,8 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	}
 	else if (StrEqual(sClassname, "tf_projectile_stun_ball"))
 	{
-		SDKHook(iEntity, SDKHook_StartTouch, BallStartTouch);
-		SDKHook(iEntity, SDKHook_Touch, BallTouch);
+		if (g_hHookShouldBallTouch)
+			DHookEntity(g_hHookShouldBallTouch, false, iEntity, _, ShouldBallTouch);
 	}
 	else if (StrEqual(sClassname, "tf_dropped_weapon"))
 	{
@@ -4670,35 +4672,22 @@ public Action OnTriggerGooDefenseEnd(int iEntity, int iClient)
 	return Plugin_Continue;
 }
 
-public Action BallStartTouch(int iEntity, int iOther)
+public MRESReturn ShouldBallTouch(int iEntity, Handle hReturn, Handle hParams)
 {
-	if (!g_bEnabled) return Plugin_Continue;
-	if (!IsClassname(iEntity, "tf_projectile_stun_ball")) return Plugin_Continue;
+	if (!g_bEnabled) return MRES_Ignored;
 	
-	if (IsValidClient(iOther) && IsPlayerAlive(iOther) && IsSurvivor(iOther))
+	int iToucher = DHookGetParam(hParams, 1);
+	if (IsValidLivingSurvivor(iToucher))
 	{
 		int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
-		SDKUnhook(iEntity, SDKHook_StartTouch, BallStartTouch);
-		SpitterGoo(iOther, iOwner);
-		return Plugin_Stop;
-	}
-	
-	return Plugin_Continue;
-}
-
-public Action BallTouch(int iEntity, int iOther)
-{
-	if (!g_bEnabled) return Plugin_Continue;
-	if (!IsClassname(iEntity, "tf_projectile_stun_ball")) return Plugin_Continue;
-	
-	if (iOther > 0 && iOther <= MaxClients && IsClientInGame(iOther) && IsPlayerAlive(iOther) && IsSurvivor(iOther))
-	{
-		SDKUnhook(iEntity, SDKHook_StartTouch, BallStartTouch);
-		SDKUnhook(iEntity, SDKHook_Touch, BallTouch);
+		SpitterGoo(iToucher, iOwner);
 		AcceptEntityInput(iEntity, "kill");
+		
+		DHookSetReturn(hReturn, false);
+		return MRES_Supercede;
 	}
 	
-	return Plugin_Stop;
+	return MRES_Ignored;
 }
 
 public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
@@ -5659,13 +5648,15 @@ public Action Timer_SetHunterJump(Handle timer, any iClient)
 
 void SDK_Init()
 {
-	Handle hGameData = LoadGameConfigFile("sdkhooks.games");
-	if (hGameData == null) SetFailState("Could not find sdkhooks.games gamedata!");
+	GameData hGameData = new GameData("sdkhooks.games");
+	if (hGameData == null)
+		SetFailState("Could not find sdkhooks.games gamedata!");
 	
 	//This function is used to control player's max health
-	int iOffset = GameConfGetOffset(hGameData, "GetMaxHealth");
+	int iOffset = hGameData.GetOffset("GetMaxHealth");
 	g_hHookGetMaxHealth = DHookCreate(iOffset, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity, Client_GetMaxHealth);
-	if (g_hHookGetMaxHealth == null) LogMessage("Failed to create hook: CTFPlayer::GetMaxHealth!");
+	if (g_hHookGetMaxHealth == null)
+		LogMessage("Failed to create hook: CTFPlayer::GetMaxHealth!");
 	
 	//This function is used to retreive player's max health
 	StartPrepSDKCall(SDKCall_Player);
@@ -5677,7 +5668,7 @@ void SDK_Init()
 	
 	delete hGameData;
 	
-	hGameData = LoadGameConfigFile("szf");
+	hGameData = new GameData("szf");
 	
 	//This function is used to get weapon max ammo
 	StartPrepSDKCall(SDKCall_Player);
@@ -5714,6 +5705,14 @@ void SDK_Init()
 	if (g_hSDKGetEquippedWearable == null)
 		LogMessage("Failed to create call: CTFPlayer::GetEquippedWearableForLoadoutSlot!");
 	
+	// This hook calls when Sandman Ball stuns a player
+	iOffset = hGameData.GetOffset("CTFStunBall::ShouldBallTouch");
+	g_hHookShouldBallTouch = DHookCreate(iOffset, HookType_Entity, ReturnType_Bool, ThisPointer_CBaseEntity);
+	if (g_hHookShouldBallTouch == null)
+		LogMessage("Failed to create hook: CTFStunBall::ShouldBallTouch!");
+	else
+		DHookAddParam(g_hHookShouldBallTouch, HookParamType_CBaseEntity);
+	
 	delete hGameData;
 }
 
@@ -5749,11 +5748,13 @@ stock void SDK_EquipWearable(int iClient, int iWearable)
 	if (g_hSDKEquipWearable != null)
 		SDKCall(g_hSDKEquipWearable, iClient, iWearable);
 }
+
 stock void SDK_RemoveWearable(int iClient, int iWearable)
 {
 	if (g_hSDKRemoveWearable != null)
 		SDKCall(g_hSDKRemoveWearable, iClient, iWearable);
 }
+
 stock int SDK_GetEquippedWearable(int iClient, int iSlot)
 {
 	if (g_hSDKGetEquippedWearable != null)

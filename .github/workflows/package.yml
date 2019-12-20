@@ -1,0 +1,40 @@
+name: Package
+
+on:
+  push:
+    branches: master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      
+      - name: Environments
+        run: |
+          echo ::set-env name=SM_VERSION::1.10
+      
+      - name: Install
+        run: |
+          bash scripts/install.sh
+      
+      - name: Set Version
+        run: |
+          bash scripts/version.sh
+      
+      - name: Compile
+        run: |
+          cd build/addons/sourcemod/scripting
+          ./spcomp superzombiefortress.sp -o ../plugins/superzombiefortress.smx
+      
+      - name: Package
+        run: |
+          bash scripts/package.sh
+      
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@master
+        with:
+          name: SuperZombieFortress-${{env.PLUGIN_VERSION}}.${{env.PLUGIN_VERSION_REVISION}}
+          path: ./build/package
