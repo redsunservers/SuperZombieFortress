@@ -215,6 +215,7 @@ int g_iSmokerBeamHits[TF_MAXPLAYERS];
 int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
 float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
+bool g_bClearedInventory[TF_MAXPLAYERS];
 
 //Map overwrites
 float g_flCapScale = -1.0;
@@ -343,6 +344,7 @@ public void OnPluginStart()
 	HookEvent("teamplay_point_captured", Event_CPCapture);
 	HookEvent("teamplay_point_startcapture", Event_CPCaptureStart);
 	HookEvent("teamplay_broadcast_audio", Event_Broadcast, EventHookMode_Pre);
+	HookEvent("post_inventory_application", Event_Inventory);
 
 	//Hook Client Commands
 	AddCommandListener(Command_JoinTeam, "jointeam");
@@ -1543,6 +1545,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	g_iKillsThisLife[iClient] = 0;
 	g_iDamageTakenLife[iClient] = 0;
 	g_iDamageDealtLife[iClient] = 0;
+	g_bClearedInventory[iClient] = false;
 	
 	DropCarryingItem(iClient, false);
 	
@@ -1812,6 +1815,12 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	
 	return Plugin_Continue;
 }
+
+public void Event_Inventory(Event event, const char[] name, bool dont_broadcast)
+{
+	g_bClearedInventory[event.GetInt("userid")] = true;
+}
+
 
 public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
@@ -4108,15 +4117,7 @@ void HandleSurvivorLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
 	
-	//Remove primary weapon
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_Primary);
-	
-	//Remove secondary weapon and wearables
-	int iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_Secondary);
-	if (iEntity > 0 && IsValidEdict(iEntity)) TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-	RemoveWearableWeapons(iClient);
-	
-	iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_Melee);
+	int iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_Melee);
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
 	{
 		//Get default attrib from config to apply all melee weapons
@@ -4198,20 +4199,12 @@ void HandleZombieLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
 	
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_Primary);
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_Melee);
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-	
 	int iMelee;
 	
 	switch (TF2_GetPlayerClass(iClient))
 	{
 		case TFClass_Scout:
 		{
-			if (g_nInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_lunchbox_drink"))
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			
 			int iIndex = 44; //Sandman
 			if (g_nInfected[iClient] == Infected_Hunter) 	iIndex = 572; //Unarmed Combat
 			if (g_nInfected[iClient] == Infected_Kingpin) 	iIndex = 939; //Bat Outta Hell
@@ -4232,9 +4225,6 @@ void HandleZombieLoadout(int iClient)
 		}
 		case TFClass_Heavy:
 		{
-			if (!TF2_IsSlotClassname(iClient, 1, "tf_weapon_lunchbox"))
-				TF2_RemoveWeaponSlot(iClient, 1);
-			
 			int iIndex = 5; //Fists
 			if (g_nInfected[iClient] == Infected_Boomer) 	iIndex = 331; //Fists of Steel
 			if (g_nInfected[iClient] == Infected_Charger) 	iIndex = 587; //Apoco-Fists
@@ -4243,7 +4233,6 @@ void HandleZombieLoadout(int iClient)
 		}
 		case TFClass_Spy:
 		{
-			TF2_RemoveWeaponSlot(iClient, 1);
 			TF2_CreateAndEquipWeapon(iClient, 30); //Cloak
 			
 			int iIndex = 4; //Knife
@@ -4801,32 +4790,6 @@ stock bool IsRazorbackActive(int iClient)
 			return GetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", TFWeaponSlot_Secondary) >= 100.0;
 	
 	return false;
-}
-
-void RemoveWearableWeapons(int iClient)
-{
-	int iEntity = -1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "tf_wearable_demoshield")) != -1)
-		if (IsClassname(iEntity, "tf_wearable_demoshield") && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient)
-			RemoveEdict(iEntity);
-	
-	while ((iEntity = FindEntityByClassname2(iEntity, "tf_wearable")) != -1)
-	{
-		if (IsClassname(iEntity, "tf_wearable") && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient)
-		{
-			int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
-			if (iIndex == 57		//Razrorback
-				|| iIndex == 231	//Darwin's Danger Shield
-				|| iIndex == 642	//Cozy Camper
-				|| iIndex == 133	//Gunboats
-				|| iIndex == 444	//Mantreads
-				|| iIndex == 405	//Ali Baba's Wee Booties
-				|| iIndex == 608)	//The Bootlegger
-			{
-				RemoveEdict(iEntity);
-			}
-		}
-	}
 }
 
 stock bool RemoveSecondaryWearable(int iClient)
@@ -5637,14 +5600,60 @@ public MRESReturn Client_GetMaxHealth(int iClient, Handle hReturn)
 
 public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hParams)
 {
+	static int blocked_indexes[] = {
+		57,  //Razorback
+		231, //Darwin's Danger Shield
+		642, //Cozy Camper
+		133, //Gunboats
+		444, //Mantreads
+		405, //Ali Baba's Wee Booties
+		608  //The Bootlegger
+	};
+	
 	char classname[256];
 	DHookGetParamString(hParams, 1, classname, sizeof(classname));
 	
 	int index = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
 	int slot = TF2Econ_GetItemSlot(index, TF2_GetPlayerClass(iClient));
-	PrintToServer("Client_OnGiveNamedItem (%N): szClassname: \"%s\", m_iItemDefinitionIndex: \"%i\", slot: \"%i\"", iClient, classname, index, slot);
 	
-	if (index == 447) {
+	bool shouldblock;
+	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor && !g_bClearedInventory[iClient])
+	{
+		if (slot < 2 || StrContains(classname, "tf_wearable_demoshield") > -1)
+			shouldblock = true;
+		
+		for (int i = 0; i < sizeof(blocked_indexes); i++)
+			if (index == blocked_indexes[i])
+				shouldblock = true;
+	}
+	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie && StrContains(classname, "tf_wearable") == -1)
+	{
+		if (slot == WeaponSlot_Primary || slot == WeaponSlot_Melee || slot == WeaponSlot_PDADisguise || slot == WeaponSlot_InvisWatch)
+			shouldblock = true;
+		
+		switch (TF2_GetPlayerClass(iClient))
+		{
+			case TFClass_Scout:
+			{
+				//Block scout drinks for special infected
+				if (g_nInfected[iClient] != Infected_None || StrContains(classname, "tf_weapon_lunchbox_drink") == -1)
+					shouldblock = true;
+			}
+			case TFClass_Heavy:
+			{
+				//Block all secondary weapons that are not food
+				if (StrContains(classname, "tf_weapon_lunchbox") == -1)
+					shouldblock = true;
+			}
+			case TFClass_Spy:
+			{
+				shouldblock = true;
+			}
+		}
+	}
+	
+	if (shouldblock)
+	{
 		DHookSetReturn(hReturn, 0);
 		return MRES_Supercede;
 	}
