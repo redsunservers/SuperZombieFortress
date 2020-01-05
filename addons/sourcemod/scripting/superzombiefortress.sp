@@ -1818,7 +1818,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 
 public void Event_Inventory(Event event, const char[] name, bool dont_broadcast)
 {
-	g_bClearedInventory[event.GetInt("userid")] = true;
+	g_bClearedInventory[GetClientOfUserId(event.GetInt("userid"))] = true;
 }
 
 
