@@ -1730,6 +1730,8 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					SetEntityRenderColor(iClient, 150, 0, 255, 255);
 					CPrintToChat(iClient, "{green}YOU ARE A KINGPIN:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(21 second cooldown){orange}\n- Zombies standing near you are more powerful.");
 				}
+				
+				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 			}
 			
 			if (g_nInfected[iClient] == Infected_Stalker
