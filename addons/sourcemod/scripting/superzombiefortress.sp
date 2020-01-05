@@ -180,6 +180,7 @@ GlobalForward g_hForwardAllowMusicPlay;
 //SDK functions
 Handle g_hHookGetMaxHealth;
 Handle g_hHookShouldBallTouch;
+Handle g_hHookGiveNamedItem;
 Handle g_hSDKGetMaxHealth;
 Handle g_hSDKGetMaxAmmo;
 Handle g_hSDKEquipWearable;
@@ -214,6 +215,7 @@ int g_iSmokerBeamHits[TF_MAXPLAYERS];
 int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
 float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
+bool g_bClearedInventory[TF_MAXPLAYERS];
 
 //Map overwrites
 float g_flCapScale = -1.0;
@@ -342,6 +344,7 @@ public void OnPluginStart()
 	HookEvent("teamplay_point_captured", Event_CPCapture);
 	HookEvent("teamplay_point_startcapture", Event_CPCaptureStart);
 	HookEvent("teamplay_broadcast_audio", Event_Broadcast, EventHookMode_Pre);
+	HookEvent("post_inventory_application", Event_Inventory);
 
 	//Hook Client Commands
 	AddCommandListener(Command_JoinTeam, "jointeam");
@@ -394,8 +397,10 @@ public void OnPluginStart()
 public void OnPluginEnd()
 {
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
 		if (IsClientInGame(iClient))
 			EndSound(iClient);
+	}
 }
 
 public Action Command_Build(int iClient, const char[] sCommand, int iArgs)
@@ -614,6 +619,9 @@ public void OnClientPutInServer(int iClient)
 	
 	if (g_hHookGetMaxHealth)
 		DHookEntity(g_hHookGetMaxHealth, false, iClient);
+	
+	if (g_hHookGiveNamedItem)
+		DHookEntity(g_hHookGiveNamedItem, false, iClient);
 	
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
@@ -1537,6 +1545,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	g_iKillsThisLife[iClient] = 0;
 	g_iDamageTakenLife[iClient] = 0;
 	g_iDamageDealtLife[iClient] = 0;
+	g_bClearedInventory[iClient] = false;
 	
 	DropCarryingItem(iClient, false);
 	
@@ -1721,6 +1730,8 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					SetEntityRenderColor(iClient, 150, 0, 255, 255);
 					CPrintToChat(iClient, "{green}YOU ARE A KINGPIN:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(21 second cooldown){orange}\n- Zombies standing near you are more powerful.");
 				}
+				
+				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
 			}
 			
 			if (g_nInfected[iClient] == Infected_Stalker
@@ -1805,6 +1816,11 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	SetGlow();
 	
 	return Plugin_Continue;
+}
+
+public void Event_Inventory(Event event, const char[] name, bool dont_broadcast)
+{
+	g_bClearedInventory[GetClientOfUserId(event.GetInt("userid"))] = true;
 }
 
 public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
@@ -4102,15 +4118,7 @@ void HandleSurvivorLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
 	
-	//Remove primary weapon
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_Primary);
-	
-	//Remove secondary weapon and wearables
-	int iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_Secondary);
-	if (iEntity > 0 && IsValidEdict(iEntity)) TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-	RemoveWearableWeapons(iClient);
-	
-	iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_Melee);
+	int iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_Melee);
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
 	{
 		//Get default attrib from config to apply all melee weapons
@@ -4192,20 +4200,12 @@ void HandleZombieLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
 	
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_Primary);
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_Melee);
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-	
 	int iMelee;
 	
 	switch (TF2_GetPlayerClass(iClient))
 	{
 		case TFClass_Scout:
 		{
-			if (g_nInfected[iClient] != Infected_None || !TF2_IsSlotClassname(iClient, 1, "tf_weapon_lunchbox_drink"))
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			
 			int iIndex = 44; //Sandman
 			if (g_nInfected[iClient] == Infected_Hunter) 	iIndex = 572; //Unarmed Combat
 			if (g_nInfected[iClient] == Infected_Kingpin) 	iIndex = 939; //Bat Outta Hell
@@ -4226,9 +4226,6 @@ void HandleZombieLoadout(int iClient)
 		}
 		case TFClass_Heavy:
 		{
-			if (!TF2_IsSlotClassname(iClient, 1, "tf_weapon_lunchbox"))
-				TF2_RemoveWeaponSlot(iClient, 1);
-			
 			int iIndex = 5; //Fists
 			if (g_nInfected[iClient] == Infected_Boomer) 	iIndex = 331; //Fists of Steel
 			if (g_nInfected[iClient] == Infected_Charger) 	iIndex = 587; //Apoco-Fists
@@ -4237,7 +4234,6 @@ void HandleZombieLoadout(int iClient)
 		}
 		case TFClass_Spy:
 		{
-			TF2_RemoveWeaponSlot(iClient, 1);
 			TF2_CreateAndEquipWeapon(iClient, 30); //Cloak
 			
 			int iIndex = 4; //Knife
@@ -4795,32 +4791,6 @@ stock bool IsRazorbackActive(int iClient)
 			return GetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", TFWeaponSlot_Secondary) >= 100.0;
 	
 	return false;
-}
-
-void RemoveWearableWeapons(int iClient)
-{
-	int iEntity = -1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "tf_wearable_demoshield")) != -1)
-		if (IsClassname(iEntity, "tf_wearable_demoshield") && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient)
-			RemoveEdict(iEntity);
-	
-	while ((iEntity = FindEntityByClassname2(iEntity, "tf_wearable")) != -1)
-	{
-		if (IsClassname(iEntity, "tf_wearable") && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient)
-		{
-			int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
-			if (iIndex == 57		//Razrorback
-				|| iIndex == 231	//Darwin's Danger Shield
-				|| iIndex == 642	//Cozy Camper
-				|| iIndex == 133	//Gunboats
-				|| iIndex == 444	//Mantreads
-				|| iIndex == 405	//Ali Baba's Wee Booties
-				|| iIndex == 608)	//The Bootlegger
-			{
-				RemoveEdict(iEntity);
-			}
-		}
-	}
 }
 
 stock bool RemoveSecondaryWearable(int iClient)
@@ -5601,6 +5571,20 @@ void SDK_Init()
 	else
 		DHookAddParam(g_hHookShouldBallTouch, HookParamType_CBaseEntity);
 	
+	iOffset = hGameData.GetOffset("CTFPlayer::GiveNamedItem");
+	g_hHookGiveNamedItem = DHookCreate(iOffset, HookType_Entity, ReturnType_CBaseEntity, ThisPointer_CBaseEntity, Client_OnGiveNamedItem);
+	if (g_hHookGiveNamedItem == null)
+	{
+		LogMessage("Failed to create hook: CTFPlayer::GiveNamedItem!");
+	}
+	else
+	{
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_CharPtr); //*szClassname
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Int); //iSubType
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_ObjectPtr); //*cscript
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Bool); //:b:
+	}
+	
 	delete hGameData;
 }
 
@@ -5609,6 +5593,60 @@ public MRESReturn Client_GetMaxHealth(int iClient, Handle hReturn)
 	if (g_iMaxHealth[iClient] > 0)
 	{
 		DHookSetReturn(hReturn, g_iMaxHealth[iClient]);
+		return MRES_Supercede;
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hParams)
+{
+	char sClassname[256];
+	DHookGetParamString(hParams, 1, sClassname, sizeof(sClassname));
+	
+	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
+	int iSlot = GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
+	
+	bool bShouldBlock;
+	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor && !g_bClearedInventory[iClient])
+	{
+		if (iSlot < WeaponSlot_Melee)
+			bShouldBlock = true;
+	}
+	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie && StrContains(sClassname, "tf_wearable") == -1)
+	{
+		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee)
+		{
+			bShouldBlock = true;
+		}
+		else
+		{
+			switch (TF2_GetPlayerClass(iClient))
+			{
+				case TFClass_Scout:
+				{
+					//Block scout drinks for special infected
+					if (g_nInfected[iClient] != Infected_None || StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
+						bShouldBlock = true;
+				}
+				case TFClass_Heavy:
+				{
+					//Block all secondary weapons that are not food
+					if (StrContains(sClassname, "tf_weapon_lunchbox") == -1)
+						bShouldBlock = true;
+				}
+				case TFClass_Spy:
+				{
+					//Block literally everything for spy
+					bShouldBlock = true;
+				}
+			}
+		}
+	}
+	
+	if (bShouldBlock)
+	{
+		DHookSetReturn(hReturn, 0);
 		return MRES_Supercede;
 	}
 	
