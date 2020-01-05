@@ -1821,7 +1821,6 @@ public void Event_Inventory(Event event, const char[] name, bool dont_broadcast)
 	g_bClearedInventory[GetClientOfUserId(event.GetInt("userid"))] = true;
 }
 
-
 public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled) return Plugin_Continue;
