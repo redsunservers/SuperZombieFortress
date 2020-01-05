@@ -622,8 +622,9 @@ public void OnClientPutInServer(int iClient)
 	if (g_hHookGetMaxHealth)
 		DHookEntity(g_hHookGetMaxHealth, false, iClient);
 	
-	if (g_hHookGiveNamedItem)
+	if (g_hHookGiveNamedItem) {
 		g_iOnGiveNamedItemHookId[iClient] = DHookEntity(g_hHookGiveNamedItem, false, iClient);
+	}
 	
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
@@ -5622,7 +5623,7 @@ void SDK_Init()
 		DHookAddParam(g_hHookGiveNamedItem, HookParamType_CharPtr); //*szClassname
 		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Int); //iSubType
 		DHookAddParam(g_hHookGiveNamedItem, HookParamType_ObjectPtr); //*cscript
-		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Bool); //b
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Bool); //:b:
 	}
 	
 	delete hGameData;
@@ -5645,7 +5646,8 @@ public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hPa
 	DHookGetParamString(hParams, 1, classname, sizeof(classname));
 	
 	int index = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
-	PrintToServer("Client_OnGiveNamedItem (%N): szClassname: \"%s\", m_iItemDefinitionIndex: \"%i\"", iClient, classname, index);
+	int slot = TF2Econ_GetItemSlot(index, TF2_GetPlayerClass(iClient));
+	PrintToServer("Client_OnGiveNamedItem (%N): szClassname: \"%s\", m_iItemDefinitionIndex: \"%i\", slot: \"%i\"", iClient, classname, index, slot);
 	
 	if (index == 447) {
 		DHookSetReturn(hReturn, 0);
