@@ -854,7 +854,7 @@ stock void ApplyVoodooCursedSoul(int iClient)
 		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", g_iZombieSoulIndex[view_as<int>(nClass)]);
 }
 
-//https://github.com/Mikusch/tfgo/blob/master/addons/sourcemod/scripting/tfgo/stocks.sp#L205-L237 :)
+//https://github.com/Mikusch/tfgo/blob/c6109ad9a2f04ac0267e0916145a8274c9f6662e/addons/sourcemod/scripting/tfgo/stocks.sp#L205-L237 :)
 stock int GetItemSlot(int iIndex, TFClassType iClass)
 {
 	int iSlot = TF2Econ_GetItemSlot(iIndex, iClass);
