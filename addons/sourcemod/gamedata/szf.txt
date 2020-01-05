@@ -34,6 +34,11 @@
 				"linux"		"262"
 				"windows"	"261"
 			}
+			"CTFPlayer::GiveNamedItem"
+			{
+				"windows"	"475"
+				"linux"		"482"
+			}
 		}
 	}
 }

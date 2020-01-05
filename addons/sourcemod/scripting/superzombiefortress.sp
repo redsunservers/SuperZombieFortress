@@ -180,6 +180,7 @@ GlobalForward g_hForwardAllowMusicPlay;
 //SDK functions
 Handle g_hHookGetMaxHealth;
 Handle g_hHookShouldBallTouch;
+Handle g_hHookGiveNamedItem;
 Handle g_hSDKGetMaxHealth;
 Handle g_hSDKGetMaxAmmo;
 Handle g_hSDKEquipWearable;
@@ -214,6 +215,7 @@ int g_iSmokerBeamHits[TF_MAXPLAYERS];
 int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
 float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
+int g_iOnGiveNamedItemHookId[TF_MAXPLAYERS];
 
 //Map overwrites
 float g_flCapScale = -1.0;
@@ -394,8 +396,13 @@ public void OnPluginStart()
 public void OnPluginEnd()
 {
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
 		if (IsClientInGame(iClient))
+		{
+			DHookRemoveHookID(g_iOnGiveNamedItemHookId[iClient]);
 			EndSound(iClient);
+		}
+	}
 }
 
 public Action Command_Build(int iClient, const char[] sCommand, int iArgs)
@@ -614,6 +621,9 @@ public void OnClientPutInServer(int iClient)
 	
 	if (g_hHookGetMaxHealth)
 		DHookEntity(g_hHookGetMaxHealth, false, iClient);
+	
+	if (g_hHookGiveNamedItem)
+		g_iOnGiveNamedItemHookId[iClient] = DHookEntity(g_hHookGiveNamedItem, false, iClient);
 	
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
@@ -5601,6 +5611,20 @@ void SDK_Init()
 	else
 		DHookAddParam(g_hHookShouldBallTouch, HookParamType_CBaseEntity);
 	
+	iOffset = hGameData.GetOffset("CTFPlayer::GiveNamedItem");
+	g_hHookGiveNamedItem = DHookCreate(iOffset, HookType_Entity, ReturnType_CBaseEntity, ThisPointer_CBaseEntity, Client_OnGiveNamedItem);
+	if (g_hHookGiveNamedItem == null)
+	{
+		LogMessage("Failed to create hook: CTFPlayer::GiveNamedItem!");
+	}
+	else
+	{
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_CharPtr); //*szClassname
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Int); //iSubType
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_ObjectPtr); //*cscript
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Bool); //b
+	}
+	
 	delete hGameData;
 }
 
@@ -5609,6 +5633,22 @@ public MRESReturn Client_GetMaxHealth(int iClient, Handle hReturn)
 	if (g_iMaxHealth[iClient] > 0)
 	{
 		DHookSetReturn(hReturn, g_iMaxHealth[iClient]);
+		return MRES_Supercede;
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hParams)
+{
+	char classname[256];
+	DHookGetParamString(hParams, 1, classname, sizeof(classname));
+	
+	int index = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
+	PrintToServer("Client_OnGiveNamedItem (%N): szClassname: \"%s\", m_iItemDefinitionIndex: \"%i\"", iClient, classname, index);
+	
+	if (index == 447) {
+		DHookSetReturn(hReturn, 0);
 		return MRES_Supercede;
 	}
 	
