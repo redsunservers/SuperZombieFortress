@@ -5603,7 +5603,7 @@ public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hPa
 	DHookGetParamString(hParams, 1, sClassname, sizeof(sClassname));
 	
 	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
-	int iSlot = TF2Econ_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
+	int iSlot = GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 	
 	bool bShouldBlock;
 	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor && !g_bClearedInventory[iClient])
@@ -5624,7 +5624,7 @@ public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hPa
 				case TFClass_Scout:
 				{
 					//Block scout drinks for special infected
-					if (g_nInfected[iClient] != Infected_None && StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
+					if (g_nInfected[iClient] != Infected_None || StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
 						bShouldBlock = true;
 				}
 				case TFClass_Heavy:
