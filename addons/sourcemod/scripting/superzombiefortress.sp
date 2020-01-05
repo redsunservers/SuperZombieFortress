@@ -5599,7 +5599,7 @@ public MRESReturn Client_GetMaxHealth(int iClient, Handle hReturn)
 
 public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hParams)
 {
-	static int blocked_indexes[] = {
+	static int iBlockedIndexes[] = {
 		57,  //Razorback
 		231, //Darwin's Danger Shield
 		642, //Cozy Camper
@@ -5609,49 +5609,49 @@ public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hPa
 		608  //The Bootlegger
 	};
 	
-	char classname[256];
-	DHookGetParamString(hParams, 1, classname, sizeof(classname));
+	char sClassname[256];
+	DHookGetParamString(hParams, 1, sClassname, sizeof(sClassname));
 	
-	int index = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
-	int slot = TF2Econ_GetItemSlot(index, TF2_GetPlayerClass(iClient));
+	int iDefIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
+	int iSlot = TF2Econ_GetItemSlot(iDefIndex, TF2_GetPlayerClass(iClient));
 	
-	bool shouldblock;
+	bool bShouldBlock;
 	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor && !g_bClearedInventory[iClient])
 	{
-		if (slot < 2 || StrContains(classname, "tf_wearable_demoshield") > -1)
-			shouldblock = true;
+		if (iSlot < 2 || StrContains(sClassname, "tf_wearable_demoshield") > -1)
+			bShouldBlock = true;
 		
-		for (int i = 0; i < sizeof(blocked_indexes); i++)
-			if (index == blocked_indexes[i])
-				shouldblock = true;
+		for (int i = 0; i < sizeof(iBlockedIndexes); i++)
+			if (iDefIndex == iBlockedIndexes[i])
+				bShouldBlock = true;
 	}
-	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie && StrContains(classname, "tf_wearable") == -1)
+	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie && StrContains(sClassname, "tf_wearable") == -1)
 	{
-		if (slot == WeaponSlot_Primary || slot == WeaponSlot_Melee || slot == WeaponSlot_PDADisguise || slot == WeaponSlot_InvisWatch)
-			shouldblock = true;
+		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee || iSlot == WeaponSlot_PDADisguise || iSlot == WeaponSlot_InvisWatch)
+			bShouldBlock = true;
 		
 		switch (TF2_GetPlayerClass(iClient))
 		{
 			case TFClass_Scout:
 			{
 				//Block scout drinks for special infected
-				if (g_nInfected[iClient] != Infected_None || StrContains(classname, "tf_weapon_lunchbox_drink") == -1)
-					shouldblock = true;
+				if (g_nInfected[iClient] != Infected_None || StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
+					bShouldBlock = true;
 			}
 			case TFClass_Heavy:
 			{
 				//Block all secondary weapons that are not food
-				if (StrContains(classname, "tf_weapon_lunchbox") == -1)
-					shouldblock = true;
+				if (StrContains(sClassname, "tf_weapon_lunchbox") == -1)
+					bShouldBlock = true;
 			}
 			case TFClass_Spy:
 			{
-				shouldblock = true;
+				bShouldBlock = true;
 			}
 		}
 	}
 	
-	if (shouldblock)
+	if (bShouldBlock)
 	{
 		DHookSetReturn(hReturn, 0);
 		return MRES_Supercede;
