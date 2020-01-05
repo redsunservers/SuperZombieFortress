@@ -5613,26 +5613,31 @@ public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hPa
 	}
 	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie && StrContains(sClassname, "tf_wearable") == -1)
 	{
-		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee || iSlot == WeaponSlot_PDADisguise || iSlot == WeaponSlot_InvisWatch)
-			bShouldBlock = true;
-		
-		switch (TF2_GetPlayerClass(iClient))
+		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee)
 		{
-			case TFClass_Scout:
+			bShouldBlock = true;
+		}
+		else
+		{
+			switch (TF2_GetPlayerClass(iClient))
 			{
-				//Block scout drinks for special infected
-				if (g_nInfected[iClient] != Infected_None || StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
+				case TFClass_Scout:
+				{
+					//Block scout drinks for special infected
+					if (g_nInfected[iClient] != Infected_None && StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
+						bShouldBlock = true;
+				}
+				case TFClass_Heavy:
+				{
+					//Block all secondary weapons that are not food
+					if (StrContains(sClassname, "tf_weapon_lunchbox") == -1)
+						bShouldBlock = true;
+				}
+				case TFClass_Spy:
+				{
+					//Block literally everything for spy
 					bShouldBlock = true;
-			}
-			case TFClass_Heavy:
-			{
-				//Block all secondary weapons that are not food
-				if (StrContains(sClassname, "tf_weapon_lunchbox") == -1)
-					bShouldBlock = true;
-			}
-			case TFClass_Spy:
-			{
-				bShouldBlock = true;
+				}
 			}
 		}
 	}
