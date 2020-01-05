@@ -215,7 +215,6 @@ int g_iSmokerBeamHits[TF_MAXPLAYERS];
 int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
 float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
-int g_iOnGiveNamedItemHookId[TF_MAXPLAYERS];
 
 //Map overwrites
 float g_flCapScale = -1.0;
@@ -398,10 +397,7 @@ public void OnPluginEnd()
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		if (IsClientInGame(iClient))
-		{
-			DHookRemoveHookID(g_iOnGiveNamedItemHookId[iClient]);
 			EndSound(iClient);
-		}
 	}
 }
 
@@ -622,9 +618,8 @@ public void OnClientPutInServer(int iClient)
 	if (g_hHookGetMaxHealth)
 		DHookEntity(g_hHookGetMaxHealth, false, iClient);
 	
-	if (g_hHookGiveNamedItem) {
-		g_iOnGiveNamedItemHookId[iClient] = DHookEntity(g_hHookGiveNamedItem, false, iClient);
-	}
+	if (g_hHookGiveNamedItem)
+		DHookEntity(g_hHookGiveNamedItem, false, iClient);
 	
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
