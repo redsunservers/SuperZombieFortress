@@ -5599,31 +5599,17 @@ public MRESReturn Client_GetMaxHealth(int iClient, Handle hReturn)
 
 public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hParams)
 {
-	static int iBlockedIndexes[] = {
-		57,  //Razorback
-		231, //Darwin's Danger Shield
-		642, //Cozy Camper
-		133, //Gunboats
-		444, //Mantreads
-		405, //Ali Baba's Wee Booties
-		608  //The Bootlegger
-	};
-	
 	char sClassname[256];
 	DHookGetParamString(hParams, 1, sClassname, sizeof(sClassname));
 	
-	int iDefIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
-	int iSlot = TF2Econ_GetItemSlot(iDefIndex, TF2_GetPlayerClass(iClient));
+	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
+	int iSlot = TF2Econ_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 	
 	bool bShouldBlock;
 	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor && !g_bClearedInventory[iClient])
 	{
-		if (iSlot < 2 || StrContains(sClassname, "tf_wearable_demoshield") > -1)
+		if (iSlot < WeaponSlot_Melee)
 			bShouldBlock = true;
-		
-		for (int i = 0; i < sizeof(iBlockedIndexes); i++)
-			if (iDefIndex == iBlockedIndexes[i])
-				bShouldBlock = true;
 	}
 	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie && StrContains(sClassname, "tf_wearable") == -1)
 	{
