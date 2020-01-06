@@ -119,8 +119,6 @@ Handle g_hTimerProgress;
 //Cvar Handles
 ConVar g_cvForceOn;
 ConVar g_cvRatio;
-ConVar g_cvSwapOnPayload;
-ConVar g_cvSwapOnAttdef;
 ConVar g_cvTankHealth;
 ConVar g_cvTankHealthMin;
 ConVar g_cvTankHealthMax;
@@ -324,8 +322,6 @@ public void OnPluginStart()
 	
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Activate SZF for non-SZF maps.", _, true, 0.0, true, 1.0);
 	g_cvRatio = CreateConVar("sm_szf_ratio", "0.78", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
-	g_cvSwapOnPayload = CreateConVar("sm_szf_swaponpayload", "1", "<0/1> Swap teams on non-SZF payload maps.", _, true, 0.0, true, 1.0);
-	g_cvSwapOnAttdef = CreateConVar("sms_szf_swaponattdef", "1", "<0/1> Swap teams on non-SZF attack/defend maps.", _, true, 0.0, true, 1.0);
 	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "400", "Amount of health the Tank gets per alive survivor", _, true, 10.0);
 	g_cvTankHealthMin = CreateConVar("sm_szf_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with", _, true, 0.0);
 	g_cvTankHealthMax = CreateConVar("sm_szf_tank_health_max", "6000", "Maximum amount of health the Tank can spawn with", _, true, 0.0);
@@ -2396,19 +2392,6 @@ public Action Timer_GraceStartPost(Handle hTimer)
 	while((iEntity = FindEntityByClassname(iEntity, "mapobj_cart_dispenser")) != -1)
 		SetEntProp(iEntity, Prop_Send, "m_bDisabled", 1);
 	
-	//Disable all respawn room visualizers (non-ZF maps only)
-	if (!IsMapSZF())
-	{
-		char strParent[255];
-		iEntity = -1;
-		while((iEntity = FindEntityByClassname(iEntity, "func_respawnroomvisualizer")) != -1)
-		{
-			GetEntPropString(iEntity, Prop_Data, "respawnroomname", strParent, sizeof(strParent));
-			if (!StrEqual(strParent, "ZombieSpawn", false))
-				AcceptEntityInput(iEntity, "Disable");
-		}
-	}
-	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		if (IsValidSurvivor(iClient))
 			PlaySound(iClient, SoundMusic_Prepare, 33.0);
@@ -2924,8 +2907,6 @@ void SZFEnable()
 	
 	g_flTimeProgress = 0.0;
 	
-	SetTeams();
-	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		ResetClientState(iClient);
 	
@@ -3018,50 +2999,6 @@ void SZFDisable()
 	int iEntity = -1;
 	while((iEntity = FindEntityByClassname(iEntity, "func_regenerate")) != -1)
 		AcceptEntityInput(iEntity, "Enable");
-}
-
-void SetTeams()
-{
-	//Determine team roles.
-	//+ By default, survivors are RED and zombies are BLU.
-	TFTeam_Survivor = TFTeam_Red;
-	TFTeam_Zombie = TFTeam_Blue;
-	
-	//Determine whether to swap teams on payload maps.
-	//+ For "pl_" prefixed maps, swap teams if sm_zf_swaponpayload is set.
-	if (IsMapPL())
-	{
-		if (g_cvSwapOnPayload.BoolValue)
-		{
-			TFTeam_Survivor = TFTeam_Blue;
-			TFTeam_Zombie = TFTeam_Red;
-		}
-	}
-	
-	//Determine whether to swap teams on attack / defend maps.
-	//+ For "cp_" prefixed maps with all RED control points, swap teams if sm_zf_swaponattdef is set.
-	if (IsMapCP())
-	{
-		if (g_cvSwapOnAttdef.BoolValue)
-		{
-			bool bAttDef = true;
-			int iEntity = -1;
-			while((iEntity = FindEntityByClassname(iEntity, "team_control_point")) != -1)
-			{
-				if (GetEntProp(iEntity, Prop_Send, "m_iTeamNum") != view_as<int>(TFTeam_Red))
-				{
-					bAttDef = false;
-					break;
-				}
-			}
-			
-			if (bAttDef)
-			{
-				TFTeam_Survivor = TFTeam_Blue;
-				TFTeam_Zombie = TFTeam_Red;
-			}
-		}
-	}
 }
 
 public void OnConvarChanged(ConVar convar, const char[] oldValue, const char[] newValue)

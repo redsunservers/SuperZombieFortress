@@ -150,22 +150,6 @@ stock bool IsMapSZF()
 	return false;
 }
 
-stock bool IsMapPL()
-{
-	char sMap[8];
-	GetCurrentMap(sMap, sizeof(sMap));
-	GetMapDisplayName(sMap, sMap, sizeof(sMap));
-	return StrContains(sMap, "pl_") == 0;
-}
-
-stock bool IsMapCP()
-{
-	char sMap[8];
-	GetCurrentMap(sMap, sizeof(sMap));
-	GetMapDisplayName(sMap, sMap, sizeof(sMap));
-	return StrContains(sMap, "cp_") == 0;
-}
-
 ////////////////////////////////////////////////////////////
 //
 // Round Utils
