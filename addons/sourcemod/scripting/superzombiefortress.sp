@@ -5542,7 +5542,7 @@ public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hPa
 	DHookGetParamString(hParams, 1, sClassname, sizeof(sClassname));
 	
 	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
-	int iSlot = GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
+	int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 	
 	bool bShouldBlock;
 	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor && !g_bClearedInventory[iClient])
