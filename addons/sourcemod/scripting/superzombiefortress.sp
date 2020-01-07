@@ -214,6 +214,7 @@ int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
 float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
 bool g_bClearedInventory[TF_MAXPLAYERS];
+int g_iHookIdGiveNamedItem[TF_MAXPLAYERS] = {-1, ...};
 
 //Map overwrites
 float g_flCapScale = -1.0;
@@ -395,7 +396,15 @@ public void OnPluginEnd()
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		if (IsClientInGame(iClient))
+		{
 			EndSound(iClient);
+			
+			if (g_iHookIdGiveNamedItem[iClient] != -1)
+			{
+				DHookRemoveHookID(g_iHookIdGiveNamedItem[iClient]);
+				g_iHookIdGiveNamedItem[iClient] = -1;
+			}
+		}
 	}
 }
 
@@ -617,7 +626,7 @@ public void OnClientPutInServer(int iClient)
 		DHookEntity(g_hHookGetMaxHealth, false, iClient);
 	
 	if (g_hHookGiveNamedItem)
-		DHookEntity(g_hHookGiveNamedItem, false, iClient);
+		g_iHookIdGiveNamedItem[iClient] = DHookEntity(g_hHookGiveNamedItem, false, iClient, DHook_OnGiveNamedItemRemoved, Client_OnGiveNamedItem);
 	
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
@@ -627,6 +636,12 @@ public void OnClientPutInServer(int iClient)
 
 public void OnClientDisconnect(int iClient)
 {
+	if (g_iHookIdGiveNamedItem[iClient] != -1)
+	{
+		DHookRemoveHookID(g_iHookIdGiveNamedItem[iClient]);
+		g_iHookIdGiveNamedItem[iClient] = -1;
+	}
+	
 	if (!g_bEnabled) return;
 	
 	RequestFrame(CheckZombieBypass, iClient);
@@ -5509,7 +5524,7 @@ void SDK_Init()
 		DHookAddParam(g_hHookShouldBallTouch, HookParamType_CBaseEntity);
 	
 	iOffset = hGameData.GetOffset("CTFPlayer::GiveNamedItem");
-	g_hHookGiveNamedItem = DHookCreate(iOffset, HookType_Entity, ReturnType_CBaseEntity, ThisPointer_CBaseEntity, Client_OnGiveNamedItem);
+	g_hHookGiveNamedItem = DHookCreate(iOffset, HookType_Entity, ReturnType_CBaseEntity, ThisPointer_CBaseEntity);
 	if (g_hHookGiveNamedItem == null)
 	{
 		LogMessage("Failed to create hook: CTFPlayer::GiveNamedItem!");
@@ -5588,6 +5603,18 @@ public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hPa
 	}
 	
 	return MRES_Ignored;
+}
+
+public void DHook_OnGiveNamedItemRemoved(int iHookId)
+{
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (g_iHookIdGiveNamedItem[iClient] == iHookId)
+		{
+			g_iHookIdGiveNamedItem[iClient] = -1;
+			return;
+		}
+	}
 }
 
 stock int SDK_GetMaxHealth(int iClient)
