@@ -5514,9 +5514,9 @@ void SDK_Init()
 	else
 		DHookAddParam(g_hHookShouldBallTouch, HookParamType_CBaseEntity);
 	
-	iOffset = hGameData.GetOffset("CTFPlayer::GiveNamedItem");
 	if (!g_bTF2Items)
 	{
+		iOffset = hGameData.GetOffset("CTFPlayer::GiveNamedItem");
 		g_hHookGiveNamedItem = DHookCreate(iOffset, HookType_Entity, ReturnType_CBaseEntity, ThisPointer_CBaseEntity);
 		if (g_hHookGiveNamedItem == null)
 		{
