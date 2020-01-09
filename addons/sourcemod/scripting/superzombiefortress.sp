@@ -10,6 +10,8 @@
 #include <tf_econ_data>
 #include <dhooks>
 #include <morecolors>
+
+#undef REQUIRE_EXTENSIONS
 #include <tf2items>
 
 #include "include/superzombiefortress.inc"
