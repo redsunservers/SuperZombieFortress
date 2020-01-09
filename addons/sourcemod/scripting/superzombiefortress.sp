@@ -5566,8 +5566,7 @@ public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hPa
 	
 	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
 	
-	Handle hTF2ItemsItem; // Pointless but is needed for TF2Items_OnGiveNamedItem
-	Action iAction = TF2Items_OnGiveNamedItem(iClient, sClassname, iIndex, hTF2ItemsItem);
+	Action iAction = OnGiveNamedItem(iClient, sClassname, iIndex);
 	
 	if (iAction == Plugin_Handled)
 	{
@@ -5682,7 +5681,7 @@ stock int GetMorale(int iClient)
 	return g_iMorale[iClient];
 }
 
-public Action TF2Items_OnGiveNamedItem(int iClient, char[] sClassname, int iIndex, Handle& hItem)
+Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 {
 	int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 	
@@ -5724,4 +5723,9 @@ public Action TF2Items_OnGiveNamedItem(int iClient, char[] sClassname, int iInde
 	}
 	
 	return iAction;
+}
+
+public Action TF2Items_OnGiveNamedItem(int iClient, char[] sClassname, int iIndex, Handle& hItem)
+{
+	return OnGiveNamedItem(iClient, sClassname, iIndex);
 }
