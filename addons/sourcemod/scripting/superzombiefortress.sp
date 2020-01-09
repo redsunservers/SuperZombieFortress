@@ -10,6 +10,7 @@
 #include <tf_econ_data>
 #include <dhooks>
 #include <morecolors>
+#include <tf2items>
 
 #include "include/superzombiefortress.inc"
 
@@ -87,6 +88,7 @@ Cookie g_cForceZombieStart;
 bool g_bEnabled;
 bool g_bNewRound;
 bool g_bLastSurvivor;
+bool g_bTF2Items;
 
 float g_flSurvivorsLastDeath = 0.0;
 int g_iSurvivorsKilledCounter;
@@ -377,6 +379,9 @@ public void OnPluginStart()
 	g_cNoMusicForPlayer = new Cookie("szf_musicpreference", "is this the flowey map?", CookieAccess_Protected);
 	g_cForceZombieStart = new Cookie("szf_forcezombiestart", "is this the flowey map?", CookieAccess_Protected);
 	
+	if (LibraryExists("TF2Items"))
+		g_bTF2Items = true;
+	
 	SDK_Init();
 	
 	Config_InitTemplates();
@@ -388,6 +393,18 @@ public void OnPluginStart()
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		if (IsClientInGame(iClient))
 			OnClientPutInServer(iClient);
+}
+
+public void OnLibraryAdded(const char[] name)
+{
+	if (StrContains(name, "tf2items", false))
+		g_bTF2Items = true;
+}
+
+public void OnLibraryRemoved(const char[] name)
+{
+	if (StrContains(name, "tf2items", false))
+		g_bTF2Items = false;
 }
 
 public void OnPluginEnd()
@@ -5432,7 +5449,6 @@ public void DoSmokerBeam(int iClient)
 	delete hTrace;
 }
 
-
 public Action Timer_SetHunterJump(Handle timer, any iClient)
 {
 	if (IsValidLivingZombie(iClient))
@@ -5509,17 +5525,20 @@ void SDK_Init()
 		DHookAddParam(g_hHookShouldBallTouch, HookParamType_CBaseEntity);
 	
 	iOffset = hGameData.GetOffset("CTFPlayer::GiveNamedItem");
-	g_hHookGiveNamedItem = DHookCreate(iOffset, HookType_Entity, ReturnType_CBaseEntity, ThisPointer_CBaseEntity);
-	if (g_hHookGiveNamedItem == null)
+	if (!g_bTF2Items)
 	{
-		LogMessage("Failed to create hook: CTFPlayer::GiveNamedItem!");
-	}
-	else
-	{
-		DHookAddParam(g_hHookGiveNamedItem, HookParamType_CharPtr); //*szClassname
-		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Int); //iSubType
-		DHookAddParam(g_hHookGiveNamedItem, HookParamType_ObjectPtr); //*cscript
-		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Bool); //:b:
+		g_hHookGiveNamedItem = DHookCreate(iOffset, HookType_Entity, ReturnType_CBaseEntity, ThisPointer_CBaseEntity);
+		if (g_hHookGiveNamedItem == null)
+		{
+			LogMessage("Failed to create hook: CTFPlayer::GiveNamedItem!");
+		}
+		else
+		{
+			DHookAddParam(g_hHookGiveNamedItem, HookParamType_CharPtr); //*szClassname
+			DHookAddParam(g_hHookGiveNamedItem, HookParamType_Int); //iSubType
+			DHookAddParam(g_hHookGiveNamedItem, HookParamType_ObjectPtr); //*cscript
+			DHookAddParam(g_hHookGiveNamedItem, HookParamType_Bool); //:b:
+		}
 	}
 	
 	delete hGameData;
@@ -5546,46 +5565,11 @@ public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hPa
 	DHookGetParamString(hParams, 1, sClassname, sizeof(sClassname));
 	
 	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
-	int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 	
-	bool bShouldBlock;
-	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor && !g_bClearedInventory[iClient])
-	{
-		if (iSlot < WeaponSlot_Melee)
-			bShouldBlock = true;
-	}
-	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie && StrContains(sClassname, "tf_wearable") == -1)
-	{
-		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee)
-		{
-			bShouldBlock = true;
-		}
-		else
-		{
-			switch (TF2_GetPlayerClass(iClient))
-			{
-				case TFClass_Scout:
-				{
-					//Block scout drinks for special infected
-					if (g_nInfected[iClient] != Infected_None || StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
-						bShouldBlock = true;
-				}
-				case TFClass_Heavy:
-				{
-					//Block all secondary weapons that are not food
-					if (StrContains(sClassname, "tf_weapon_lunchbox") == -1)
-						bShouldBlock = true;
-				}
-				case TFClass_Spy:
-				{
-					//Block literally everything for spy
-					bShouldBlock = true;
-				}
-			}
-		}
-	}
+	Handle hTF2ItemsItem; // Pointless but is needed for TF2Items_OnGiveNamedItem
+	Action iAction = TF2Items_OnGiveNamedItem(iClient, sClassname, iIndex, hTF2ItemsItem);
 	
-	if (bShouldBlock)
+	if (iAction == Plugin_Handled)
 	{
 		DHookSetReturn(hReturn, 0);
 		return MRES_Supercede;
@@ -5696,4 +5680,48 @@ stock void SetMoraleAll(int iAmount)
 stock int GetMorale(int iClient)
 {
 	return g_iMorale[iClient];
+}
+
+public Action TF2Items_OnGiveNamedItem(int iClient, char[] sClassname, int iIndex, Handle& hItem)
+{
+	int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
+	
+	Action iAction = Plugin_Continue;
+	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor && !g_bClearedInventory[iClient])
+	{
+		if (iSlot < WeaponSlot_Melee)
+			iAction = Plugin_Handled;
+	}
+	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie && StrContains(sClassname, "tf_wearable") == -1)
+	{
+		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee)
+		{
+			iAction = Plugin_Handled;
+		}
+		else
+		{
+			switch (TF2_GetPlayerClass(iClient))
+			{
+				case TFClass_Scout:
+				{
+					//Block scout drinks for special infected
+					if (g_nInfected[iClient] != Infected_None || StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
+						iAction = Plugin_Handled;
+				}
+				case TFClass_Heavy:
+				{
+					//Block all secondary weapons that are not food
+					if (StrContains(sClassname, "tf_weapon_lunchbox") == -1)
+						iAction = Plugin_Handled;
+				}
+				case TFClass_Spy:
+				{
+					//Block literally everything for spy
+					iAction = Plugin_Handled;
+				}
+			}
+		}
+	}
+	
+	return iAction;
 }
