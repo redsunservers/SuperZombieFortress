@@ -395,18 +395,6 @@ public void OnPluginStart()
 			OnClientPutInServer(iClient);
 }
 
-public void OnLibraryAdded(const char[] name)
-{
-	if (StrContains(name, "tf2items", false))
-		g_bTF2Items = true;
-}
-
-public void OnLibraryRemoved(const char[] name)
-{
-	if (StrContains(name, "tf2items", false))
-		g_bTF2Items = false;
-}
-
 public void OnPluginEnd()
 {
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
