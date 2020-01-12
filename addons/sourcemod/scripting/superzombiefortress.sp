@@ -5547,9 +5547,12 @@ public MRESReturn Client_GetMaxHealth(int iClient, Handle hReturn)
 
 public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hParams)
 {
-	// Ignore if one of the pointers is null
+	// Block if one of the pointers is null
 	if (DHookIsNullParam(hParams, 1) || DHookIsNullParam(hParams, 3))
-		return MRES_Ignored;
+	{
+		DHookSetReturn(hReturn, 0);
+		return MRES_Supercede;
+	}
 	
 	char sClassname[256];
 	DHookGetParamString(hParams, 1, sClassname, sizeof(sClassname));
