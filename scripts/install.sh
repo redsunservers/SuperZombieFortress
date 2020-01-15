@@ -15,4 +15,3 @@ wget "https://raw.githubusercontent.com/FlaminSarge/tf2attributes/master/tf2attr
 wget "https://raw.githubusercontent.com/nosoop/SM-TFEconData/master/scripting/include/tf_econ_data.inc" -O include/tf_econ_data.inc
 wget "https://bitbucket.org/Drifter321/dhooks2/raw/009f11c6c518227c51d708af69f4c759147f704b/sourcemod/scripting/include/dhooks.inc" -O include/dhooks.inc
 wget "https://www.doctormckay.com/download/scripting/include/morecolors.inc" -O include/morecolors.inc
-wget "https://raw.githubusercontent.com/asherkin/TF2Items/master/pawn/tf2items.inc" -O include/tf2items.inc
