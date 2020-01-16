@@ -15,4 +15,3 @@ To download latest build version, select latest package then "Artifacts" button 
 - [tf_econ_data](https://forums.alliedmods.net/showthread.php?t=315011)
 - [dhooks](https://forums.alliedmods.net/showthread.php?t=180114)
 - [morecolors](https://forums.alliedmods.net/showthread.php?t=185016) (Only needed if recompiling)
-- [TF2Items](https://builds.limetech.io/?project=tf2items) (`tf2items.inc` is required for recompiling)

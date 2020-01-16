@@ -185,7 +185,7 @@ public SharedPlugin __pl_superzombiefortress =
 #endif
 };
 
-public __pl_superzombiefortress_SetNTVOptional()
+public void __pl_superzombiefortress_SetNTVOptional()
 {
 	MarkNativeAsOptional("SZF_GetSurvivorTeam");
 	MarkNativeAsOptional("SZF_GetZombieTeam");
