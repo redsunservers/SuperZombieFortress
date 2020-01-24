@@ -224,7 +224,7 @@ bool AttemptGrabItem(int iClient)
 			wep.iIndex = iIndex;
 		}
 		
-		int iSlot = TF2_GetSlotInItem(iIndex, TF2_GetPlayerClass(iClient));
+		int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 		if (iSlot >= 0 && bAllowPickup)
 		{
 			if (nRarity == eWeaponsRarity_Rare)
@@ -308,7 +308,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	
 	EmitSoundToAll(sSound, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 	
-	int iSlot = TF2_GetSlotInItem(wep.iIndex, nClass);
+	int iSlot = TF2_GetItemSlot(wep.iIndex, nClass);
 	
 	if (GetWeaponType(iTarget) != WeaponType_Spawn
 	&& GetWeaponType(iTarget) != WeaponType_RareSpawn

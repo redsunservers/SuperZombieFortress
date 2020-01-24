@@ -11,9 +11,13 @@
 #include <dhooks>
 #include <morecolors>
 
-#include "include/superzombiefortress.inc"
+#undef REQUIRE_EXTENSIONS
+#tryinclude <tf2items>
+#define REQUIRE_EXTENSIONS
 
 #pragma newdecls required
+
+#include "include/superzombiefortress.inc"
 
 #define PLUGIN_VERSION				"3.3.0"
 #define PLUGIN_VERSION_REVISION		"manual"
@@ -87,6 +91,7 @@ Cookie g_cForceZombieStart;
 bool g_bEnabled;
 bool g_bNewRound;
 bool g_bLastSurvivor;
+bool g_bTF2Items;
 
 float g_flSurvivorsLastDeath = 0.0;
 int g_iSurvivorsKilledCounter;
@@ -119,8 +124,6 @@ Handle g_hTimerProgress;
 //Cvar Handles
 ConVar g_cvForceOn;
 ConVar g_cvRatio;
-ConVar g_cvSwapOnPayload;
-ConVar g_cvSwapOnAttdef;
 ConVar g_cvTankHealth;
 ConVar g_cvTankHealthMin;
 ConVar g_cvTankHealthMax;
@@ -180,11 +183,14 @@ GlobalForward g_hForwardAllowMusicPlay;
 //SDK functions
 Handle g_hHookGetMaxHealth;
 Handle g_hHookShouldBallTouch;
+Handle g_hHookGiveNamedItem;
 Handle g_hSDKGetMaxHealth;
 Handle g_hSDKGetMaxAmmo;
 Handle g_hSDKEquipWearable;
 Handle g_hSDKRemoveWearable;
 Handle g_hSDKGetEquippedWearable;
+
+int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
 float g_flTankCooldown;
 float g_flRageCooldown;
@@ -214,6 +220,7 @@ int g_iSmokerBeamHits[TF_MAXPLAYERS];
 int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
 float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
+bool g_bClearedInventory[TF_MAXPLAYERS];
 
 //Map overwrites
 float g_flCapScale = -1.0;
@@ -323,8 +330,6 @@ public void OnPluginStart()
 	
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Activate SZF for non-SZF maps.", _, true, 0.0, true, 1.0);
 	g_cvRatio = CreateConVar("sm_szf_ratio", "0.78", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
-	g_cvSwapOnPayload = CreateConVar("sm_szf_swaponpayload", "1", "<0/1> Swap teams on non-SZF payload maps.", _, true, 0.0, true, 1.0);
-	g_cvSwapOnAttdef = CreateConVar("sms_szf_swaponattdef", "1", "<0/1> Swap teams on non-SZF attack/defend maps.", _, true, 0.0, true, 1.0);
 	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "400", "Amount of health the Tank gets per alive survivor", _, true, 10.0);
 	g_cvTankHealthMin = CreateConVar("sm_szf_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with", _, true, 0.0);
 	g_cvTankHealthMax = CreateConVar("sm_szf_tank_health_max", "6000", "Maximum amount of health the Tank can spawn with", _, true, 0.0);
@@ -343,6 +348,7 @@ public void OnPluginStart()
 	HookEvent("teamplay_point_captured", Event_CPCapture);
 	HookEvent("teamplay_point_startcapture", Event_CPCaptureStart);
 	HookEvent("teamplay_broadcast_audio", Event_Broadcast, EventHookMode_Pre);
+	HookEvent("post_inventory_application", Event_Inventory);
 
 	//Hook Client Commands
 	AddCommandListener(Command_JoinTeam, "jointeam");
@@ -380,6 +386,8 @@ public void OnPluginStart()
 	g_cNoMusicForPlayer = new Cookie("szf_musicpreference", "is this the flowey map?", CookieAccess_Protected);
 	g_cForceZombieStart = new Cookie("szf_forcezombiestart", "is this the flowey map?", CookieAccess_Protected);
 	
+	g_bTF2Items = LibraryExists("TF2Items");
+	
 	SDK_Init();
 	
 	Config_InitTemplates();
@@ -394,11 +402,43 @@ public void OnPluginStart()
 			OnClientPutInServer(iClient);
 }
 
+public void OnLibraryAdded(const char[] sName)
+{
+	if (StrEqual(sName, "TF2Items"))
+	{
+		g_bTF2Items = true;
+		
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
+		{
+			if (g_iHookIdGiveNamedItem[iClient])
+			{
+				DHookRemoveHookID(g_iHookIdGiveNamedItem[iClient]);
+				g_iHookIdGiveNamedItem[iClient] = 0;
+			}
+		}
+	}
+}
+
+public void OnLibraryRemoved(const char[] sName)
+{
+	if (StrEqual(sName, "TF2Items"))
+	{
+		g_bTF2Items = false;
+		
+		//TF2Items unloaded with GiveNamedItem unhooked, we can now safely hook GiveNamedItem ourself
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
+			if (IsClientInGame(iClient))
+				g_iHookIdGiveNamedItem[iClient] = DHookEntity(g_hHookGiveNamedItem, false, iClient, DHook_OnGiveNamedItemRemoved, Client_OnGiveNamedItem);
+	}
+}
+
 public void OnPluginEnd()
 {
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
 		if (IsClientInGame(iClient))
 			EndSound(iClient);
+	}
 }
 
 public Action Command_Build(int iClient, const char[] sCommand, int iArgs)
@@ -633,6 +673,9 @@ public void OnClientPutInServer(int iClient)
 	if (g_hHookGetMaxHealth)
 		DHookEntity(g_hHookGetMaxHealth, false, iClient);
 	
+	if (g_hHookGiveNamedItem && !g_bTF2Items)
+		g_iHookIdGiveNamedItem[iClient] = DHookEntity(g_hHookGiveNamedItem, false, iClient, DHook_OnGiveNamedItemRemoved, Client_OnGiveNamedItem);
+	
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	
@@ -641,6 +684,12 @@ public void OnClientPutInServer(int iClient)
 
 public void OnClientDisconnect(int iClient)
 {
+	if (g_iHookIdGiveNamedItem[iClient])
+	{
+		DHookRemoveHookID(g_iHookIdGiveNamedItem[iClient]);
+		g_iHookIdGiveNamedItem[iClient] = 0;
+	}
+	
 	if (!g_bEnabled) return;
 	
 	RequestFrame(CheckZombieBypass, iClient);
@@ -1589,6 +1638,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	g_iKillsThisLife[iClient] = 0;
 	g_iDamageTakenLife[iClient] = 0;
 	g_iDamageDealtLife[iClient] = 0;
+	g_bClearedInventory[iClient] = false;
 	
 	DropCarryingItem(iClient, false);
 	
@@ -1731,6 +1781,9 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
 			SetEntityRenderColor(iClient, GetInfectedColor(0, g_nInfected[iClient]), GetInfectedColor(1, g_nInfected[iClient]), GetInfectedColor(2, g_nInfected[iClient]), GetInfectedColor(3, g_nInfected[iClient]));
 			
+			if (g_nInfected[iClient] == Infected_Kingpin || g_nInfected[iClient] == Infected_Hunter)
+				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
+			
 			char sMsg[256];
 			GetInfectedMessage(sMsg, sizeof(sMsg), g_nInfected[iClient]);
 			CPrintToChat(iClient, sMsg);
@@ -1791,6 +1844,11 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	SetGlow();
 	
 	return Plugin_Continue;
+}
+
+public void Event_Inventory(Event event, const char[] name, bool dont_broadcast)
+{
+	g_bClearedInventory[GetClientOfUserId(event.GetInt("userid"))] = true;
 }
 
 public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
@@ -2358,19 +2416,6 @@ public Action Timer_GraceStartPost(Handle hTimer)
 	while((iEntity = FindEntityByClassname(iEntity, "mapobj_cart_dispenser")) != -1)
 		SetEntProp(iEntity, Prop_Send, "m_bDisabled", 1);
 	
-	//Disable all respawn room visualizers (non-ZF maps only)
-	if (!IsMapSZF())
-	{
-		char strParent[255];
-		iEntity = -1;
-		while((iEntity = FindEntityByClassname(iEntity, "func_respawnroomvisualizer")) != -1)
-		{
-			GetEntPropString(iEntity, Prop_Data, "respawnroomname", strParent, sizeof(strParent));
-			if (!StrEqual(strParent, "ZombieSpawn", false))
-				AcceptEntityInput(iEntity, "Disable");
-		}
-	}
-	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		if (IsValidSurvivor(iClient))
 			PlaySound(iClient, SoundMusic_Prepare, 33.0);
@@ -2866,8 +2911,6 @@ void SZFEnable()
 	
 	g_flTimeProgress = 0.0;
 	
-	SetTeams();
-	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		ResetClientState(iClient);
 	
@@ -2960,50 +3003,6 @@ void SZFDisable()
 	int iEntity = -1;
 	while((iEntity = FindEntityByClassname(iEntity, "func_regenerate")) != -1)
 		AcceptEntityInput(iEntity, "Enable");
-}
-
-void SetTeams()
-{
-	//Determine team roles.
-	//+ By default, survivors are RED and zombies are BLU.
-	TFTeam_Survivor = TFTeam_Red;
-	TFTeam_Zombie = TFTeam_Blue;
-	
-	//Determine whether to swap teams on payload maps.
-	//+ For "pl_" prefixed maps, swap teams if sm_zf_swaponpayload is set.
-	if (IsMapPL())
-	{
-		if (g_cvSwapOnPayload.BoolValue)
-		{
-			TFTeam_Survivor = TFTeam_Blue;
-			TFTeam_Zombie = TFTeam_Red;
-		}
-	}
-	
-	//Determine whether to swap teams on attack / defend maps.
-	//+ For "cp_" prefixed maps with all RED control points, swap teams if sm_zf_swaponattdef is set.
-	if (IsMapCP())
-	{
-		if (g_cvSwapOnAttdef.BoolValue)
-		{
-			bool bAttDef = true;
-			int iEntity = -1;
-			while((iEntity = FindEntityByClassname(iEntity, "team_control_point")) != -1)
-			{
-				if (GetEntProp(iEntity, Prop_Send, "m_iTeamNum") != view_as<int>(TFTeam_Red))
-				{
-					bAttDef = false;
-					break;
-				}
-			}
-			
-			if (bAttDef)
-			{
-				TFTeam_Survivor = TFTeam_Blue;
-				TFTeam_Zombie = TFTeam_Red;
-			}
-		}
-	}
 }
 
 public void OnConvarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
@@ -4098,22 +4097,7 @@ void HandleSurvivorLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
 	
-	//Remove primary weapon
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_Primary);
-	
-	//Remove secondary weapon and wearables
-	int iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_Secondary);
-	if (iEntity > 0 && IsValidEdict(iEntity)) TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-	RemoveWearableWeapons(iClient);
-	
-	//Remove invis watch
-	if (TF2_GetPlayerClass(iClient) == TFClass_Spy)
-	{
-		iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_InvisWatch);
-		if (iEntity > 0 && IsValidEdict(iEntity)) TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-	}
-	
-	iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_Melee);
+	int iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_Melee);
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
 	{
 		//Get default attrib from config to apply all melee weapons
@@ -4195,69 +4179,11 @@ void HandleZombieLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
 	
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_Primary);
-	TF2_RemoveWeaponSlot(iClient, WeaponSlot_Melee);
-	
 	int iMelee;
 	TFClassType nClass = TF2_GetPlayerClass(iClient);
 	
 	if (g_nInfected[iClient] == Infected_None)
 	{
-		switch (nClass)
-		{
-			case TFClass_Scout:
-			{
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-				if (!TF2_IsSlotClassname(iClient, 1, "tf_weapon_lunchbox_drink"))
-					TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			}
-			
-			case TFClass_Soldier:
-			{
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-				if (!TF2_IsSlotClassname(iClient, 1, "tf_weapon_buff_item"))
-					TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			}
-			
-			case TFClass_DemoMan:
-			{
-				RemoveWearableWeapons(iClient);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			}
-			
-			case TFClass_Heavy:
-			{
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-				if (!TF2_IsSlotClassname(iClient, 1, "tf_weapon_lunchbox"))
-					TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			}
-			
-			case TFClass_Engineer:
-			{
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			}
-			
-			case TFClass_Spy:
-			{
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-				TF2_CreateAndEquipWeapon(iClient, 30); //Cloak
-			}
-			
-			default:
-			{
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			}
-		}
-		
 		iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(nClass));
 		if (IsValidEntity(iMelee))
 		{
@@ -4278,47 +4204,6 @@ void HandleZombieLoadout(int iClient)
 	}
 	else
 	{
-		switch (nClass)
-		{
-			case TFClass_Soldier, TFClass_DemoMan, TFClass_Sniper:
-			{
-				RemoveWearableWeapons(iClient);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			}
-			
-			case TFClass_Heavy:
-			{
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-				if (!TF2_IsSlotClassname(iClient, 1, "tf_weapon_lunchbox"))
-					TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			}
-			
-			case TFClass_Engineer:
-			{
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			}
-			
-			case TFClass_Spy:
-			{
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-				
-				if (g_nInfected[iClient] != Infected_Smoker)
-					TF2_CreateAndEquipWeapon(iClient, 30); //Cloak
-			}
-			
-			default:
-			{
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_PDADisguise);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_InvisWatch);
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			}
-		}
-		
 		iMelee = TF2_CreateAndEquipWeapon(iClient, GetInfectedIndex(g_nInfected[iClient]));
 		if (IsValidEntity(iMelee))
 			SetInfAttribs(iMelee, g_nInfected[iClient]);
@@ -4902,32 +4787,6 @@ stock bool IsRazorbackActive(int iClient)
 			return GetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", TFWeaponSlot_Secondary) >= 100.0;
 	
 	return false;
-}
-
-void RemoveWearableWeapons(int iClient)
-{
-	int iEntity = -1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "tf_wearable_demoshield")) != -1)
-		if (IsClassname(iEntity, "tf_wearable_demoshield") && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient)
-			RemoveEdict(iEntity);
-	
-	while ((iEntity = FindEntityByClassname2(iEntity, "tf_wearable")) != -1)
-	{
-		if (IsClassname(iEntity, "tf_wearable") && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient)
-		{
-			int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
-			if (iIndex == 57		//Razrorback
-				|| iIndex == 231	//Darwin's Danger Shield
-				|| iIndex == 642	//Cozy Camper
-				|| iIndex == 133	//Gunboats
-				|| iIndex == 444	//Mantreads
-				|| iIndex == 405	//Ali Baba's Wee Booties
-				|| iIndex == 608)	//The Bootlegger
-			{
-				RemoveEdict(iEntity);
-			}
-		}
-	}
 }
 
 stock bool RemoveSecondaryWearable(int iClient)
@@ -5635,7 +5494,6 @@ public void DoSmokerBeam(int iClient)
 	delete hTrace;
 }
 
-
 public Action Timer_SetHunterJump(Handle timer, any iClient)
 {
 	if (IsValidLivingZombie(iClient))
@@ -5711,6 +5569,20 @@ void SDK_Init()
 	else
 		DHookAddParam(g_hHookShouldBallTouch, HookParamType_CBaseEntity);
 	
+	iOffset = hGameData.GetOffset("CTFPlayer::GiveNamedItem");
+	g_hHookGiveNamedItem = DHookCreate(iOffset, HookType_Entity, ReturnType_CBaseEntity, ThisPointer_CBaseEntity);
+	if (g_hHookGiveNamedItem == null)
+	{
+		LogMessage("Failed to create hook: CTFPlayer::GiveNamedItem!");
+	}
+	else
+	{
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_CharPtr); //*szClassname
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Int); //iSubType
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_ObjectPtr); //*cscript
+		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Bool); //:b:
+	}
+	
 	delete hGameData;
 }
 
@@ -5723,6 +5595,43 @@ public MRESReturn Client_GetMaxHealth(int iClient, Handle hReturn)
 	}
 	
 	return MRES_Ignored;
+}
+
+public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hParams)
+{
+	// Block if one of the pointers is null
+	if (DHookIsNullParam(hParams, 1) || DHookIsNullParam(hParams, 3))
+	{
+		DHookSetReturn(hReturn, 0);
+		return MRES_Supercede;
+	}
+	
+	char sClassname[256];
+	DHookGetParamString(hParams, 1, sClassname, sizeof(sClassname));
+	
+	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
+	
+	Action iAction = OnGiveNamedItem(iClient, sClassname, iIndex);
+	
+	if (iAction == Plugin_Handled)
+	{
+		DHookSetReturn(hReturn, 0);
+		return MRES_Supercede;
+	}
+	
+	return MRES_Ignored;
+}
+
+public void DHook_OnGiveNamedItemRemoved(int iHookId)
+{
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (g_iHookIdGiveNamedItem[iClient] == iHookId)
+		{
+			g_iHookIdGiveNamedItem[iClient] = 0;
+			return;
+		}
+	}
 }
 
 stock int SDK_GetMaxHealth(int iClient)
@@ -5827,4 +5736,59 @@ stock void SetMoraleAll(int iAmount)
 stock int GetMorale(int iClient)
 {
 	return g_iMorale[iClient];
+}
+
+Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
+{
+	int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
+	
+	Action iAction = Plugin_Continue;
+	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor && !g_bClearedInventory[iClient])
+	{
+		if (iSlot < WeaponSlot_Melee)
+			iAction = Plugin_Handled;
+	}
+	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie && StrContains(sClassname, "tf_wearable") == -1)
+	{
+		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee)
+		{
+			iAction = Plugin_Handled;
+		}
+		else
+		{
+			switch (TF2_GetPlayerClass(iClient))
+			{
+				case TFClass_Scout:
+				{
+					//Block scout drinks for special infected
+					if (g_nInfected[iClient] != Infected_None || StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
+						iAction = Plugin_Handled;
+				}
+				case TFClass_Soldier:
+				{
+					//Block all secondary weapons that are not banners
+					if (StrContains(sClassname, "tf_weapon_buff_item") == -1)
+						iAction = Plugin_Handled;
+				}
+				case TFClass_Heavy:
+				{
+					//Block all secondary weapons that are not food
+					if (StrContains(sClassname, "tf_weapon_lunchbox") == -1)
+						iAction = Plugin_Handled;
+				}
+				default:
+				{
+					//Block literally everything else
+					iAction = Plugin_Handled;
+				}
+			}
+		}
+	}
+	
+	return iAction;
+}
+
+public Action TF2Items_OnGiveNamedItem(int iClient, char[] sClassname, int iIndex, Handle& hItem)
+{
+	return OnGiveNamedItem(iClient, sClassname, iIndex);
 }

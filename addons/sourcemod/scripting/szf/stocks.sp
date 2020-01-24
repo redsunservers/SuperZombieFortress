@@ -162,22 +162,6 @@ stock bool IsMapSZF()
 	return false;
 }
 
-stock bool IsMapPL()
-{
-	char sMap[8];
-	GetCurrentMap(sMap, sizeof(sMap));
-	GetMapDisplayName(sMap, sMap, sizeof(sMap));
-	return StrContains(sMap, "pl_") == 0;
-}
-
-stock bool IsMapCP()
-{
-	char sMap[8];
-	GetCurrentMap(sMap, sizeof(sMap));
-	GetMapDisplayName(sMap, sMap, sizeof(sMap));
-	return StrContains(sMap, "cp_") == 0;
-}
-
 ////////////////////////////////////////////////////////////
 //
 // Round Utils
@@ -895,6 +879,42 @@ stock void ApplyVoodooCursedSoul(int iClient)
 	if (IsValidEntity(iWearable))
 		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", g_iZombieSoulIndex[view_as<int>(nClass)]);
 }
+
+//https://github.com/Mikusch/tfgo/blob/c6109ad9a2f04ac0267e0916145a8274c9f6662e/addons/sourcemod/scripting/tfgo/stocks.sp#L205-L237 :)
+stock int TF2_GetItemSlot(int iIndex, TFClassType iClass)
+{
+	int iSlot = TF2Econ_GetItemSlot(iIndex, iClass);
+	if (iSlot >= 0)
+	{
+		// Econ reports wrong slots for Engineer and Spy
+		switch (iClass)
+		{
+			case TFClass_Spy:
+			{
+				switch (iSlot)
+				{
+					case 1: iSlot = WeaponSlot_Primary; // Revolver
+					case 4: iSlot = WeaponSlot_Secondary; // Sapper
+					case 5: iSlot = WeaponSlot_PDADisguise; // Disguise Kit
+					case 6: iSlot = WeaponSlot_InvisWatch; // Invis Watch
+				}
+			}
+			
+			case TFClass_Engineer:
+			{
+				switch (iSlot)
+				{
+					case 4: iSlot = WeaponSlot_BuilderEngie; // Toolbox
+					case 5: iSlot = WeaponSlot_PDABuild; // Construction PDA
+					case 6: iSlot = WeaponSlot_PDADestroy; // Destruction PDA
+				}
+			}
+		}
+	}
+	
+	return iSlot;
+}
+
 
 /******************************************************************************************************/
 
