@@ -50,6 +50,7 @@ static ArrayList g_aInfectedClasses;
 
 void Classes_Setup()
 {
+	delete g_aSurvivorClasses;
 	g_aSurvivorClasses = Config_LoadSurvivorClasses();
 	
 	int iCurrent;
@@ -68,6 +69,7 @@ void Classes_Setup()
 		g_SurvivorClasses[sur.nClass] = sur;
 	}
 	
+	delete g_aZombieClasses;
 	g_aZombieClasses = Config_LoadZombieClasses();
 	
 	iLength = g_aZombieClasses.Length;
@@ -86,6 +88,7 @@ void Classes_Setup()
 		g_ZombieClasses[zom.nClass] = zom;
 	}
 	
+	delete g_aInfectedClasses;
 	g_aInfectedClasses = Config_LoadInfectedClasses();
 	
 	iLength = g_aInfectedClasses.Length;
