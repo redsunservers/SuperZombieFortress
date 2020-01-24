@@ -1616,8 +1616,11 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 
 public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
-	if (!g_bEnabled) return Plugin_Continue;
+	if (!g_bEnabled) return;
+	
 	int iClient = GetClientOfUserId(event.GetInt("userid"));
+	if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
+		return;
 	
 	//Reset overlay
 	ClientCommand(iClient, "r_screenoverlay\"\"");
@@ -1627,7 +1630,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 		//Make sure max health hook is reset properly
 		g_iMaxHealth[iClient] = -1;
 		TF2_RespawnPlayer2(iClient);
-		return Plugin_Stop;
+		return;
 	}
 	
 	g_iEyelanderHead[iClient] = 0;
@@ -1655,7 +1658,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			{
 				TF2_SetPlayerClass(iClient, TFClass_Heavy, true, true);
 				TF2_RespawnPlayer(iClient);
-				return Plugin_Stop;
+				return;
 			}
 			else
 			{
@@ -1764,18 +1767,18 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				}
 			}
 			
+			if (g_nNextInfected[iClient] != Infected_None && g_nInfected[iClient] != Infected_Tank && TF2_GetPlayerClass(iClient) != GetInfectedClass(g_nInfected[iClient]))
+			{
+				TF2_SetPlayerClass(iClient, GetInfectedClass(g_nInfected[iClient]), _, false);
+				TF2_RespawnPlayer(iClient);
+				return;
+			}
+			
 			if (g_nInfected[iClient] != Infected_None && g_nInfected[iClient] != Infected_Tank && g_iInfectedCooldown[g_nInfected[iClient]] != iClient)
 			{
 				//Set new cooldown
 				g_flInfectedCooldown[g_nInfected[iClient]] = GetGameTime();	//time for cooldown
 				g_iInfectedCooldown[g_nInfected[iClient]] = iClient;			//client to prevent abuse to cycle through any infected
-			}
-			
-			if (TF2_GetPlayerClass(iClient) != GetInfectedClass(g_nInfected[iClient]))
-			{
-				TF2_SetPlayerClass(iClient, GetInfectedClass(g_nInfected[iClient]), true, false);
-				TF2_RespawnPlayer(iClient);
-				return Plugin_Stop;
 			}
 			
 			SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
@@ -1804,22 +1807,24 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	TFClassType nClass = TF2_GetPlayerClass(iClient);
 	
 	ResetClientState(iClient);
-	//1. Prevent players spawning on survivors if round has started.
-	//       Prevent players spawning on survivors as an invalid class.
-	//       Prevent players spawning on zombies as an invalid class.
+	
 	if (IsSurvivor(iClient))
 	{
 		if (g_nRoundState == SZFRoundState_Active)
 		{
 			SpawnClient(iClient, TFTeam_Zombie);
-			return Plugin_Continue;
+			return;
 		}
 		
 		if (!IsValidSurvivorClass(nClass))
 		{
 			SpawnClient(iClient, TFTeam_Survivor);
-			return Plugin_Continue;
+			return;
 		}
+		
+		HandleSurvivorLoadout(iClient);
+		if (GetCookie(iClient, g_cFirstTimeSurvivor) < 1)
+			InitiateSurvivorTutorial(iClient);
 	}
 	
 	else if (IsZombie(iClient))
@@ -1827,7 +1832,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 		if (!IsValidZombieClass(nClass))
 		{
 			SpawnClient(iClient, TFTeam_Zombie);
-			return Plugin_Continue;
+			return;
 		}
 		
 		if (g_nRoundState == SZFRoundState_Active)
@@ -1836,14 +1841,13 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 		
 		//Set zombie model / soul wearable
 		ApplyVoodooCursedSoul(iClient);
+		
+		HandleZombieLoadout(iClient);
+		if (GetCookie(iClient, g_cFirstTimeZombie) < 1)
+			InitiateZombieTutorial(iClient);
 	}
 	
-	//2. Handle valid, post spawn logic
-	CreateTimer(0.1, Timer_PostSpawn, iClient, TIMER_FLAG_NO_MAPCHANGE);
-	
 	SetGlow();
-	
-	return Plugin_Continue;
 }
 
 public void Event_Inventory(Event event, const char[] name, bool dont_broadcast)
@@ -2435,30 +2439,6 @@ public Action Timer_InitialHelp(Handle hTimer, int iClient)
 		PrintInfoChat(iClient);
 	else
 		CreateTimer(10.0, Timer_InitialHelp, iClient, TIMER_FLAG_NO_MAPCHANGE);
-	
-	return Plugin_Continue;
-}
-
-public Action Timer_PostSpawn(Handle hTimer, int iClient)
-{
-	if (IsValidClient(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) > 1)
-	{
-		if (IsZombie(iClient))
-		{
-			HandleZombieLoadout(iClient);
-			if (GetCookie(iClient, g_cFirstTimeZombie) < 1)
-				InitiateZombieTutorial(iClient);
-		}
-		
-		if (IsSurvivor(iClient))
-		{
-			HandleSurvivorLoadout(iClient);
-			if (GetCookie(iClient, g_cFirstTimeSurvivor) < 1)
-			{
-				InitiateSurvivorTutorial(iClient);
-			}
-		}
-	}
 	
 	return Plugin_Continue;
 }

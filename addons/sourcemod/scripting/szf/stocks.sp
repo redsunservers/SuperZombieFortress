@@ -576,9 +576,8 @@ stock void SpawnClient(int iClient, TFTeam nTeam)
 		//Use of m_lifeState here prevents:
 		//1. "[Player] Suicided" messages.
 		//2. Adding a death to player stats.
-		TF2_RemoveAllWeapons(iClient);
 		SetEntProp(iClient, Prop_Send, "m_lifeState", 2);
-		TF2_SetPlayerClass(iClient, nClass, false, true);
+		TF2_SetPlayerClass(iClient, nClass);
 		TF2_ChangeClientTeam(iClient, nTeam);
 		SetEntProp(iClient, Prop_Send, "m_lifeState", 0);
 		TF2_RespawnPlayer(iClient);
@@ -587,12 +586,15 @@ stock void SpawnClient(int iClient, TFTeam nTeam)
 
 stock void TF2_RespawnPlayer2(int iClient)
 {
-	if (TF2_GetPlayerClass(iClient) == TFClass_Unknown)
-	{
-		if (IsZombie(iClient)) TF2_SetPlayerClass(iClient, GetRandomZombieClass());
-		else TF2_SetPlayerClass(iClient, GetRandomSurvivorClass());
-	}
-
+	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	TFTeam nTeam = TF2_GetClientTeam(iClient);
+	
+	if (nTeam == TFTeam_Zombie && !IsValidZombieClass(nClass))
+		TF2_SetPlayerClass(iClient, GetRandomZombieClass());
+		
+	if (nTeam == TFTeam_Survivor && !IsValidSurvivorClass(nClass))
+		TF2_SetPlayerClass(iClient, GetRandomSurvivorClass());
+	
 	TF2_RespawnPlayer(iClient);
 }
 
