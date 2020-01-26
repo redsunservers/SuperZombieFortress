@@ -893,7 +893,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			{
 				if (!g_bBackstabbed[iVictim])
 				{
-					if (IsRazorbackActive(iVictim))
+					if (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB)
 						return Plugin_Continue;
 					
 					if (g_nInfected[iAttacker] == Infected_Stalker)
