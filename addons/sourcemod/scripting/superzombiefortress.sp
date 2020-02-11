@@ -137,7 +137,7 @@ ArrayList g_aFastRespawn;
 
 bool g_bBackstabbed[TF_MAXPLAYERS];
 
-int g_iDamageInfected[TF_MAXPLAYERS];
+int g_iDamageZombie[TF_MAXPLAYERS];
 int g_iDamageTakenLife[TF_MAXPLAYERS];
 int g_iDamageDealtLife[TF_MAXPLAYERS];
 
@@ -661,7 +661,7 @@ public void OnClientPutInServer(int iClient)
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	
-	g_iDamageInfected[iClient] = 0;
+	g_iDamageZombie[iClient] = 0;
 }
 
 public void OnClientDisconnect(int iClient)
@@ -1322,7 +1322,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		g_iDamageInfected[iClient] = 0;
+		g_iDamageZombie[iClient] = 0;
 		g_iKillsThisLife[iClient] = 0;
 		g_bSpawnAsSpecialInfected[iClient] = false;
 		g_nInfected[iClient] = Infected_None;
@@ -1899,7 +1899,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	
 	if (g_nInfected[iVictim] == Infected_Tank)
 	{
-		g_iDamageInfected[iVictim] = 0;
+		g_iDamageZombie[iVictim] = 0;
 		
 		int iWinner = 0;
 		float flHighest = 0.0;
@@ -2139,7 +2139,7 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 		g_iDamageDealtLife[iAttacker] += iDamageAmount;
 		
 		if (IsValidZombie(iAttacker))
-			g_iDamageInfected[iAttacker] += iDamageAmount;
+			g_iDamageZombie[iAttacker] += iDamageAmount;
 	}
 	
 	return Plugin_Continue;
@@ -4689,10 +4689,10 @@ int GetMostDamageZom()
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		if (IsValidZombie(iClient))
-			if (g_iDamageInfected[iClient] > iHighest) iHighest = g_iDamageInfected[iClient];
+			if (g_iDamageZombie[iClient] > iHighest) iHighest = g_iDamageZombie[iClient];
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && g_iDamageInfected[iClient] >= iHighest)
+		if (IsValidZombie(iClient) && g_iDamageZombie[iClient] >= iHighest)
 			aClients.Push(iClient);
 	
 	if (aClients.Length <= 0)
