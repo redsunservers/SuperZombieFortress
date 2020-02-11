@@ -4688,8 +4688,8 @@ int GetMostDamageZom()
 	int iHighest = 0;
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient))
-			if (g_iDamageZombie[iClient] > iHighest) iHighest = g_iDamageZombie[iClient];
+		if (IsValidZombie(iClient) && g_iDamageZombie[iClient] > iHighest)
+			iHighest = g_iDamageZombie[iClient];
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		if (IsValidZombie(iClient) && g_iDamageZombie[iClient] >= iHighest)
