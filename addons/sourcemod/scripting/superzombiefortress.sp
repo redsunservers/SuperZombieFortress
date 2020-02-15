@@ -137,7 +137,7 @@ ArrayList g_aFastRespawn;
 
 bool g_bBackstabbed[TF_MAXPLAYERS];
 
-int g_iDamage[TF_MAXPLAYERS];
+int g_iDamageZombie[TF_MAXPLAYERS];
 int g_iDamageTakenLife[TF_MAXPLAYERS];
 int g_iDamageDealtLife[TF_MAXPLAYERS];
 
@@ -661,7 +661,7 @@ public void OnClientPutInServer(int iClient)
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	
-	g_iDamage[iClient] = GetAverageDamage();
+	g_iDamageZombie[iClient] = 0;
 }
 
 public void OnClientDisconnect(int iClient)
@@ -1322,7 +1322,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		g_iDamage[iClient] = 0;
+		g_iDamageZombie[iClient] = 0;
 		g_iKillsThisLife[iClient] = 0;
 		g_bSpawnAsSpecialInfected[iClient] = false;
 		g_nInfected[iClient] = Infected_None;
@@ -1899,7 +1899,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	
 	if (g_nInfected[iVictim] == Infected_Tank)
 	{
-		g_iDamage[iVictim] = GetAverageDamage();
+		g_iDamageZombie[iVictim] = 0;
 		
 		int iWinner = 0;
 		float flHighest = 0.0;
@@ -2137,7 +2137,9 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 	{
 		g_iDamageTakenLife[iVictim] += iDamageAmount;
 		g_iDamageDealtLife[iAttacker] += iDamageAmount;
-		g_iDamage[iAttacker] += iDamageAmount;
+		
+		if (IsValidZombie(iAttacker))
+			g_iDamageZombie[iAttacker] += iDamageAmount;
 	}
 	
 	return Plugin_Continue;
@@ -4686,11 +4688,11 @@ int GetMostDamageZom()
 	int iHighest = 0;
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient))
-			if (g_iDamage[iClient] > iHighest) iHighest = g_iDamage[iClient];
+		if (IsValidZombie(iClient) && g_iDamageZombie[iClient] > iHighest)
+			iHighest = g_iDamageZombie[iClient];
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && g_iDamage[iClient] >= iHighest)
+		if (IsValidZombie(iClient) && g_iDamageZombie[iClient] >= iHighest)
 			aClients.Push(iClient);
 	
 	if (aClients.Length <= 0)
@@ -4788,22 +4790,6 @@ stock bool RemoveSecondaryWearable(int iClient)
 	}
 	
 	return false;
-}
-
-int GetAverageDamage()
-{
-	int iTotalDamage = 0;
-	int iCount = 0;
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (IsClientInGame(i))
-		{
-			iTotalDamage += g_iDamage[i];
-			iCount++;
-		}
-	}
-	
-	return RoundFloat(float(iTotalDamage) / float(iCount));
 }
 
 int GetActivePlayerCount()
