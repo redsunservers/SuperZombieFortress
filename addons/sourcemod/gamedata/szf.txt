@@ -19,6 +19,16 @@
 		}
 		"Offsets"
 		{
+			"CTeamplayRoundBasedRules::SetWinningTeam"
+			{
+				"linux"		"161"
+				"windows"	"160"
+			}
+			"CTeamplayRoundBasedRules::RoundRespawn"
+			{
+				"linux"		"226"
+				"windows"	"224"
+			}
 			"CBasePlayer::EquipWearable"
 			{
 				"linux"		"431"

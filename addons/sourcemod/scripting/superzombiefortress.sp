@@ -157,6 +157,7 @@ float g_flTimeProgress;
 //ConVars
 ConVar mp_autoteambalance;
 ConVar mp_teams_unbalance_limit;
+ConVar mp_scrambleteams_auto;
 ConVar mp_waitingforplayers_time;
 ConVar tf_weapon_criticals;
 ConVar tf_obj_upgrade_per_hit;
@@ -181,6 +182,8 @@ GlobalForward g_hForwardStartZombie;
 GlobalForward g_hForwardAllowMusicPlay;
 
 //SDK functions
+Handle g_hHookSetWinningTeam;
+Handle g_hHookRoundRespawn;
 Handle g_hHookGetMaxHealth;
 Handle g_hHookShouldBallTouch;
 Handle g_hHookGiveNamedItem;
@@ -314,6 +317,7 @@ public void OnPluginStart()
 	
 	mp_autoteambalance = FindConVar("mp_autoteambalance");
 	mp_teams_unbalance_limit = FindConVar("mp_teams_unbalance_limit");
+	mp_scrambleteams_auto = FindConVar("mp_scrambleteams_auto");
 	mp_waitingforplayers_time = FindConVar("mp_waitingforplayers_time");
 	tf_weapon_criticals = FindConVar("tf_weapon_criticals");
 	tf_obj_upgrade_per_hit = FindConVar("tf_obj_upgrade_per_hit");
@@ -337,7 +341,6 @@ public void OnPluginStart()
 	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy", _, true, 0.0);
 	
 	//Hook events
-	HookEvent("teamplay_round_start", Event_RoundStart);
 	HookEvent("teamplay_setup_finished", Event_SetupEnd);
 	HookEvent("teamplay_round_win", Event_RoundEnd);
 	HookEvent("player_spawn", Event_PlayerSpawn);
@@ -1311,7 +1314,13 @@ public void TF2_OnWaitingForPlayersEnd()
 	g_nRoundState = SZFRoundState_Grace;
 }
 
-public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
+public MRESReturn DHook_SetWinningTeam(Handle hParams)
+{
+	DHookSetParam(hParams, 4, false);	// always return false to bSwitchTeams
+	return MRES_ChangedOverride;
+}
+
+public MRESReturn DHook_RoundRespawn()
 {
 	if (!g_bEnabled) return;
 	if (g_nRoundState == SZFRoundState_Setup) return;
@@ -1393,7 +1402,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 				if (action == Plugin_Handled)
 				{
 					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie);
+					SpawnClient(iClient, TFTeam_Zombie, false);
 					nClientTeam[iClient] = TFTeam_Zombie;
 					g_bStartedAsZombie[iClient] = true;
 					g_flTimeStartAsZombie[iClient] = GetGameTime();
@@ -1406,7 +1415,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 					SetClientCookie(iClient, g_cForceZombieStart, "0");
 					
 					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie);
+					SpawnClient(iClient, TFTeam_Zombie, false);
 					nClientTeam[iClient] = TFTeam_Zombie;
 					g_bStartedAsZombie[iClient] = true;
 					g_flTimeStartAsZombie[iClient] = GetGameTime();
@@ -1416,7 +1425,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 					//Players who started as zombie last time is forced to be survivors
 					
 					//Survivor
-					SpawnClient(iClient, TFTeam_Survivor);
+					SpawnClient(iClient, TFTeam_Survivor, false);
 					nClientTeam[iClient] = TFTeam_Survivor;
 					g_bStartedAsZombie[iClient] = false;
 					g_iStartSurvivors++;
@@ -1436,7 +1445,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 				if (iSurvivorCount > 0)
 				{
 					//Survivor
-					SpawnClient(iClient, TFTeam_Survivor);
+					SpawnClient(iClient, TFTeam_Survivor, false);
 					nClientTeam[iClient] = TFTeam_Survivor;
 					g_bStartedAsZombie[iClient] = false;
 					g_iStartSurvivors++;
@@ -1445,7 +1454,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 				else
 				{
 					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie);
+					SpawnClient(iClient, TFTeam_Zombie, false);
 					nClientTeam[iClient] = TFTeam_Zombie;
 					g_bStartedAsZombie[iClient] = true;
 					g_flTimeStartAsZombie[iClient] = GetGameTime();
@@ -1574,6 +1583,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	{
 		//Make sure max health hook is reset properly
 		g_iMaxHealth[iClient] = -1;
+		
 		TF2_RespawnPlayer(iClient);
 		return Plugin_Stop;
 	}
@@ -2959,6 +2969,7 @@ void SZFEnable()
 	
 	mp_autoteambalance.SetBool(false);
 	mp_teams_unbalance_limit.SetBool(false);
+	mp_scrambleteams_auto.SetBool(false);
 	mp_waitingforplayers_time.SetInt(70);
 	tf_weapon_criticals.SetBool(false);
 	tf_obj_upgrade_per_hit.SetInt(0);
@@ -2969,6 +2980,7 @@ void SZFEnable()
 	
 	mp_autoteambalance.AddChangeHook(OnConvarChanged);
 	mp_teams_unbalance_limit.AddChangeHook(OnConvarChanged);
+	mp_scrambleteams_auto.AddChangeHook(OnConvarChanged);
 	mp_waitingforplayers_time.AddChangeHook(OnConvarChanged);
 	tf_weapon_criticals.AddChangeHook(OnConvarChanged);
 	tf_obj_upgrade_per_hit.AddChangeHook(OnConvarChanged);
@@ -3016,6 +3028,7 @@ void SZFDisable()
 	
 	mp_autoteambalance.RemoveChangeHook(OnConvarChanged);
 	mp_teams_unbalance_limit.RemoveChangeHook(OnConvarChanged);
+	mp_scrambleteams_auto.RemoveChangeHook(OnConvarChanged);
 	mp_waitingforplayers_time.RemoveChangeHook(OnConvarChanged);
 	tf_weapon_criticals.RemoveChangeHook(OnConvarChanged);
 	tf_obj_upgrade_per_hit.RemoveChangeHook(OnConvarChanged);
@@ -3026,6 +3039,7 @@ void SZFDisable()
 	
 	mp_autoteambalance.RestoreDefault();
 	mp_teams_unbalance_limit.RestoreDefault();
+	mp_scrambleteams_auto.RestoreDefault();
 	mp_waitingforplayers_time.RestoreDefault();
 	tf_weapon_criticals.RestoreDefault();
 	tf_obj_upgrade_per_hit.RestoreDefault();
@@ -3054,6 +3068,7 @@ public void OnConvarChanged(ConVar convar, const char[] oldValue, const char[] n
 	
 	if (convar == mp_autoteambalance && flValue != 0.0) mp_autoteambalance.SetBool(false);
 	else if (convar == mp_teams_unbalance_limit && flValue != 0.0) mp_teams_unbalance_limit.SetBool(false);
+	else if (convar == mp_scrambleteams_auto && flValue != 0.0) mp_scrambleteams_auto.SetBool(false);
 	else if (convar == mp_waitingforplayers_time && flValue != 70.0) mp_waitingforplayers_time.SetInt(70);
 	else if (convar == tf_weapon_criticals && flValue != 0.0) tf_weapon_criticals.SetBool(false);
 	else if (convar == tf_obj_upgrade_per_hit && flValue != 0.0) tf_obj_upgrade_per_hit.SetInt(0);
@@ -3809,6 +3824,9 @@ public void OnMapStart()
 	
 	HookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
 	HookEntityOutput("math_counter", "OutValue", OnCounterValue);
+	
+	DHookGamerules(g_hHookSetWinningTeam, false, _, DHook_SetWinningTeam);
+	DHookGamerules(g_hHookRoundRespawn, false, _, DHook_RoundRespawn);
 }
 
 public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, float flDelay)
@@ -5530,7 +5548,30 @@ void SDK_Init()
 	if (g_hSDKGetEquippedWearable == null)
 		LogMessage("Failed to create call: CTFPlayer::GetEquippedWearableForLoadoutSlot!");
 	
-	// This hook calls when Sandman Ball stuns a player
+	//This hook calls when someone won a round
+	iOffset = hGameData.GetOffset("CTeamplayRoundBasedRules::SetWinningTeam");
+	g_hHookSetWinningTeam = DHookCreate(iOffset, HookType_GameRules, ReturnType_Void, ThisPointer_Ignore);
+	if (g_hHookSetWinningTeam == null)
+	{
+		LogMessage("Failed to create hook: CTeamplayRoundBasedRules::SetWinningTeam!");
+	}
+	else
+	{
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Int);	// team
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Int);	// iWinReason
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bForceMapReset
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bSwitchTeams
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bDontAddScore
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bFinal
+	}
+	
+	//This hook calls when round is starting
+	iOffset = hGameData.GetOffset("CTeamplayRoundBasedRules::RoundRespawn");
+	g_hHookRoundRespawn = DHookCreate(iOffset, HookType_GameRules, ReturnType_Void, ThisPointer_Ignore);
+	if (g_hHookRoundRespawn == null)
+		LogMessage("Failed to create hook: CTeamplayRoundBasedRules::RoundRespawn!");
+	
+	//This hook calls when Sandman Ball stuns a player
 	iOffset = hGameData.GetOffset("CTFStunBall::ShouldBallTouch");
 	g_hHookShouldBallTouch = DHookCreate(iOffset, HookType_Entity, ReturnType_Bool, ThisPointer_CBaseEntity);
 	if (g_hHookShouldBallTouch == null)

@@ -529,7 +529,7 @@ stock void TF2_RemoveAmmo(int iClient, int iSlot, int iAmmo)
 //
 ////////////////////////////////////////////////////////////
 
-stock void SpawnClient(int iClient, TFTeam nTeam)
+stock void SpawnClient(int iClient, TFTeam nTeam, bool bRespawn = true)
 {
 	//1. Prevent players from spawning if they're on an invalid team.
 	//        Prevent players from spawning as an invalid class.
@@ -545,12 +545,13 @@ stock void SpawnClient(int iClient, TFTeam nTeam)
 		//Use of m_lifeState here prevents:
 		//1. "[Player] Suicided" messages.
 		//2. Adding a death to player stats.
-		TF2_RemoveAllWeapons(iClient);
 		SetEntProp(iClient, Prop_Send, "m_lifeState", 2);
-		TF2_SetPlayerClass(iClient, nClass, false, true);
+		TF2_SetPlayerClass(iClient, nClass);
 		TF2_ChangeClientTeam(iClient, nTeam);
 		SetEntProp(iClient, Prop_Send, "m_lifeState", 0);
-		TF2_RespawnPlayer(iClient);
+		
+		if (bRespawn)
+			TF2_RespawnPlayer(iClient);
 	}
 }
 
