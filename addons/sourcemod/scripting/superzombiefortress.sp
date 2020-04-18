@@ -187,7 +187,6 @@ Handle g_hHookGiveNamedItem;
 Handle g_hSDKGetMaxHealth;
 Handle g_hSDKGetMaxAmmo;
 Handle g_hSDKEquipWearable;
-Handle g_hSDKRemoveWearable;
 Handle g_hSDKGetEquippedWearable;
 
 int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
@@ -220,7 +219,6 @@ int g_iSmokerBeamHits[TF_MAXPLAYERS];
 int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
 float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
-bool g_bClearedInventory[TF_MAXPLAYERS];
 
 //Map overwrites
 float g_flCapScale = -1.0;
@@ -348,8 +346,7 @@ public void OnPluginStart()
 	HookEvent("teamplay_point_captured", Event_CPCapture);
 	HookEvent("teamplay_point_startcapture", Event_CPCaptureStart);
 	HookEvent("teamplay_broadcast_audio", Event_Broadcast, EventHookMode_Pre);
-	HookEvent("post_inventory_application", Event_Inventory);
-
+	
 	//Hook Client Commands
 	AddCommandListener(Command_JoinTeam, "jointeam");
 	AddCommandListener(Command_JoinTeam, "spectate");
@@ -1641,7 +1638,6 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	g_iKillsThisLife[iClient] = 0;
 	g_iDamageTakenLife[iClient] = 0;
 	g_iDamageDealtLife[iClient] = 0;
-	g_bClearedInventory[iClient] = false;
 	
 	DropCarryingItem(iClient, false);
 	
@@ -1784,9 +1780,6 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
 			SetEntityRenderColor(iClient, GetInfectedColor(0, g_nInfected[iClient]), GetInfectedColor(1, g_nInfected[iClient]), GetInfectedColor(2, g_nInfected[iClient]), GetInfectedColor(3, g_nInfected[iClient]));
 			
-			if (g_nInfected[iClient] == Infected_Kingpin || g_nInfected[iClient] == Infected_Hunter)
-				TF2_RemoveWeaponSlot(iClient, WeaponSlot_Secondary);
-			
 			char sMsg[256];
 			GetInfectedMessage(sMsg, sizeof(sMsg), g_nInfected[iClient]);
 			CPrintToChat(iClient, sMsg);
@@ -1850,10 +1843,6 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	SetGlow();
 }
 
-public void Event_Inventory(Event event, const char[] name, bool dont_broadcast)
-{
-	g_bClearedInventory[GetClientOfUserId(event.GetInt("userid"))] = true;
-}
 
 public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
@@ -4077,6 +4066,8 @@ void HandleSurvivorLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
 	
+	CheckClientWeapons(iClient);
+	
 	int iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_Melee);
 	if (iEntity > MaxClients && IsValidEdict(iEntity))
 	{
@@ -4158,6 +4149,8 @@ void HandleSurvivorLoadout(int iClient)
 void HandleZombieLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
+	
+	CheckClientWeapons(iClient);
 	
 	int iMelee;
 	TFClassType nClass = TF2_GetPlayerClass(iClient);
@@ -5524,14 +5517,6 @@ void SDK_Init()
 	if (g_hSDKEquipWearable == null)
 		LogMessage("Failed to create call: CBasePlayer::EquipWearable!");
 	
-	//This function is used to remove a player wearable properly
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(hGameData, SDKConf_Virtual, "CBasePlayer::RemoveWearable");
-	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
-	g_hSDKRemoveWearable = EndPrepSDKCall();
-	if (g_hSDKRemoveWearable == null)
-		LogMessage("Failed to create call: CBasePlayer::RemoveWearable!");
-	
 	//This function is used to get wearable equipped in loadout slots
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hGameData, SDKConf_Signature, "CTFPlayer::GetEquippedWearableForLoadoutSlot");
@@ -5636,12 +5621,6 @@ stock void SDK_EquipWearable(int iClient, int iWearable)
 		SDKCall(g_hSDKEquipWearable, iClient, iWearable);
 }
 
-stock void SDK_RemoveWearable(int iClient, int iWearable)
-{
-	if (g_hSDKRemoveWearable != null)
-		SDKCall(g_hSDKRemoveWearable, iClient, iWearable);
-}
-
 stock int SDK_GetEquippedWearable(int iClient, int iSlot)
 {
 	if (g_hSDKGetEquippedWearable != null)
@@ -5723,18 +5702,18 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 	int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 	
 	Action iAction = Plugin_Continue;
-	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor && !g_bClearedInventory[iClient])
+	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor)
 	{
 		if (iSlot < WeaponSlot_Melee)
 			iAction = Plugin_Handled;
 	}
-	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie && StrContains(sClassname, "tf_wearable") == -1)
+	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie)
 	{
 		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee)
 		{
 			iAction = Plugin_Handled;
 		}
-		else
+		else if (iSlot <= WeaponSlot_BuilderEngie)
 		{
 			switch (TF2_GetPlayerClass(iClient))
 			{
@@ -5765,6 +5744,7 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 		}
 	}
 	
+	PrintToChatAll("%N - classname %s slot %d action %d", iClient, sClassname, iSlot, iAction);
 	return iAction;
 }
 

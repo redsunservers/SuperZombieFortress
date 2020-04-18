@@ -24,11 +24,6 @@
 				"linux"		"431"
 				"windows"	"430"
 			}
-			"CBasePlayer::RemoveWearable"
-			{
-				"linux"		"432"
-				"windows"	"431"
-			}
 			"CTFStunBall::ShouldBallTouch"
 			{
 				"linux"		"262"

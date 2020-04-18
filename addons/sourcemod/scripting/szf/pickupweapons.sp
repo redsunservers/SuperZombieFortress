@@ -362,18 +362,8 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		TF2_RemoveCondition(iClient, TFCond_Kritzkrieged);
 	}
 	
-	//If player already have item in his inv, remove it before we generate new weapon for him, otherwise some weapons can glitch out...
-	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
-	if (iEntity > MaxClients && IsValidEdict(iEntity))
-		TF2_RemoveWeaponSlot(iClient, iSlot);
-	
-	//Remove wearable if have one
-	int iWearable = SDK_GetEquippedWearable(iClient, iSlot);
-	if (iWearable > MaxClients)
-	{
-		SDK_RemoveWearable(iClient, iWearable);
-		AcceptEntityInput(iWearable, "Kill");
-	}
+	//If player already have item in his inv, remove it before we generate new weapon for him
+	TF2_RemoveItemInSlot(iClient, iSlot);
 	
 	//Generate and equip weapon
 	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, wep.sAttribs, wep.sText);

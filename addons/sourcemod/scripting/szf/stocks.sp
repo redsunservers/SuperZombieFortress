@@ -685,6 +685,45 @@ stock void TF2_FlagWeaponDontDrop(int iWeapon, bool bVisibleHack = true)
 	if (bVisibleHack) SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", 1);
 }
 
+stock int TF2_GetItemInSlot(int iClient, int iSlot)
+{
+	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
+	if (iEntity > MaxClients)
+		return iEntity;
+	
+	iEntity = SDK_GetEquippedWearable(iClient, iSlot);
+	if (iEntity > MaxClients)
+		return iEntity;
+	
+	return -1;
+}
+
+stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
+{
+	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
+	if (iEntity > MaxClients)
+		TF2_RemoveWeaponSlot(iClient, iSlot);
+	
+	int iWearable = SDK_GetEquippedWearable(iClient, iSlot);
+	if (iWearable > MaxClients)
+		TF2_RemoveWearable(iClient, iWearable);
+}
+
+stock void CheckClientWeapons(int iClient)
+{
+	for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
+	{
+		int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
+		if (iWeapon > MaxClients)
+		{
+			char sClassname[256];
+			GetEntityClassname(iWeapon, sClassname, sizeof(sClassname));
+			if (OnGiveNamedItem(iClient, sClassname, GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
+				TF2_RemoveItemInSlot(iClient, iSlot);
+		}
+	}
+}
+
 ////////////////////////////////////////////////////////////
 //
 // Cookie Utils
