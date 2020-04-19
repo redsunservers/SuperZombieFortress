@@ -1777,12 +1777,15 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				g_iInfectedCooldown[g_nInfected[iClient]] = iClient;			//client to prevent abuse to cycle through any infected
 			}
 			
-			SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-			SetEntityRenderColor(iClient, GetInfectedColor(0, g_nInfected[iClient]), GetInfectedColor(1, g_nInfected[iClient]), GetInfectedColor(2, g_nInfected[iClient]), GetInfectedColor(3, g_nInfected[iClient]));
-			
-			char sMsg[256];
-			GetInfectedMessage(sMsg, sizeof(sMsg), g_nInfected[iClient]);
-			CPrintToChat(iClient, sMsg);
+			if (g_nInfected[iClient] != Infected_None)
+			{
+				SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
+				SetEntityRenderColor(iClient, GetInfectedColor(0, g_nInfected[iClient]), GetInfectedColor(1, g_nInfected[iClient]), GetInfectedColor(2, g_nInfected[iClient]), GetInfectedColor(3, g_nInfected[iClient]));
+				
+				char sMsg[256];
+				GetInfectedMessage(sMsg, sizeof(sMsg), g_nInfected[iClient]);
+				CPrintToChat(iClient, sMsg);
+			}
 			
 			if (g_bShouldBacteriaPlay[iClient])
 			{
@@ -5744,7 +5747,6 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 		}
 	}
 	
-	PrintToChatAll("%N - classname %s slot %d action %d", iClient, sClassname, iSlot, iAction);
 	return iAction;
 }
 
