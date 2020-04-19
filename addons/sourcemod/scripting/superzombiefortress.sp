@@ -10,6 +10,7 @@
 #include <tf_econ_data>
 #include <dhooks>
 #include <morecolors>
+#include <memorypatch>
 
 #undef REQUIRE_EXTENSIONS
 #tryinclude <tf2items>
@@ -189,6 +190,9 @@ Handle g_hSDKGetMaxAmmo;
 Handle g_hSDKEquipWearable;
 Handle g_hSDKRemoveWearable;
 Handle g_hSDKGetEquippedWearable;
+
+//Memory patches
+MemoryPatch g_hCGameUI_Deactivate_Patch;
 
 int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
@@ -436,6 +440,9 @@ public void OnPluginEnd()
 		if (IsClientInGame(iClient))
 			EndSound(iClient);
 	}
+	
+	if (g_hCGameUI_Deactivate_Patch != null)
+		g_hCGameUI_Deactivate_Patch.Disable();
 }
 
 public Action Command_Build(int iClient, const char[] sCommand, int iArgs)
@@ -5492,8 +5499,36 @@ void SDK_Init()
 		LogMessage("Failed to create call: CTFPlayer::GetMaxHealth!");
 	
 	delete hGameData;
+	hGameData = new GameData("sm-tf2.games");
+	if (hGameData == null
+		SetFailState("Could not find sm-tf2.games gamedata!");
+	
+	int iRemoveWearableOffset = GameConfGetOffset(hGameData, "RemoveWearable");
+	//This function is used to remove a player wearable properly
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetVirtual(iRemoveWearableOffset);
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	g_hSDKRemoveWearable = EndPrepSDKCall();
+	if(g_hSDKRemoveWearable == null)
+		LogMessage("Failed to create call: CBasePlayer::RemoveWearable!");
+	
+	//This function is used to equip wearables
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetVirtual(iRemoveWearableOffset-1);// Assume EquipWearable is always behind RemoveWearable
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	g_hSDKEquipWearable = EndPrepSDKCall();
+	if(g_hSDKEquipWearable == null)
+		LogMessage("Failed to create call: CBasePlayer::EquipWearable!");
+	
+	delete hGameData;
 	
 	hGameData = new GameData("szf");
+	
+	MemoryPatch.SetGameData(hGameData);
+	// Prevents a crash with "game_ui" entity
+	g_hCGameUI_Deactivate_Patch = new MemoryPatch("Patch_CGameUI_Deactivate");
+	if (g_hCGameUI_Deactivate_Patch != null)
+		g_hCGameUI_Deactivate_Patch.Enable();
 	
 	//This function is used to get weapon max ammo
 	StartPrepSDKCall(SDKCall_Player);
@@ -5504,22 +5539,6 @@ void SDK_Init()
 	g_hSDKGetMaxAmmo = EndPrepSDKCall();
 	if(g_hSDKGetMaxAmmo == null)
 		LogMessage("Failed to create call: CTFPlayer::GetMaxAmmo!");
-	
-	//This function is used to equip wearables 
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(hGameData, SDKConf_Virtual, "CBasePlayer::EquipWearable");
-	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
-	g_hSDKEquipWearable = EndPrepSDKCall();
-	if (g_hSDKEquipWearable == null)
-		LogMessage("Failed to create call: CBasePlayer::EquipWearable!");
-	
-	//This function is used to remove a player wearable properly
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(hGameData, SDKConf_Virtual, "CBasePlayer::RemoveWearable");
-	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
-	g_hSDKRemoveWearable = EndPrepSDKCall();
-	if (g_hSDKRemoveWearable == null)
-		LogMessage("Failed to create call: CBasePlayer::RemoveWearable!");
 	
 	//This function is used to get wearable equipped in loadout slots
 	StartPrepSDKCall(SDKCall_Player);
