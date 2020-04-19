@@ -5500,10 +5500,10 @@ void SDK_Init()
 	
 	delete hGameData;
 	hGameData = new GameData("sm-tf2.games");
-	if (hGameData == null
+	if (hGameData == null)
 		SetFailState("Could not find sm-tf2.games gamedata!");
 	
-	int iRemoveWearableOffset = GameConfGetOffset(hGameData, "RemoveWearable");
+	int iRemoveWearableOffset = hGameData.GetOffset("RemoveWearable");
 	//This function is used to remove a player wearable properly
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetVirtual(iRemoveWearableOffset);
