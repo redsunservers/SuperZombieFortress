@@ -1,3 +1,9 @@
+enum struct WeaponClasses
+{
+	int iIndex;
+	char sAttribs[256];
+}
+
 enum struct SurvivorClasses
 {
 	TFClassType nClass;
@@ -18,8 +24,7 @@ enum struct ZombieClasses
 	float flHorde;
 	float flMaxSpree;
 	float flMaxHorde;
-	int iIndex;
-	char sAttribs[256];
+	ArrayList aWeapons;
 }
 
 enum struct InfectedClasses
@@ -30,10 +35,9 @@ enum struct InfectedClasses
 	float flSpeed;
 	int iRegen;
 	int iDegen;
-	int iIndex;
-	char sAttribs[256];
 	int iColor[4];
 	char sMsg[256];
+	ArrayList aWeapons;
 }
 
 TFClassType[view_as<int>(TFClassType)] g_nSurvivorClass;
@@ -48,9 +52,11 @@ static ArrayList g_aSurvivorClasses;
 static ArrayList g_aZombieClasses;
 static ArrayList g_aInfectedClasses;
 
-void Classes_Setup()
+void Classes_Refresh()
 {
 	delete g_aSurvivorClasses;
+	
+	//Load survivor config
 	g_aSurvivorClasses = Config_LoadSurvivorClasses();
 	
 	int iCurrent;
@@ -69,7 +75,21 @@ void Classes_Setup()
 		g_SurvivorClasses[sur.nClass] = sur;
 	}
 	
-	delete g_aZombieClasses;
+	//Delete zombie handles
+	if (g_aZombieClasses)
+	{
+		iLength = g_aZombieClasses.Length;
+		for (int i = 0; i < iLength; i++)
+		{
+			ZombieClasses zom;
+			g_aZombieClasses.GetArray(i, zom);
+			delete zom.aWeapons;
+		}
+		
+		delete g_aZombieClasses;
+	}
+	
+	//Load zombie config
 	g_aZombieClasses = Config_LoadZombieClasses();
 	
 	iLength = g_aZombieClasses.Length;
@@ -88,7 +108,21 @@ void Classes_Setup()
 		g_ZombieClasses[zom.nClass] = zom;
 	}
 	
-	delete g_aInfectedClasses;
+	//Delete infected handles
+	if (g_aInfectedClasses)
+	{
+		iLength = g_aInfectedClasses.Length;
+		for (int i = 0; i < iLength; i++)
+		{
+			InfectedClasses inf;
+			g_aInfectedClasses.GetArray(i, inf);
+			delete inf.aWeapons;
+		}
+		
+		delete g_aInfectedClasses;
+	}
+	
+	//Load infected config
 	g_aInfectedClasses = Config_LoadInfectedClasses();
 	
 	iLength = g_aInfectedClasses.Length;
@@ -213,15 +247,19 @@ stock float GetZombieMaxHorde(TFClassType nClass)
 	return g_ZombieClasses[nClass].flMaxHorde;
 }
 
-stock int GetZombieIndex(TFClassType nClass)
+stock bool GetZombieWeapon(TFClassType nClass, int &iPos, int &iIndex, char[] sAttribs, int iLength)
 {
-	return g_ZombieClasses[nClass].iIndex;
-}
-
-stock int GetZombieAttribs(char[] sBuffer, int iLength, TFClassType nClass)
-{
-	strcopy(sBuffer, iLength, g_ZombieClasses[nClass].sAttribs);
-	return strlen(sBuffer);
+	if (!g_ZombieClasses[nClass].aWeapons || iPos < 0 || iPos >= g_ZombieClasses[nClass].aWeapons.Length)
+		return false;
+	
+	WeaponClasses weapon;
+	g_ZombieClasses[nClass].aWeapons.GetArray(iPos, weapon);
+	
+	iIndex = weapon.iIndex;
+	strcopy(sAttribs, iLength, weapon.sAttribs);
+	
+	iPos++;
+	return true;
 }
 
 ////////////////////////////////////////////////////////////
@@ -265,24 +303,31 @@ stock int GetInfectedDegen(Infected nInfected)
 	return g_InfectedClasses[nInfected].iDegen;
 }
 
-stock int GetInfectedIndex(Infected nInfected)
-{
-	return g_InfectedClasses[nInfected].iIndex;
-}
-
-stock int GetInfectedAttribs(char[] sBuffer, int iLength, Infected nInfected)
-{
-	strcopy(sBuffer, iLength, g_InfectedClasses[nInfected].sAttribs);
-	return strlen(sBuffer);
-}
-
 stock int GetInfectedColor(int iValue, Infected nInfected)
 {
 	return g_InfectedClasses[nInfected].iColor[iValue];
 }
 
-stock int GetInfectedMessage(char[] sBuffer, int iLength, Infected nInfected)
+stock bool GetInfectedMessage(char[] sBuffer, int iLength, Infected nInfected)
 {
+	if (g_InfectedClasses[nInfected].sMsg[0] == '\0')
+		return false;
+	
 	strcopy(sBuffer, iLength, g_InfectedClasses[nInfected].sMsg);
-	return strlen(sBuffer);
+	return true;
+}
+
+stock bool GetInfectedWeapon(Infected nInfected, int &iPos, int &iIndex, char[] sAttribs, int iLength)
+{
+	if (!g_InfectedClasses[nInfected].aWeapons || iPos < 0 || iPos >= g_InfectedClasses[nInfected].aWeapons.Length)
+		return false;
+	
+	WeaponClasses weapon;
+	g_InfectedClasses[nInfected].aWeapons.GetArray(iPos, weapon);
+	
+	iIndex = weapon.iIndex;
+	strcopy(sAttribs, iLength, weapon.sAttribs);
+	
+	iPos++;
+	return true;
 }

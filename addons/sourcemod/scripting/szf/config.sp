@@ -13,12 +13,12 @@ enum struct ConfigMelee
 ConfigMelee g_ConfigMeleeDefault;
 ArrayList g_aConfigMelee;
 
-void Config_InitTemplates()
+void Config_Init()
 {
 	g_aConfigMelee = new ArrayList(sizeof(ConfigMelee));
 }
 
-void Config_LoadTemplates()
+void Config_Refresh()
 {
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
 	if (kv == null) return;
@@ -297,8 +297,26 @@ ArrayList Config_LoadZombieClasses()
 				zom.flHorde = kv.GetFloat("horde", 2.0);
 				zom.flMaxSpree = kv.GetFloat("maxspree", 20.0);
 				zom.flMaxHorde = kv.GetFloat("maxhorde", 20.0);
-				zom.iIndex = kv.GetNum("index", 5);
-				kv.GetString("attrib", zom.sAttribs, sizeof(zom.sAttribs));
+				zom.aWeapons = new ArrayList(sizeof(WeaponClasses));
+				
+				if (kv.GotoFirstSubKey(false))	//Find weapons
+				{
+					do
+					{
+						char sSubkey[256];
+						kv.GetSectionName(sSubkey, sizeof(sSubkey));
+						if (StrEqual(sSubkey, "weapon"))
+						{
+							WeaponClasses weapon;
+							weapon.iIndex = kv.GetNum("index", 5);
+							kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
+							
+							zom.aWeapons.PushArray(weapon);
+						}
+					}
+					while(kv.GotoNextKey(false));
+					kv.GoBack();
+				}
 				
 				aClasses.PushArray(zom);
 				iLength++;
@@ -370,10 +388,28 @@ ArrayList Config_LoadInfectedClasses()
 				inf.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(inf.nClass));
 				inf.iRegen = kv.GetNum("regen", 2);
 				inf.iDegen = kv.GetNum("degen", 3);
-				inf.iIndex = kv.GetNum("index", 5);
-				kv.GetString("attrib", inf.sAttribs, sizeof(inf.sAttribs));
 				kv.GetColor4("color", inf.iColor);
 				kv.GetString("message", inf.sMsg, sizeof(inf.sMsg));
+				inf.aWeapons = new ArrayList(sizeof(WeaponClasses));
+				
+				if (kv.GotoFirstSubKey(false))	//Find weapons
+				{
+					do
+					{
+						char sSubkey[256];
+						kv.GetSectionName(sSubkey, sizeof(sSubkey));
+						if (StrEqual(sSubkey, "weapon"))
+						{
+							WeaponClasses weapon;
+							weapon.iIndex = kv.GetNum("index", 5);
+							kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
+							
+							inf.aWeapons.PushArray(weapon);
+						}
+					}
+					while(kv.GotoNextKey(false));
+					kv.GoBack();
+				}
 				
 				aClasses.PushArray(inf);
 				iLength++;

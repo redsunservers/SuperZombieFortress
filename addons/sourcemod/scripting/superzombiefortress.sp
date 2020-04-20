@@ -385,14 +385,12 @@ public void OnPluginStart()
 	
 	g_bTF2Items = LibraryExists("TF2Items");
 	
+	Config_Init();
 	SDK_Init();
+	Weapons_Init();
 	
-	Config_InitTemplates();
-	Config_LoadTemplates();
-	
-	Classes_Setup();
-	Weapons_Setup();
-	
+	Config_Refresh();
+		
 	//Incase of late-load
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		if (IsClientInGame(iClient))
@@ -540,10 +538,9 @@ public Action Admin_ZombieRage(int iClient, int iArgs)
 
 public Action Admin_ReloadConfigs(int iClient, int iArgs)
 {
-	Config_LoadTemplates();
-	
-	Classes_Setup();
-	Weapons_Setup();
+	Config_Refresh();
+	Classes_Refresh();
+	Weapons_Refresh();
 	
 	return Plugin_Handled;
 }
@@ -1639,90 +1636,79 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	g_iDamageTakenLife[iClient] = 0;
 	g_iDamageDealtLife[iClient] = 0;
 	
+	ResetClientState(iClient);
 	DropCarryingItem(iClient, false);
 	
 	SetEntityRenderColor(iClient, 255, 255, 255, 255);
 	SetEntityRenderMode(iClient, RENDER_NORMAL);
 	
+	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	
 	if (g_nRoundState == SZFRoundState_Active)
 	{
 		if (g_iZombieTank > 0 && g_iZombieTank == iClient)
 		{
-			g_nInfected[iClient] = Infected_None;
+			g_iZombieTank = 0;
+			g_nInfected[iClient] = Infected_Tank;
+			g_flTankLifetime[iClient] = GetGameTime();
 			
-			if (TF2_GetPlayerClass(iClient) != TFClass_Heavy)
+			int iSurvivors = GetSurvivorCount();
+			int iHealth = g_cvTankHealth.IntValue * iSurvivors;
+			if (iHealth < g_cvTankHealthMin.IntValue) iHealth = g_cvTankHealthMin.IntValue;
+			if (iHealth > g_cvTankHealthMax.IntValue) iHealth = g_cvTankHealthMax.IntValue;
+			
+			g_iMaxHealth[iClient] = iHealth;
+			SetEntityHealth(iClient, iHealth);
+			
+			int iSubtract = 0;
+			if (g_cvTankTime.FloatValue > 0.0)
 			{
-				TF2_SetPlayerClass(iClient, TFClass_Heavy, true, true);
-				TF2_RespawnPlayer(iClient);
-				return;
+				iSubtract = RoundFloat(float(iHealth) / g_cvTankTime.FloatValue);
+				if (iSubtract < 3) iSubtract = 3;
 			}
-			else
+			
+			g_iSuperHealthSubtract[iClient] = iSubtract;
+			TF2_AddCondition(iClient, TFCond_Kritzkrieged, TFCondDuration_Infinite);
+			
+			EmitSoundToAll(g_sVoZombieTankOnFire[GetRandomInt(0, sizeof(g_sVoZombieTankOnFire)-1)]);
+			
+			for (int i = 1; i <= MaxClients; i++)
 			{
-				g_iZombieTank = 0;
-				g_nInfected[iClient] = Infected_Tank;
-				g_flTankLifetime[iClient] = GetGameTime();
-				
-				int iSurvivors = GetSurvivorCount();
-				int iHealth = g_cvTankHealth.IntValue * iSurvivors;
-				if (iHealth < g_cvTankHealthMin.IntValue) iHealth = g_cvTankHealthMin.IntValue;
-				if (iHealth > g_cvTankHealthMax.IntValue) iHealth = g_cvTankHealthMax.IntValue;
-				
-				g_iMaxHealth[iClient] = iHealth;
-				SetEntityHealth(iClient, iHealth);
-				
-				int iSubtract = 0;
-				if (g_cvTankTime.FloatValue > 0.0)
+				if (IsValidClient(i))
 				{
-					iSubtract = RoundFloat(float(iHealth) / g_cvTankTime.FloatValue);
-					if (iSubtract < 3) iSubtract = 3;
-				}
-				
-				g_iSuperHealthSubtract[iClient] = iSubtract;
-				TF2_AddCondition(iClient, TFCond_Kritzkrieged, TFCondDuration_Infinite);
-				
-				SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-				SetEntityRenderColor(iClient, GetInfectedColor(0, Infected_Tank), GetInfectedColor(1, Infected_Tank), GetInfectedColor(2, Infected_Tank), GetInfectedColor(3, Infected_Tank));
-				
-				EmitSoundToAll(g_sVoZombieTankOnFire[GetRandomInt(0, sizeof(g_sVoZombieTankOnFire)-1)]);
-				
-				for (int i = 1; i <= MaxClients; i++)
-				{
-					if (IsValidClient(i))
+					if (GetCookie(i, g_cFirstTimeSurvivor) < 2)
 					{
-						if (GetCookie(i, g_cFirstTimeSurvivor) < 2)
-						{
-							DataPack data;
-							CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
-							data.WriteCell(i);
-							data.WriteFloat(4.0);
-							data.WriteString("Do not let the Tank get close to you, his attacks are very lethal.");
-							
-							CreateDataTimer(4.5, Timer_DisplayTutorialMessage, data);
-							data.WriteCell(i);
-							data.WriteFloat(4.0);
-							data.WriteString("Run and shoot the Tank, it will slow the Tank down and kill it.");
-							
-							SetCookie(i, 2, g_cFirstTimeSurvivor);
-						}
+						DataPack data;
+						CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
+						data.WriteCell(i);
+						data.WriteFloat(4.0);
+						data.WriteString("Do not let the Tank get close to you, his attacks are very lethal.");
 						
-						CPrintToChat(i, "{red}Incoming TAAAAANK!");
+						CreateDataTimer(4.5, Timer_DisplayTutorialMessage, data);
+						data.WriteCell(i);
+						data.WriteFloat(4.0);
+						data.WriteString("Run and shoot the Tank, it will slow the Tank down and kill it.");
 						
-						if (GetCurrentSound(i) != SoundMusic_LastStand || !IsMusicOverrideOn()) //lms current sound check seems not to work, may need to check it later
-							PlaySound(i, SoundMusic_Tank);	
+						SetCookie(i, 2, g_cFirstTimeSurvivor);
 					}
 					
-					g_flDamageDealtAgainstTank[i] = 0.0;
+					CPrintToChat(i, "{red}Incoming TAAAAANK!");
+					
+					if (GetCurrentSound(i) != SoundMusic_LastStand || !IsMusicOverrideOn()) //lms current sound check seems not to work, may need to check it later
+						PlaySound(i, SoundMusic_Tank);	
 				}
 				
-				Call_StartForward(g_hForwardTankSpawn);
-				Call_PushCell(iClient);
-				Call_Finish();
+				g_flDamageDealtAgainstTank[i] = 0.0;
 			}
+				
+			Call_StartForward(g_hForwardTankSpawn);
+			Call_PushCell(iClient);
+			Call_Finish();
 		}
 		else
-		{			
+		{
 			//If client got a force set as specific special infected, set as that infected
-			if (g_nNextInfected[iClient] != Infected_None && g_nInfected[iClient] != Infected_Tank)
+			if (g_nNextInfected[iClient] != Infected_None)
 			{
 				g_nInfected[iClient] = g_nNextInfected[iClient];
 			}
@@ -1762,47 +1748,36 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 					g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
 				}
 			}
+		}
+		
+		if (g_nInfected[iClient] != Infected_None)
+		{
+			SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
+			SetEntityRenderColor(iClient, GetInfectedColor(0, g_nInfected[iClient]), GetInfectedColor(1, g_nInfected[iClient]), GetInfectedColor(2, g_nInfected[iClient]), GetInfectedColor(3, g_nInfected[iClient]));
 			
-			if (g_nNextInfected[iClient] != Infected_None && g_nInfected[iClient] != Infected_Tank && TF2_GetPlayerClass(iClient) != GetInfectedClass(g_nInfected[iClient]))
-			{
-				TF2_SetPlayerClass(iClient, GetInfectedClass(g_nInfected[iClient]), _, false);
-				TF2_RespawnPlayer(iClient);
-				return;
-			}
+			char sMsg[256];
+			if (GetInfectedMessage(sMsg, sizeof(sMsg), g_nInfected[iClient]))
+				CPrintToChat(iClient, sMsg);
 			
-			if (g_nInfected[iClient] != Infected_None && g_nInfected[iClient] != Infected_Tank && g_iInfectedCooldown[g_nInfected[iClient]] != iClient)
+			if (g_nInfected[iClient] != Infected_Tank && g_iInfectedCooldown[g_nInfected[iClient]] != iClient)
 			{
 				//Set new cooldown
 				g_flInfectedCooldown[g_nInfected[iClient]] = GetGameTime();	//time for cooldown
 				g_iInfectedCooldown[g_nInfected[iClient]] = iClient;			//client to prevent abuse to cycle through any infected
 			}
+		}
+		
+		if (g_bShouldBacteriaPlay[iClient])
+		{
+			EmitSoundToClient(iClient, g_sSoundSpawnInfected[g_nInfected[iClient]]);
 			
-			if (g_nInfected[iClient] != Infected_None)
-			{
-				SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-				SetEntityRenderColor(iClient, GetInfectedColor(0, g_nInfected[iClient]), GetInfectedColor(1, g_nInfected[iClient]), GetInfectedColor(2, g_nInfected[iClient]), GetInfectedColor(3, g_nInfected[iClient]));
-				
-				char sMsg[256];
-				GetInfectedMessage(sMsg, sizeof(sMsg), g_nInfected[iClient]);
-				CPrintToChat(iClient, sMsg);
-			}
+			for (int i = 1; i <= MaxClients; i++)
+				if (IsValidSurvivor(i))
+					EmitSoundToClient(i, g_sSoundSpawnInfected[g_nInfected[iClient]]);
 			
-			if (g_bShouldBacteriaPlay[iClient])
-			{
-				EmitSoundToClient(iClient, g_sSoundSpawnInfected[g_nInfected[iClient]]);
-				
-				for (int i = 1; i <= MaxClients; i++)
-					if (IsValidSurvivor(i))
-						EmitSoundToClient(i, g_sSoundSpawnInfected[g_nInfected[iClient]]);
-				
-				g_bShouldBacteriaPlay[iClient] = false;
-			}
+			g_bShouldBacteriaPlay[iClient] = false;
 		}
 	}
-	
-	TFClassType nClass = TF2_GetPlayerClass(iClient);
-	
-	ResetClientState(iClient);
 	
 	if (IsSurvivor(iClient))
 	{
@@ -1825,6 +1800,13 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	
 	else if (IsZombie(iClient))
 	{
+		if (g_nInfected[iClient] != Infected_None && nClass != GetInfectedClass(g_nInfected[iClient]))
+		{
+			TF2_SetPlayerClass(iClient, GetInfectedClass(g_nInfected[iClient]));
+			TF2_RespawnPlayer(iClient);
+			return;
+		}
+		
 		if (!IsValidZombieClass(nClass))
 		{
 			SpawnClient(iClient, TFTeam_Zombie);
@@ -2292,7 +2274,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 					}
 					
 					if (!bTooClose && !TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
-						TF2_AddCondition(iClient, TFCond_Cloaked, -1.0);
+						TF2_AddCondition(iClient, TFCond_Cloaked, TFCondDuration_Infinite);
 					else if (bTooClose && TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
 						TF2_RemoveCondition(iClient, TFCond_Cloaked);
 				}
@@ -3348,7 +3330,7 @@ public void Panel_PrintZomInfo(int iClient, TFClassType nClass)
 	{
 		case TFClass_Scout:
 		{
-			if (GetZombieIndex(nClass) == 44) panel.DrawText("Balls fired from the Sandman do not stun, it emits a toxic gas that damages Survivors who stand on it instead.");
+			panel.DrawText("Balls fired from the Sandman do not stun, it emits a toxic gas that damages Survivors who stand on it instead.");
 		}
 		case TFClass_Soldier:
 		{
@@ -3736,9 +3718,12 @@ public Action CheckLastPlayer(Handle hTimer)
 
 public void OnMapStart()
 {
+	Config_Refresh();
+	Classes_Refresh();
+	Weapons_Refresh();
+	
 	SoundPrecache();
 	DetermineControlPoints();
-	Weapons_Precache();
 	PrecacheZombieSouls();
 	
 	PrecacheParticle("spell_cast_wheel_blue");
@@ -4155,38 +4140,41 @@ void HandleZombieLoadout(int iClient)
 	
 	CheckClientWeapons(iClient);
 	
-	int iMelee;
 	TFClassType nClass = TF2_GetPlayerClass(iClient);
 	
+	int iPos;
+	int iIndex;
+	char sAttrib[256];
 	if (g_nInfected[iClient] == Infected_None)
 	{
-		iMelee = TF2_CreateAndEquipWeapon(iClient, GetZombieIndex(nClass));
-		if (IsValidEntity(iMelee))
+		while (GetZombieWeapon(nClass, iPos, iIndex, sAttrib, sizeof(sAttrib)))
 		{
-			SetZomAttribs(iMelee, nClass);
-			if (GetZombieIndex(nClass) == 44) //Sandman
+			int iWeapon = TF2_CreateAndEquipWeapon(iClient, iIndex, sAttrib);
+			if (iIndex == 44) //Sandman
 			{
 				//Set Sandman ball in cooldown if spammed
 				if (g_flGooCooldown[iClient] > GetGameTime())
 				{
-					int iAmmoType = GetEntProp(iMelee, Prop_Send, "m_iPrimaryAmmoType");
+					int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
 					if (iAmmoType > -1)
 						SetEntProp(iClient, Prop_Send, "m_iAmmo", 0, _, iAmmoType);
 					
-					SetEntPropFloat(iMelee, Prop_Send, "m_flEffectBarRegenTime", g_flGooCooldown[iClient]);
+					SetEntPropFloat(iWeapon, Prop_Send, "m_flEffectBarRegenTime", g_flGooCooldown[iClient]);
 				}
 			}
 		}
 	}
 	else
 	{
-		iMelee = TF2_CreateAndEquipWeapon(iClient, GetInfectedIndex(g_nInfected[iClient]));
-		if (IsValidEntity(iMelee))
-			SetInfAttribs(iMelee, g_nInfected[iClient]);
+		while (GetInfectedWeapon(g_nInfected[iClient], iPos, iIndex, sAttrib, sizeof(sAttrib)))
+		{
+			TF2_CreateAndEquipWeapon(iClient, iIndex, sAttrib);
+		}
 	}
 	
-	//Set slot to melee
-	if (iMelee > MaxClients && IsValidEdict(iMelee))
+	//Set active wepaon slot to melee
+	int iMelee = TF2_GetItemInSlot(iClient, WeaponSlot_Melee);
+	if (iMelee > MaxClients)
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
 	
 	//Set health back to what it should be after modifying weapons
@@ -4195,48 +4183,6 @@ void HandleZombieLoadout(int iClient)
 	//Reset custom models
 	SetVariantString("");
 	AcceptEntityInput(iClient, "SetCustomModel");
-}
-
-void SetZomAttribs(int iMelee, TFClassType nClass)
-{
-	char sAttrib[256], sAttribs[32][32];
-	if (!GetZombieAttribs(sAttrib, sizeof(sAttrib), nClass))
-		return;
-	
-	int iCount = ExplodeString(sAttrib, ";", sAttribs, 32, 32);
-	if (iCount % 2)
-		--iCount;
-	
-	if (iCount <= 0)
-		return;
-	
-	for (int i = 0; i < iCount; i += 2)
-	{
-		int iAttrib = StringToInt(sAttribs[i]);
-		if (iAttrib)
-			TF2Attrib_SetByDefIndex(iMelee, iAttrib, StringToFloat(sAttribs[i+1]));
-	}
-}
-
-void SetInfAttribs(int iMelee, Infected nInfected)
-{
-	char sAttrib[256], sAttribs[32][32];
-	if (!GetInfectedAttribs(sAttrib, sizeof(sAttrib), nInfected))
-		return;
-	
-	int iCount = ExplodeString(sAttrib, ";", sAttribs, 32, 32);
-	if (iCount % 2)
-		--iCount;
-	
-	if (iCount <= 0)
-		return;
-	
-	for (int i = 0; i < iCount; i += 2)
-	{
-		int iAttrib = StringToInt(sAttribs[i]);
-		if (iAttrib)
-			TF2Attrib_SetByDefIndex(iMelee, iAttrib, StringToFloat(sAttribs[i+1]));
-	}
 }
 
 void SetValidSlot(int iClient)
@@ -4536,9 +4482,9 @@ public MRESReturn ShouldBallTouch(int iEntity, Handle hReturn, Handle hParams)
 	if (!g_bEnabled) return MRES_Ignored;
 	
 	int iToucher = DHookGetParam(hParams, 1);
-	if (IsValidLivingSurvivor(iToucher))
+	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
+	if (IsValidLivingSurvivor(iToucher) && IsValidZombie(iOwner))
 	{
-		int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
 		SpitterGoo(iToucher, iOwner);
 		AcceptEntityInput(iEntity, "kill");
 		

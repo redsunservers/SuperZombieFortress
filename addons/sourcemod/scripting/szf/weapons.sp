@@ -18,8 +18,11 @@ enum struct Weapon
 	Weapon_OnPickup callback;
 }
 
-void Weapons_Init()
+void Weapons_Refresh()
 {
+	delete g_Weapons;
+	delete g_WeaponsReskin;
+	
 	g_Weapons = Config_LoadWeaponData();
 	g_WeaponsReskin = Config_LoadWeaponReskinData();
 	
@@ -37,6 +40,8 @@ void Weapons_Init()
 				g_WepIndexesByRarity[i].Push(j);
 		}
 	}
+	
+	Weapons_Precache();
 }
 
 void Weapons_Precache()

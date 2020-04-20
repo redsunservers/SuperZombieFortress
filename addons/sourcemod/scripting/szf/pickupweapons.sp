@@ -25,7 +25,7 @@ Cookie g_cWeaponsPicked;
 Cookie g_cWeaponsRarePicked;
 Cookie g_cWeaponsCalled;
 
-void Weapons_Setup()
+void Weapons_Init()
 {
 	HookEvent("teamplay_round_start", Event_WeaponsRoundStart);
 	HookEvent("player_spawn", Event_ResetPickup);
@@ -34,8 +34,6 @@ void Weapons_Setup()
 	g_cWeaponsPicked = new Cookie("weaponspicked", "is this the flowey map?", CookieAccess_Protected);
 	g_cWeaponsRarePicked = new Cookie("weaponsrarepicked", "is this the flowey map?", CookieAccess_Protected);
 	g_cWeaponsCalled = new Cookie("weaponscalled", "is this the flowey map?", CookieAccess_Protected);
-
-	Weapons_Init();
 }
 
 void Weapons_ClientDisconnect(int iClient)
