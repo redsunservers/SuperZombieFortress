@@ -10,7 +10,6 @@
 #include <tf_econ_data>
 #include <dhooks>
 #include <morecolors>
-#include <memorypatch>
 
 #undef REQUIRE_EXTENSIONS
 #tryinclude <tf2items>
