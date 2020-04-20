@@ -191,8 +191,8 @@ Handle g_hSDKEquipWearable;
 Handle g_hSDKRemoveWearable;
 Handle g_hSDKGetEquippedWearable;
 
-//Memory patches
-MemoryPatch g_hCGameUI_Deactivate_Patch;
+//Detours
+Handle g_hDetourCGameUI_Deactivate;
 
 int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
@@ -441,8 +441,8 @@ public void OnPluginEnd()
 			EndSound(iClient);
 	}
 	
-	if (g_hCGameUI_Deactivate_Patch != null)
-		g_hCGameUI_Deactivate_Patch.Disable();
+	if (g_hDetourCGameUI_Deactivate != null && !DHookDisableDetour(g_hDetourCGameUI_Deactivate, false, Detour_CGameUI_Deactivate))
+		LogMessage("Warning failed to disable CGameUI::Deactivate detour!");
 }
 
 public Action Command_Build(int iClient, const char[] sCommand, int iArgs)
@@ -4568,6 +4568,16 @@ public MRESReturn ShouldBallTouch(int iEntity, Handle hReturn, Handle hParams)
 	return MRES_Ignored;
 }
 
+public MRESReturn Detour_CGameUI_Deactivate(int iEntity, Handle hParams)
+{
+	if (!g_bEnabled) return MRES_Ignored;
+	
+	// World entity 0 should always be valid
+	// If not, then pass a resource entity like "tf_gamerules"
+	DHookSetParam(hParams, 1, 0);
+	return MRES_ChangedHandled;
+}
+
 public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
 {
 	int iEntity = EntRefToEntIndex(iRef);
@@ -5524,11 +5534,31 @@ void SDK_Init()
 	
 	hGameData = new GameData("szf");
 	
-	MemoryPatch.SetGameData(hGameData);
-	// Prevents a crash with "game_ui" entity
-	g_hCGameUI_Deactivate_Patch = new MemoryPatch("Patch_CGameUI_Deactivate");
-	if (g_hCGameUI_Deactivate_Patch != null)
-		g_hCGameUI_Deactivate_Patch.Enable();
+	// Detour used to prevent a crash with "game_ui" entity
+	// void CGameUI::Deactivate( CBaseEntity *pActivator )
+	g_hDetourCGameUI_Deactivate = DHookCreateDetour(Address_Null, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
+	if (g_hDetourCGameUI_Deactivate == null)
+	{
+		LogMessage("Failed to create detour handle for CGameUI::Deactivate!");
+	}
+	else
+	{
+		if (!DHookSetFromConf(g_hDetourCGameUI_Deactivate, hGameData, SDKConf_Signature, "CGameUI::Deactivate"))
+		{
+			LogMessage("Failed to retrieve CGameUI::Deactivate address!");
+			delete g_hDetourCGameUI_Deactivate;
+		}
+		else
+		{
+			DHookAddParam(g_hDetourCGameUI_Deactivate, HookParamType_CBaseEntity); // CBaseEntity *pActivator
+			
+			if (!DHookEnableDetour(g_hDetourCGameUI_Deactivate, false, Detour_CGameUI_Deactivate))
+			{
+				LogMessage("Failed to enable CGameUI::Deactivate detour!");
+				delete g_hDetourCGameUI_Deactivate;
+			}
+		}
+	}
 	
 	//This function is used to get weapon max ammo
 	StartPrepSDKCall(SDKCall_Player);
