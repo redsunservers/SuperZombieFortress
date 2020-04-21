@@ -16,6 +16,12 @@
 				"linux"		"@_ZN9CTFPlayer33GetEquippedWearableForLoadoutSlotEi"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x2A\x8B\xC1\x53\x56\x33\xF6\x89\x45\xF8\x8B\x88\x2A\x2A\x2A\x2A\x57\x89\x4D\xFC"
 			}
+			"CGameUI::Deactivate"
+			{
+				"library"	"server"
+				"windows"	"\x55\x8B\xEC\x51\x53\x56\x57\x8B\x2A\x8B\x97"
+				"linux"		"@_ZN7CGameUI10DeactivateEP11CBaseEntity"
+			}
 		}
 		"Offsets"
 		{
@@ -28,16 +34,6 @@
 			{
 				"linux"		"226"
 				"windows"	"224"
-			}
-			"CBasePlayer::EquipWearable"
-			{
-				"linux"		"431"
-				"windows"	"430"
-			}
-			"CBasePlayer::RemoveWearable"
-			{
-				"linux"		"432"
-				"windows"	"431"
 			}
 			"CTFStunBall::ShouldBallTouch"
 			{
