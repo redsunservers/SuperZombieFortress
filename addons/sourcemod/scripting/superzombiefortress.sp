@@ -4567,7 +4567,7 @@ public MRESReturn ShouldBallTouch(int iEntity, Handle hReturn, Handle hParams)
 	return MRES_Ignored;
 }
 
-public MRESReturn Detour_CGameUI_Deactivate(int iEntity, Handle hParams)
+public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
 {
 	if (!g_bEnabled) return MRES_Ignored;
 	
