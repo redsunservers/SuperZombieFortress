@@ -44,6 +44,10 @@ TFClassType[view_as<int>(TFClassType)] g_nSurvivorClass;
 TFClassType[view_as<int>(TFClassType)] g_nZombieClass;
 Infected[view_as<int>(Infected)] g_nInfectedClass;
 
+int g_iSurvivorClassCount;
+int g_iZombieClassCount;
+int g_iInfectedClassCount;
+
 static SurvivorClasses g_SurvivorClasses[view_as<int>(TFClassType)];
 static ZombieClasses g_ZombieClasses[view_as<int>(TFClassType)];
 static InfectedClasses g_InfectedClasses[view_as<int>(Infected)];
@@ -59,7 +63,7 @@ void Classes_Refresh()
 	//Load survivor config
 	g_aSurvivorClasses = Config_LoadSurvivorClasses();
 	
-	int iCurrent;
+	g_iSurvivorClassCount = 0;
 	int iLength = g_aSurvivorClasses.Length;
 	for (int i = 0; i < iLength; i++)
 	{
@@ -68,8 +72,8 @@ void Classes_Refresh()
 		
 		if (sur.bEnabled)
 		{
-			g_nSurvivorClass[iCurrent] = sur.nClass;
-			iCurrent++;
+			g_nSurvivorClass[g_iSurvivorClassCount] = sur.nClass;
+			g_iSurvivorClassCount++;
 		}
 		
 		g_SurvivorClasses[sur.nClass] = sur;
@@ -93,7 +97,7 @@ void Classes_Refresh()
 	g_aZombieClasses = Config_LoadZombieClasses();
 	
 	iLength = g_aZombieClasses.Length;
-	iCurrent = 0;
+	g_iZombieClassCount = 0;
 	for (int i = 0; i < iLength; i++)
 	{
 		ZombieClasses zom;
@@ -101,8 +105,8 @@ void Classes_Refresh()
 		
 		if (zom.bEnabled)
 		{
-			g_nZombieClass[iCurrent] = zom.nClass;
-			iCurrent++;
+			g_nZombieClass[g_iZombieClassCount] = zom.nClass;
+			g_iZombieClassCount++;
 		}
 		
 		g_ZombieClasses[zom.nClass] = zom;
@@ -126,7 +130,7 @@ void Classes_Refresh()
 	g_aInfectedClasses = Config_LoadInfectedClasses();
 	
 	iLength = g_aInfectedClasses.Length;
-	iCurrent = 0;
+	g_iInfectedClassCount = 0;
 	for (int i = 0; i < iLength; i++)
 	{
 		InfectedClasses inf;
@@ -134,8 +138,8 @@ void Classes_Refresh()
 		
 		if (inf.bEnabled)
 		{
-			g_nInfectedClass[iCurrent] = inf.nInfected;
-			iCurrent++;
+			g_nInfectedClass[g_iInfectedClassCount] = inf.nInfected;
+			g_iInfectedClassCount++;
 		}
 		
 		g_InfectedClasses[inf.nInfected] = inf;
@@ -166,14 +170,14 @@ stock bool IsValidSurvivorClass(TFClassType nClass)
 	return g_SurvivorClasses[nClass].bEnabled;
 }
 
-stock int GetSurvivorClassCount()
-{
-	return sizeof(g_nSurvivorClass);
-}
-
 stock TFClassType GetRandomSurvivorClass()
 {
-	return g_nSurvivorClass[GetRandomInt(0, sizeof(g_nSurvivorClass)-1)];
+	return g_nSurvivorClass[GetRandomInt(0, g_iSurvivorClassCount-1)];
+}
+
+stock int GetSurvivorClassCount()
+{
+	return g_iSurvivorClassCount;
 }
 
 stock float GetSurvivorSpeed(TFClassType nClass)
@@ -204,12 +208,12 @@ stock bool IsValidZombieClass(TFClassType nClass)
 
 stock TFClassType GetRandomZombieClass()
 {
-	return g_nZombieClass[GetRandomInt(0, sizeof(g_nZombieClass)-1)];
+	return g_nZombieClass[GetRandomInt(0, g_iZombieClassCount-1)];
 }
 
 stock int GetZombieClassCount()
 {
-	return sizeof(g_nZombieClass);
+	return g_iZombieClassCount;
 }
 
 stock float GetZombieSpeed(TFClassType nClass)
@@ -275,12 +279,12 @@ stock bool IsValidInfected(Infected nInfected)
 
 stock Infected GetRandomInfected()
 {
-	return g_nInfectedClass[GetRandomInt(2, sizeof(g_nInfectedClass)-1)];
+	return g_nInfectedClass[GetRandomInt(2, g_iInfectedClassCount-1)];
 }
 
 stock int GetInfectedCount()
 {
-	return sizeof(g_nInfectedClass);
+	return g_iInfectedClassCount;
 }
 
 stock TFClassType GetInfectedClass(Infected nInfected)

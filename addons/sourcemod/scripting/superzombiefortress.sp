@@ -189,6 +189,7 @@ Handle g_hHookShouldBallTouch;
 Handle g_hHookGiveNamedItem;
 Handle g_hSDKGetMaxHealth;
 Handle g_hSDKGetMaxAmmo;
+Handle g_hSDKRemoveWearable;
 Handle g_hSDKEquipWearable;
 Handle g_hSDKGetEquippedWearable;
 
@@ -1200,7 +1201,7 @@ public Action Command_JoinClass(int iClient, const char[] sCommand, int iArgs)
 		}
 		
 		CPrintToChat(iClient, "{red}Valid zombies:%s.", sMsg);
-		return Plugin_Handled;
+		return Plugin_Continue;
 	}
 	else if (IsSurvivor(iClient))
 	{
@@ -1230,7 +1231,7 @@ public Action Command_JoinClass(int iClient, const char[] sCommand, int iArgs)
 		}
 		
 		CPrintToChat(iClient, "{red}Valid survivors:%s.", sMsg);
-		return Plugin_Handled;
+		return Plugin_Continue;
 	}
 	
 	return Plugin_Continue;
@@ -1804,7 +1805,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 		
 		if (!IsValidSurvivorClass(nClass))
 		{
-			SpawnClient(iClient, TFTeam_Survivor);
+			TF2_RespawnPlayer2(iClient);
 			return;
 		}
 		
@@ -1824,7 +1825,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 		
 		if (!IsValidZombieClass(nClass))
 		{
-			SpawnClient(iClient, TFTeam_Zombie);
+			TF2_RespawnPlayer2(iClient);
 			return;
 		}
 		
