@@ -560,7 +560,7 @@ stock void TF2_RemoveAmmo(int iClient, int iSlot, int iAmmo)
 //
 ////////////////////////////////////////////////////////////
 
-stock void SpawnClient(int iClient, TFTeam nTeam)
+stock void SpawnClient(int iClient, TFTeam nTeam, bool bRespawn = true)
 {
 	//1. Prevent players from spawning if they're on an invalid team.
 	//        Prevent players from spawning as an invalid class.
@@ -580,7 +580,9 @@ stock void SpawnClient(int iClient, TFTeam nTeam)
 		TF2_SetPlayerClass(iClient, nClass);
 		TF2_ChangeClientTeam(iClient, nTeam);
 		SetEntProp(iClient, Prop_Send, "m_lifeState", 0);
-		TF2_RespawnPlayer(iClient);
+		
+		if (bRespawn)
+			TF2_RespawnPlayer(iClient);
 	}
 }
 

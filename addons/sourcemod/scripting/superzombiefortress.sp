@@ -137,7 +137,7 @@ ArrayList g_aFastRespawn;
 
 bool g_bBackstabbed[TF_MAXPLAYERS];
 
-int g_iDamage[TF_MAXPLAYERS];
+int g_iDamageZombie[TF_MAXPLAYERS];
 int g_iDamageTakenLife[TF_MAXPLAYERS];
 int g_iDamageDealtLife[TF_MAXPLAYERS];
 
@@ -157,6 +157,7 @@ float g_flTimeProgress;
 //ConVars
 ConVar mp_autoteambalance;
 ConVar mp_teams_unbalance_limit;
+ConVar mp_scrambleteams_auto;
 ConVar mp_waitingforplayers_time;
 ConVar tf_weapon_criticals;
 ConVar tf_obj_upgrade_per_hit;
@@ -181,6 +182,8 @@ GlobalForward g_hForwardStartZombie;
 GlobalForward g_hForwardAllowMusicPlay;
 
 //SDK functions
+Handle g_hHookSetWinningTeam;
+Handle g_hHookRoundRespawn;
 Handle g_hHookGetMaxHealth;
 Handle g_hHookShouldBallTouch;
 Handle g_hHookGiveNamedItem;
@@ -188,6 +191,9 @@ Handle g_hSDKGetMaxHealth;
 Handle g_hSDKGetMaxAmmo;
 Handle g_hSDKEquipWearable;
 Handle g_hSDKGetEquippedWearable;
+
+//Detours
+Handle g_hDetourCGameUI_Deactivate;
 
 int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
@@ -313,6 +319,7 @@ public void OnPluginStart()
 	
 	mp_autoteambalance = FindConVar("mp_autoteambalance");
 	mp_teams_unbalance_limit = FindConVar("mp_teams_unbalance_limit");
+	mp_scrambleteams_auto = FindConVar("mp_scrambleteams_auto");
 	mp_waitingforplayers_time = FindConVar("mp_waitingforplayers_time");
 	tf_weapon_criticals = FindConVar("tf_weapon_criticals");
 	tf_obj_upgrade_per_hit = FindConVar("tf_obj_upgrade_per_hit");
@@ -336,7 +343,6 @@ public void OnPluginStart()
 	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy", _, true, 0.0);
 	
 	//Hook events
-	HookEvent("teamplay_round_start", Event_RoundStart);
 	HookEvent("teamplay_setup_finished", Event_SetupEnd);
 	HookEvent("teamplay_round_win", Event_RoundEnd);
 	HookEvent("player_spawn", Event_PlayerSpawn);
@@ -434,6 +440,9 @@ public void OnPluginEnd()
 		if (IsClientInGame(iClient))
 			EndSound(iClient);
 	}
+	
+	if (g_hDetourCGameUI_Deactivate != null && !DHookDisableDetour(g_hDetourCGameUI_Deactivate, false, Detour_CGameUI_Deactivate))
+		LogMessage("Warning failed to disable CGameUI::Deactivate detour!");
 }
 
 public Action Command_Build(int iClient, const char[] sCommand, int iArgs)
@@ -673,7 +682,7 @@ public void OnClientPutInServer(int iClient)
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	
-	g_iDamage[iClient] = GetAverageDamage();
+	g_iDamageZombie[iClient] = 0;
 }
 
 public void OnClientDisconnect(int iClient)
@@ -899,7 +908,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			{
 				if (!g_bBackstabbed[iVictim])
 				{
-					if (IsRazorbackActive(iVictim))
+					if (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB)
 						return Plugin_Continue;
 					
 					if (g_nInfected[iAttacker] == Infected_Stalker)
@@ -1357,7 +1366,13 @@ public void TF2_OnWaitingForPlayersEnd()
 	g_nRoundState = SZFRoundState_Grace;
 }
 
-public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
+public MRESReturn DHook_SetWinningTeam(Handle hParams)
+{
+	DHookSetParam(hParams, 4, false);	// always return false to bSwitchTeams
+	return MRES_ChangedOverride;
+}
+
+public MRESReturn DHook_RoundRespawn()
 {
 	if (!g_bEnabled) return;
 	if (g_nRoundState == SZFRoundState_Setup) return;
@@ -1368,7 +1383,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		g_iDamage[iClient] = 0;
+		g_iDamageZombie[iClient] = 0;
 		g_iKillsThisLife[iClient] = 0;
 		g_bSpawnAsSpecialInfected[iClient] = false;
 		g_nInfected[iClient] = Infected_None;
@@ -1439,7 +1454,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 				if (action == Plugin_Handled)
 				{
 					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie);
+					SpawnClient(iClient, TFTeam_Zombie, false);
 					nClientTeam[iClient] = TFTeam_Zombie;
 					g_bStartedAsZombie[iClient] = true;
 					g_flTimeStartAsZombie[iClient] = GetGameTime();
@@ -1452,7 +1467,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 					SetClientCookie(iClient, g_cForceZombieStart, "0");
 					
 					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie);
+					SpawnClient(iClient, TFTeam_Zombie, false);
 					nClientTeam[iClient] = TFTeam_Zombie;
 					g_bStartedAsZombie[iClient] = true;
 					g_flTimeStartAsZombie[iClient] = GetGameTime();
@@ -1462,7 +1477,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 					//Players who started as zombie last time is forced to be survivors
 					
 					//Survivor
-					SpawnClient(iClient, TFTeam_Survivor);
+					SpawnClient(iClient, TFTeam_Survivor, false);
 					nClientTeam[iClient] = TFTeam_Survivor;
 					g_bStartedAsZombie[iClient] = false;
 					g_iStartSurvivors++;
@@ -1482,7 +1497,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 				if (iSurvivorCount > 0)
 				{
 					//Survivor
-					SpawnClient(iClient, TFTeam_Survivor);
+					SpawnClient(iClient, TFTeam_Survivor, false);
 					nClientTeam[iClient] = TFTeam_Survivor;
 					g_bStartedAsZombie[iClient] = false;
 					g_iStartSurvivors++;
@@ -1491,7 +1506,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 				else
 				{
 					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie);
+					SpawnClient(iClient, TFTeam_Zombie, false);
 					nClientTeam[iClient] = TFTeam_Zombie;
 					g_bStartedAsZombie[iClient] = true;
 					g_flTimeStartAsZombie[iClient] = GetGameTime();
@@ -1626,7 +1641,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 		TF2_RespawnPlayer2(iClient);
 		return;
 	}
-	
+		
 	g_iEyelanderHead[iClient] = 0;
 	g_iSuperHealthSubtract[iClient] = 0;
 	g_bHitOnce[iClient] = false;
@@ -1864,7 +1879,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	
 	if (g_nInfected[iVictim] == Infected_Tank)
 	{
-		g_iDamage[iVictim] = GetAverageDamage();
+		g_iDamageZombie[iVictim] = 0;
 		
 		int iWinner = 0;
 		float flHighest = 0.0;
@@ -2094,7 +2109,9 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 	{
 		g_iDamageTakenLife[iVictim] += iDamageAmount;
 		g_iDamageDealtLife[iAttacker] += iDamageAmount;
-		g_iDamage[iAttacker] += iDamageAmount;
+		
+		if (IsValidZombie(iAttacker))
+			g_iDamageZombie[iAttacker] += iDamageAmount;
 	}
 	
 	return Plugin_Continue;
@@ -2870,6 +2887,7 @@ void SZFEnable()
 	
 	mp_autoteambalance.SetBool(false);
 	mp_teams_unbalance_limit.SetBool(false);
+	mp_scrambleteams_auto.SetBool(false);
 	mp_waitingforplayers_time.SetInt(70);
 	tf_weapon_criticals.SetBool(false);
 	tf_obj_upgrade_per_hit.SetInt(0);
@@ -2880,6 +2898,7 @@ void SZFEnable()
 	
 	mp_autoteambalance.AddChangeHook(OnConvarChanged);
 	mp_teams_unbalance_limit.AddChangeHook(OnConvarChanged);
+	mp_scrambleteams_auto.AddChangeHook(OnConvarChanged);
 	mp_waitingforplayers_time.AddChangeHook(OnConvarChanged);
 	tf_weapon_criticals.AddChangeHook(OnConvarChanged);
 	tf_obj_upgrade_per_hit.AddChangeHook(OnConvarChanged);
@@ -2927,6 +2946,7 @@ void SZFDisable()
 	
 	mp_autoteambalance.RemoveChangeHook(OnConvarChanged);
 	mp_teams_unbalance_limit.RemoveChangeHook(OnConvarChanged);
+	mp_scrambleteams_auto.RemoveChangeHook(OnConvarChanged);
 	mp_waitingforplayers_time.RemoveChangeHook(OnConvarChanged);
 	tf_weapon_criticals.RemoveChangeHook(OnConvarChanged);
 	tf_obj_upgrade_per_hit.RemoveChangeHook(OnConvarChanged);
@@ -2937,6 +2957,7 @@ void SZFDisable()
 	
 	mp_autoteambalance.RestoreDefault();
 	mp_teams_unbalance_limit.RestoreDefault();
+	mp_scrambleteams_auto.RestoreDefault();
 	mp_waitingforplayers_time.RestoreDefault();
 	tf_weapon_criticals.RestoreDefault();
 	tf_obj_upgrade_per_hit.RestoreDefault();
@@ -2965,6 +2986,7 @@ public void OnConvarChanged(ConVar convar, const char[] oldValue, const char[] n
 	
 	if (convar == mp_autoteambalance && flValue != 0.0) mp_autoteambalance.SetBool(false);
 	else if (convar == mp_teams_unbalance_limit && flValue != 0.0) mp_teams_unbalance_limit.SetBool(false);
+	else if (convar == mp_scrambleteams_auto && flValue != 0.0) mp_scrambleteams_auto.SetBool(false);
 	else if (convar == mp_waitingforplayers_time && flValue != 70.0) mp_waitingforplayers_time.SetInt(70);
 	else if (convar == tf_weapon_criticals && flValue != 0.0) tf_weapon_criticals.SetBool(false);
 	else if (convar == tf_obj_upgrade_per_hit && flValue != 0.0) tf_obj_upgrade_per_hit.SetInt(0);
@@ -3761,6 +3783,9 @@ public void OnMapStart()
 	
 	HookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
 	HookEntityOutput("math_counter", "OutValue", OnCounterValue);
+	
+	DHookGamerules(g_hHookSetWinningTeam, false, _, DHook_SetWinningTeam);
+	DHookGamerules(g_hHookRoundRespawn, false, _, DHook_RoundRespawn);
 }
 
 public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, float flDelay)
@@ -4495,6 +4520,21 @@ public MRESReturn ShouldBallTouch(int iEntity, Handle hReturn, Handle hParams)
 	return MRES_Ignored;
 }
 
+public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
+{
+	if (!g_bEnabled) return MRES_Ignored;
+	
+	// World entity 0 should always be valid
+	// If not, then pass a resource entity like "tf_gamerules"
+	int iEntity = 0;
+	while ((iEntity = FindEntityByClassname(iEntity, "*")) != -1)
+	{
+		DHookSetParam(hParams, 1, GetEntityAddress(iEntity));
+		return MRES_ChangedHandled;
+	}
+	return MRES_Ignored;
+}
+
 public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
 {
 	int iEntity = EntRefToEntIndex(iRef);
@@ -4622,11 +4662,11 @@ int GetMostDamageZom()
 	int iHighest = 0;
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient))
-			if (g_iDamage[iClient] > iHighest) iHighest = g_iDamage[iClient];
+		if (IsValidZombie(iClient) && g_iDamageZombie[iClient] > iHighest)
+			iHighest = g_iDamageZombie[iClient];
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && g_iDamage[iClient] >= iHighest)
+		if (IsValidZombie(iClient) && g_iDamageZombie[iClient] >= iHighest)
 			aClients.Push(iClient);
 	
 	if (aClients.Length <= 0)
@@ -4724,22 +4764,6 @@ stock bool RemoveSecondaryWearable(int iClient)
 	}
 	
 	return false;
-}
-
-int GetAverageDamage()
-{
-	int iTotalDamage = 0;
-	int iCount = 0;
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (IsClientInGame(i))
-		{
-			iTotalDamage += g_iDamage[i];
-			iCount++;
-		}
-	}
-	
-	return RoundFloat(float(iTotalDamage) / float(iCount));
 }
 
 int GetActivePlayerCount()
@@ -5445,8 +5469,56 @@ void SDK_Init()
 		LogMessage("Failed to create call: CTFPlayer::GetMaxHealth!");
 	
 	delete hGameData;
+	hGameData = new GameData("sm-tf2.games");
+	if (hGameData == null)
+		SetFailState("Could not find sm-tf2.games gamedata!");
+	
+	int iRemoveWearableOffset = hGameData.GetOffset("RemoveWearable");
+	//This function is used to remove a player wearable properly
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetVirtual(iRemoveWearableOffset);
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	g_hSDKRemoveWearable = EndPrepSDKCall();
+	if(g_hSDKRemoveWearable == null)
+		LogMessage("Failed to create call: CBasePlayer::RemoveWearable!");
+	
+	//This function is used to equip wearables
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetVirtual(iRemoveWearableOffset-1);// Assume EquipWearable is always behind RemoveWearable
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	g_hSDKEquipWearable = EndPrepSDKCall();
+	if(g_hSDKEquipWearable == null)
+		LogMessage("Failed to create call: CBasePlayer::EquipWearable!");
+	
+	delete hGameData;
 	
 	hGameData = new GameData("szf");
+	
+	// Detour used to prevent a crash with "game_ui" entity
+	// void CGameUI::Deactivate( CBaseEntity *pActivator )
+	g_hDetourCGameUI_Deactivate = DHookCreateDetour(Address_Null, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
+	if (g_hDetourCGameUI_Deactivate == null)
+	{
+		LogMessage("Failed to create detour handle for CGameUI::Deactivate!");
+	}
+	else
+	{
+		if (!DHookSetFromConf(g_hDetourCGameUI_Deactivate, hGameData, SDKConf_Signature, "CGameUI::Deactivate"))
+		{
+			LogMessage("Failed to retrieve CGameUI::Deactivate address!");
+			delete g_hDetourCGameUI_Deactivate;
+		}
+		else
+		{
+			DHookAddParam(g_hDetourCGameUI_Deactivate, HookParamType_Int); // CBaseEntity *pActivator
+			
+			if (!DHookEnableDetour(g_hDetourCGameUI_Deactivate, false, Detour_CGameUI_Deactivate))
+			{
+				LogMessage("Failed to enable CGameUI::Deactivate detour!");
+				delete g_hDetourCGameUI_Deactivate;
+			}
+		}
+	}
 	
 	//This function is used to get weapon max ammo
 	StartPrepSDKCall(SDKCall_Player);
@@ -5458,14 +5530,6 @@ void SDK_Init()
 	if (g_hSDKGetMaxAmmo == null)
 		LogMessage("Failed to create call: CTFPlayer::GetMaxAmmo!");
 	
-	//This function is used to equip wearables 
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(hGameData, SDKConf_Virtual, "CBasePlayer::EquipWearable");
-	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
-	g_hSDKEquipWearable = EndPrepSDKCall();
-	if (g_hSDKEquipWearable == null)
-		LogMessage("Failed to create call: CBasePlayer::EquipWearable!");
-	
 	//This function is used to get wearable equipped in loadout slots
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hGameData, SDKConf_Signature, "CTFPlayer::GetEquippedWearableForLoadoutSlot");
@@ -5475,7 +5539,30 @@ void SDK_Init()
 	if (g_hSDKGetEquippedWearable == null)
 		LogMessage("Failed to create call: CTFPlayer::GetEquippedWearableForLoadoutSlot!");
 	
-	// This hook calls when Sandman Ball stuns a player
+	//This hook calls when someone won a round
+	iOffset = hGameData.GetOffset("CTeamplayRoundBasedRules::SetWinningTeam");
+	g_hHookSetWinningTeam = DHookCreate(iOffset, HookType_GameRules, ReturnType_Void, ThisPointer_Ignore);
+	if (g_hHookSetWinningTeam == null)
+	{
+		LogMessage("Failed to create hook: CTeamplayRoundBasedRules::SetWinningTeam!");
+	}
+	else
+	{
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Int);	// team
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Int);	// iWinReason
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bForceMapReset
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bSwitchTeams
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bDontAddScore
+		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bFinal
+	}
+	
+	//This hook calls when round is starting
+	iOffset = hGameData.GetOffset("CTeamplayRoundBasedRules::RoundRespawn");
+	g_hHookRoundRespawn = DHookCreate(iOffset, HookType_GameRules, ReturnType_Void, ThisPointer_Ignore);
+	if (g_hHookRoundRespawn == null)
+		LogMessage("Failed to create hook: CTeamplayRoundBasedRules::RoundRespawn!");
+	
+	//This hook calls when Sandman Ball stuns a player
 	iOffset = hGameData.GetOffset("CTFStunBall::ShouldBallTouch");
 	g_hHookShouldBallTouch = DHookCreate(iOffset, HookType_Entity, ReturnType_Bool, ThisPointer_CBaseEntity);
 	if (g_hHookShouldBallTouch == null)
