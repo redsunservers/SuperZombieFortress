@@ -4573,8 +4573,13 @@ public MRESReturn Detour_CGameUI_Deactivate(int iEntity, Handle hParams)
 	
 	// World entity 0 should always be valid
 	// If not, then pass a resource entity like "tf_gamerules"
-	DHookSetParam(hParams, 1, 0);
-	return MRES_ChangedHandled;
+	int iEntity = 0;
+	while ((iEntity = FindEntityByClassname(iEntity, "*")) != -1)
+	{
+		DHookSetParam(hParams, 1, GetEntityAddress(iEntity));
+		return MRES_ChangedHandled;
+	}
+	return MRES_Ignored;
 }
 
 public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
@@ -5549,7 +5554,7 @@ void SDK_Init()
 		}
 		else
 		{
-			DHookAddParam(g_hDetourCGameUI_Deactivate, HookParamType_CBaseEntity); // CBaseEntity *pActivator
+			DHookAddParam(g_hDetourCGameUI_Deactivate, HookParamType_Int); // CBaseEntity *pActivator
 			
 			if (!DHookEnableDetour(g_hDetourCGameUI_Deactivate, false, Detour_CGameUI_Deactivate))
 			{
