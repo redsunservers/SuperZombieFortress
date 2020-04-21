@@ -25,6 +25,16 @@
 		}
 		"Offsets"
 		{
+			"CTeamplayRoundBasedRules::SetWinningTeam"
+			{
+				"linux"		"161"
+				"windows"	"160"
+			}
+			"CTeamplayRoundBasedRules::RoundRespawn"
+			{
+				"linux"		"226"
+				"windows"	"224"
+			}
 			"CTFStunBall::ShouldBallTouch"
 			{
 				"linux"		"262"
