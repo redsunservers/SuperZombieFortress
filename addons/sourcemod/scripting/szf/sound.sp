@@ -202,12 +202,30 @@ char g_sSoundSpawnInfected[][PLATFORM_MAX_PATH] =
 	"misc/null.wav",						//kingpin, used to use smoker's bacteria (need new sound for kingpin)
 	"left4fortress/jockeybacterias.mp3",	//stalker
 	"left4fortress/hunterbacterias.mp3",	//hunter
-	"left4fortress/smokerbacterias.mp3",	//smoker
+	"left4fortress/smokerbacterias.mp3"		//smoker
 };
 
 /* VO */
 
-/* SOLDIER */
+/* Scout */
+char g_sVoCarryScout[][PLATFORM_MAX_PATH] =
+{
+	"scout_autocappedcontrolpoint01.mp3",
+	"scout_autocappedcontrolpoint03.mp3",
+	"scout_autocappedcontrolpoint04.mp3",
+	"scout_go02.mp3"
+};
+
+char g_sVoWeaponScout[][PLATFORM_MAX_PATH] =
+{
+	"scout_mvm_loot_common03.mp3",
+	"scout_mvm_loot_common04.mp3",
+	"scout_mvm_loot_rare01.mp3",
+	"scout_mvm_loot_rare02.mp3"
+};
+
+
+/* Soldier */
 char g_sVoCarrySoldier[][PLATFORM_MAX_PATH] =
 {
 	"vo/soldier_autocappedcontrolpoint01.mp3",
@@ -245,7 +263,7 @@ char g_sVoTankSoldier[][PLATFORM_MAX_PATH] =
 };
 
 
-/* PYRO */
+/* Pyro */
 char g_sVoCarryPyro[][PLATFORM_MAX_PATH] =
 {
 	"vo/pyro_autocappedcontrolpoint01.mp3",
@@ -295,6 +313,31 @@ char g_sVoWeaponDemoman[][PLATFORM_MAX_PATH] =
 	"vo/demoman_mvm_loot_rare02.mp3"
 };
 
+
+/* Heavy */
+char g_sVoCarryHeavy[][PLATFORM_MAX_PATH] =
+{
+	"heavy_autocappedintelligence01.mp3",
+	"heavy_go02.mp3",
+	"heavy_go03.mp3"
+};
+
+char g_sVoWeaponHeavy[][PLATFORM_MAX_PATH] =
+{
+	"heavy_mvm_get_upgrade04.mp3",
+	"heavy_mvm_loot_common01.mp3",
+	"heavy_mvm_loot_common02.mp3",
+	"heavy_mvm_loot_godlike02.mp3",
+	"heavy_specialweapon05.mp3",
+	"heavy_specialweapon09.mp3"
+};
+
+char g_sVoTankHeavy[][PLATFORM_MAX_PATH] =
+{
+	"heavy_mvm_tank_alert01.mp3",
+	"heavy_mvm_tank_alert02.mp3",
+	"heavy_mvm_tank_alert03.mp3"
+};
 
 /* Engineer */
 char g_sVoCarryEngineer[][PLATFORM_MAX_PATH] =
@@ -404,6 +447,20 @@ char g_sVoWeaponSniper[][PLATFORM_MAX_PATH] =
 	"vo/sniper_specialweapon07.mp3",
 	"vo/sniper_specialweapon08.mp3",
 	"vo/sniper_specialweapon09.mp3"
+};
+
+
+/* Spy */
+char g_sVoCarrySpy[][PLATFORM_MAX_PATH] =
+{
+	"spy_autocappedcontrolpoint03.mp3",
+	"spy_go01.mp3",
+	"spy_go02.mp3"
+};
+
+char g_sVoWeaponSpy[][PLATFORM_MAX_PATH] =
+{
+	"spy_mvm_loot_common01.mp3"
 };
 
 /* Common Infected */
@@ -740,43 +797,48 @@ void SoundAttack(int iVictim, int iAttacker)
 	Sound nSound = Sound_None;
 	float flDuration = 0.0;
 	
-	if (iClass == TFClass_Scout)
+	switch (iClass)
 	{
-		if (bDramatic)
+		case TFClass_Scout, TFClass_Medic, TFClass_Sniper:
 		{
-			nSound = SoundAttack_Drums;
-			flDuration = 5.74;
+			if (bDramatic)
+			{
+				nSound = SoundAttack_Drums;
+				flDuration = 5.74;
+			}
+			else
+			{
+				nSound = SoundAttack_Trumpet;
+				flDuration = 0.80;
+			}
 		}
-		else
+		
+		case TFClass_Soldier, TFClass_DemoMan, TFClass_Heavy:
 		{
-			nSound = SoundAttack_Trumpet;
-			flDuration = 0.80;
+			if (bDramatic)
+			{
+				nSound = SoundAttack_Banjo;
+				flDuration = 5.74;
+			}
+			else
+			{
+				nSound = SoundAttack_Snare;
+				flDuration = 5.74;
+			}
 		}
-	}
-	else if (iClass == TFClass_Heavy)
-	{
-		if (bDramatic)
+		
+		case TFClass_Pyro, TFClass_Engineer, TFClass_Spy:
 		{
-			nSound = SoundAttack_Banjo;
-			flDuration = 5.74;
-		}
-		else
-		{
-			nSound = SoundAttack_Snare;
-			flDuration = 5.74;
-		}
-	}
-	else if (iClass == TFClass_Spy)
-	{
-		if (bDramatic)
-		{
-			nSound = SoundAttack_SlayerMild;
-			flDuration = 2.90;
-		}
-		else
-		{
-			nSound = SoundAttack_Slayer;
-			flDuration = 5.74;
+			if (bDramatic)
+			{
+				nSound = SoundAttack_SlayerMild;
+				flDuration = 2.90;
+			}
+			else
+			{
+				nSound = SoundAttack_Slayer;
+				flDuration = 5.74;
+			}
 		}
 	}
 	

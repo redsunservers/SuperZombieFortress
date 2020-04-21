@@ -1,32 +1,37 @@
+//Scout
+#define WEAPON_BFB 772
+
 //Soldier
 #define WEAPON_ESCAPEPLAN 775
 
+//Pyro
+#define WEAPON_POWERJACK 214
+
 //Demoman
 #define WEAPON_SKULLCUTTER 172
+#define WEAPON_CLAIDHEAMHMOR 327
 #define WEAPON_PERSIAN 404
+
+//Heavy
+#define WEAPON_GRU 239
+#define WEAPON_FGRU 1084
+#define WEAPON_BREADBITE 1110
+#define WEAPON_EVICTIONNOTICE 426
 
 //Medic
 #define WEAPON_OVERDOSE 412
-
-//Pyro
-#define WEAPON_POWERJACK 214
 
 //Required for TF2_FlagWeaponNoDrop
 #define FLAG_DONT_DROP_WEAPON 				0x23E173A2
 #define OFFSET_DONT_DROP					36
 
-//ZF Class Objects
-TFClassType[] g_nSurvivorClass = { TFClass_Sniper, TFClass_Soldier, TFClass_DemoMan, TFClass_Medic, TFClass_Pyro, TFClass_Engineer };
-TFClassType[] g_nZombieClass = { TFClass_Scout, TFClass_Heavy, TFClass_Spy };
-
-static const bool g_bValidSurvivor[view_as<int>(TFClassType)] = { false, false, true, true, true, true, false, true, false, true};
-static const bool g_bValidZombie[view_as<int>(TFClassType)]	 = { false, true, false, false, false, false, true, false, true, false};
-
 //Zombie Soul related indexes
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
 
-char g_sClassNames[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
+char g_sClassNames[view_as<int>(TFClassType)][16] = { "", "Scout", "Sniper", "Soldier", "Demoman", "Medic", "Heavy", "Pyro", "Spy", "Engineer" };
+char g_sInfectedNames[view_as<int>(Infected)][16] = { "", "Tank", "Boomer", "Charger", "Kingpin", "Stalker", "Hunter", "Smoker" };
+char g_sClassFiles[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
 int g_iVoodooIndex[view_as<int>(TFClassType)] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
 int g_iZombieSoulIndex[view_as<int>(TFClassType)];
 
@@ -114,24 +119,31 @@ stock bool IsValidLivingZombie(int iClient)
 //
 ////////////////////////////////////////////////////////////
 
-stock bool IsValidZombieClass(TFClassType nClass)
+stock void TF2_GetClassName(char[] sBuffer, int iLength, int iClass)
 {
-	return g_bValidZombie[nClass];
+	strcopy(sBuffer, iLength, g_sClassNames[iClass]);
 }
 
-stock bool IsValidSurvivorClass(TFClassType nClass)
+stock void GetInfectedName(char[] sBuffer, int iLength, int iInfected)
 {
-	return g_bValidSurvivor[nClass];
+	strcopy(sBuffer, iLength, g_sInfectedNames[iInfected]);
 }
 
-stock TFClassType GetRandomZombieClass()
+stock float TF2_GetClassSpeed(TFClassType nClass)
 {
-	return g_nZombieClass[GetRandomInt(0, sizeof(g_nZombieClass)-1)];
-}
-
-stock TFClassType GetRandomSurvivorClass()
-{
-	return g_nSurvivorClass[GetRandomInt(0, sizeof(g_nSurvivorClass)-1)];
+	switch (nClass)
+	{
+		case TFClass_Scout: return 400.0;
+		case TFClass_Soldier: return 240.0;
+		case TFClass_Pyro: return 300.0;
+		case TFClass_DemoMan: return 280.0;
+		case TFClass_Heavy: return 230.0;
+		case TFClass_Engineer: return 300.0;
+		case TFClass_Medic: return 320.0;
+		case TFClass_Sniper: return 300.0;
+		case TFClass_Spy: return 320.0;
+		default: return 0.0;
+	}
 }
 
 ////////////////////////////////////////////////////////////
@@ -245,6 +257,23 @@ stock bool TF2_IsSlotClassname(int iClient, int iSlot, char[] sClassname)
 	return false;
 }
 
+stock int TF2_GetSlotInItem(int iIndex, TFClassType nClass)
+{
+	int iSlot = TF2Econ_GetItemSlot(iIndex, nClass);
+	if (iSlot >= 0)
+	{
+		//Spy slots is a bit messy
+		if (nClass == TFClass_Spy)
+		{
+			if (iSlot == 1) iSlot = WeaponSlot_Primary;	//Revolver
+			if (iSlot == 4) iSlot = WeaponSlot_Secondary;	//Sapper
+			if (iSlot == 6) iSlot = WeaponSlot_InvisWatch;	//Invis Watch
+		}
+	}
+	
+	return iSlot;
+}
+
 ////////////////////////////////////////////////////////////
 //
 // Speed Utils
@@ -259,30 +288,17 @@ stock void SetClientSpeed(int iClient, float flSpeed)
 	SetEntPropFloat(iClient, Prop_Data, "m_flMaxspeed", flSpeed);
 }
 
-stock float GetClientBaseSpeed(int iClient)
-{
-	switch (TF2_GetPlayerClass(iClient))
-	{
-		case TFClass_Soldier: return 240.0;	//Default 240.0
-		case TFClass_DemoMan: return 280.0;	//Default 280.0
-		case TFClass_Medic: return 300.0; //Default 320.0 <Slowed>
-		case TFClass_Pyro: return 280.0; //Default 300.0 <Slowed>
-		case TFClass_Engineer: return 300.0; //Default 300.0
-		case TFClass_Sniper: return 300.0; //Default 300.0
-		case TFClass_Scout: return 330.0; //Default 400.0 <Slowed>
-		case TFClass_Spy: return 280.0;	//Default 320.0 <Slowed>
-		case TFClass_Heavy: return 230.0; //Default 230.0
-	}
-	
-	return 0.0;
-}
-
 stock float GetClientBonusSpeed(int iClient)
 {
 	switch (TF2_GetPlayerClass(iClient))
 	{
 		case TFClass_Scout:
 		{
+			if (TF2_IsEquipped(iClient, WEAPON_BFB))
+			{
+				return 4.5*GetEntPropFloat(iClient, Prop_Send, "m_flHypeMeter");
+			}
+			
 			if (TF2_IsPlayerInCondition(iClient, TFCond_CritCola))
 			{
 				return 20.0;
@@ -312,6 +328,7 @@ stock float GetClientBonusSpeed(int iClient)
 			//Eyelander
 			if (TF2_IsSlotClassname(iClient, 2, "tf_weapon_sword")
 				&& !TF2_IsEquipped(iClient, WEAPON_SKULLCUTTER)
+				&& !TF2_IsEquipped(iClient, WEAPON_CLAIDHEAMHMOR)
 				&& !TF2_IsEquipped(iClient, WEAPON_PERSIAN))
 			{
 				int iHeads = GetEntProp(iClient, Prop_Send, "m_iDecapitations");
@@ -320,6 +337,20 @@ stock float GetClientBonusSpeed(int iClient)
 			else if (TF2_IsEquipped(iClient, WEAPON_SKULLCUTTER))
 			{
 				return -42.0;
+			}
+		}
+		case TFClass_Heavy:
+		{
+			if (TF2_IsWielding(iClient, WEAPON_GRU)
+				|| TF2_IsWielding(iClient, WEAPON_FGRU)
+				|| TF2_IsWielding(iClient, WEAPON_BREADBITE))
+			{
+				return 70.0;
+			}
+			
+			if (TF2_IsWielding(iClient, WEAPON_EVICTIONNOTICE))
+			{
+				return 35.0;
 			}
 		}
 		case TFClass_Medic:
@@ -555,6 +586,20 @@ stock void SpawnClient(int iClient, TFTeam nTeam, bool bRespawn = true)
 	}
 }
 
+stock void TF2_RespawnPlayer2(int iClient)
+{
+	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	TFTeam nTeam = TF2_GetClientTeam(iClient);
+	
+	if (nTeam == TFTeam_Zombie && !IsValidZombieClass(nClass))
+		TF2_SetPlayerClass(iClient, GetRandomZombieClass());
+		
+	if (nTeam == TFTeam_Survivor && !IsValidSurvivorClass(nClass))
+		TF2_SetPlayerClass(iClient, GetRandomSurvivorClass());
+	
+	TF2_RespawnPlayer(iClient);
+}
+
 stock void SetTeamRespawnTime(TFTeam nTeam, float flTime)
 {
 	int iEntity = FindEntityByClassname(-1, "tf_gamerules");
@@ -640,6 +685,45 @@ stock void TF2_FlagWeaponDontDrop(int iWeapon, bool bVisibleHack = true)
 	
 	StoreToAddress(addr, FLAG_DONT_DROP_WEAPON, NumberType_Int32);
 	if (bVisibleHack) SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", 1);
+}
+
+stock int TF2_GetItemInSlot(int iClient, int iSlot)
+{
+	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
+	if (iEntity > MaxClients)
+		return iEntity;
+	
+	iEntity = SDK_GetEquippedWearable(iClient, iSlot);
+	if (iEntity > MaxClients)
+		return iEntity;
+	
+	return -1;
+}
+
+stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
+{
+	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
+	if (iEntity > MaxClients)
+		TF2_RemoveWeaponSlot(iClient, iSlot);
+	
+	int iWearable = SDK_GetEquippedWearable(iClient, iSlot);
+	if (iWearable > MaxClients)
+		TF2_RemoveWearable(iClient, iWearable);
+}
+
+stock void CheckClientWeapons(int iClient)
+{
+	for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
+	{
+		int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
+		if (iWeapon > MaxClients)
+		{
+			char sClassname[256];
+			GetEntityClassname(iWeapon, sClassname, sizeof(sClassname));
+			if (OnGiveNamedItem(iClient, sClassname, GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
+				TF2_RemoveItemInSlot(iClient, iSlot);
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////
@@ -820,7 +904,7 @@ stock int PrecacheZombieSouls()
 	//Loops through all class types available
 	for (int iClass = 1; iClass < view_as<int>(TFClassType); iClass++)
 	{
-		Format(sPath, sizeof(sPath), "models/player/items/%s/%s_zombie.mdl", g_sClassNames[iClass], g_sClassNames[iClass]);
+		Format(sPath, sizeof(sPath), "models/player/items/%s/%s_zombie.mdl", g_sClassFiles[iClass], g_sClassFiles[iClass]);
 		g_iZombieSoulIndex[iClass] = PrecacheModel(sPath);
 	}
 }

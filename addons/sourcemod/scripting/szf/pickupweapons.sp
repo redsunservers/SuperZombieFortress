@@ -25,17 +25,15 @@ Cookie g_cWeaponsPicked;
 Cookie g_cWeaponsRarePicked;
 Cookie g_cWeaponsCalled;
 
-void Weapons_Setup()
+void Weapons_Init()
 {
 	HookEvent("teamplay_round_start", Event_WeaponsRoundStart);
 	HookEvent("player_spawn", Event_ResetPickup);
 	HookEvent("player_death", Event_ResetPickup);
-	
+
 	g_cWeaponsPicked = new Cookie("weaponspicked", "is this the flowey map?", CookieAccess_Protected);
 	g_cWeaponsRarePicked = new Cookie("weaponsrarepicked", "is this the flowey map?", CookieAccess_Protected);
 	g_cWeaponsCalled = new Cookie("weaponscalled", "is this the flowey map?", CookieAccess_Protected);
-	
-	Weapons_Init();
 }
 
 void Weapons_ClientDisconnect(int iClient)
@@ -211,12 +209,13 @@ bool AttemptGrabItem(int iClient)
 		char sClient[128];
 		GetClientName2(iClient, sClient, sizeof(sClient));
 		
-		if (iIndex == 9 || iIndex == 10 || iIndex == 12)	//Shotgun
+		if (9 <= iIndex && iIndex <= 12)	//Shotgun
 		{
 			switch (TF2_GetPlayerClass(iClient))
 			{
 				case TFClass_Soldier: iIndex = 10;
 				case TFClass_Pyro: iIndex = 12;
+				case TFClass_Heavy: iIndex = 11;
 				case TFClass_Engineer: iIndex = 9;
 			}
 			
@@ -294,12 +293,15 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	
 	switch (nClass)
 	{
+		case TFClass_Scout: Format(sSound, sizeof(sSound), g_sVoWeaponScout[GetRandomInt(0, sizeof(g_sVoWeaponScout)-1)]);
 		case TFClass_Soldier: Format(sSound, sizeof(sSound), g_sVoWeaponSoldier[GetRandomInt(0, sizeof(g_sVoWeaponSoldier)-1)]);
 		case TFClass_Pyro: Format(sSound, sizeof(sSound), g_sVoWeaponPyro[GetRandomInt(0, sizeof(g_sVoWeaponPyro)-1)]);
 		case TFClass_DemoMan: Format(sSound, sizeof(sSound), g_sVoWeaponDemoman[GetRandomInt(0, sizeof(g_sVoWeaponDemoman)-1)]);
+		case TFClass_Heavy: Format(sSound, sizeof(sSound), g_sVoWeaponHeavy[GetRandomInt(0, sizeof(g_sVoWeaponHeavy)-1)]);
 		case TFClass_Engineer: Format(sSound, sizeof(sSound), g_sVoWeaponEngineer[GetRandomInt(0, sizeof(g_sVoWeaponEngineer)-1)]);
 		case TFClass_Medic: Format(sSound, sizeof(sSound), g_sVoWeaponMedic[GetRandomInt(0, sizeof(g_sVoWeaponMedic)-1)]);
 		case TFClass_Sniper: Format(sSound, sizeof(sSound), g_sVoWeaponSniper[GetRandomInt(0, sizeof(g_sVoWeaponSniper)-1)]);
+		case TFClass_Spy: Format(sSound, sizeof(sSound), g_sVoWeaponSpy[GetRandomInt(0, sizeof(g_sVoWeaponSpy)-1)]);
 	}
 	
 	EmitSoundToAll(sSound, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
@@ -324,7 +326,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		if (iEntity > MaxClients && IsValidEdict(iEntity))
 		{
 			int iOldIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
-			if (iOldIndex == 9 || iOldIndex == 10 || iOldIndex == 12)	//Shotgun
+			if (9 <= iOldIndex && iOldIndex <= 12)	//Shotgun
 				iOldIndex = 9;
 			
 			GetWeaponFromIndex(oldwep, iOldIndex);
@@ -358,18 +360,8 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		TF2_RemoveCondition(iClient, TFCond_Kritzkrieged);
 	}
 	
-	//If player already have item in his inv, remove it before we generate new weapon for him, otherwise some weapons can glitch out...
-	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
-	if (iEntity > MaxClients && IsValidEdict(iEntity))
-		TF2_RemoveWeaponSlot(iClient, iSlot);
-	
-	//Remove wearable if have one
-	int iWearable = SDK_GetEquippedWearable(iClient, iSlot);
-	if (iWearable > MaxClients)
-	{
-		SDK_RemoveWearable(iClient, iWearable);
-		AcceptEntityInput(iWearable, "Kill");
-	}
+	//If player already have item in his inv, remove it before we generate new weapon for him
+	TF2_RemoveItemInSlot(iClient, iSlot);
 	
 	//Generate and equip weapon
 	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, wep.sAttribs, wep.sText);
