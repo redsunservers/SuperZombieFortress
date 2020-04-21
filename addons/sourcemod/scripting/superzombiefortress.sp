@@ -190,6 +190,9 @@ Handle g_hSDKEquipWearable;
 Handle g_hSDKRemoveWearable;
 Handle g_hSDKGetEquippedWearable;
 
+//Detours
+Handle g_hDetourCGameUI_Deactivate;
+
 int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
 float g_flTankCooldown;
@@ -436,6 +439,9 @@ public void OnPluginEnd()
 		if (IsClientInGame(iClient))
 			EndSound(iClient);
 	}
+	
+	if (g_hDetourCGameUI_Deactivate != null && !DHookDisableDetour(g_hDetourCGameUI_Deactivate, false, Detour_CGameUI_Deactivate))
+		LogMessage("Warning failed to disable CGameUI::Deactivate detour!");
 }
 
 public Action Command_Build(int iClient, const char[] sCommand, int iArgs)
@@ -4561,6 +4567,21 @@ public MRESReturn ShouldBallTouch(int iEntity, Handle hReturn, Handle hParams)
 	return MRES_Ignored;
 }
 
+public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
+{
+	if (!g_bEnabled) return MRES_Ignored;
+	
+	// World entity 0 should always be valid
+	// If not, then pass a resource entity like "tf_gamerules"
+	int iEntity = 0;
+	while ((iEntity = FindEntityByClassname(iEntity, "*")) != -1)
+	{
+		DHookSetParam(hParams, 1, GetEntityAddress(iEntity));
+		return MRES_ChangedHandled;
+	}
+	return MRES_Ignored;
+}
+
 public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
 {
 	int iEntity = EntRefToEntIndex(iRef);
@@ -5492,8 +5513,56 @@ void SDK_Init()
 		LogMessage("Failed to create call: CTFPlayer::GetMaxHealth!");
 	
 	delete hGameData;
+	hGameData = new GameData("sm-tf2.games");
+	if (hGameData == null)
+		SetFailState("Could not find sm-tf2.games gamedata!");
+	
+	int iRemoveWearableOffset = hGameData.GetOffset("RemoveWearable");
+	//This function is used to remove a player wearable properly
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetVirtual(iRemoveWearableOffset);
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	g_hSDKRemoveWearable = EndPrepSDKCall();
+	if(g_hSDKRemoveWearable == null)
+		LogMessage("Failed to create call: CBasePlayer::RemoveWearable!");
+	
+	//This function is used to equip wearables
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetVirtual(iRemoveWearableOffset-1);// Assume EquipWearable is always behind RemoveWearable
+	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
+	g_hSDKEquipWearable = EndPrepSDKCall();
+	if(g_hSDKEquipWearable == null)
+		LogMessage("Failed to create call: CBasePlayer::EquipWearable!");
+	
+	delete hGameData;
 	
 	hGameData = new GameData("szf");
+	
+	// Detour used to prevent a crash with "game_ui" entity
+	// void CGameUI::Deactivate( CBaseEntity *pActivator )
+	g_hDetourCGameUI_Deactivate = DHookCreateDetour(Address_Null, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
+	if (g_hDetourCGameUI_Deactivate == null)
+	{
+		LogMessage("Failed to create detour handle for CGameUI::Deactivate!");
+	}
+	else
+	{
+		if (!DHookSetFromConf(g_hDetourCGameUI_Deactivate, hGameData, SDKConf_Signature, "CGameUI::Deactivate"))
+		{
+			LogMessage("Failed to retrieve CGameUI::Deactivate address!");
+			delete g_hDetourCGameUI_Deactivate;
+		}
+		else
+		{
+			DHookAddParam(g_hDetourCGameUI_Deactivate, HookParamType_Int); // CBaseEntity *pActivator
+			
+			if (!DHookEnableDetour(g_hDetourCGameUI_Deactivate, false, Detour_CGameUI_Deactivate))
+			{
+				LogMessage("Failed to enable CGameUI::Deactivate detour!");
+				delete g_hDetourCGameUI_Deactivate;
+			}
+		}
+	}
 	
 	//This function is used to get weapon max ammo
 	StartPrepSDKCall(SDKCall_Player);
@@ -5504,22 +5573,6 @@ void SDK_Init()
 	g_hSDKGetMaxAmmo = EndPrepSDKCall();
 	if(g_hSDKGetMaxAmmo == null)
 		LogMessage("Failed to create call: CTFPlayer::GetMaxAmmo!");
-	
-	//This function is used to equip wearables 
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(hGameData, SDKConf_Virtual, "CBasePlayer::EquipWearable");
-	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
-	g_hSDKEquipWearable = EndPrepSDKCall();
-	if (g_hSDKEquipWearable == null)
-		LogMessage("Failed to create call: CBasePlayer::EquipWearable!");
-	
-	//This function is used to remove a player wearable properly
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(hGameData, SDKConf_Virtual, "CBasePlayer::RemoveWearable");
-	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
-	g_hSDKRemoveWearable = EndPrepSDKCall();
-	if (g_hSDKRemoveWearable == null)
-		LogMessage("Failed to create call: CBasePlayer::RemoveWearable!");
 	
 	//This function is used to get wearable equipped in loadout slots
 	StartPrepSDKCall(SDKCall_Player);
