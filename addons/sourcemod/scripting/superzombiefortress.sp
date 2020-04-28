@@ -1660,12 +1660,111 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	
 	TFClassType nClass = TF2_GetPlayerClass(iClient);
 	
+	//Figure out what special infected client is
 	if (g_nRoundState == SZFRoundState_Active)
 	{
 		if (g_iZombieTank > 0 && g_iZombieTank == iClient)
 		{
 			g_iZombieTank = 0;
 			g_nInfected[iClient] = Infected_Tank;
+		}
+		else
+		{
+			//If client got a force set as specific special infected, set as that infected
+			if (g_nNextInfected[iClient] != Infected_None)
+			{
+				g_nInfected[iClient] = g_nNextInfected[iClient];
+			}
+			else if (g_bSpawnAsSpecialInfected[iClient] == true)
+			{
+				g_bSpawnAsSpecialInfected[iClient] = false;
+				
+				//Create list of all special infected to randomize, apart from tank and non-special infected
+				int iLength = view_as<int>(Infected) - 2;
+				Infected[] nSpecialInfected = new Infected[iLength];
+				for (int i = 0; i < iLength; i++)
+					nSpecialInfected[i] = view_as<Infected>(i + 2);
+				
+				//Randomize, sort list of special infected
+				SortIntegers(view_as<int>(nSpecialInfected), iLength, Sort_Random);
+				
+				//Go through each special infected in the list and find the first one thats not in cooldown
+				int i = 0;
+				while (g_nInfected[iClient] == Infected_None && i < iLength)
+				{
+					if (IsValidInfected(nSpecialInfected[i]) && g_flInfectedCooldown[nSpecialInfected[i]] <= GetGameTime() - 12.0 && g_iInfectedCooldown[nSpecialInfected[i]] != iClient)
+					{
+						//We found it, set as that special infected
+						g_nInfected[iClient] = nSpecialInfected[i];
+					}
+					
+					i++;
+				}
+				
+				//Check if player spawned using fast respawn
+				if (g_bReplaceRageWithSpecialInfectedSpawn[iClient])
+				{
+					//Check if they did not become special infected because all is in cooldown
+					if (g_nInfected[iClient] == Infected_None)
+						CPrintToChat(iClient, "{red}All special infected seems to be in a cooldown...");
+					
+					g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
+				}
+			}
+		}
+	}
+	
+	//Force respawn if client is playing as disallowed class
+	if (IsSurvivor(iClient))
+	{
+		if (g_nRoundState == SZFRoundState_Active)
+		{
+			SpawnClient(iClient, TFTeam_Zombie);
+			return;
+		}
+		
+		if (!IsValidSurvivorClass(nClass))
+		{
+			TF2_RespawnPlayer2(iClient);
+			return;
+		}
+		
+		HandleSurvivorLoadout(iClient);
+		if (GetCookie(iClient, g_cFirstTimeSurvivor) < 1)
+			InitiateSurvivorTutorial(iClient);
+	}
+	else if (IsZombie(iClient))
+	{
+		if (g_nInfected[iClient] != Infected_None && nClass != GetInfectedClass(g_nInfected[iClient]))
+		{
+			TF2_SetPlayerClass(iClient, GetInfectedClass(g_nInfected[iClient]));
+			TF2_RespawnPlayer(iClient);
+			return;
+		}
+		
+		if (!IsValidZombieClass(nClass))
+		{
+			TF2_RespawnPlayer2(iClient);
+			return;
+		}
+		
+		if (g_nRoundState == SZFRoundState_Active)
+			if (g_nInfected[iClient] != Infected_Tank && !PerformFastRespawn(iClient))
+				TF2_AddCondition(iClient, TFCond_Ubercharged, 2.0);
+		
+		//Set zombie model / soul wearable
+		ApplyVoodooCursedSoul(iClient);
+		
+		HandleZombieLoadout(iClient);
+		if (GetCookie(iClient, g_cFirstTimeZombie) < 1)
+			InitiateZombieTutorial(iClient);
+	}
+	
+	if (g_nRoundState == SZFRoundState_Active)
+	{
+		if (g_nInfected[iClient] == Infected_Tank)
+		{
+			//TAAAAANK
 			g_flTankLifetime[iClient] = GetGameTime();
 			
 			int iSurvivors = GetSurvivorCount();
@@ -1721,50 +1820,6 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			Call_PushCell(iClient);
 			Call_Finish();
 		}
-		else
-		{
-			//If client got a force set as specific special infected, set as that infected
-			if (g_nNextInfected[iClient] != Infected_None)
-			{
-				g_nInfected[iClient] = g_nNextInfected[iClient];
-			}
-			else if (g_bSpawnAsSpecialInfected[iClient] == true)
-			{
-				g_bSpawnAsSpecialInfected[iClient] = false;
-				
-				//Create list of all special infected to randomize, apart from tank and non-special infected
-				int iLength = view_as<int>(Infected) - 2;
-				Infected[] nSpecialInfected = new Infected[iLength];
-				for (int i = 0; i < iLength; i++)
-					nSpecialInfected[i] = view_as<Infected>(i + 2);
-				
-				//Randomize, sort list of special infected
-				SortIntegers(view_as<int>(nSpecialInfected), iLength, Sort_Random);
-				
-				//Go through each special infected in the list and find the first one thats not in cooldown
-				int i = 0;
-				while (g_nInfected[iClient] == Infected_None && i < iLength)
-				{
-					if (IsValidInfected(nSpecialInfected[i]) && g_flInfectedCooldown[nSpecialInfected[i]] <= GetGameTime() - 12.0 && g_iInfectedCooldown[nSpecialInfected[i]] != iClient)
-					{
-						//We found it, set as that special infected
-						g_nInfected[iClient] = nSpecialInfected[i];
-					}
-					
-					i++;
-				}
-				
-				//Check if player spawned using fast respawn
-				if (g_bReplaceRageWithSpecialInfectedSpawn[iClient])
-				{
-					//Check if they did not become special infected because all is in cooldown
-					if (g_nInfected[iClient] == Infected_None)
-						CPrintToChat(iClient, "{red}All special infected seems to be in a cooldown...");
-					
-					g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
-				}
-			}
-		}
 		
 		if (g_nInfected[iClient] != Infected_None)
 		{
@@ -1793,52 +1848,6 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			
 			g_bShouldBacteriaPlay[iClient] = false;
 		}
-	}
-	
-	if (IsSurvivor(iClient))
-	{
-		if (g_nRoundState == SZFRoundState_Active)
-		{
-			SpawnClient(iClient, TFTeam_Zombie);
-			return;
-		}
-		
-		if (!IsValidSurvivorClass(nClass))
-		{
-			TF2_RespawnPlayer2(iClient);
-			return;
-		}
-		
-		HandleSurvivorLoadout(iClient);
-		if (GetCookie(iClient, g_cFirstTimeSurvivor) < 1)
-			InitiateSurvivorTutorial(iClient);
-	}
-	
-	else if (IsZombie(iClient))
-	{
-		if (g_nInfected[iClient] != Infected_None && nClass != GetInfectedClass(g_nInfected[iClient]))
-		{
-			TF2_SetPlayerClass(iClient, GetInfectedClass(g_nInfected[iClient]));
-			TF2_RespawnPlayer(iClient);
-			return;
-		}
-		
-		if (!IsValidZombieClass(nClass))
-		{
-			TF2_RespawnPlayer2(iClient);
-			return;
-		}
-		
-		if (g_nRoundState == SZFRoundState_Active)
-			if (g_nInfected[iClient] != Infected_Tank && !PerformFastRespawn(iClient))
-				TF2_AddCondition(iClient, TFCond_Ubercharged, 2.0);
-		
-		//Set zombie model / soul wearable
-		ApplyVoodooCursedSoul(iClient);
-		
-		HandleZombieLoadout(iClient);
-		if (GetCookie(iClient, g_cFirstTimeZombie) < 1)
-			InitiateZombieTutorial(iClient);
 	}
 	
 	SetGlow();
