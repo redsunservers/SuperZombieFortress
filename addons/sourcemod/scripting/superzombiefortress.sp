@@ -1551,7 +1551,7 @@ void EndGracePeriod()
 	
 	//Disable func_respawnroom so clients dont accidentally respawn and join zombie
 	int iEntity = -1;
-	while ((iEntity = FindEntityByClassname(iEntity, "func_respawnroomvisualizer")) != -1)
+	while ((iEntity = FindEntityByClassname(iEntity, "func_respawnroom")) != -1)
 	{
 		if (view_as<TFTeam>(GetEntProp(iEntity, Prop_Data, "m_iTeamNum")) == TFTeam_Survivor)
 			AcceptEntityInput(iEntity, "Disable");
