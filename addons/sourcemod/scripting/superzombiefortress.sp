@@ -1549,6 +1549,14 @@ void EndGracePeriod()
 	g_nRoundState = SZFRoundState_Active;
 	CPrintToChatAll("{orange}Grace period complete. Survivors can no longer change classes.");
 	
+	//Disable func_respawnroom so clients dont accidentally respawn and join zombie
+	int iEntity = -1;
+	while ((iEntity = FindEntityByClassname(iEntity, "func_respawnroomvisualizer")) != -1)
+	{
+		if (view_as<TFTeam>(GetEntProp(iEntity, Prop_Data, "m_iTeamNum")) == TFTeam_Survivor)
+			AcceptEntityInput(iEntity, "Disable");
+	}
+	
 	int iSurvivors = GetSurvivorCount();
 	int iZombies = GetZombieCount();
 	
