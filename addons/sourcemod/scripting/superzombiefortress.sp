@@ -1553,8 +1553,8 @@ void EndGracePeriod()
 	int iEntity = -1;
 	while ((iEntity = FindEntityByClassname(iEntity, "func_respawnroom")) != -1)
 	{
-		if (view_as<TFTeam>(GetEntProp(iEntity, Prop_Data, "m_iTeamNum")) == TFTeam_Survivor)
-			AcceptEntityInput(iEntity, "Disable");
+		if (view_as<TFTeam>(GetEntProp(iEntity, Prop_Send, "m_iTeamNum")) == TFTeam_Survivor)
+			RemoveEntity(iEntity);
 	}
 	
 	int iSurvivors = GetSurvivorCount();
