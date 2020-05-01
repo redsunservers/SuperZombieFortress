@@ -20,11 +20,6 @@ static bool g_bCanPickup[TF_MAXPLAYERS] = false;
 static bool g_bTriggerEntity[2048] = true;
 static float g_flLastCallout[TF_MAXPLAYERS] = 0.0;
 
-//Cookies
-Cookie g_cWeaponsPicked;
-Cookie g_cWeaponsRarePicked;
-Cookie g_cWeaponsCalled;
-
 void Weapons_Init()
 {
 	HookEvent("teamplay_round_start", Event_WeaponsRoundStart);

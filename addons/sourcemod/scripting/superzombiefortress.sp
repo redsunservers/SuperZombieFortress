@@ -220,6 +220,11 @@ bool g_bNoDirectorTanks;
 bool g_bNoDirectorRages;
 bool g_bDirectorSpawnTeleport;
 
+//Cookies
+Cookie g_cWeaponsPicked;
+Cookie g_cWeaponsRarePicked;
+Cookie g_cWeaponsCalled;
+
 //Goo
 char g_strSoundFleshHit[][128] =
 {
@@ -243,6 +248,7 @@ char g_strSoundCritHit[][128] =
 #include "szf/classes.sp"
 #include "szf/config.sp"
 #include "szf/forward.sp"
+#include "szf/native.sp"
 #include "szf/pickupweapons.sp"
 #include "szf/stocks.sp"
 
@@ -264,13 +270,7 @@ public Plugin myinfo =
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	Forward_AskLoad();
-	
-	CreateNative("SZF_GetSurvivorTeam", Native_GetSurvivorTeam);
-	CreateNative("SZF_GetZombieTeam", Native_GetZombieTeam);
-	CreateNative("SZF_GetLastSurvivor", Native_GetLastSurvivor);
-	CreateNative("SZF_GetWeaponPickupCount", Native_GetWeaponPickupCount);
-	CreateNative("SZF_GetWeaponRarePickupCount", Native_GetWeaponRarePickupCount);
-	CreateNative("SZF_GetWeaponCalloutCount", Native_GetWeaponCalloutCount);
+	Native_AskLoad();
 	
 	RegPluginLibrary("superzombiefortress");
 }
@@ -528,61 +528,6 @@ public Action Admin_ReloadConfigs(int iClient, int iArgs)
 	Weapons_Refresh();
 	
 	return Plugin_Handled;
-}
-
-public any Native_GetSurvivorTeam(Handle hPlugin, int iNumParams)
-{
-	return TFTeam_Survivor;
-}
-
-public any Native_GetZombieTeam(Handle hPlugin, int iNumParams)
-{
-	return TFTeam_Zombie;
-}
-
-public any Native_GetLastSurvivor(Handle hPlugin, int iNumParams)
-{
-	if (!g_bLastSurvivor)
-		return 0;
-	
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidLivingSurvivor(iClient))
-			return iClient;
-	
-	return 0;
-}
-
-public any Native_GetWeaponPickupCount(Handle hPlugin, int iNumParams)
-{
-	int iClient = GetNativeCell(1);
-	if (iClient <= 0 || iClient > MaxClients)
-		ThrowNativeError(SP_ERROR_NATIVE, "Invalid client %d", iClient);
-	if (!IsClientInGame(iClient))
-		ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", iClient);
-	
-	return GetCookie(iClient, g_cWeaponsPicked);
-}
-
-public any Native_GetWeaponRarePickupCount(Handle hPlugin, int iNumParams)
-{
-	int iClient = GetNativeCell(1);
-	if (iClient <= 0 || iClient > MaxClients)
-		ThrowNativeError(SP_ERROR_NATIVE, "Invalid client %d", iClient);
-	if (!IsClientInGame(iClient))
-		ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", iClient);
-	
-	return GetCookie(iClient, g_cWeaponsRarePicked);
-}
-
-public any Native_GetWeaponCalloutCount(Handle hPlugin, int iNumParams)
-{
-	int iClient = GetNativeCell(1);
-	if (iClient <= 0 || iClient > MaxClients)
-		ThrowNativeError(SP_ERROR_NATIVE, "Invalid client %d", iClient);
-	if (!IsClientInGame(iClient))
-		ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game", iClient);
-	
-	return GetCookie(iClient, g_cWeaponsCalled);
 }
 
 public void OnClientCookiesCached(int iClient)
