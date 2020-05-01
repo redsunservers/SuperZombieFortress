@@ -998,9 +998,7 @@ SoundType GetSoundType(Sound nSound)
 
 bool IsMusicOverrideOn()
 {
-	Action action = Plugin_Continue;
-	Call_StartForward(g_hForwardAllowMusicPlay);
-	Call_Finish(action);
+	Action action = Forward_ShouldAllowMusicPlay();
 	
 	if (action == Plugin_Handled) return true;
 	if (g_bNoMusic) return true;

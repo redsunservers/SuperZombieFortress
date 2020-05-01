@@ -269,9 +269,7 @@ bool AttemptGrabItem(int iClient)
 			
 			g_flLastCallout[iClient] = GetGameTime();
 			
-			Call_StartForward(g_hForwardWeaponCallout);
-			Call_PushCell(iClient);
-			Call_Finish();
+			Forward_OnWeaponCallout(iClient);
 		}
 	}
 	
@@ -428,11 +426,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		g_bTriggerEntity[iTarget] = false;
 	}
 	
-	Call_StartForward(g_hForwardWeaponPickup);
-	Call_PushCell(iClient);
-	Call_PushCell(iWeapon);
-	Call_PushCell(wep.nRarity);
-	Call_Finish();
+	Forward_OnWeaponPickup(iClient, iWeapon, wep.nRarity);
 }
 
 public Action Timer_ResetPickup(Handle timer, any iClient)

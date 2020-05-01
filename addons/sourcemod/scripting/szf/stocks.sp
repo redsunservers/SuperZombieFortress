@@ -768,11 +768,7 @@ stock void SetCookie(int iClient, int iAmount, Cookie cookie)
 
 stock void GetClientName2(int iClient, char[] sName, int iLength)
 {
-	Call_StartForward(g_hForwardClientName);
-	Call_PushCell(iClient);
-	Call_PushStringEx(sName, iLength, SM_PARAM_STRING_UTF8|SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
-	Call_PushCell(iLength);
-	Call_Finish();
+	Forward_GetClientName(iClient, sName, iLength);
 	
 	//If name still empty or could not be found, use default name and team color instead
 	if (sName[0] == '\0')

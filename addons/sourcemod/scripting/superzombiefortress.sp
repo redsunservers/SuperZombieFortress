@@ -166,21 +166,6 @@ ConVar tf_spy_invis_time;
 ConVar tf_spy_invis_unstealth_time;
 ConVar tf_spy_cloak_no_attack_time;
 
-//Forwards
-GlobalForward g_hForwardLastSurvivor;
-GlobalForward g_hForwardBackstab;
-GlobalForward g_hForwardTankSpawn;
-GlobalForward g_hForwardTankDeath;
-GlobalForward g_hForwardQuickSpawnAsSpecialInfected;
-GlobalForward g_hForwardChargerHit;
-GlobalForward g_hForwardHunterHit;
-GlobalForward g_hForwardBoomerExplode;
-GlobalForward g_hForwardWeaponPickup;
-GlobalForward g_hForwardWeaponCallout;
-GlobalForward g_hForwardClientName;
-GlobalForward g_hForwardStartZombie;
-GlobalForward g_hForwardAllowMusicPlay;
-
 //SDK functions
 Handle g_hHookSetWinningTeam;
 Handle g_hHookRoundRespawn;
@@ -253,11 +238,13 @@ char g_strSoundCritHit[][128] =
 };
 
 #include "szf/weapons.sp"
-#include "szf/classes.sp"
-#include "szf/stocks.sp"
 #include "szf/sound.sp"
-#include "szf/pickupweapons.sp"
+
+#include "szf/classes.sp"
 #include "szf/config.sp"
+#include "szf/forward.sp"
+#include "szf/pickupweapons.sp"
+#include "szf/stocks.sp"
 
 public Plugin myinfo =
 {
@@ -276,19 +263,7 @@ public Plugin myinfo =
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-	g_hForwardLastSurvivor = new GlobalForward("SZF_OnLastSurvivor", ET_Ignore, Param_Cell);
-	g_hForwardBackstab = new GlobalForward("SZF_OnBackstab", ET_Ignore, Param_Cell, Param_Cell);
-	g_hForwardTankSpawn = new GlobalForward("SZF_OnTankSpawn", ET_Ignore, Param_Cell);
-	g_hForwardTankDeath = new GlobalForward("SZF_OnTankDeath", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
-	g_hForwardQuickSpawnAsSpecialInfected = new GlobalForward("SZF_OnQuickSpawnAsSpecialInfected", ET_Ignore, Param_Cell);
-	g_hForwardChargerHit = new GlobalForward("SZF_OnChargerHit", ET_Ignore, Param_Cell, Param_Cell);
-	g_hForwardHunterHit = new GlobalForward("SZF_OnHunterHit", ET_Ignore, Param_Cell, Param_Cell);
-	g_hForwardBoomerExplode = new GlobalForward("SZF_OnBoomerExplode", ET_Ignore, Param_Cell, Param_Array, Param_Cell);
-	g_hForwardWeaponPickup = new GlobalForward("SZF_OnWeaponPickup", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
-	g_hForwardWeaponCallout = new GlobalForward("SZF_OnWeaponCallout", ET_Ignore, Param_Cell);
-	g_hForwardClientName = new GlobalForward("SZF_GetClientName", ET_Ignore, Param_Cell, Param_String, Param_Cell);
-	g_hForwardStartZombie = new GlobalForward("SZF_ShouldStartZombie", ET_Hook, Param_Cell);
-	g_hForwardAllowMusicPlay = new GlobalForward("SZF_ShouldAllowMusicPlay", ET_Hook);
+	Forward_AskLoad();
 	
 	CreateNative("SZF_GetSurvivorTeam", Native_GetSurvivorTeam);
 	CreateNative("SZF_GetZombieTeam", Native_GetZombieTeam);
@@ -921,10 +896,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 					SetBackstabState(iVictim, BACKSTABDURATION_FULL, 0.25);
 					SetNextAttack(iAttacker, GetGameTime() + 1.25);
 					
-					Call_StartForward(g_hForwardBackstab);
-					Call_PushCell(iVictim);
-					Call_PushCell(iAttacker);
-					Call_Finish();
+					Forward_OnBackstab(iVictim, iAttacker);
 					
 					flDamage = 1.0;
 					bChanged = true;
@@ -1269,9 +1241,7 @@ public Action Command_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 			{
 				TF2_RespawnPlayer2(iClient);
 				
-				Call_StartForward(g_hForwardQuickSpawnAsSpecialInfected);
-				Call_PushCell(iClient);
-				Call_Finish();
+				Forward_OnQuickSpawnAsSpecialInfected(iClient);
 				
 				//Broadcast to team
 				char sName[255];
@@ -1447,10 +1417,7 @@ public MRESReturn DHook_RoundRespawn()
 			
 			if (IsValidClient(iClient))
 			{
-				Action action = Plugin_Continue;
-				Call_StartForward(g_hForwardStartZombie);
-				Call_PushCell(iClient);
-				Call_Finish(action);
+				Action action = Forward_ShouldStartZombie(iClient);
 				
 				if (action == Plugin_Handled)
 				{
@@ -1823,10 +1790,8 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				
 				g_flDamageDealtAgainstTank[i] = 0.0;
 			}
-				
-			Call_StartForward(g_hForwardTankSpawn);
-			Call_PushCell(iClient);
-			Call_Finish();
+			
+			Forward_OnTankSpawn(iClient);
 		}
 		
 		if (g_nInfected[iClient] != Infected_None)
@@ -1937,11 +1902,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			ZombieTank();
 		}
 		
-		Call_StartForward(g_hForwardTankDeath);
-		Call_PushCell(iVictim);
-		Call_PushCell(iWinner);
-		Call_PushCell(RoundFloat(flHighest));
-		Call_Finish();
+		Forward_OnTankDeath(iVictim, iWinner, RoundFloat(flHighest));
 	}
 	
 	g_iEyelanderHead[iVictim] = 0;
@@ -2533,10 +2494,7 @@ public void OnGameFrame()
 								Format(sPath, sizeof(sPath), "weapons/demo_charge_hit_flesh_range1.wav", GetRandomInt(1, 3));
 								EmitSoundToAll(sPath, iClient);
 								
-								Call_StartForward(g_hForwardChargerHit);
-								Call_PushCell(iClient);
-								Call_PushCell(iVictim);
-								Call_Finish();
+								Forward_OnChargerHit(iClient, iVictim);
 							}
 							
 							TF2_RemoveCondition(iClient, TFCond_Charging);
@@ -2575,10 +2533,7 @@ public void OnGameFrame()
 								//Dont allow hunter to move during lock
 								TF2_StunPlayer(iClient, BACKSTABDURATION_FULL, 1.0, TF_STUNFLAG_SLOWDOWN, 0);
 								
-								Call_StartForward(g_hForwardHunterHit);
-								Call_PushCell(iClient);
-								Call_PushCell(i);
-								Call_Finish();
+								Forward_OnHunterHit(iClient, i);
 							}
 							
 							g_iRageTimer[iClient] = 21;
@@ -3746,9 +3701,7 @@ public Action CheckLastPlayer(Handle hTimer)
 				
 				PlaySoundAll(SoundMusic_LastStand);
 				
-				Call_StartForward(g_hForwardLastSurvivor);
-				Call_PushCell(iClient);
-				Call_Finish();
+				Forward_OnLastSurvivor(iClient);
 			}
 		}
 	}
@@ -5295,11 +5248,7 @@ public void DoBoomerExplosion(int iClient, float flRadius)
 	for (int i = 0; i < iCount; i++)
 		iClients[i] = iClientsTemp[i];
 	
-	Call_StartForward(g_hForwardBoomerExplode);
-	Call_PushCell(iClient);
-	Call_PushArray(iClients, MAXPLAYERS);
-	Call_PushCell(iCount);
-	Call_Finish();
+	Forward_OnBoomerExplode(iClient, iClients, iCount);
 	
 	if (IsPlayerAlive(iClient))
 		FakeClientCommandEx(iClient, "explode");
