@@ -234,6 +234,7 @@ char g_strSoundCritHit[][128] =
 #include "szf/sound.sp"
 
 #include "szf/classes.sp"
+#include "szf/command.sp"
 #include "szf/config.sp"
 #include "szf/console.sp"
 #include "szf/convar.sp"
@@ -294,27 +295,6 @@ public void OnPluginStart()
 	HookEvent("teamplay_point_startcapture", Event_CPCaptureStart);
 	HookEvent("teamplay_broadcast_audio", Event_Broadcast, EventHookMode_Pre);
 	
-	RegServerCmd("szf_panic_event", Command_ZombieRage);
-	RegServerCmd("szf_zombierage", Command_ZombieRage);
-
-	RegServerCmd("szf_zombietank", Command_Tank);
-	RegServerCmd("szf_tank", Command_Tank);
-
-	//Hook Client Chat / Console Commands
-	RegConsoleCmd("sm_zf", Command_MainMenu);
-	RegConsoleCmd("sm_szf", Command_MainMenu);
-	RegConsoleCmd("sm_music", Command_MusicToggle);
-
-	RegAdminCmd("sm_tank", Admin_ZombieTank, ADMFLAG_CHANGEMAP, "(Try to) call a tank.");
-	RegAdminCmd("sm_rage", Admin_ZombieRage, ADMFLAG_CHANGEMAP, "(Try to) call a frenzy.");
-	RegAdminCmd("sm_boomer", Admin_ForceBoomer, ADMFLAG_CHANGEMAP, "Become a boomer on next respawn.");
-	RegAdminCmd("sm_charger", Admin_ForceCharger, ADMFLAG_CHANGEMAP, "Become a charger on next respawn.");
-	RegAdminCmd("sm_kingpin", Admin_ForceScreamer, ADMFLAG_CHANGEMAP, "Become a screamer on next respawn.");
-	RegAdminCmd("sm_stalker", Admin_ForcePredator, ADMFLAG_CHANGEMAP, "Become a predator on next respawn.");
-	RegAdminCmd("sm_hunter", Admin_ForceHopper, ADMFLAG_CHANGEMAP, "Become a hunter on next respawn.");
-	RegAdminCmd("sm_smoker", Admin_ForceSmoker, ADMFLAG_CHANGEMAP, "Become a smoker on next respawn.");
-	RegAdminCmd("sm_szfreload", Admin_ReloadConfigs, ADMFLAG_RCON, "Reload SZF configs.");
-	
 	AddNormalSoundHook(SoundHook);
 	
 	g_cFirstTimeZombie = new Cookie("szf_firsttimezombie", "is this the flowey map?", CookieAccess_Protected);
@@ -324,6 +304,7 @@ public void OnPluginStart()
 	
 	g_bTF2Items = LibraryExists("TF2Items");
 	
+	Command_Init();
 	Config_Init();
 	Console_Init();
 	ConVar_Init();
@@ -378,94 +359,6 @@ public void OnPluginEnd()
 	
 	if (g_hDetourCGameUI_Deactivate != null && !DHookDisableDetour(g_hDetourCGameUI_Deactivate, false, Detour_CGameUI_Deactivate))
 		LogMessage("Warning failed to disable CGameUI::Deactivate detour!");
-}
-
-public Action Command_ZombieRage(int iArgs)
-{
-	char sDuration[256];
-	GetCmdArgString(sDuration, sizeof(sDuration));
-	float flDuration = StringToFloat(sDuration);
-	
-	ZombieRage(flDuration);
-	
-	return Plugin_Handled;
-}
-
-public Action Command_Tank(int iArgs)
-{
-	ZombieTank();
-	
-	return Plugin_Handled;
-}
-
-public Action Admin_ForceBoomer(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Boomer;
-	
-	return Plugin_Handled;
-}
-
-public Action Admin_ForceCharger(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Charger;
-	
-	return Plugin_Handled;
-}
-
-public Action Admin_ForceScreamer(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Kingpin;
-	
-	return Plugin_Handled;
-}
-
-public Action Admin_ForcePredator(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Stalker;
-	
-	return Plugin_Handled;
-}
-
-public Action Admin_ForceHopper(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Hunter;
-	
-	return Plugin_Handled;
-}
-
-public Action Admin_ForceSmoker(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Smoker;
-	
-	return Plugin_Handled;
-}
-
-public Action Admin_ZombieTank(int iClient, int iArgs)
-{
-	ZombieTank(iClient);
-	return Plugin_Handled;
-}
-
-public Action Admin_ZombieRage(int iClient, int iArgs)
-{
-	ZombieRage();
-	
-	return Plugin_Handled;
-}
-
-public Action Admin_ReloadConfigs(int iClient, int iArgs)
-{
-	Config_Refresh();
-	Classes_Refresh();
-	Weapons_Refresh();
-	
-	return Plugin_Handled;
 }
 
 public void OnClientCookiesCached(int iClient)
@@ -883,14 +776,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	
 	if (bChanged) return Plugin_Changed;
 	return Plugin_Continue;
-}
-
-public Action Command_MainMenu(int iClient, int iArgs)
-{
-	if (!g_bEnabled) return Plugin_Continue;
-	Panel_PrintMain(iClient);
-
-	return Plugin_Handled;
 }
 
 public void TF2_OnWaitingForPlayersStart()

@@ -1004,27 +1004,3 @@ bool IsMusicOverrideOn()
 	if (g_bNoMusic) return true;
 	return false;
 }
-
-public Action Command_MusicToggle(int iClient, int iArgs)
-{
-	if (IsValidClient(iClient))
-	{
-		char sPreference[32];
-		
-		if (g_bNoMusicForClient[iClient])
-		{
-			g_bNoMusicForClient[iClient] = false;
-			CPrintToChat(iClient, "{limegreen}Music has been enabled.");
-		}
-		else if (!g_bNoMusicForClient[iClient])
-		{
-			g_bNoMusicForClient[iClient] = true;
-			CPrintToChat(iClient, "{limegreen}Music has been disabled.");
-		}
-		
-		Format(sPreference, sizeof(sPreference), "%d", g_bNoMusicForClient[iClient]);
-		SetClientCookie(iClient, g_cNoMusicForPlayer, sPreference);
-	}
-	
-	return Plugin_Handled;
-}
