@@ -120,13 +120,16 @@ public MRESReturn DHook_DropAmmoPackPre(int iClient, Handle hParams)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHook_PickupWeaponFromOtherPre(int iClient, Handle hParams)
+public MRESReturn DHook_PickupWeaponFromOtherPre(int iClient, Handle hReturn, Handle hParams)
 {
 	if (!g_bEnabled) return MRES_Ignored;
 	
 	//Don't allow zombies pickup dropped weapon
 	if (IsZombie(iClient))
+	{
+		DHookSetReturn(hReturn, false);
 		return MRES_Supercede;
+	}
 	
 	return MRES_Ignored;
 }
