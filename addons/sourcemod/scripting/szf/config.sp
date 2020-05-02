@@ -118,19 +118,22 @@ ArrayList Config_LoadWeaponData()
 					continue;
 				}
 
-				//Skip weapon if weapon is not for any class enabled
-				bool bFound = false;
-				for (TFClassType nClass = TFClass_Scout; nClass <= TFClass_Engineer; nClass++)
+				if (wep.iIndex > -1)
 				{
-					if (IsValidSurvivorClass(nClass) && TF2Econ_GetItemSlot(wep.iIndex, nClass) >= 0)
+					//Skip weapon if weapon is not for any class enabled
+					bool bFound = false;
+					for (TFClassType nClass = TFClass_Scout; nClass <= TFClass_Engineer; nClass++)
 					{
-						bFound = true;
-						break;
+						if (IsValidSurvivorClass(nClass) && TF2Econ_GetItemSlot(wep.iIndex, nClass) >= 0)
+						{
+							bFound = true;
+							break;
+						}
 					}
+					
+					if (!bFound)
+						continue;
 				}
-				
-				if (!bFound)
-					continue;
 				
 				//Check if the model is already taken by another weapon
 				Weapon duplicate;
