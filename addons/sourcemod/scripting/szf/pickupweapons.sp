@@ -311,7 +311,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		if (!IsValidEdict(iEntity))
 		{
 			//If weapon not found in slot, check if it a wearable
-			int iWearable = SDK_GetEquippedWearable(iClient, iSlot);
+			int iWearable = SDKCall_GetEquippedWearable(iClient, iSlot);
 			if (iWearable > MaxClients)
 				iEntity = iWearable;
 		}
@@ -391,7 +391,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 			}
 			else
 			{
-				iMaxAmmo = SDK_GetMaxAmmo(iClient, iAmmoType);
+				iMaxAmmo = SDKCall_GetMaxAmmo(iClient, iAmmoType);
 			}
 			
 			SetEntProp(iClient, Prop_Send, "m_iAmmo", iMaxAmmo, _, iAmmoType);

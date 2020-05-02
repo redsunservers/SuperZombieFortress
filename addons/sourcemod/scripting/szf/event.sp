@@ -502,7 +502,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				
 				//+ Each kill grants a small health bonus and increases current crit bonus.
 				int iHealth = GetClientHealth(iKillers[i]);
-				int iMaxHealth = SDK_GetMaxHealth(iKillers[i]);
+				int iMaxHealth = SDKCall_GetMaxHealth(iKillers[i]);
 				if (iHealth < iMaxHealth)
 				{
 					iHealth += iMorale * 2;

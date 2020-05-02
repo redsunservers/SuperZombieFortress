@@ -661,7 +661,7 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, char[] sAttribs = ""
 		SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", true);
 		
 		if (StrContains(sClassname, "tf_wearable") == 0)
-			SDK_EquipWearable(iClient, iWeapon);
+			SDKCall_EquipWearable(iClient, iWeapon);
 		else
 			EquipPlayerWeapon(iClient, iWeapon);
 	}
@@ -693,7 +693,7 @@ stock int TF2_GetItemInSlot(int iClient, int iSlot)
 	if (iEntity > MaxClients)
 		return iEntity;
 	
-	iEntity = SDK_GetEquippedWearable(iClient, iSlot);
+	iEntity = SDKCall_GetEquippedWearable(iClient, iSlot);
 	if (iEntity > MaxClients)
 		return iEntity;
 	
@@ -706,7 +706,7 @@ stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
 	if (iEntity > MaxClients)
 		TF2_RemoveWeaponSlot(iClient, iSlot);
 	
-	int iWearable = SDK_GetEquippedWearable(iClient, iSlot);
+	int iWearable = SDKCall_GetEquippedWearable(iClient, iSlot);
 	if (iWearable > MaxClients)
 		TF2_RemoveWearable(iClient, iWearable);
 }

@@ -160,11 +160,6 @@ Handle g_hHookRoundRespawn;
 Handle g_hHookGetMaxHealth;
 Handle g_hHookShouldBallTouch;
 Handle g_hHookGiveNamedItem;
-Handle g_hSDKGetMaxHealth;
-Handle g_hSDKGetMaxAmmo;
-Handle g_hSDKRemoveWearable;
-Handle g_hSDKEquipWearable;
-Handle g_hSDKGetEquippedWearable;
 
 //Detours
 Handle g_hDetourCGameUI_Deactivate;
@@ -242,6 +237,7 @@ char g_strSoundCritHit[][128] =
 #include "szf/forward.sp"
 #include "szf/native.sp"
 #include "szf/pickupweapons.sp"
+#include "szf/sdkcall.sp"
 #include "szf/stocks.sp"
 
 public Plugin myinfo =
@@ -293,6 +289,24 @@ public void OnPluginStart()
 	g_cForceZombieStart = new Cookie("szf_forcezombiestart", "is this the flowey map?", CookieAccess_Protected);
 	
 	g_bTF2Items = LibraryExists("TF2Items");
+	
+	GameData hSDKHooks = new GameData("sdkhooks.games");
+	if (!hSDKHooks)
+		SetFailState("Could not find sdkhooks.games gamedata!");
+	
+	GameData hTF2 = new GameData("sm-tf2.games");
+	if (!hTF2)
+		SetFailState("Could not find sm-tf2.games gamedata!");
+	
+	GameData hSZF = new GameData("szf");
+	if (!hSZF)
+		SetFailState("Could not find szf gamedata!");
+	
+	SDKCall_Init(hSDKHooks, hTF2, hSZF);
+	
+	delete hSDKHooks;
+	delete hTF2;
+	delete hSZF;
 	
 	Command_Init();
 	Config_Init();
@@ -482,7 +496,7 @@ public void Client_OnPreThinkPost(int iClient)
 					if (g_bZombieRage) flSpeed += 40.0; //Map-wide zombie enrage event
 					if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire)) flSpeed += 20.0; //On fire
 					if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow)) flSpeed += 20.0; //Kingpin effect
-					if (GetClientHealth(iClient) > SDK_GetMaxHealth(iClient)) flSpeed += 20.0; //Has overheal due to normal rage
+					if (GetClientHealth(iClient) > SDKCall_GetMaxHealth(iClient)) flSpeed += 20.0; //Has overheal due to normal rage
 					
 					//Movement speed decrease
 					if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated)) flSpeed -= 30.0; //Jarate'd by sniper
@@ -647,7 +661,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			if (iDamageCustom == TF_CUSTOM_TAUNT_HIGH_NOON
 				|| iDamageCustom == TF_CUSTOM_TAUNT_GRAND_SLAM
 				|| iDamageCustom == TF_CUSTOM_BACKSTAB
-				|| flDamage >= SDK_GetMaxHealth(iVictim) - 20)
+				|| flDamage >= SDKCall_GetMaxHealth(iVictim) - 20)
 			{
 				if (!g_bBackstabbed[iVictim])
 				{
@@ -1048,7 +1062,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 				{
 					//Tank super health handler
 					int iHealth = GetClientHealth(iClient);
-					int iMaxHealth = SDK_GetMaxHealth(iClient);
+					int iMaxHealth = SDKCall_GetMaxHealth(iClient);
 					if (iHealth < iMaxHealth || g_flTankLifetime[iClient] < GetGameTime() - 15.0)
 					{
 						if (iHealth - g_iSuperHealthSubtract[iClient] > 0)
@@ -1430,7 +1444,7 @@ void Handle_SurvivorAbilities()
 		{
 			//1. Survivor health regeneration.
 			int iHealth = GetClientHealth(iClient);
-			int iMaxHealth = SDK_GetMaxHealth(iClient);
+			int iMaxHealth = SDKCall_GetMaxHealth(iClient);
 			if (iHealth < iMaxHealth)
 			{
 				iHealth += GetSurvivorRegen(TF2_GetPlayerClass(iClient));
@@ -1564,7 +1578,7 @@ void Handle_ZombieAbilities()
 		{
 			nClass = TF2_GetPlayerClass(iClient);
 			iHealth = GetClientHealth(iClient);
-			iMaxHealth = SDK_GetMaxHealth(iClient);
+			iMaxHealth = SDKCall_GetMaxHealth(iClient);
 			
 			//1. Handle zombie regeneration.
 			//       Zombies regenerate health based on class and number of nearby
@@ -2974,7 +2988,7 @@ void HandleZombieLoadout(int iClient)
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
 	
 	//Set health back to what it should be after modifying weapons
-	SetEntityHealth(iClient, SDK_GetMaxHealth(iClient));
+	SetEntityHealth(iClient, SDKCall_GetMaxHealth(iClient));
 	
 	//Reset custom models
 	SetVariantString("");
@@ -4206,49 +4220,11 @@ public Action Timer_SetHunterJump(Handle timer, any iClient)
 
 void SDK_Init()
 {
-	GameData hGameData = new GameData("sdkhooks.games");
-	if (hGameData == null)
-		SetFailState("Could not find sdkhooks.games gamedata!");
-	
 	//This function is used to control player's max health
 	int iOffset = hGameData.GetOffset("GetMaxHealth");
 	g_hHookGetMaxHealth = DHookCreate(iOffset, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity, Client_GetMaxHealth);
 	if (g_hHookGetMaxHealth == null)
 		LogMessage("Failed to create hook: CTFPlayer::GetMaxHealth!");
-	
-	//This function is used to retreive player's max health
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(hGameData, SDKConf_Virtual, "GetMaxHealth");
-	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
-	g_hSDKGetMaxHealth = EndPrepSDKCall();
-	if (g_hSDKGetMaxHealth == null)
-		LogMessage("Failed to create call: CTFPlayer::GetMaxHealth!");
-	
-	delete hGameData;
-	hGameData = new GameData("sm-tf2.games");
-	if (hGameData == null)
-		SetFailState("Could not find sm-tf2.games gamedata!");
-	
-	int iRemoveWearableOffset = hGameData.GetOffset("RemoveWearable");
-	//This function is used to remove a player wearable properly
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetVirtual(iRemoveWearableOffset);
-	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
-	g_hSDKRemoveWearable = EndPrepSDKCall();
-	if(g_hSDKRemoveWearable == null)
-		LogMessage("Failed to create call: CBasePlayer::RemoveWearable!");
-	
-	//This function is used to equip wearables
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetVirtual(iRemoveWearableOffset-1);// Assume EquipWearable is always behind RemoveWearable
-	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
-	g_hSDKEquipWearable = EndPrepSDKCall();
-	if(g_hSDKEquipWearable == null)
-		LogMessage("Failed to create call: CBasePlayer::EquipWearable!");
-	
-	delete hGameData;
-	
-	hGameData = new GameData("szf");
 	
 	// Detour used to prevent a crash with "game_ui" entity
 	// void CGameUI::Deactivate( CBaseEntity *pActivator )
@@ -4275,25 +4251,6 @@ void SDK_Init()
 			}
 		}
 	}
-	
-	//This function is used to get weapon max ammo
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(hGameData, SDKConf_Signature, "CTFPlayer::GetMaxAmmo");
-	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
-	g_hSDKGetMaxAmmo = EndPrepSDKCall();
-	if (g_hSDKGetMaxAmmo == null)
-		LogMessage("Failed to create call: CTFPlayer::GetMaxAmmo!");
-	
-	//This function is used to get wearable equipped in loadout slots
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(hGameData, SDKConf_Signature, "CTFPlayer::GetEquippedWearableForLoadoutSlot");
-	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
-	g_hSDKGetEquippedWearable = EndPrepSDKCall();
-	if (g_hSDKGetEquippedWearable == null)
-		LogMessage("Failed to create call: CTFPlayer::GetEquippedWearableForLoadoutSlot!");
 	
 	//This hook calls when someone won a round
 	iOffset = hGameData.GetOffset("CTeamplayRoundBasedRules::SetWinningTeam");
@@ -4339,8 +4296,6 @@ void SDK_Init()
 		DHookAddParam(g_hHookGiveNamedItem, HookParamType_ObjectPtr); //*cscript
 		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Bool); //:b:
 	}
-	
-	delete hGameData;
 }
 
 public MRESReturn Client_GetMaxHealth(int iClient, Handle hReturn)
@@ -4389,36 +4344,6 @@ public void DHook_OnGiveNamedItemRemoved(int iHookId)
 			return;
 		}
 	}
-}
-
-stock int SDK_GetMaxHealth(int iClient)
-{
-	if (g_hSDKGetMaxHealth != null)
-		return SDKCall(g_hSDKGetMaxHealth, iClient);
-	
-	return 0;
-}
-
-stock int SDK_GetMaxAmmo(int iClient, int iSlot)
-{
-	if (g_hSDKGetMaxAmmo != null)
-		return SDKCall(g_hSDKGetMaxAmmo, iClient, iSlot, -1);
-	
-	return -1;
-}
-
-stock void SDK_EquipWearable(int iClient, int iWearable)
-{
-	if (g_hSDKEquipWearable != null)
-		SDKCall(g_hSDKEquipWearable, iClient, iWearable);
-}
-
-stock int SDK_GetEquippedWearable(int iClient, int iSlot)
-{
-	if (g_hSDKGetEquippedWearable != null)
-		return SDKCall(g_hSDKGetEquippedWearable, iClient, iSlot);
-	
-	return -1;
 }
 
 stock void SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, float flSlowdown = 0.5)

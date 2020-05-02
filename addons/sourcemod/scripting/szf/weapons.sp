@@ -145,7 +145,7 @@ void Weapons_ReplaceEntityModel(int ent, int index)
 // -----------------------------------------------------------
 public bool Weapons_OnPickup_Health(int client)
 {
-	if (GetClientHealth(client) < SDK_GetMaxHealth(client))
+	if (GetClientHealth(client) < SDKCall_GetMaxHealth(client))
 	{
 		SpawnPickup(client, "item_healthkit_full");
 		return true;
