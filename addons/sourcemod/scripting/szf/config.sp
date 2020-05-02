@@ -101,7 +101,7 @@ ArrayList Config_LoadWeaponData()
 			{
 				Weapon wep;
 				
-				char sBuffer[256], sBuffer2[10][32];
+				char sBuffer[256];
 				kv.GetSectionName(sBuffer, sizeof(sBuffer));
 				
 				wep.iIndex = StringToInt(sBuffer);
@@ -118,18 +118,18 @@ ArrayList Config_LoadWeaponData()
 					continue;
 				}
 
-				//Skip weapon if their class isn't enabled
-				int iExclude;
-				kv.GetString("class", sBuffer, sizeof(sBuffer));
-				int iCount = ExplodeString(sBuffer, ";", sBuffer2, 10, 32);
-				for (int i = 0; i < iCount; i++)
+				//Skip weapon if weapon is not for any class enabled
+				bool bFound = false;
+				for (TFClassType nClass = TFClass_Scout; nClass <= TFClass_Engineer; nClass++)
 				{
-					TFClassType nClass = TF2_GetClass(sBuffer2[i]);
-					if (nClass != TFClass_Unknown && !IsValidSurvivorClass(nClass))
-						iExclude++;
+					if (IsValidSurvivorClass(nClass) && TF2Econ_GetItemSlot(wep.iIndex, nClass) >= 0)
+					{
+						bFound = true;
+						break;
+					}
 				}
 				
-				if (iExclude == iCount)
+				if (!bFound)
 					continue;
 				
 				//Check if the model is already taken by another weapon
