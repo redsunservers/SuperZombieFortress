@@ -154,18 +154,6 @@ int g_iCarryingItem[TF_MAXPLAYERS] = -1;
 
 float g_flTimeProgress;
 
-//SDK functions
-Handle g_hHookSetWinningTeam;
-Handle g_hHookRoundRespawn;
-Handle g_hHookGetMaxHealth;
-Handle g_hHookShouldBallTouch;
-Handle g_hHookGiveNamedItem;
-
-//Detours
-Handle g_hDetourCGameUI_Deactivate;
-
-int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
-
 float g_flTankCooldown;
 float g_flRageCooldown;
 float g_flRageRespawnStress;
@@ -233,6 +221,7 @@ char g_strSoundCritHit[][128] =
 #include "szf/config.sp"
 #include "szf/console.sp"
 #include "szf/convar.sp"
+#include "szf/dhook.sp"
 #include "szf/event.sp"
 #include "szf/forward.sp"
 #include "szf/native.sp"
@@ -302,6 +291,7 @@ public void OnPluginStart()
 	if (!hSZF)
 		SetFailState("Could not find szf gamedata!");
 	
+	DHook_Init(hSDKHooks, hSZF);
 	SDKCall_Init(hSDKHooks, hTF2, hSZF);
 	
 	delete hSDKHooks;
@@ -313,7 +303,6 @@ public void OnPluginStart()
 	Console_Init();
 	ConVar_Init();
 	Event_Init();
-	SDK_Init();
 	Weapons_Init();
 	
 	Config_Refresh();
@@ -330,14 +319,9 @@ public void OnLibraryAdded(const char[] sName)
 	{
 		g_bTF2Items = true;
 		
-		for (int iClient = 1; iClient <= MaxClients; iClient++)
-		{
-			if (g_iHookIdGiveNamedItem[iClient])
-			{
-				DHookRemoveHookID(g_iHookIdGiveNamedItem[iClient]);
-				g_iHookIdGiveNamedItem[iClient] = 0;
-			}
-		}
+		//We cant allow TF2Items load while GiveNamedItem already hooked due to crash
+		if (DHook_IsGiveNamedItemActive())
+			SetFailState("Do not load TF2Items midgame while Randomizer is already loaded!");
 	}
 }
 
@@ -350,7 +334,7 @@ public void OnLibraryRemoved(const char[] sName)
 		//TF2Items unloaded with GiveNamedItem unhooked, we can now safely hook GiveNamedItem ourself
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 			if (IsClientInGame(iClient))
-				g_iHookIdGiveNamedItem[iClient] = DHookEntity(g_hHookGiveNamedItem, false, iClient, DHook_OnGiveNamedItemRemoved, Client_OnGiveNamedItem);
+				DHook_HookGiveNamedItem(iClient);
 	}
 }
 
@@ -361,9 +345,6 @@ public void OnPluginEnd()
 		if (IsClientInGame(iClient))
 			EndSound(iClient);
 	}
-	
-	if (g_hDetourCGameUI_Deactivate != null && !DHookDisableDetour(g_hDetourCGameUI_Deactivate, false, Detour_CGameUI_Deactivate))
-		LogMessage("Warning failed to disable CGameUI::Deactivate detour!");
 }
 
 public void OnClientCookiesCached(int iClient)
@@ -430,11 +411,8 @@ public void OnClientPutInServer(int iClient)
 {
 	CreateTimer(10.0, Timer_InitialHelp, iClient, TIMER_FLAG_NO_MAPCHANGE);
 	
-	if (g_hHookGetMaxHealth)
-		DHookEntity(g_hHookGetMaxHealth, false, iClient);
-	
-	if (g_hHookGiveNamedItem && !g_bTF2Items)
-		g_iHookIdGiveNamedItem[iClient] = DHookEntity(g_hHookGiveNamedItem, false, iClient, DHook_OnGiveNamedItemRemoved, Client_OnGiveNamedItem);
+	DHook_HookClient(iClient);
+	DHook_HookGiveNamedItem(iClient);
 	
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
@@ -444,11 +422,7 @@ public void OnClientPutInServer(int iClient)
 
 public void OnClientDisconnect(int iClient)
 {
-	if (g_iHookIdGiveNamedItem[iClient])
-	{
-		DHookRemoveHookID(g_iHookIdGiveNamedItem[iClient]);
-		g_iHookIdGiveNamedItem[iClient] = 0;
-	}
+	DHook_UnhookGiveNamedItem(iClient);
 	
 	if (!g_bEnabled) return;
 	
@@ -795,170 +769,6 @@ public void TF2_OnWaitingForPlayersEnd()
 	if (!g_bEnabled) return;
 
 	g_nRoundState = SZFRoundState_Grace;
-}
-
-public MRESReturn DHook_SetWinningTeam(Handle hParams)
-{
-	DHookSetParam(hParams, 4, false);	// always return false to bSwitchTeams
-	return MRES_ChangedOverride;
-}
-
-public MRESReturn DHook_RoundRespawn()
-{
-	if (!g_bEnabled) return;
-	if (g_nRoundState == SZFRoundState_Setup) return;
-	
-	DetermineControlPoints();
-	
-	g_bLastSurvivor = false;
-	
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		g_iDamageZombie[iClient] = 0;
-		g_iKillsThisLife[iClient] = 0;
-		g_bSpawnAsSpecialInfected[iClient] = false;
-		g_nInfected[iClient] = Infected_None;
-		g_nNextInfected[iClient] = Infected_None;
-		g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
-		g_iEyelanderHead[iClient] = 0;
-		g_iMaxHealth[iClient] = -1;
-		g_iSuperHealthSubtract[iClient] = 0;
-		g_flTimeStartAsZombie[iClient] = 0.0;
-	}
-	
-	for (int i = 0; i < view_as<int>(Infected); i++)
-	{
-		g_flInfectedCooldown[i] = 0.0;
-		g_iInfectedCooldown[i] = 0;
-	}
-	
-	g_iZombieTank = 0;
-	RemoveAllGoo();
-	
-	g_nRoundState = SZFRoundState_Grace;
-	
-	CPrintToChatAll("{green}Grace period begun. Survivors can change classes.");
-	
-	//Assign players to zombie and survivor teams.
-	if (g_bNewRound)
-	{
-		int[] iClients = new int[MaxClients];
-		int iLength = 0;
-		int iSurvivorCount;
-		
-		//Find all active players.
-		for (int iClient = 1; iClient <= MaxClients; iClient++)
-		{
-			g_iZombiesKilledSurvivor[iClient] = 0;
-			EndSound(iClient);
-			
-			if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
-			{
-				iClients[iLength] = iClient;
-				iLength++;
-			}
-		}
-		
-		//Randomize, sort players
-		SortIntegers(iClients, iLength, Sort_Random);
-		
-		//Calculate team counts. At least one survivor must exist.
-		iSurvivorCount = RoundToFloor(iLength * g_cvRatio.FloatValue);
-		if (iSurvivorCount == 0 && iLength > 0)
-			iSurvivorCount = 1;
-		
-		TFTeam[] nClientTeam = new TFTeam[MaxClients+1];
-		g_iStartSurvivors = 0;
-		
-		//Check if we need to force players to survivor or zombie team
-		for (int i = 0; i < iLength; i++)
-		{
-			int iClient = iClients[i];
-			
-			if (IsValidClient(iClient))
-			{
-				Action action = Forward_ShouldStartZombie(iClient);
-				
-				if (action == Plugin_Handled)
-				{
-					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie, false);
-					nClientTeam[iClient] = TFTeam_Zombie;
-					g_bStartedAsZombie[iClient] = true;
-					g_flTimeStartAsZombie[iClient] = GetGameTime();
-				}
-				else if (g_bForceZombieStart[iClient] && !g_bFirstRound)
-				{
-					//If they attempted to skip playing as zombie last time, force him to be in zombie team
-					CPrintToChat(iClient, "{red}You have been forcibly set to infected team due to attempting to skip playing as a infected.");
-					g_bForceZombieStart[iClient] = false;
-					SetClientCookie(iClient, g_cForceZombieStart, "0");
-					
-					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie, false);
-					nClientTeam[iClient] = TFTeam_Zombie;
-					g_bStartedAsZombie[iClient] = true;
-					g_flTimeStartAsZombie[iClient] = GetGameTime();
-				}
-				else if (g_bStartedAsZombie[iClient])
-				{
-					//Players who started as zombie last time is forced to be survivors
-					
-					//Survivor
-					SpawnClient(iClient, TFTeam_Survivor, false);
-					nClientTeam[iClient] = TFTeam_Survivor;
-					g_bStartedAsZombie[iClient] = false;
-					g_iStartSurvivors++;
-					iSurvivorCount--;
-				}
-			}
-		}
-		
-		//From SortIntegers, we set the rest to survivors, then zombies
-		for (int i = 0; i < iLength; i++)
-		{
-			int iClient = iClients[i];
-			
-			//Check if they have not already been assigned
-			if (IsValidClient(iClient) && !(nClientTeam[iClient] == TFTeam_Zombie) && !(nClientTeam[iClient] == TFTeam_Survivor))
-			{
-				if (iSurvivorCount > 0)
-				{
-					//Survivor
-					SpawnClient(iClient, TFTeam_Survivor, false);
-					nClientTeam[iClient] = TFTeam_Survivor;
-					g_bStartedAsZombie[iClient] = false;
-					g_iStartSurvivors++;
-					iSurvivorCount--;
-				}
-				else
-				{
-					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie, false);
-					nClientTeam[iClient] = TFTeam_Zombie;
-					g_bStartedAsZombie[iClient] = true;
-					g_flTimeStartAsZombie[iClient] = GetGameTime();
-				}
-			}
-		}
-	}
-	
-	//Reset counters
-	g_flCapScale = -1.0;
-	g_flSurvivorsLastDeath = GetGameTime();
-	g_iSurvivorsKilledCounter = 0;
-	g_iZombiesKilledCounter = 0;
-	g_iZombiesKilledSpree = 0;
-	
-	g_flTimeProgress = 0.0;
-	g_hTimerProgress = null;
-	
-	//Handle grace period timers.
-	CreateTimer(0.5, Timer_GraceStartPost, TIMER_FLAG_NO_MAPCHANGE);
-	CreateTimer(45.0, Timer_GraceEnd, TIMER_FLAG_NO_MAPCHANGE);
-	
-	SetGlow();
-	UpdateZombieDamageScale();
 }
 
 void EndGracePeriod()
@@ -2569,8 +2379,7 @@ public void OnMapStart()
 	HookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
 	HookEntityOutput("math_counter", "OutValue", OnCounterValue);
 	
-	DHookGamerules(g_hHookSetWinningTeam, false, _, DHook_SetWinningTeam);
-	DHookGamerules(g_hHookRoundRespawn, false, _, DHook_RoundRespawn);
+	DHook_HookGamerules();
 }
 
 public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, float flDelay)
@@ -3208,8 +3017,7 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	}
 	else if (StrEqual(sClassname, "tf_projectile_stun_ball"))
 	{
-		if (g_hHookShouldBallTouch)
-			DHookEntity(g_hHookShouldBallTouch, false, iEntity, _, ShouldBallTouch);
+		DHook_HookStunBall(iEntity);
 	}
 	else if (StrEqual(sClassname, "tf_dropped_weapon"))
 	{
@@ -3285,24 +3093,6 @@ public Action OnTriggerGooDefenseEnd(int iEntity, int iClient)
 		g_iCapturingPoint[iClient] = -1;
 	
 	return Plugin_Continue;
-}
-
-public MRESReturn ShouldBallTouch(int iEntity, Handle hReturn, Handle hParams)
-{
-	if (!g_bEnabled) return MRES_Ignored;
-	
-	int iToucher = DHookGetParam(hParams, 1);
-	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
-	if (IsValidLivingSurvivor(iToucher) && IsValidZombie(iOwner))
-	{
-		SpitterGoo(iToucher, iOwner);
-		AcceptEntityInput(iEntity, "kill");
-		
-		DHookSetReturn(hReturn, false);
-		return MRES_Supercede;
-	}
-	
-	return MRES_Ignored;
 }
 
 public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
@@ -4216,134 +4006,6 @@ public Action Timer_SetHunterJump(Handle timer, any iClient)
 		g_bHopperIsUsingPounce[iClient] = true;
 	
 	return Plugin_Continue;
-}
-
-void SDK_Init()
-{
-	//This function is used to control player's max health
-	int iOffset = hGameData.GetOffset("GetMaxHealth");
-	g_hHookGetMaxHealth = DHookCreate(iOffset, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity, Client_GetMaxHealth);
-	if (g_hHookGetMaxHealth == null)
-		LogMessage("Failed to create hook: CTFPlayer::GetMaxHealth!");
-	
-	// Detour used to prevent a crash with "game_ui" entity
-	// void CGameUI::Deactivate( CBaseEntity *pActivator )
-	g_hDetourCGameUI_Deactivate = DHookCreateDetour(Address_Null, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
-	if (g_hDetourCGameUI_Deactivate == null)
-	{
-		LogMessage("Failed to create detour handle for CGameUI::Deactivate!");
-	}
-	else
-	{
-		if (!DHookSetFromConf(g_hDetourCGameUI_Deactivate, hGameData, SDKConf_Signature, "CGameUI::Deactivate"))
-		{
-			LogMessage("Failed to retrieve CGameUI::Deactivate address!");
-			delete g_hDetourCGameUI_Deactivate;
-		}
-		else
-		{
-			DHookAddParam(g_hDetourCGameUI_Deactivate, HookParamType_Int); // CBaseEntity *pActivator
-			
-			if (!DHookEnableDetour(g_hDetourCGameUI_Deactivate, false, Detour_CGameUI_Deactivate))
-			{
-				LogMessage("Failed to enable CGameUI::Deactivate detour!");
-				delete g_hDetourCGameUI_Deactivate;
-			}
-		}
-	}
-	
-	//This hook calls when someone won a round
-	iOffset = hGameData.GetOffset("CTeamplayRoundBasedRules::SetWinningTeam");
-	g_hHookSetWinningTeam = DHookCreate(iOffset, HookType_GameRules, ReturnType_Void, ThisPointer_Ignore);
-	if (g_hHookSetWinningTeam == null)
-	{
-		LogMessage("Failed to create hook: CTeamplayRoundBasedRules::SetWinningTeam!");
-	}
-	else
-	{
-		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Int);	// team
-		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Int);	// iWinReason
-		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bForceMapReset
-		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bSwitchTeams
-		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bDontAddScore
-		DHookAddParam(g_hHookSetWinningTeam, HookParamType_Bool);	// bFinal
-	}
-	
-	//This hook calls when round is starting
-	iOffset = hGameData.GetOffset("CTeamplayRoundBasedRules::RoundRespawn");
-	g_hHookRoundRespawn = DHookCreate(iOffset, HookType_GameRules, ReturnType_Void, ThisPointer_Ignore);
-	if (g_hHookRoundRespawn == null)
-		LogMessage("Failed to create hook: CTeamplayRoundBasedRules::RoundRespawn!");
-	
-	//This hook calls when Sandman Ball stuns a player
-	iOffset = hGameData.GetOffset("CTFStunBall::ShouldBallTouch");
-	g_hHookShouldBallTouch = DHookCreate(iOffset, HookType_Entity, ReturnType_Bool, ThisPointer_CBaseEntity);
-	if (g_hHookShouldBallTouch == null)
-		LogMessage("Failed to create hook: CTFStunBall::ShouldBallTouch!");
-	else
-		DHookAddParam(g_hHookShouldBallTouch, HookParamType_CBaseEntity);
-	
-	iOffset = hGameData.GetOffset("CTFPlayer::GiveNamedItem");
-	g_hHookGiveNamedItem = DHookCreate(iOffset, HookType_Entity, ReturnType_CBaseEntity, ThisPointer_CBaseEntity);
-	if (g_hHookGiveNamedItem == null)
-	{
-		LogMessage("Failed to create hook: CTFPlayer::GiveNamedItem!");
-	}
-	else
-	{
-		DHookAddParam(g_hHookGiveNamedItem, HookParamType_CharPtr); //*szClassname
-		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Int); //iSubType
-		DHookAddParam(g_hHookGiveNamedItem, HookParamType_ObjectPtr); //*cscript
-		DHookAddParam(g_hHookGiveNamedItem, HookParamType_Bool); //:b:
-	}
-}
-
-public MRESReturn Client_GetMaxHealth(int iClient, Handle hReturn)
-{
-	if (g_iMaxHealth[iClient] > 0)
-	{
-		DHookSetReturn(hReturn, g_iMaxHealth[iClient]);
-		return MRES_Supercede;
-	}
-	
-	return MRES_Ignored;
-}
-
-public MRESReturn Client_OnGiveNamedItem(int iClient, Handle hReturn, Handle hParams)
-{
-	// Block if one of the pointers is null
-	if (DHookIsNullParam(hParams, 1) || DHookIsNullParam(hParams, 3))
-	{
-		DHookSetReturn(hReturn, 0);
-		return MRES_Supercede;
-	}
-	
-	char sClassname[256];
-	DHookGetParamString(hParams, 1, sClassname, sizeof(sClassname));
-	
-	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
-	
-	Action iAction = OnGiveNamedItem(iClient, sClassname, iIndex);
-	
-	if (iAction == Plugin_Handled)
-	{
-		DHookSetReturn(hReturn, 0);
-		return MRES_Supercede;
-	}
-	
-	return MRES_Ignored;
-}
-
-public void DHook_OnGiveNamedItemRemoved(int iHookId)
-{
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		if (g_iHookIdGiveNamedItem[iClient] == iHookId)
-		{
-			g_iHookIdGiveNamedItem[iClient] = 0;
-			return;
-		}
-	}
 }
 
 stock void SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, float flSlowdown = 0.5)

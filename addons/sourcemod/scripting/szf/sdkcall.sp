@@ -14,7 +14,6 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	
 	int iRemoveWearableOffset = hTF2.GetOffset("RemoveWearable");
 	
-	//This function is used to equip wearables
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetVirtual(iRemoveWearableOffset-1);// Assume EquipWearable is always behind RemoveWearable
 	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
@@ -22,7 +21,6 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	if (!g_hSDKCallEquipWearable)
 		LogError("Failed to create call: CBasePlayer::EquipWearable!");
 	
-	//This function is used to get weapon max ammo
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::GetMaxAmmo");
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
@@ -32,7 +30,6 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	if (!g_hSDKCallGetMaxAmmo)
 		LogError("Failed to create call: CTFPlayer::GetMaxAmmo!");
 	
-	//This function is used to get wearable equipped in loadout slots
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::GetEquippedWearableForLoadoutSlot");
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
