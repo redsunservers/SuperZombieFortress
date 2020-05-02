@@ -19,8 +19,8 @@
 			"CGameUI::Deactivate"
 			{
 				"library"	"server"
-				"windows"	"\x55\x8B\xEC\x51\x53\x56\x57\x8B\x2A\x8B\x97"
 				"linux"		"@_ZN7CGameUI10DeactivateEP11CBaseEntity"
+				"windows"	"\x55\x8B\xEC\x51\x53\x56\x57\x8B\x2A\x8B\x97"
 			}
 		}
 		"Offsets"
@@ -42,8 +42,106 @@
 			}
 			"CTFPlayer::GiveNamedItem"
 			{
-				"windows"	"475"
 				"linux"		"482"
+				"windows"	"475"
+			}
+		}
+		"Functions"
+		{
+			"CGameUI::Deactivate"
+			{
+				"signature"	"CGameUI::Deactivate"
+				"callconv"	"thiscall"
+				"return"	"void"
+				"this"		"entity"
+				"arguments"
+				{
+					"pActivator"
+					{
+						"type"	"cbaseentity"
+					}
+				}
+			}
+			"CTFGameRules::SetWinningTeam"
+			{
+				"offset"	"CTFGameRules::SetWinningTeam"
+				"hooktype"	"gamerules"
+				"return"	"void"
+				"this"		"ignore"
+				"arguments"
+				{
+					"team"
+					{
+						"type"	"int"
+					}
+					"iWinReason"
+					{
+						"type"	"int"
+					}
+					"bForceMapReset"
+					{
+						"type"	"bool"
+					}
+					"bSwitchTeams"
+					{
+						"type"	"bool"
+					}
+					"bDontAddScore"
+					{
+						"type"	"bool"
+					}
+					"bFinal"
+					{
+						"type"	"bool"
+					}
+				}
+			}
+			"CTeamplayRoundBasedRules::RoundRespawn"
+			{
+				"offset"	"CTeamplayRoundBasedRules::RoundRespawn"
+				"hooktype"	"gamerules"
+				"return"	"void"
+				"this"		"ignore"
+			}
+			"CTFStunBall::ShouldBallTouch"
+			{
+				"offset"	"CTFStunBall::ShouldBallTouch"
+				"hooktype"	"entity"
+				"return"	"bool"
+				"this"		"entity"
+				"arguments"
+				{
+					"pOther"
+					{
+						"type"	"cbaseentity"
+					}
+				}
+			}
+			"CTFPlayer::GiveNamedItem"
+			{
+				"offset"	"CTFPlayer::GiveNamedItem"
+				"hooktype"	"entity"
+				"return"	"cbaseentity"
+				"this"		"entity"
+				"arguments"
+				{
+					"pszName"
+					{
+						"type"	"charptr"
+					}
+					"iSubType"
+					{
+						"type"	"int"
+					}
+					"pScriptItem"
+					{
+						"type"	"objectptr"
+					}
+					"bForce"
+					{
+						"type"	"bool"
+					}
+				}
 			}
 		}
 	}

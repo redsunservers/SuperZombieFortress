@@ -1,9 +1,8 @@
+static Handle g_hDHookGetMaxHealth;
 static Handle g_hDHookSetWinningTeam;
 static Handle g_hDHookRoundRespawn;
-static Handle g_hDHookGetMaxHealth;
 static Handle g_hDHookShouldBallTouch;
 static Handle g_hDHookGiveNamedItem;
-static Handle g_hDHookDeactivate;
 
 static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
@@ -12,75 +11,44 @@ void DHook_Init(GameData hSDKHooks, GameData hSZF)
 	int iOffset = hSDKHooks.GetOffset("GetMaxHealth");
 	g_hDHookGetMaxHealth = DHookCreate(iOffset, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity);
 	if (g_hDHookGetMaxHealth == null)
-		LogMessage("Failed to create hook: CTFPlayer::GetMaxHealth!");
+		LogMessage("Failed to create hook: CTFPlayer::GetMaxHealth");
 	
-	iOffset = hSZF.GetOffset("CTeamplayRoundBasedRules::SetWinningTeam");
-	g_hDHookSetWinningTeam = DHookCreate(iOffset, HookType_GameRules, ReturnType_Void, ThisPointer_Ignore);
-	if (g_hDHookSetWinningTeam == null)
+	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", Detour_CGameUI_Deactivate, _);
+	
+	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
+	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
+	g_hDHookShouldBallTouch = DHook_CreateVirtual(hSZF, "CTFStunBall::ShouldBallTouch");
+	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
+}
+
+static void DHook_CreateDetour(GameData gamedata, const char[] name, DHookCallback preCallback = INVALID_FUNCTION, DHookCallback postCallback = INVALID_FUNCTION)
+{
+	Handle detour = DHookCreateFromConf(gamedata, name);
+	if (!detour)
 	{
-		LogMessage("Failed to create hook: CTeamplayRoundBasedRules::SetWinningTeam!");
+		LogError("Failed to create detour: %s", name);
 	}
 	else
 	{
-		DHookAddParam(g_hDHookSetWinningTeam, HookParamType_Int);	// team
-		DHookAddParam(g_hDHookSetWinningTeam, HookParamType_Int);	// iWinReason
-		DHookAddParam(g_hDHookSetWinningTeam, HookParamType_Bool);	// bForceMapReset
-		DHookAddParam(g_hDHookSetWinningTeam, HookParamType_Bool);	// bSwitchTeams
-		DHookAddParam(g_hDHookSetWinningTeam, HookParamType_Bool);	// bDontAddScore
-		DHookAddParam(g_hDHookSetWinningTeam, HookParamType_Bool);	// bFinal
+		if (preCallback != INVALID_FUNCTION)
+			if (!DHookEnableDetour(detour, false, preCallback))
+				LogError("Failed to enable pre detour: %s", name);
+		
+		if (postCallback != INVALID_FUNCTION)
+			if (!DHookEnableDetour(detour, true, postCallback))
+				LogError("Failed to enable post detour: %s", name);
+		
+		delete detour;
 	}
+}
+
+static Handle DHook_CreateVirtual(GameData hGameData, const char[] sName)
+{
+	Handle hHook = DHookCreateFromConf(hGameData, sName);
+	if (!hHook)
+		LogError("Failed to create hook: %s", sName);
 	
-	iOffset = hSZF.GetOffset("CTeamplayRoundBasedRules::RoundRespawn");
-	g_hDHookRoundRespawn = DHookCreate(iOffset, HookType_GameRules, ReturnType_Void, ThisPointer_Ignore);
-	if (g_hDHookRoundRespawn == null)
-		LogMessage("Failed to create hook: CTeamplayRoundBasedRules::RoundRespawn!");
-	
-	iOffset = hSZF.GetOffset("CTFStunBall::ShouldBallTouch");
-	g_hDHookShouldBallTouch = DHookCreate(iOffset, HookType_Entity, ReturnType_Bool, ThisPointer_CBaseEntity);
-	if (g_hDHookShouldBallTouch == null)
-		LogMessage("Failed to create hook: CTFStunBall::ShouldBallTouch!");
-	else
-		DHookAddParam(g_hDHookShouldBallTouch, HookParamType_CBaseEntity);
-	
-	iOffset = hSZF.GetOffset("CTFPlayer::GiveNamedItem");
-	g_hDHookGiveNamedItem = DHookCreate(iOffset, HookType_Entity, ReturnType_CBaseEntity, ThisPointer_CBaseEntity);
-	if (g_hDHookGiveNamedItem == null)
-	{
-		LogMessage("Failed to create hook: CTFPlayer::GiveNamedItem!");
-	}
-	else
-	{
-		DHookAddParam(g_hDHookGiveNamedItem, HookParamType_CharPtr); //*szClassname
-		DHookAddParam(g_hDHookGiveNamedItem, HookParamType_Int); //iSubType
-		DHookAddParam(g_hDHookGiveNamedItem, HookParamType_ObjectPtr); //*cscript
-		DHookAddParam(g_hDHookGiveNamedItem, HookParamType_Bool); //:b:
-	}
-	
-	// Detour used to prevent a crash with "game_ui" entity
-	// void CGameUI::Deactivate( CBaseEntity *pActivator )
-	g_hDHookDeactivate = DHookCreateDetour(Address_Null, CallConv_THISCALL, ReturnType_Void, ThisPointer_CBaseEntity);
-	if (g_hDHookDeactivate == null)
-	{
-		LogMessage("Failed to create detour handle for CGameUI::Deactivate!");
-	}
-	else
-	{
-		if (!DHookSetFromConf(g_hDHookDeactivate, hSZF, SDKConf_Signature, "CGameUI::Deactivate"))
-		{
-			LogMessage("Failed to retrieve CGameUI::Deactivate address!");
-			delete g_hDHookDeactivate;
-		}
-		else
-		{
-			DHookAddParam(g_hDHookDeactivate, HookParamType_Int); // CBaseEntity *pActivator
-			
-			if (!DHookEnableDetour(g_hDHookDeactivate, false, Detour_CGameUI_Deactivate))
-			{
-				LogMessage("Failed to enable CGameUI::Deactivate detour!");
-				delete g_hDHookDeactivate;
-			}
-		}
-	}
+	return hHook;
 }
 
 void DHook_HookGiveNamedItem(int iClient)
@@ -121,6 +89,22 @@ void DHook_HookGamerules()
 {
 	DHookGamerules(g_hDHookSetWinningTeam, false, _, DHook_SetWinningTeamPre);
 	DHookGamerules(g_hDHookRoundRespawn, false, _, DHook_RoundRespawnPre);
+}
+
+public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
+{
+	if (!g_bEnabled) return MRES_Ignored;
+	
+	// Detour used to prevent a crash with "game_ui" entity
+	// World entity 0 should always be valid
+	// If not, then pass a resource entity like "tf_gamerules"
+	int iEntity = 0;
+	while ((iEntity = FindEntityByClassname(iEntity, "*")) != -1)
+	{
+		DHookSetParam(hParams, 1, GetEntityAddress(iEntity));
+		return MRES_ChangedHandled;
+	}
+	return MRES_Ignored;
 }
 
 public MRESReturn DHook_OnGiveNamedItemPre(int iClient, Handle hReturn, Handle hParams)

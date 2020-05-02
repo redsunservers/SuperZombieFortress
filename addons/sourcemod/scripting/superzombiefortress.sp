@@ -3095,21 +3095,6 @@ public Action OnTriggerGooDefenseEnd(int iEntity, int iClient)
 	return Plugin_Continue;
 }
 
-public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
-{
-	if (!g_bEnabled) return MRES_Ignored;
-	
-	// World entity 0 should always be valid
-	// If not, then pass a resource entity like "tf_gamerules"
-	int iEntity = 0;
-	while ((iEntity = FindEntityByClassname(iEntity, "*")) != -1)
-	{
-		DHookSetParam(hParams, 1, GetEntityAddress(iEntity));
-		return MRES_ChangedHandled;
-	}
-	return MRES_Ignored;
-}
-
 public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
 {
 	int iEntity = EntRefToEntIndex(iRef);
