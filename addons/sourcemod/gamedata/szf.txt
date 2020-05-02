@@ -62,9 +62,9 @@
 					}
 				}
 			}
-			"CTFGameRules::SetWinningTeam"
+			"CTeamplayRoundBasedRules::SetWinningTeam"
 			{
-				"offset"	"CTFGameRules::SetWinningTeam"
+				"offset"	"CTeamplayRoundBasedRules::SetWinningTeam"
 				"hooktype"	"gamerules"
 				"return"	"void"
 				"this"		"ignore"
