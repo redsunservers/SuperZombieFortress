@@ -3019,10 +3019,6 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	{
 		DHook_HookStunBall(iEntity);
 	}
-	else if (StrEqual(sClassname, "tf_dropped_weapon"))
-	{
-		AcceptEntityInput(iEntity, "kill");
-	}
 }
 
 public Action OnCaptureStartTouch(int iEntity, int iClient)
