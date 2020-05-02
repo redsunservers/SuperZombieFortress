@@ -14,8 +14,6 @@ void DHook_Init(GameData hSDKHooks, GameData hSZF)
 		LogMessage("Failed to create hook: CTFPlayer::GetMaxHealth");
 	
 	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
-	DHook_CreateDetour(hSZF, "CTFPlayer::DropAmmoPack", DHook_DropAmmoPackPre, _);
-	DHook_CreateDetour(hSZF, "CTFPlayer::PickupWeaponFromOther", DHook_PickupWeaponFromOtherPre, _);
 	
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
@@ -93,7 +91,7 @@ void DHook_HookGamerules()
 	DHookGamerules(g_hDHookRoundRespawn, false, _, DHook_RoundRespawnPre);
 }
 
-public MRESReturn DHook_DeactivatePre(int iThis, Handle hParams)
+public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
 {
 	if (!g_bEnabled) return MRES_Ignored;
 	
@@ -109,27 +107,13 @@ public MRESReturn DHook_DeactivatePre(int iThis, Handle hParams)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHook_DropAmmoPackPre(int iClient, Handle hParams)
+public MRESReturn DHook_DeactivatePre(int iClient, Handle hParams)
 {
 	if (!g_bEnabled) return MRES_Ignored;
 	
 	//Don't allow zombies drop ammo and dropped weapon
 	if (IsZombie(iClient))
 		return MRES_Supercede;
-	
-	return MRES_Ignored;
-}
-
-public MRESReturn DHook_PickupWeaponFromOtherPre(int iClient, Handle hReturn, Handle hParams)
-{
-	if (!g_bEnabled) return MRES_Ignored;
-	
-	//Don't allow zombies pickup dropped weapon
-	if (IsZombie(iClient))
-	{
-		DHookSetReturn(hReturn, false);
-		return MRES_Supercede;
-	}
 	
 	return MRES_Ignored;
 }
