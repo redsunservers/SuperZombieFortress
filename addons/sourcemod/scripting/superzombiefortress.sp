@@ -497,13 +497,6 @@ public void Client_OnPreThinkPost(int iClient)
 							if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated)) flSpeed -= 30.0; //Jarate'd by sniper
 						}
 
-						//Charger: like in l4d, his charge is fucking fast so we also have it here, WEEEEEEE
-						case Infected_Charger:
-						{
-							if (TF2_IsPlayerInCondition(iClient, TFCond_Charging))
-								flSpeed = 1200.0; //Original charge speed is 1000.0, will this black sorcery work?
-						}
-
 						//Cloaked: super speed if cloaked
 						case Infected_Stalker:
 						{
