@@ -159,8 +159,8 @@ public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadca
 
 bool AttemptGrabItem(int iClient)
 {	
-	if (!IsSurvivor(iClient)) return false;
-	if (!g_bCanPickup[iClient]) return false;
+	if (!IsSurvivor(iClient) || !g_bCanPickup[iClient])
+		return false;
 	
 	int iTarget = GetClientPointVisible(iClient);
 	
@@ -330,7 +330,6 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 			EmitSoundToClient(iClient, "ui/item_heavy_gun_drop.wav");
 			SetWeaponModel(iTarget, oldwep);
 		}
-		
 		else
 		{
 			AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
@@ -436,13 +435,20 @@ stock WeaponType GetWeaponType(int iEntity)
 	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
 	
 	//Strcontains versus strequals on 2048 entities obviously shows strcontains as the winner
-	if (StrContains(sName, "szf_weapon_spawn", false) == 0) return WeaponType_Spawn; //Spawn: dont expire on pickup
-	else if (StrContains(sName, "szf_weapon_rare_spawn", false) == 0) return WeaponType_RareSpawn; //Guaranteed rare and non-expiring
-	else if (StrContains(sName, "szf_weapon_rare", false) == 0) return WeaponType_Rare; //Guaranteed rare
-	else if (StrContains(sName, "szf_weapon_static_spawn", false) == 0) return WeaponType_StaticSpawn; //Static: don't change model and non-expiring
-	else if (StrContains(sName, "szf_weapon_static", false) == 0) return WeaponType_Static; //Static: don't change model
-	else if (StrContains(sName, "szf_weapon_nopickup", false) == 0) return WeaponType_DefaultNoPickup; //No pickup: this weapon can never become a pickup
-	else if (StrContains(sName, "szf_weapon", false) != -1) return WeaponType_Default; //Normal
+	if (StrContains(sName, "szf_weapon_spawn", false) == 0)
+		return WeaponType_Spawn; //Spawn: dont expire on pickup
+	else if (StrContains(sName, "szf_weapon_rare_spawn", false) == 0)
+		return WeaponType_RareSpawn; //Guaranteed rare and non-expiring
+	else if (StrContains(sName, "szf_weapon_rare", false) == 0)
+		return WeaponType_Rare; //Guaranteed rare
+	else if (StrContains(sName, "szf_weapon_static_spawn", false) == 0)
+		return WeaponType_StaticSpawn; //Static: don't change model and non-expiring
+	else if (StrContains(sName, "szf_weapon_static", false) == 0)
+		return WeaponType_Static; //Static: don't change model
+	else if (StrContains(sName, "szf_weapon_nopickup", false) == 0)
+		return WeaponType_DefaultNoPickup; //No pickup: this weapon can never become a pickup
+	else if (StrContains(sName, "szf_weapon", false) != -1)
+		return WeaponType_Default; //Normal
 	
 	return WeaponType_Invalid;
 }

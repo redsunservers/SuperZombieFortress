@@ -731,7 +731,8 @@ void SoundPrecache()
 
 stock void PrecacheSound2(const char[] sSoundPath)
 {
-	if (strcmp(sSoundPath, "") == 0) return;
+	if (strcmp(sSoundPath, "") == 0)
+		return;
 	
 	PrecacheSound(sSoundPath, true);
 	char s[PLATFORM_MAX_PATH];
@@ -749,8 +750,8 @@ void PlaySoundAll(Sound nSound, float flTimer = 0.0)
 void PlaySound(int iClient, Sound nSound, float flTimer = 0.0)
 {
 	//Check if there music override first
-	if (IsMusicOverrideOn()) return;
-	if (g_bNoMusicForClient[iClient]) return;
+	if (IsMusicOverrideOn() || g_bNoMusicForClient[iClient])
+		return;
 	
 	//We need to check if we are allowed to override current sound from the sound we going to use
 	SoundType nType = GetSoundType(nSound);
@@ -758,10 +759,12 @@ void PlaySound(int iClient, Sound nSound, float flTimer = 0.0)
 	SoundType nCurrentType = GetSoundType(nCurrentSound);
 	
 	//If we want to play sound thats already playing, no point replaying it again
-	if (nSound == nCurrentSound) return;
+	if (nSound == nCurrentSound)
+		return;
 	
 	//If the sound we want to play is greater or the same to current sound from enum SoundType, then we are allowed to override sound, otherwise return
-	if (nType < nCurrentType) return;
+	if (nType < nCurrentType)
+		return;
 	
 	//End current sound before we start new sound
 	EndSound(iClient);
@@ -842,7 +845,8 @@ void SoundAttack(int iVictim, int iAttacker)
 		}
 	}
 	
-	if (nSound == Sound_None) return;
+	if (nSound == Sound_None)
+		return;
 	
 	//Play sound to all nearby players
 	float vecVictimOrigin[3], vecOrigin[3]; 
@@ -986,11 +990,16 @@ Sound GetCurrentSound(int iClient)
 
 SoundType GetSoundType(Sound nSound)
 {
-	if (nSound == Sound_None) return SoundType_None;
-	else if (SoundQuiet_Min <= nSound <= SoundQuiet_Max) return SoundType_Quiet;
-	else if (SoundAttack_Min <= nSound <= SoundAttack_Max) return SoundType_Attack;
-	else if (SoundEvent_Min <= nSound <= SoundEvent_Max) return SoundType_Event;
-	else if (SoundMusic_Min <= nSound <= SoundMusic_Max) return SoundType_Music;
+	if (nSound == Sound_None)
+		return SoundType_None;
+	else if (SoundQuiet_Min <= nSound <= SoundQuiet_Max)
+		return SoundType_Quiet;
+	else if (SoundAttack_Min <= nSound <= SoundAttack_Max)
+		return SoundType_Attack;
+	else if (SoundEvent_Min <= nSound <= SoundEvent_Max)
+		return SoundType_Event;
+	else if (SoundMusic_Min <= nSound <= SoundMusic_Max)
+		return SoundType_Music;
 	
 	//Would be really strange if we reach that part
 	return SoundType_None;
@@ -1000,7 +1009,8 @@ bool IsMusicOverrideOn()
 {
 	Action action = Forward_ShouldAllowMusicPlay();
 	
-	if (action == Plugin_Handled) return true;
-	if (g_bNoMusic) return true;
+	if (action == Plugin_Handled || g_bNoMusic)
+		return true;
+	
 	return false;
 }

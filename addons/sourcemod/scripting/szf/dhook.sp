@@ -93,7 +93,8 @@ void DHook_HookGamerules()
 
 public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
 {
-	if (!g_bEnabled) return MRES_Ignored;
+	if (!g_bEnabled)
+		return MRES_Ignored;
 	
 	// Detour used to prevent a crash with "game_ui" entity
 	// World entity 0 should always be valid
@@ -109,7 +110,8 @@ public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
 
 public MRESReturn DHook_DeactivatePre(int iClient, Handle hParams)
 {
-	if (!g_bEnabled) return MRES_Ignored;
+	if (!g_bEnabled)
+		return MRES_Ignored;
 	
 	//Don't allow zombies drop ammo and dropped weapon
 	if (IsZombie(iClient))
@@ -168,7 +170,8 @@ public MRESReturn DHook_GetMaxHealthPre(int iClient, Handle hReturn)
 
 public MRESReturn DHook_ShouldBallTouchPre(int iEntity, Handle hReturn, Handle hParams)
 {
-	if (!g_bEnabled) return MRES_Ignored;
+	if (!g_bEnabled)
+		return MRES_Ignored;
 	
 	int iToucher = DHookGetParam(hParams, 1);
 	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
@@ -192,8 +195,11 @@ public MRESReturn DHook_SetWinningTeamPre(Handle hParams)
 
 public MRESReturn DHook_RoundRespawnPre()
 {
-	if (!g_bEnabled) return;
-	if (g_nRoundState == SZFRoundState_Setup) return;
+	if (!g_bEnabled)
+		return;
+	
+	if (g_nRoundState == SZFRoundState_Setup)
+		return;
 	
 	DetermineControlPoints();
 	

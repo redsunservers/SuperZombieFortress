@@ -62,7 +62,7 @@ void Weapons_Precache()
 	PrecacheSound("ui/item_heavy_gun_drop.wav");
 }
 
-bool GetWeaponFromModel(Weapon buffer, char[] model)
+bool GetWeaponFromModel(Weapon buffer, char[] sModel)
 {
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++) 
@@ -70,7 +70,7 @@ bool GetWeaponFromModel(Weapon buffer, char[] model)
 		Weapon wep;
 		g_Weapons.GetArray(i, wep);
 		
-		if (StrEqual(model, wep.sModel))
+		if (StrEqual(sModel, wep.sModel))
 		{
 			buffer = wep;
 			return true;
@@ -80,7 +80,7 @@ bool GetWeaponFromModel(Weapon buffer, char[] model)
 	return false;
 }
 
-void GetWeaponFromIndex(Weapon buffer, int index)
+void GetWeaponFromIndex(Weapon buffer, int iIndex)
 {
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++) 
@@ -88,7 +88,7 @@ void GetWeaponFromIndex(Weapon buffer, int index)
 		Weapon wep;
 		g_Weapons.GetArray(i, wep);
 		
-		if (index == wep.iIndex)
+		if (iIndex == wep.iIndex)
 		{
 			buffer = wep;
 			return;
@@ -96,15 +96,15 @@ void GetWeaponFromIndex(Weapon buffer, int index)
 	}
 }
 
-ArrayList GetAllWeaponsWithRarity(eWeaponsRarity rarity)
+ArrayList GetAllWeaponsWithRarity(eWeaponsRarity iRarity)
 {
 	ArrayList aList = new ArrayList(sizeof(Weapon));
 	
-	int iLength = GetRarityWeaponCount(rarity);
+	int iLength = GetRarityWeaponCount(iRarity);
 	for (int i = 0; i < iLength; i++)
 	{
 		Weapon wep;
-		g_Weapons.GetArray(g_WepIndexesByRarity[rarity].Get(i), wep);
+		g_Weapons.GetArray(g_WepIndexesByRarity[iRarity].Get(i), wep);
 		
 		aList.PushArray(wep);
 	}
@@ -112,9 +112,9 @@ ArrayList GetAllWeaponsWithRarity(eWeaponsRarity rarity)
 	return aList;
 }
 
-int GetRarityWeaponCount(eWeaponsRarity rarity)
+int GetRarityWeaponCount(eWeaponsRarity iRarity)
 {
-	return g_WepIndexesByRarity[rarity].Length;
+	return g_WepIndexesByRarity[iRarity].Length;
 }
 
 int GetReskinIndex(char[] sModel)
@@ -126,7 +126,7 @@ int GetReskinIndex(char[] sModel)
 	return -1;
 }
 
-void Weapons_ReplaceEntityModel(int ent, int index)
+void Weapons_ReplaceEntityModel(int iEnt, int iIndex)
 {
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++) 
@@ -134,43 +134,43 @@ void Weapons_ReplaceEntityModel(int ent, int index)
 		Weapon wep;
 		g_Weapons.GetArray(i, wep);
 		
-		if (index == wep.iIndex)
+		if (iIndex == wep.iIndex)
 		{
-			SetWeaponModel(ent, wep);
+			SetWeaponModel(iEnt, wep);
 			return;
 		}
 	}
 }
 
 // -----------------------------------------------------------
-public bool Weapons_OnPickup_Health(int client)
+public bool Weapons_OnPickup_Health(int iClient)
 {
-	if (GetClientHealth(client) < SDKCall_GetMaxHealth(client))
+	if (GetClientHealth(iClient) < SDKCall_GetMaxHealth(iClient))
 	{
-		SpawnPickup(client, "item_healthkit_full");
+		SpawnPickup(iClient, "item_healthkit_full");
 		return true;
 	}
 	
 	return false;
 }
 
-public bool Weapons_OnPickup_Ammo(int client)
+public bool Weapons_OnPickup_Ammo(int iClient)
 {
-	SpawnPickup(client, "item_ammopack_full");
+	SpawnPickup(iClient, "item_ammopack_full");
 	
 	return true;
 }
 
-public bool Weapons_OnPickup_Minicrits(int client)
+public bool Weapons_OnPickup_Minicrits(int iClient)
 {
-	TF2_AddCondition(client,TFCond_Buffed,30.0);
+	TF2_AddCondition(iClient, TFCond_Buffed, 30.0);
 	
 	return true;
 }
 
-public bool Weapons_OnPickup_Defense(int client)
+public bool Weapons_OnPickup_Defense(int iClient)
 {
-	TF2_AddCondition(client,TFCond_DefenseBuffed,30.0);
+	TF2_AddCondition(iClient, TFCond_DefenseBuffed, 30.0);
 	
 	return true;
 }

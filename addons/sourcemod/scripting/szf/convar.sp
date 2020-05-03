@@ -91,14 +91,24 @@ public void OnConvarChanged(ConVar convar, const char[] oldValue, const char[] n
 {
 	float flValue = StringToFloat(newValue);
 	
-	if (convar == mp_autoteambalance && flValue != 0.0) mp_autoteambalance.SetBool(false);
-	else if (convar == mp_teams_unbalance_limit && flValue != 0.0) mp_teams_unbalance_limit.SetBool(false);
-	else if (convar == mp_scrambleteams_auto && flValue != 0.0) mp_scrambleteams_auto.SetBool(false);
-	else if (convar == mp_waitingforplayers_time && flValue != 70.0) mp_waitingforplayers_time.SetInt(70);
-	else if (convar == tf_weapon_criticals && flValue != 0.0) tf_weapon_criticals.SetBool(false);
-	else if (convar == tf_obj_upgrade_per_hit && flValue != 0.0) tf_obj_upgrade_per_hit.SetInt(0);
-	else if (convar == tf_sentrygun_metal_per_shell && flValue != 201.0) tf_sentrygun_metal_per_shell.SetInt(201);
-	else if (convar == tf_spy_invis_time && flValue != 0.5) tf_spy_invis_time.SetFloat(0.5);
-	else if (convar == tf_spy_invis_unstealth_time && flValue != 0.75) tf_spy_invis_unstealth_time.SetFloat(0.75);
-	else if (convar == tf_spy_cloak_no_attack_time && flValue != 1.0) tf_spy_cloak_no_attack_time.SetFloat(1.0);
+	if (convar == mp_autoteambalance && flValue != 0.0)
+		mp_autoteambalance.SetBool(false);
+	else if (convar == mp_teams_unbalance_limit && flValue != 0.0)
+		mp_teams_unbalance_limit.SetBool(false);
+	else if (convar == mp_scrambleteams_auto && flValue != 0.0)
+		mp_scrambleteams_auto.SetBool(false);
+	else if (convar == mp_waitingforplayers_time && flValue != 70.0)
+		mp_waitingforplayers_time.SetInt(70);
+	else if (convar == tf_weapon_criticals && flValue != 0.0)
+		tf_weapon_criticals.SetBool(false);
+	else if (convar == tf_obj_upgrade_per_hit && flValue != 0.0)
+		tf_obj_upgrade_per_hit.SetInt(0);
+	else if (convar == tf_sentrygun_metal_per_shell && flValue != 201.0)
+		tf_sentrygun_metal_per_shell.SetInt(201);
+	else if (convar == tf_spy_invis_time && flValue != 0.5)
+		tf_spy_invis_time.SetFloat(0.5);
+	else if (convar == tf_spy_invis_unstealth_time && flValue != 0.75)
+		tf_spy_invis_unstealth_time.SetFloat(0.75);
+	else if (convar == tf_spy_cloak_no_attack_time && flValue != 1.0)
+		tf_spy_cloak_no_attack_time.SetFloat(1.0);
 }

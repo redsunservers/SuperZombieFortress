@@ -15,10 +15,17 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 	char sZomTeam[16];
 	char sZomVgui[16];
 	
-	if (!g_bEnabled) return Plugin_Continue;
-	if (iArgs < 1 && StrEqual(sCommand, "jointeam", false)) return Plugin_Handled;
-	if (g_nRoundState < SZFRoundState_Grace) return Plugin_Continue;
-	if (!IsClientInGame(iClient)) return Plugin_Continue;
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	if (iArgs < 1 && StrEqual(sCommand, "jointeam", false))
+		return Plugin_Handled;
+	
+	if (g_nRoundState < SZFRoundState_Grace)
+		return Plugin_Continue;
+	
+	if (!IsClientInGame(iClient))
+		return Plugin_Continue;
 	
 	//Get command/arg on which team player joined
 	if (StrEqual(sCommand, "jointeam", false)) //This is done because "jointeam spectate" should take priority over "spectate"
@@ -113,7 +120,6 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 			
 			return Plugin_Handled;
 		}
-		
 		//Prevent joining any other team.
 		else
 			return Plugin_Handled;
@@ -130,12 +136,10 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 			ShowVGUIPanel(iClient, sZomVgui);
 			return Plugin_Handled;
 		}
-		
 		//If client tries to join the zombie team or spectator
 		//during an active round, let them do so.
 		else if (StrEqual(sArg, sZomTeam, false) || StrEqual(sArg, "spectate", false))
 			return Plugin_Continue;
-		
 		//Prevent joining any other team.
 		else
 			return Plugin_Handled;
@@ -146,8 +150,11 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 
 public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 {
-	if (!g_bEnabled) return Plugin_Continue;
-	if (iArgs < 1) return Plugin_Handled;
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	if (iArgs < 1)
+		return Plugin_Handled;
 	
 	char sArg[32], sMsg[256];
 	GetCmdArg(1, sArg, sizeof(sArg));
@@ -214,8 +221,11 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 	if (!IsClientInGame(iClient) || !IsPlayerAlive(iClient))
 		return Plugin_Continue;
 	
-	if (!g_bEnabled) return Plugin_Continue;
-	if (iArgs < 2) return Plugin_Handled;
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	if (iArgs < 2)
+		return Plugin_Handled;
 	
 	char sArg1[32];
 	char sArg2[32];
@@ -317,8 +327,8 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 
 public Action Console_Build(int iClient, const char[] sCommand, int iArgs)
 {
-	if (!g_bEnabled) return Plugin_Continue;
-	if (!iClient) return Plugin_Continue;
+	if (!g_bEnabled || !iClient)
+		return Plugin_Continue;
 	
 	//Get arguments
 	char sObjectType[32];

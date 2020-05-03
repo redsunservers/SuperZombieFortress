@@ -157,8 +157,10 @@ stock bool IsMapSZF()
 	char sMap[8];
 	GetCurrentMap(sMap, sizeof(sMap));
 	GetMapDisplayName(sMap, sMap, sizeof(sMap));
-	if (StrContains(sMap, "zf_") == 0) return true;
-	if (StrContains(sMap, "szf_") == 0) return true;
+	
+	if (StrContains(sMap, "zf_") == 0 || StrContains(sMap, "szf_") == 0)
+		return true;
+	
 	return false;
 }
 
@@ -295,33 +297,33 @@ stock float GetClientBonusSpeed(int iClient)
 		case TFClass_Scout:
 		{
 			if (TF2_IsEquipped(iClient, WEAPON_BFB))
-			{
 				return 4.5*GetEntPropFloat(iClient, Prop_Send, "m_flHypeMeter");
-			}
 			
 			if (TF2_IsPlayerInCondition(iClient, TFCond_CritCola))
-			{
 				return 20.0;
-			}
 		}
 		case TFClass_Soldier:
 		{
 			if (TF2_IsWielding(iClient, WEAPON_ESCAPEPLAN))
 			{
 				int iHealth = GetClientHealth(iClient);
-				if (iHealth > 160) return 0.0;
-				if (iHealth > 120) return 24.0;
-				if (iHealth > 80) return 48.0;
-				if (iHealth > 40) return 96.0;
-				if (iHealth > 0) return 144.0;
+				
+				if (iHealth > 160)
+					return 0.0;
+				else if (iHealth > 120)
+					return 24.0;
+				else if (iHealth > 80)
+					return 48.0;
+				else if (iHealth > 40)
+					return 96.0;
+				else if (iHealth > 0)
+					return 144.0;
 			}
 		}
 		case TFClass_Pyro:
 		{
 			if (TF2_IsWielding(iClient, WEAPON_POWERJACK))
-			{
 				return 36.0;
-			}
 		}
 		case TFClass_DemoMan:
 		{
@@ -349,9 +351,7 @@ stock float GetClientBonusSpeed(int iClient)
 			}
 			
 			if (TF2_IsWielding(iClient, WEAPON_EVICTIONNOTICE))
-			{
 				return 35.0;
-			}
 		}
 		case TFClass_Medic:
 		{

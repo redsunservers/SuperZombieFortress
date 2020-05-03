@@ -21,7 +21,8 @@ void Config_Init()
 void Config_Refresh()
 {
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	if (kv == null) return;
+	if (kv == null)
+		return;
 	
 	g_aConfigMelee.Clear();
 	
@@ -78,7 +79,8 @@ void Config_Refresh()
 ArrayList Config_LoadWeaponData()
 {
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	if (kv == null) return null;
+	if (kv == null)
+		return null;
 	
 	static StringMap mRarity;
 	if (mRarity == null)
@@ -179,7 +181,8 @@ ArrayList Config_LoadWeaponData()
 StringMap Config_LoadWeaponReskinData()
 {
 	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	if (kv == null) return null;
+	if (kv == null)
+		return null;
 	
 	StringMap mReskin = new StringMap();
 	
@@ -207,7 +210,8 @@ StringMap Config_LoadWeaponReskinData()
 ArrayList Config_LoadSurvivorClasses()
 {
 	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
-	if (kv == null) return null;
+	if (kv == null)
+		return null;
 	
 	ArrayList aClasses = new ArrayList(sizeof(SurvivorClasses));
 	int iLength = 0;
@@ -259,7 +263,8 @@ ArrayList Config_LoadSurvivorClasses()
 ArrayList Config_LoadZombieClasses()
 {
 	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
-	if (kv == null) return null;
+	if (kv == null)
+		return null;
 	
 	ArrayList aClasses = new ArrayList(sizeof(ZombieClasses));
 	int iLength = 0;
@@ -335,7 +340,8 @@ ArrayList Config_LoadZombieClasses()
 ArrayList Config_LoadInfectedClasses()
 {
 	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
-	if (kv == null) return null;
+	if (kv == null)
+		return null;
 	
 	ArrayList aClasses = new ArrayList(sizeof(InfectedClasses));
 	int iLength = 0;
@@ -429,7 +435,7 @@ KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)
 {
 	char sConfigPath[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, sConfigPath, sizeof(sConfigPath), sConfigFile);
-	if(!FileExists(sConfigPath))
+	if (!FileExists(sConfigPath))
 	{
 		LogMessage("Failed to load SZF config file (file missing): %s!", sConfigPath);
 		return null;
@@ -438,7 +444,7 @@ KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)
 	KeyValues kv = new KeyValues(sConfigSection);
 	kv.SetEscapeSequences(true);
 	
-	if(!kv.ImportFromFile(sConfigPath))
+	if (!kv.ImportFromFile(sConfigPath))
 	{
 		LogMessage("Failed to parse SZF config file: %s!", sConfigPath);
 		delete kv;
