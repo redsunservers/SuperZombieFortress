@@ -2217,13 +2217,7 @@ void UpdateZombieDamageScale()
 {
 	g_flZombieDamageScale = 1.0;
 	
-	if (g_iStartSurvivors <= 0)
-		return;
-	
-	if (!g_bEnabled)
-		return;
-	
-	if (g_nRoundState != SZFRoundState_Active)
+	if (g_iStartSurvivors <= 0 || !g_bEnabled || g_nRoundState != SZFRoundState_Active)
 		return;
 	
 	int iSurvivors = GetSurvivorCount();
@@ -3371,18 +3365,21 @@ void ZombieTank(int iCaller = 0)
 	
 	if (ZombiesHaveTank())
 	{
-		if (IsValidClient(iCaller)) CPrintToChat(iCaller, "{red}Zombies already have a tank.");
-			return;
+		if (IsValidClient(iCaller))
+			CPrintToChat(iCaller, "{red}Zombies already have a tank.");
+		return;
 	}
 	else if (g_iZombieTank > 0)
 	{
-		if (IsValidClient(iCaller)) CPrintToChat(iCaller, "{red}A zombie tank is already on the way.");
-			return;
+		if (IsValidClient(iCaller))
+			CPrintToChat(iCaller, "{red}A zombie tank is already on the way.");
+		return;
 	}
 	else if (g_bZombieRage)
 	{
-		if (IsValidClient(iCaller)) CPrintToChat(iCaller, "{red}Zombies are frenzied, tanks cannot spawn during frenzy.");
-			return;
+		if (IsValidClient(iCaller))
+			CPrintToChat(iCaller, "{red}Zombies are frenzied, tanks cannot spawn during frenzy.");
+		return;
 	}
 	
 	if (IsValidZombie(iCaller))
