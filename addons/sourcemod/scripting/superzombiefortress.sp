@@ -62,6 +62,7 @@ enum Infected
 	Infected_Stalker,
 	Infected_Hunter,
 	Infected_Smoker,
+	Infected_Spitter,
 }
 
 enum struct GooInfo
@@ -444,6 +445,13 @@ public void OnClientDisconnect(int iClient)
 	g_bWaitingForTeamSwitch[iClient] = false;
 	
 	Weapons_ClientDisconnect(iClient);
+}
+
+public void TF2_OnConditionAdded(int iClient, TFCond nCond)
+{
+	//Dont give gas cond from spitter
+	if (nCond == TFCond_Gas && IsSurvivor(iClient))
+		TF2_RemoveCondition(iClient, TFCond_Gas);
 }
 
 ////////////////////////////////////////////////////////////
@@ -2081,6 +2089,12 @@ public void Panel_PrintSpecial(int iClient, Infected nInfected)
 			panel.DrawText("- The pull power grows stronger the less health the victim has.");
 			panel.DrawText("- Cannot use rage.");
 		}
+		case Infected_Spitter:
+		{
+			panel.DrawText("The Spitter has a filled nasty gas, giving bleed to survivors at medium range for a few seconds");
+			panel.DrawText("- Can damage heavily to team if many survivors is nearby eachother");
+			panel.DrawText("- Cannot use rage.");
+		}
 	}
 	
 	panel.DrawText("-------------------------------------------");
@@ -2865,6 +2879,9 @@ void HandleZombieLoadout(int iClient)
 		}
 	}
 	
+	//Fill meter for spitter's Gas Passer
+	SetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", 100.0, WeaponSlot_Secondary);
+	
 	//Set active wepaon slot to melee
 	int iMelee = TF2_GetItemInSlot(iClient, WeaponSlot_Melee);
 	if (iMelee > MaxClients)
@@ -3083,6 +3100,10 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	{
 		SDKHook(iEntity, SDKHook_Touch, OnBananaTouch);
 	}
+	else if (StrEqual(sClassname, "tf_gas_manager"))
+	{
+		SDKHook(iEntity, SDKHook_Touch, OnGasManagerTouch);
+	}
 	else if (StrEqual(sClassname, "trigger_capture_area"))
 	{
 		SDKHook(iEntity, SDKHook_StartTouch, OnCaptureStartTouch);
@@ -3255,6 +3276,27 @@ public Action OnBananaTouch(int iEntity, int iClient)
 		AcceptEntityInput(iEntity, "Kill");
 		
 		DealDamage(iOwner, iToucher, 30.0);
+		
+		return Plugin_Handled;
+	}
+	
+	return Plugin_Continue;
+}
+
+public Action OnGasManagerTouch(int iGasManager, int iClient)
+{
+	if (IsSurvivor(iClient))
+	{
+		if (!TF2_IsPlayerInCondition(iClient, TFCond_Bleeding))
+		{
+			//Deal bleed instead of gas
+			int iOwner = GetEntPropEnt(iGasManager, Prop_Send, "m_hOwnerEntity");
+			TF2_MakeBleed(iClient, iOwner, 0.5);
+			
+			//Fade screen slightly green
+			ClientCommand(iClient, "r_screenoverlay\"left4fortress/goo\"");
+			PlaySound(iClient, SoundEvent_Drown);
+		}
 		
 		return Plugin_Handled;
 	}

@@ -13,6 +13,7 @@ void Command_Init()
 	RegAdminCmd("sm_stalker", Command_ForcePredator, ADMFLAG_CHANGEMAP, "Become a predator on next respawn.");
 	RegAdminCmd("sm_hunter", Command_ForceHopper, ADMFLAG_CHANGEMAP, "Become a hunter on next respawn.");
 	RegAdminCmd("sm_smoker", Command_ForceSmoker, ADMFLAG_CHANGEMAP, "Become a smoker on next respawn.");
+	RegAdminCmd("sm_spitter", Command_ForceSpitter, ADMFLAG_CHANGEMAP, "Become a spitter on next respawn.");
 	RegAdminCmd("sm_szfreload", Command_ReloadConfigs, ADMFLAG_RCON, "Reload SZF configs.");
 	
 	RegConsoleCmd("sm_zf", Command_MainMenu);
@@ -95,6 +96,14 @@ public Action Command_ForceSmoker(int iClient, int iArgs)
 {
 	if (IsZombie(iClient))
 		g_nNextInfected[iClient] = Infected_Smoker;
+	
+	return Plugin_Handled;
+}
+
+public Action Command_ForceSpitter(int iClient, int iArgs)
+{
+	if (IsZombie(iClient))
+		g_nNextInfected[iClient] = Infected_Spitter;
 	
 	return Plugin_Handled;
 }
