@@ -28,10 +28,6 @@
 #define BACKSTABDURATION_REDUCED	3.5
 #define STUNNED_DAMAGE_CAP			10.0
 
-#define DISTANCE_GOO		4.0
-#define TIME_GOO			7.0
-#define GOO_INCREASE_RATE	3
-
 enum
 {
 	WeaponSlot_Primary = 0,
@@ -65,20 +61,10 @@ enum Infected
 	Infected_Spitter,
 }
 
-enum struct GooInfo
-{
-	float vecOrigin[3];
-	int iAttacker;
-	int iGooId;
-}
-
 SZFRoundState g_nRoundState = SZFRoundState_Setup;
 
 Infected g_nInfected[TF_MAXPLAYERS];
 Infected g_nNextInfected[TF_MAXPLAYERS];
-
-ArrayList g_aGoo;
-int g_iGooId;
 
 TFTeam TFTeam_Zombie = TFTeam_Blue;
 TFTeam TFTeam_Survivor = TFTeam_Red;
@@ -116,7 +102,6 @@ int g_iSprite; //Smoker beam
 //Global Timer Handles
 Handle g_hTimerMain;
 Handle g_hTimerMoraleDecay;
-Handle g_hTimerMainFast;
 Handle g_hTimerMainSlow;
 Handle g_hTimerHoarde;
 Handle g_hTimerDataCollect;
@@ -165,11 +150,8 @@ float g_flSelectSpecialCooldown;
 bool g_bZombieRage;
 int g_iZombieTank;
 bool g_bZombieRageAllowRespawn;
-int g_iGooMultiplier[TF_MAXPLAYERS];
-bool g_bGooified[TF_MAXPLAYERS];
 bool g_bHitOnce[TF_MAXPLAYERS];
 bool g_bHopperIsUsingPounce[TF_MAXPLAYERS];
-float g_flGooCooldown[TF_MAXPLAYERS];
 
 bool g_bSpawnAsSpecialInfected[TF_MAXPLAYERS];
 int g_iKillsThisLife[TF_MAXPLAYERS];
@@ -196,23 +178,6 @@ bool g_bDirectorSpawnTeleport;
 Cookie g_cWeaponsPicked;
 Cookie g_cWeaponsRarePicked;
 Cookie g_cWeaponsCalled;
-
-//Goo
-char g_strSoundFleshHit[][128] =
-{
-	"physics/flesh/flesh_impact_bullet1.wav",
-	"physics/flesh/flesh_impact_bullet2.wav",
-	"physics/flesh/flesh_impact_bullet3.wav",
-	"physics/flesh/flesh_impact_bullet4.wav",
-	"physics/flesh/flesh_impact_bullet5.wav"
-};
-
-char g_strSoundCritHit[][128] =
-{
-	"player/crit_received1.wav",
-	"player/crit_received2.wav",
-	"player/crit_received3.wav"
-};
 
 #include "szf/weapons.sp"
 #include "szf/sound.sp"
@@ -383,7 +348,6 @@ public void OnMapEnd()
 	delete g_hTimerMain;
 	delete g_hTimerMoraleDecay;
 	delete g_hTimerMainSlow;
-	delete g_hTimerMainFast;
 	delete g_hTimerHoarde;
 	
 	g_nRoundState = SZFRoundState_End;
@@ -1040,16 +1004,6 @@ public Action Timer_MainSlow(Handle hTimer) //4 mins
 	return Plugin_Continue;
 }
 
-public Action Timer_MainFast(Handle hTimer)
-{
-	if (!g_bEnabled)
-		return Plugin_Stop;
-	
-	GooDamageCheck();
-	
-	return Plugin_Continue;
-}
-
 public Action Timer_Hoarde(Handle hTimer) //5 seconds
 {
 	if (!g_bEnabled)
@@ -1472,20 +1426,6 @@ void Handle_ZombieAbilities()
 				
 				g_iRageTimer[iClient]--;
 			}
-			
-			//3. HUD for sandman
-			SetHudTextParams(0.18, 0.9, 1.0, 200, 255, 200, 255);
-			int iMelee = GetPlayerWeaponSlot(iClient, WeaponSlot_Melee);
-			if (iMelee > MaxClients && IsValidEdict(iMelee))
-			{
-				if (TF2_IsSlotClassname(iClient, WeaponSlot_Melee, "tf_weapon_bat_wood"))
-				{
-					g_flGooCooldown[iClient] = GetEntPropFloat(iMelee, Prop_Send, "m_flEffectBarRegenTime");
-					float fTime = g_flGooCooldown[iClient] - GetGameTime();
-					if (fTime > 0.0)
-						ShowHudText(iClient, 5, "Ball: %ds", RoundToZero(fTime));
-				}
-			}
 		}
 	}
 }
@@ -1592,9 +1532,6 @@ void SZFEnable()
 	
 	delete g_hTimerMainSlow;
 	g_hTimerMainSlow = CreateTimer(240.0, Timer_MainSlow, _, TIMER_REPEAT);
-	
-	delete g_hTimerMainFast;
-	g_hTimerMainFast = CreateTimer(0.5, Timer_MainFast, _, TIMER_REPEAT);
 	
 	delete g_hTimerHoarde;
 	g_hTimerHoarde = CreateTimer(5.0, Timer_Hoarde, _, TIMER_REPEAT);
@@ -2404,7 +2341,7 @@ public void OnMapStart()
 	
 	PrecacheParticle("spell_cast_wheel_blue");
 	
-	//Goo
+	//Spitter
 	PrecacheParticle("asplode_hoodoo_green");
 	AddFileToDownloadsTable("materials/left4fortress/goo.vmt");
 	
@@ -2428,12 +2365,6 @@ public void OnMapStart()
 	
 	//Smoker beam
 	g_iSprite = PrecacheModel("materials/sprites/laser.vmt");
-	
-	for (int i = 0; i < sizeof(g_strSoundFleshHit); i++)
-		PrecacheSound(g_strSoundFleshHit[i]);
-	
-	for (int i = 0; i < sizeof(g_strSoundCritHit); i++)
-		PrecacheSound(g_strSoundCritHit[i]);
 	
 	HookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
 	HookEntityOutput("math_counter", "OutValue", OnCounterValue);
@@ -2855,21 +2786,7 @@ void HandleZombieLoadout(int iClient)
 	if (g_nInfected[iClient] == Infected_None)
 	{
 		while (GetZombieWeapon(nClass, iPos, iIndex, sAttrib, sizeof(sAttrib)))
-		{
-			int iWeapon = TF2_CreateAndEquipWeapon(iClient, iIndex, sAttrib);
-			if (iIndex == 44) //Sandman
-			{
-				//Set Sandman ball in cooldown if spammed
-				if (g_flGooCooldown[iClient] > GetGameTime())
-				{
-					int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
-					if (iAmmoType > -1)
-						SetEntProp(iClient, Prop_Send, "m_iAmmo", 0, _, iAmmoType);
-					
-					SetEntPropFloat(iWeapon, Prop_Send, "m_flEffectBarRegenTime", g_flGooCooldown[iClient]);
-				}
-			}
-		}
+			TF2_CreateAndEquipWeapon(iClient, iIndex, sAttrib);
 	}
 	else
 	{
@@ -2914,173 +2831,6 @@ void SetValidSlot(int iClient)
 	}
 }
 
-void SpitterGoo(int iClient, int iAttacker = 0, float flDuration = TIME_GOO)
-{
-	if (g_nRoundState != SZFRoundState_Active)
-		return;
-	
-	if (g_aGoo == null)
-		g_aGoo = new ArrayList(sizeof(GooInfo));
-	
-	float vecOrigin[3];
-	float vecAngles[3];
-	GetClientEyePosition(iClient, vecOrigin);
-	GetClientEyeAngles(iClient, vecAngles);
-	
-	g_iGooId++;
-	
-	GooInfo gooStruct;
-	gooStruct.vecOrigin = vecOrigin;
-	gooStruct.iAttacker = iAttacker;
-	gooStruct.iGooId = g_iGooId;
-	g_aGoo.PushArray(gooStruct);
-	
-	ShowParticle("asplode_hoodoo_dust", TIME_GOO, vecOrigin, vecAngles);
-	ShowParticle("asplode_hoodoo_green", TIME_GOO, vecOrigin, vecAngles);
-	
-	CreateTimer(flDuration, Timer_GooExpire, g_iGooId);
-	CreateTimer(1.0, Timer_GooEffect, g_iGooId, TIMER_REPEAT);
-}
-
-void GooDamageCheck()
-{
-	bool[] bWasGooified = new bool[MaxClients+1];
-	
-	int iClient;
-	for (iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		bWasGooified[iClient] = g_bGooified[iClient];
-		g_bGooified[iClient] = false;
-	}
-	
-	if (g_aGoo != null)
-	{
-		int iLength = g_aGoo.Length;
-		for (int i = 0; i < iLength; i++)
-		{
-			GooInfo gooStruct;
-			g_aGoo.GetArray(i, gooStruct);
-			
-			if (!IsValidClient(gooStruct.iAttacker))
-				continue;
-			
-			for (iClient = 1; iClient <= MaxClients; iClient++)
-			{
-				if (IsValidLivingSurvivor(iClient) && !g_bGooified[iClient] && CanRecieveDamage(iClient) && !g_bBackstabbed[iClient])
-				{
-					float vecPosClient[3];
-					GetClientEyePosition(iClient, vecPosClient);
-					float flDistance = GetVectorDistance(gooStruct.vecOrigin, vecPosClient) / 50.0;
-					if (flDistance <= DISTANCE_GOO)
-					{
-						//Deal damage
-						g_iGooMultiplier[iClient] += GOO_INCREASE_RATE;
-						float fPercentageDistance = (DISTANCE_GOO-flDistance) / DISTANCE_GOO;
-						
-						if (fPercentageDistance < 0.5)
-							fPercentageDistance = 0.5;
-						
-						float flDamage = float(g_iGooMultiplier[iClient])/float(GOO_INCREASE_RATE) * fPercentageDistance;
-						
-						if (flDamage < 1.0)
-							flDamage = 1.0;
-						
-						if (flDamage > 4.0 && g_iCapturingPoint[iClient] != -1)
-							flDamage = 4.0;	//If client is capturing point, add hardmax 4 dmg
-						
-						DealDamage(gooStruct.iAttacker, iClient, flDamage);
-						g_bGooified[iClient] = true;
-						
-						if (flDamage >= 7.0)
-						{
-							int iRandom = GetRandomInt(0, sizeof(g_strSoundCritHit)-1);
-							EmitSoundToClient(iClient, g_strSoundCritHit[iRandom], _, SNDLEVEL_AIRCRAFT);
-						}
-						else
-						{
-							int iRandom = GetRandomInt(0, sizeof(g_strSoundFleshHit)-1);
-							EmitSoundToClient(iClient, g_strSoundFleshHit[iRandom], _, SNDLEVEL_AIRCRAFT);
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	for (iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		if (IsClientInGame(iClient))
-		{
-			if (IsValidLivingClient(iClient) && !g_bGooified[iClient] && g_iGooMultiplier[iClient] > 0)
-				g_iGooMultiplier[iClient]--;
-			
-			//ScreenFade(iClient, red, green, blue, alpha, delay, type)
-			if (!bWasGooified[iClient] && g_bGooified[iClient] && IsPlayerAlive(iClient))
-			{
-				//Fade screen slightly green
-				ClientCommand(iClient, "r_screenoverlay\"left4fortress/goo\"");
-				PlaySound(iClient, SoundEvent_Drown);
-			}
-			
-			if (bWasGooified[iClient] && !g_bGooified[iClient])
-			{
-				//Fade screen slightly green
-				ClientCommand(iClient, "r_screenoverlay\"\"");
-				if (GetCurrentSound(iClient) == SoundEvent_Drown)
-					EndSound(iClient);
-			}
-		}
-	}
-}
-
-public Action Timer_GooExpire(Handle hTimer, int iGoo)
-{
-	if (g_aGoo == null)
-		return;
-	
-	int iLength = g_aGoo.Length;
-	for (int i = 0; i < iLength; i++)
-	{
-		GooInfo gooStruct;
-		g_aGoo.GetArray(i, gooStruct);
-		
-		if (gooStruct.iGooId == iGoo)
-		{
-			g_aGoo.Erase(i);
-			return;
-		}
-	}
-}
-
-void RemoveAllGoo()
-{
-	if (g_aGoo == null)
-		return;
-	
-	g_aGoo.Clear();
-}
-
-public Action Timer_GooEffect(Handle hTimer, int iGoo)
-{
-	if (g_aGoo == null)
-		return Plugin_Stop;
-	
-	int iLength = g_aGoo.Length;
-	for (int i = 0; i < iLength; i++)
-	{
-		GooInfo gooStruct;
-		g_aGoo.GetArray(i, gooStruct);
-		
-		if (gooStruct.iGooId == iGoo)
-		{
-			ShowParticle("asplode_hoodoo_green", TIME_GOO, gooStruct.vecOrigin);
-			return Plugin_Continue;
-		}
-	}
-	
-	return Plugin_Stop;
-}
-
 public void OnEntityCreated(int iEntity, const char[] sClassname)
 {
 	if (StrContains(sClassname, "item_healthkit") != -1
@@ -3108,21 +2858,6 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	{
 		SDKHook(iEntity, SDKHook_StartTouch, OnCaptureStartTouch);
 		SDKHook(iEntity, SDKHook_EndTouch, OnCaptureEndTouch);
-	}
-	else if (StrEqual(sClassname, "trigger_multiple"))
-	{
-		char sName[128];
-		GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
-		
-		if (strcmp(sName, "szf_goo_defense", false) == 0)
-		{
-			SDKHook(iEntity, SDKHook_StartTouch, OnTriggerGooDefenseStart);
-			SDKHook(iEntity, SDKHook_EndTouch, OnTriggerGooDefenseEnd);
-		}
-	}
-	else if (StrEqual(sClassname, "tf_projectile_stun_ball"))
-	{
-		DHook_HookStunBall(iEntity);
 	}
 	else if (StrEqual(sClassname, "tf_dropped_weapon"))
 	{
@@ -3168,44 +2903,6 @@ public Action OnCaptureEndTouch(int iEntity, int iClient)
 		return Plugin_Continue;
 	
 	if (!IsClassname(iEntity, "trigger_capture_area"))
-		return Plugin_Continue;
-	
-	if (IsValidClient(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient))
-		g_iCapturingPoint[iClient] = -1;
-	
-	return Plugin_Continue;
-}
-
-public Action OnTriggerGooDefenseStart(int iEntity, int iClient)
-{
-	if (!g_bEnabled)
-		return Plugin_Continue;
-	
-	if (!IsClassname(iEntity, "trigger_multiple"))
-		return Plugin_Continue;
-	
-	char sName[128];
-	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
-	if (strcmp(sName, "szf_goo_defense", false) != 0)
-		return Plugin_Continue;
-	
-	if (IsValidClient(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient))
-		g_iCapturingPoint[iClient] = -2;
-	
-	return Plugin_Continue;
-}
-
-public Action OnTriggerGooDefenseEnd(int iEntity, int iClient)
-{
-	if (!g_bEnabled)
-		return Plugin_Continue;
-	
-	if (!IsClassname(iEntity, "trigger_multiple"))
-		return Plugin_Continue;
-	
-	char sName[128];
-	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
-	if (strcmp(sName, "szf_goo_defense", false) != 0)
 		return Plugin_Continue;
 	
 	if (IsValidClient(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient))

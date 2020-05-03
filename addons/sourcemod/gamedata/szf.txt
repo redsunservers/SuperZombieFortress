@@ -35,11 +35,6 @@
 				"linux"		"226"
 				"windows"	"224"
 			}
-			"CTFStunBall::ShouldBallTouch"
-			{
-				"linux"		"262"
-				"windows"	"261"
-			}
 			"CTFPlayer::GiveNamedItem"
 			{
 				"linux"		"482"
@@ -102,20 +97,6 @@
 				"hooktype"	"gamerules"
 				"return"	"void"
 				"this"		"ignore"
-			}
-			"CTFStunBall::ShouldBallTouch"
-			{
-				"offset"	"CTFStunBall::ShouldBallTouch"
-				"hooktype"	"entity"
-				"return"	"bool"
-				"this"		"entity"
-				"arguments"
-				{
-					"pOther"
-					{
-						"type"	"cbaseentity"
-					}
-				}
 			}
 			"CTFPlayer::GiveNamedItem"
 			{

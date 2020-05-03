@@ -1,7 +1,6 @@
 static Handle g_hDHookGetMaxHealth;
 static Handle g_hDHookSetWinningTeam;
 static Handle g_hDHookRoundRespawn;
-static Handle g_hDHookShouldBallTouch;
 static Handle g_hDHookGiveNamedItem;
 
 static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
@@ -17,7 +16,6 @@ void DHook_Init(GameData hSDKHooks, GameData hSZF)
 	
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
-	g_hDHookShouldBallTouch = DHook_CreateVirtual(hSZF, "CTFStunBall::ShouldBallTouch");
 	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
 }
 
@@ -78,11 +76,6 @@ bool DHook_IsGiveNamedItemActive()
 void DHook_HookClient(int iClient)
 {
 	DHookEntity(g_hDHookGetMaxHealth, false, iClient, _, DHook_GetMaxHealthPre);
-}
-
-void DHook_HookStunBall(int iStunBall)
-{
-	DHookEntity(g_hDHookShouldBallTouch, false, iStunBall, _, DHook_ShouldBallTouchPre);
 }
 
 void DHook_HookGamerules()
@@ -168,25 +161,6 @@ public MRESReturn DHook_GetMaxHealthPre(int iClient, Handle hReturn)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHook_ShouldBallTouchPre(int iEntity, Handle hReturn, Handle hParams)
-{
-	if (!g_bEnabled)
-		return MRES_Ignored;
-	
-	int iToucher = DHookGetParam(hParams, 1);
-	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
-	if (IsValidLivingSurvivor(iToucher) && IsValidZombie(iOwner))
-	{
-		SpitterGoo(iToucher, iOwner);
-		AcceptEntityInput(iEntity, "kill");
-		
-		DHookSetReturn(hReturn, false);
-		return MRES_Supercede;
-	}
-	
-	return MRES_Ignored;
-}
-
 public MRESReturn DHook_SetWinningTeamPre(Handle hParams)
 {
 	DHookSetParam(hParams, 4, false);	// always return false to bSwitchTeams
@@ -226,7 +200,6 @@ public MRESReturn DHook_RoundRespawnPre()
 	}
 	
 	g_iZombieTank = 0;
-	RemoveAllGoo();
 	
 	g_nRoundState = SZFRoundState_Grace;
 	
