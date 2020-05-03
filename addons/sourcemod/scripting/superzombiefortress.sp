@@ -2694,75 +2694,73 @@ void HandleSurvivorLoadout(int iClient)
 	
 	CheckClientWeapons(iClient);
 	
-	int iEntity = GetPlayerWeaponSlot(iClient, WeaponSlot_Melee);
-	if (iEntity > MaxClients && IsValidEdict(iEntity))
+	for (int iSlot = WeaponSlot_Melee; iSlot <= WeaponSlot_InvisWatch; iSlot++)
 	{
-		//Get default attrib from config to apply all melee weapons
-		char sAttribs[32][32];
-		int iCount = ExplodeString(g_ConfigMeleeDefault.sAttrib, " ; ", sAttribs, 32, 32);
-		if (iCount > 1)
-			for (int i = 0; i < iCount; i+= 2)
-				TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[i]), StringToFloat(sAttribs[i+1]));
-		
-		//Get attrib from index to apply
-		int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
-		
-		int iLength = g_aConfigMelee.Length;
-		for (int i = 0; i < iLength; i++)
+		int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
+		if (iEntity > MaxClients)
 		{
-			ConfigMelee Melee;
-			g_aConfigMelee.GetArray(i, Melee, sizeof(Melee));
+			//Get default attrib from config to apply all melee weapons
+			char sAttribs[32][32];
+			int iCount = ExplodeString(g_ConfigMeleeDefault.sAttrib, " ; ", sAttribs, 32, 32);
+			if (iCount > 1)
+				for (int i = 0; i < iCount; i+= 2)
+					TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[i]), StringToFloat(sAttribs[i+1]));
 			
-			if (Melee.iIndex == iIndex)
+			//Get attrib from index to apply
+			int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
+			
+			int iLength = g_aConfigMelee.Length;
+			for (int i = 0; i < iLength; i++)
 			{
-				//If have prefab, use said index instead
-				if (Melee.iIndexPrefab >= 0)
+				ConfigMelee Melee;
+				g_aConfigMelee.GetArray(i, Melee, sizeof(Melee));
+				
+				if (Melee.iIndex == iIndex)
 				{
-					int iPrefab = Melee.iIndexPrefab;
-					for (int j = 0; j < iLength; j++)
+					//If have prefab, use said index instead
+					if (Melee.iIndexPrefab >= 0)
 					{
-						g_aConfigMelee.GetArray(j, Melee, sizeof(Melee));
-						if (Melee.iIndex == iPrefab)
-							break;
+						int iPrefab = Melee.iIndexPrefab;
+						for (int j = 0; j < iLength; j++)
+						{
+							g_aConfigMelee.GetArray(j, Melee, sizeof(Melee));
+							if (Melee.iIndex == iPrefab)
+								break;
+						}
 					}
-				}
-				
-				//See if there weapon to replace
-				if (Melee.iIndexReplace >= 0)
-				{
-					iIndex = Melee.iIndexReplace;
-					TF2_RemoveWeaponSlot(iClient, TFWeaponSlot_Melee);
-					iEntity = TF2_CreateAndEquipWeapon(iClient, iIndex);
 					
-					//Re-apply global attrib
-					for (int j = 0; j < iCount; j+= 2)
-						TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[j]), StringToFloat(sAttribs[j+1]));
+					//See if there weapon to replace
+					if (Melee.iIndexReplace >= 0)
+					{
+						iIndex = Melee.iIndexReplace;
+						TF2_RemoveWeaponSlot(iClient, iSlot);
+						iEntity = TF2_CreateAndEquipWeapon(iClient, iIndex);
+						
+						//Re-apply global attrib
+						for (int j = 0; j < iCount; j+= 2)
+							TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[j]), StringToFloat(sAttribs[j+1]));
+					}
+					
+					//Print text with cooldown to prevent spam
+					if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(Melee.sText, ""))
+					{
+						CPrintToChat(iClient, Melee.sText);
+						g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
+					}
+					
+					//Apply attribute
+					iCount = ExplodeString(Melee.sAttrib, " ; ", sAttribs, 32, 32);
+					if (iCount > 1)
+						for (int j = 0; j < iCount; j+= 2)
+							TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[j]), StringToFloat(sAttribs[j+1]));
+					
+					break;
 				}
-				
-				//Print text with cooldown to prevent spam
-				if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(Melee.sText, ""))
-				{
-					CPrintToChat(iClient, Melee.sText);
-					g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
-				}
-				
-				//Apply attribute
-				iCount = ExplodeString(Melee.sAttrib, " ; ", sAttribs, 32, 32);
-				if (iCount > 1)
-					for (int j = 0; j < iCount; j+= 2)
-						TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[j]), StringToFloat(sAttribs[j+1]));
-				
-				break;
 			}
+			
+			//This will refresh health max calculation and other attributes
+			TF2Attrib_ClearCache(iEntity);
 		}
-		
-		//This will refresh health max calculation and other attributes
-		TF2Attrib_ClearCache(iEntity);
-	}
-	else
-	{
-		//No melee, okay.. weird
-		TF2_RespawnPlayer2(iClient);
 	}
 	
 	//Prevent Survivors with voodoo-cursed souls
