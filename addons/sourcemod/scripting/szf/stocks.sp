@@ -626,20 +626,29 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, char[] sAttribs = ""
 	TF2Econ_GetItemClassName(iIndex, sClassname, sizeof(sClassname));
 	TF2Econ_TranslateWeaponEntForClass(sClassname, sizeof(sClassname), TF2_GetPlayerClass(iClient));
 	
+	bool bSapper;
+	if ((StrEqual(sClassname, "tf_weapon_builder") || StrEqual(sClassname, "tf_weapon_sapper")) && TF2_GetPlayerClass(iClient) == TFClass_Spy)
+	{
+		bSapper = true;
+		
+		//tf_weapon_sapper is bad and give client crashes
+		sClassname = "tf_weapon_builder";
+	}
+	
 	int iWeapon = CreateEntityByName(sClassname);
 	if (IsValidEntity(iWeapon))
 	{
 		SetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex", iIndex);
 		SetEntProp(iWeapon, Prop_Send, "m_bInitialized", 1);
 		
-		//Allow quality / level override by updating through the offset.
-		char netClass[64];
-		GetEntityNetClass(iWeapon, netClass, sizeof(netClass));
-		SetEntData(iWeapon, FindSendPropInfo(netClass, "m_iEntityQuality"), 6);
-		SetEntData(iWeapon, FindSendPropInfo(netClass, "m_iEntityLevel"), 1);
-		
 		SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 6);
 		SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
+		
+		if (bSapper)
+		{
+			SetEntProp(iWeapon, Prop_Send, "m_iObjectType", TFObject_Sapper);
+			SetEntProp(iWeapon, Prop_Data, "m_iSubType", TFObject_Sapper);
+		}
 		
 		//Attribute shittery inbound
 		if (!StrEqual(sAttribs, ""))
