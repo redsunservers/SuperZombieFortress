@@ -13,14 +13,16 @@ void Event_Init()
 
 public Action Event_SetupEnd(Event event, const char[] name, bool dontBroadcast)
 {
-	if (!g_bEnabled) return;
+	if (!g_bEnabled)
+		return;
 	
 	EndGracePeriod();
 }
 
 public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
-	if (!g_bEnabled) return Plugin_Continue;
+	if (!g_bEnabled)
+		return Plugin_Continue;
 	
 	//Prepare for a completely new round, if
 	//+ Round was a full round (full_round flag is set), OR
@@ -43,7 +45,8 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 
 public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
-	if (!g_bEnabled) return;
+	if (!g_bEnabled)
+		return;
 	
 	int iClient = GetClientOfUserId(event.GetInt("userid"));
 	if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
@@ -186,8 +189,12 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			
 			int iSurvivors = GetSurvivorCount();
 			int iHealth = g_cvTankHealth.IntValue * iSurvivors;
-			if (iHealth < g_cvTankHealthMin.IntValue) iHealth = g_cvTankHealthMin.IntValue;
-			if (iHealth > g_cvTankHealthMax.IntValue) iHealth = g_cvTankHealthMax.IntValue;
+			
+			if (iHealth < g_cvTankHealthMin.IntValue)
+				iHealth = g_cvTankHealthMin.IntValue;
+			
+			if (iHealth > g_cvTankHealthMax.IntValue)
+				iHealth = g_cvTankHealthMax.IntValue;
 			
 			g_iMaxHealth[iClient] = iHealth;
 			SetEntityHealth(iClient, iHealth);
@@ -196,7 +203,8 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			if (g_cvTankTime.FloatValue > 0.0)
 			{
 				iSubtract = RoundFloat(float(iHealth) / g_cvTankTime.FloatValue);
-				if (iSubtract < 3) iSubtract = 3;
+				if (iSubtract < 3)
+					iSubtract = 3;
 			}
 			
 			g_iSuperHealthSubtract[iClient] = iSubtract;
@@ -271,7 +279,8 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 
 public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
-	if (!g_bEnabled) return Plugin_Continue;
+	if (!g_bEnabled)
+		return Plugin_Continue;
 	
 	int iKillers[2];
 	int iVictim = GetClientOfUserId(event.GetInt("userid"));
@@ -314,7 +323,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		for (int i = 1; i <= MaxClients; i++)
 		{
 			//If current music is tank, end it
-			if (GetCurrentSound(i) == SoundMusic_Tank) EndSound(i);
+			if (GetCurrentSound(i) == SoundMusic_Tank)
+				EndSound(i);
 			
 			if (IsValidLivingSurvivor(i))
 			{
@@ -369,7 +379,9 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		//Set special infected state
 		if (g_nNextInfected[iVictim] != Infected_None)
 		{
-			if (iVictim != g_iZombieTank) g_nInfected[iVictim] = g_nNextInfected[iVictim];
+			if (iVictim != g_iZombieTank)
+				g_nInfected[iVictim] = g_nNextInfected[iVictim];
+			
 			g_nNextInfected[iVictim] = Infected_None;
 		}
 		
@@ -464,8 +476,12 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				//Player gets more morale if high zombies, but dont give too much morale if already at high
 				
 				int iMorale = GetMorale(iKillers[i]);
-				if (iMorale < 0) iMorale = 0;
-				else if (iMorale > 100) iMorale = 100;
+				
+				if (iMorale < 0)
+					iMorale = 0;
+				else if (iMorale > 100)
+					iMorale = 100;
+				
 				float flPercentage = (float(GetZombieCount()) / (float(GetZombieCount()) + float(GetSurvivorCount())));
 				int iBase;
 				float flMultiplier;
@@ -520,7 +536,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 
 public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 {
-	if (!g_bEnabled) return Plugin_Continue;
+	if (!g_bEnabled)
+		return Plugin_Continue;
 	
 	int iVictim = GetClientOfUserId(event.GetInt("userid"));
 	int iAttacker = GetClientOfUserId(event.GetInt("attacker"));
@@ -540,7 +557,8 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 
 public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontBroadcast)
 {
-	if (!g_bEnabled) return Plugin_Continue;
+	if (!g_bEnabled)
+		return Plugin_Continue;
 	
 	int iEntity = event.GetInt("index");
 	TFObjectType nObjectType = view_as<TFObjectType>(event.GetInt("object"));
@@ -561,11 +579,12 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 
 public Action Event_CPCapture(Event event, const char[] name, bool dontBroadcast)
 {
-	if (g_iControlPoints <= 0) return;
+	if (g_iControlPoints <= 0) 
+		return;
 	
 	int iCaptureIndex = event.GetInt("cp");
-	if (iCaptureIndex < 0) return;
-	if (iCaptureIndex >= g_iControlPoints) return;
+	if (iCaptureIndex < 0 || iCaptureIndex >= g_iControlPoints)
+		return;
 	
 	for (int i = 0; i < g_iControlPoints; i++)
 	{
@@ -588,11 +607,12 @@ public Action Event_CPCapture(Event event, const char[] name, bool dontBroadcast
 
 public Action Event_CPCaptureStart(Event event, const char[] name, bool dontBroadcast)
 {
-	if (g_iControlPoints <= 0) return;
+	if (g_iControlPoints <= 0)
+		return;
 	
 	int iCaptureIndex = event.GetInt("cp");
-	if (iCaptureIndex < 0) return;
-	if (iCaptureIndex >= g_iControlPoints) return;
+	if (iCaptureIndex < 0 || iCaptureIndex >= g_iControlPoints)
+		return;
 	
 	for (int i = 0; i < g_iControlPoints; i++)
 		if (g_iControlPointsInfo[i][0] == iCaptureIndex)
