@@ -96,13 +96,11 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 					SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
 					iRare++;
 				}
-
 				//Pick-ups
 				else if (!GetRandomInt(0, 9) && nWeaponType != WeaponType_DefaultNoPickup)
 				{
 					SetRandomPickup(iEntity);
 				}
-
 				//Else make it either common or uncommon weapon
 				else
 				{
@@ -197,7 +195,7 @@ bool AttemptGrabItem(int iClient)
 	}
 	
 	int iIndex = wep.iIndex;
-	eWeaponsRarity nRarity = wep.nRarity;
+	WeaponRarity nRarity = wep.nRarity;
 	
 	if (iIndex > -1)
 	{
@@ -462,7 +460,7 @@ stock void SetRandomPickup(int iEntity)
 	SetRandomWeapon(iEntity, eWeaponsRarity_Pickup);
 }
 
-stock void SetRandomWeapon(int iEntity, eWeaponsRarity nRarity)
+stock void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 {
 	ArrayList aList = GetAllWeaponsWithRarity(nRarity);
 	int iRandom = GetRandomInt(0, aList.Length - 1);

@@ -92,7 +92,7 @@ void Forward_OnBoomerExplode(int iClient, int iClients[MAXPLAYERS], int iCount)
 	Call_Finish();
 }
 
-void Forward_OnWeaponPickup(int iClient, int iWeapon, int nRarity)
+void Forward_OnWeaponPickup(int iClient, int iWeapon, WeaponRarity nRarity)
 {
 	Call_StartForward(g_hForwardWeaponPickup);
 	Call_PushCell(iClient);

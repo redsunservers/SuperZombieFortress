@@ -1,13 +1,13 @@
 typedef Weapon_OnPickup = function bool (int client); //Return false to prevent client from picking up the item.
 
 static ArrayList g_Weapons;
-static ArrayList g_WepIndexesByRarity[view_as<int>(eWeaponsRarity)]; //Array indexes of g_Weapons array
+static ArrayList g_WepIndexesByRarity[view_as<int>(WeaponRarity)]; //Array indexes of g_Weapons array
 static StringMap g_WeaponsReskin;
 
 enum struct Weapon
 {
 	int iIndex;
-	eWeaponsRarity nRarity;
+	WeaponRarity nRarity;
 	char sModel[PLATFORM_MAX_PATH];
 	char sSound[PLATFORM_MAX_PATH];
 	char sText[256];
@@ -27,7 +27,7 @@ void Weapons_Refresh()
 	g_WeaponsReskin = Config_LoadWeaponReskinData();
 	
 	int iLength = g_Weapons.Length;
-	for (int i = 0; i < view_as<int>(eWeaponsRarity); i++)
+	for (int i = 0; i < view_as<int>(WeaponRarity); i++)
 	{
 		g_WepIndexesByRarity[i] = new ArrayList();
 		
@@ -36,7 +36,7 @@ void Weapons_Refresh()
 			Weapon wep;
 			g_Weapons.GetArray(j, wep);
 			
-			if (wep.nRarity == view_as<eWeaponsRarity>(i))
+			if (wep.nRarity == view_as<WeaponRarity>(i))
 				g_WepIndexesByRarity[i].Push(j);
 		}
 	}
@@ -96,7 +96,7 @@ void GetWeaponFromIndex(Weapon buffer, int iIndex)
 	}
 }
 
-ArrayList GetAllWeaponsWithRarity(eWeaponsRarity iRarity)
+ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity)
 {
 	ArrayList aList = new ArrayList(sizeof(Weapon));
 	
@@ -112,7 +112,7 @@ ArrayList GetAllWeaponsWithRarity(eWeaponsRarity iRarity)
 	return aList;
 }
 
-int GetRarityWeaponCount(eWeaponsRarity iRarity)
+int GetRarityWeaponCount(WeaponRarity iRarity)
 {
 	return g_WepIndexesByRarity[iRarity].Length;
 }
