@@ -427,7 +427,7 @@ public Action Timer_ResetPickup(Handle timer, any iClient)
 		g_bCanPickup[iClient] = true;
 }
 
-stock WeaponType GetWeaponType(int iEntity)
+WeaponType GetWeaponType(int iEntity)
 {
 	char sName[255];
 	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
@@ -451,7 +451,7 @@ stock WeaponType GetWeaponType(int iEntity)
 	return WeaponType_Invalid;
 }
 
-stock void SetRandomPickup(int iEntity)
+void SetRandomPickup(int iEntity)
 {
 	//Reset angle
 	float vecAngles[3];
@@ -460,7 +460,7 @@ stock void SetRandomPickup(int iEntity)
 	SetRandomWeapon(iEntity, eWeaponsRarity_Pickup);
 }
 
-stock void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
+void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 {
 	ArrayList aList = GetAllWeaponsWithRarity(nRarity);
 	int iRandom = GetRandomInt(0, aList.Length - 1);
@@ -479,7 +479,7 @@ stock void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 	delete aList;
 }
 
-stock void SetWeaponModel(int iEntity, Weapon wep)
+void SetWeaponModel(int iEntity, Weapon wep)
 {
 	char sOldModel[256];
 	GetEntityModel(iEntity, sOldModel, sizeof(sOldModel));
@@ -532,13 +532,13 @@ stock void SetWeaponModel(int iEntity, Weapon wep)
 }
 
 //Grabs the entity model by looking in the precache database of the server
-stock void GetEntityModel(int iEntity, char[] sModel, int iMaxSize, char[] sPropName = "m_nModelIndex")
+void GetEntityModel(int iEntity, char[] sModel, int iMaxSize, char[] sPropName = "m_nModelIndex")
 {
 	int iIndex = GetEntProp(iEntity, Prop_Send, sPropName);
 	GetModelPath(iIndex, sModel, iMaxSize);
 }
 
-stock void GetModelPath(int iIndex, char[] sModel, int iMaxSize)
+void GetModelPath(int iIndex, char[] sModel, int iMaxSize)
 {
 	int iTable = FindStringTable("modelprecache");
 	ReadStringTable(iTable, iIndex, sModel, iMaxSize);
