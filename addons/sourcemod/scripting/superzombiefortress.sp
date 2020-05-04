@@ -2321,7 +2321,17 @@ public Action CheckLastPlayer(Handle hTimer)
 				
 				PlaySoundAll(SoundMusic_LastStand);
 				
+				char sTargetName[255];
+				int iEntity = MaxClients+1;
+				while ((iEntity = FindEntityByClassname2(iEntity, "logic_relay")) != -1)
+				{
+					GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
+					if (StrEqual("szf_laststand", sTargetName))
+						AcceptEntityInput(iEntity, "FireUser1", iClient, iClient);
+				}
+				
 				Forward_OnLastSurvivor(iClient);
+				break;
 			}
 		}
 	}
@@ -2385,6 +2395,8 @@ public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, 
 		ZombieTank();
 	else if (StrEqual("szf_tank", sTargetName))
 		ZombieTank();
+	else if (StrEqual("szf_laststand", sTargetName))
+		PlaySoundAll(SoundMusic_LastStand);
 }
 
 public Action OnCounterValue(const char[] sOutput, int iCaller, int iActivator, float flDelay)
@@ -2459,6 +2471,15 @@ int ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 	}
 	
 	g_flRageCooldown = GetGameTime() + flDuration + 40.0;
+	
+	char sTargetName[255];
+	int iEntity = MaxClients+1;
+	while ((iEntity = FindEntityByClassname2(iEntity, "logic_relay")) != -1)
+	{
+		GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
+		if (StrEqual("szf_zombierage", sTargetName) || StrEqual("szf_panic_event", sTargetName))
+			AcceptEntityInput(iEntity, "FireUser1");
+	}
 }
 
 public Action Timer_StopZombieRage(Handle hTimer)
@@ -2470,6 +2491,15 @@ public Action Timer_StopZombieRage(Handle hTimer)
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 			if (IsClientInGame(iClient))
 				CPrintToChat(iClient, "%sZombies are resting...", (IsZombie(iClient)) ? "{red}" : "{green}");
+	
+	char sTargetName[255];
+	int iEntity = MaxClients+1;
+	while ((iEntity = FindEntityByClassname2(iEntity, "logic_relay")) != -1)
+	{
+		GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
+		if (StrEqual("szf_zombierage", sTargetName) || StrEqual("szf_panic_event", sTargetName))
+			AcceptEntityInput(iEntity, "FireUser2");
+	}
 }
 
 int FastRespawnNearby(int iClient, float flDistance, bool bMustBeInvisible = true)
@@ -3256,6 +3286,15 @@ void CheckRemainingCP()
 	{
 		g_bCapturingLastPoint = true;
 		PlaySoundAll(SoundMusic_LastStand);
+		
+		char sTargetName[255];
+		int iEntity = MaxClients+1;
+		while ((iEntity = FindEntityByClassname2(iEntity, "logic_relay")) != -1)
+		{
+			GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
+			if (StrEqual("szf_laststand", sTargetName))
+				AcceptEntityInput(iEntity, "FireUser2");
+		}
 		
 		if (!g_bSurvival && g_flZombieDamageScale >= 1.6)
 			ZombieTank();
