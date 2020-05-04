@@ -14,6 +14,8 @@ enum WeaponType
 	WeaponType_RareSpawn,
 	WeaponType_StaticSpawn,
 	WeaponType_DefaultNoPickup,
+	WeaponType_Common,
+	WeaponType_Uncommon,
 };
 
 static bool g_bCanPickup[TF_MAXPLAYERS] = false;
@@ -54,7 +56,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			{
 				if (aWeaponsCommon.Length > 0)
 				{
-					//Make sure every spawn weapons is different
+					//Make sure every spawn weapon is different
 					int iRandom = GetRandomInt(0, aWeaponsCommon.Length - 1);
 					
 					Weapon wep;
@@ -87,6 +89,14 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			case WeaponType_RareSpawn:
 			{
 				SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
+			}
+			case WeaponType_Common:
+			{
+				SetRandomWeapon(iEntity, eWeaponsRarity_Common);
+			}
+			case WeaponType_Uncommon:
+			{
+				SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
 			}
 			case WeaponType_Default, WeaponType_DefaultNoPickup:
 			{
@@ -431,6 +441,10 @@ stock WeaponType GetWeaponType(int iEntity)
 		return WeaponType_Static; //Static: don't change model
 	else if (StrContains(sName, "szf_weapon_nopickup", false) == 0)
 		return WeaponType_DefaultNoPickup; //No pickup: this weapon can never become a pickup
+	else if (StrContains(sName, "szf_weapon_common", false) == 0)
+		return WeaponType_Common; //Guaranteed common
+	else if (StrContains(sName, "szf_weapon_uncommon", false) == 0)
+		return WeaponType_Uncommon; //Guaranteed uncommon
 	else if (StrContains(sName, "szf_weapon", false) != -1)
 		return WeaponType_Default; //Normal
 	
