@@ -204,19 +204,6 @@ bool AttemptGrabItem(int iClient)
 		char sClient[128];
 		GetClientName2(iClient, sClient, sizeof(sClient));
 		
-		if (9 <= iIndex && iIndex <= 12)	//Shotgun
-		{
-			switch (TF2_GetPlayerClass(iClient))
-			{
-				case TFClass_Soldier: iIndex = 10;
-				case TFClass_Pyro: iIndex = 12;
-				case TFClass_Heavy: iIndex = 11;
-				case TFClass_Engineer: iIndex = 9;
-			}
-			
-			wep.iIndex = iIndex;
-		}
-		
 		int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 		if (iSlot >= 0 && bAllowPickup)
 		{
@@ -319,9 +306,6 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		if (iEntity > MaxClients && IsValidEdict(iEntity))
 		{
 			int iOldIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
-			if (9 <= iOldIndex && iOldIndex <= 12)	//Shotgun
-				iOldIndex = 9;
-			
 			GetWeaponFromIndex(oldwep, iOldIndex);
 		}
 		
