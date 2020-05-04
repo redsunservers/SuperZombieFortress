@@ -1,6 +1,7 @@
 enum struct WeaponClasses
 {
 	int iIndex;
+	char sClassname[256];
 	char sAttribs[256];
 }
 
@@ -37,6 +38,7 @@ enum struct InfectedClasses
 	int iDegen;
 	int iColor[4];
 	char sMsg[256];
+	char sModel[PLATFORM_MAX_PATH];
 	ArrayList aWeapons;
 }
 
@@ -143,6 +145,18 @@ void Classes_Refresh()
 		}
 		
 		g_InfectedClasses[inf.nInfected] = inf;
+	}
+	
+	Classes_Precache();
+}
+
+void Classes_Precache()
+{
+	for (Infected nInfected; nInfected < Infected; nInfected++)
+	{
+		//TODO download table
+		if (g_InfectedClasses[nInfected].sModel[0] != '\0')
+			PrecacheModel(g_InfectedClasses[nInfected].sModel);
 	}
 }
 
@@ -251,16 +265,12 @@ stock float GetZombieMaxHorde(TFClassType nClass)
 	return g_ZombieClasses[nClass].flMaxHorde;
 }
 
-stock bool GetZombieWeapon(TFClassType nClass, int &iPos, int &iIndex, char[] sAttribs, int iLength)
+stock bool GetZombieWeapon(TFClassType nClass, int &iPos, WeaponClasses weapon)
 {
 	if (!g_ZombieClasses[nClass].aWeapons || iPos < 0 || iPos >= g_ZombieClasses[nClass].aWeapons.Length)
 		return false;
 	
-	WeaponClasses weapon;
 	g_ZombieClasses[nClass].aWeapons.GetArray(iPos, weapon);
-	
-	iIndex = weapon.iIndex;
-	strcopy(sAttribs, iLength, weapon.sAttribs);
 	
 	iPos++;
 	return true;
@@ -321,16 +331,21 @@ stock bool GetInfectedMessage(char[] sBuffer, int iLength, Infected nInfected)
 	return true;
 }
 
-stock bool GetInfectedWeapon(Infected nInfected, int &iPos, int &iIndex, char[] sAttribs, int iLength)
+stock bool GetInfectedModel(Infected nInfected, char[] sBuffer, int iLength)
+{
+	if (g_InfectedClasses[nInfected].sModel[0] == '\0')
+		return false;
+	
+	strcopy(sBuffer, iLength, g_InfectedClasses[nInfected].sModel);
+	return true;
+}
+
+stock bool GetInfectedWeapon(Infected nInfected, int &iPos, WeaponClasses weapon)
 {
 	if (!g_InfectedClasses[nInfected].aWeapons || iPos < 0 || iPos >= g_InfectedClasses[nInfected].aWeapons.Length)
 		return false;
 	
-	WeaponClasses weapon;
 	g_InfectedClasses[nInfected].aWeapons.GetArray(iPos, weapon);
-	
-	iIndex = weapon.iIndex;
-	strcopy(sAttribs, iLength, weapon.sAttribs);
 	
 	iPos++;
 	return true;

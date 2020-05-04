@@ -1,6 +1,7 @@
 static Handle g_hSDKCallGetMaxHealth;
 static Handle g_hSDKCallGetMaxAmmo;
 static Handle g_hSDKCallEquipWearable;
+static Handle g_hSDKCallPlaySpecificSequence;
 static Handle g_hSDKCallGetEquippedWearable;
 
 void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
@@ -31,6 +32,14 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 		LogError("Failed to create call: CTFPlayer::GetMaxAmmo!");
 	
 	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::PlaySpecificSequence");
+	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
+	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
+	g_hSDKCallPlaySpecificSequence = EndPrepSDKCall();
+	if (!g_hSDKCallPlaySpecificSequence)
+		LogMessage("Failed to create call: CTFPlayer::PlaySpecificSequence");
+	
+	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::GetEquippedWearableForLoadoutSlot");
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
 	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
@@ -52,6 +61,11 @@ void SDKCall_EquipWearable(int iClient, int iWearable)
 int SDKCall_GetMaxAmmo(int iClient, int iSlot)
 {
 	return SDKCall(g_hSDKCallGetMaxAmmo, iClient, iSlot, -1);
+}
+
+bool SDKCall_PlaySpecificSequence(int iClient, const char[] sAnimationName)
+{
+	return SDKCall(g_hSDKCallPlaySpecificSequence, iClient, sAnimationName);
 }
 
 int SDKCall_GetEquippedWearable(int iClient, int iSlot)

@@ -2763,6 +2763,10 @@ void HandleSurvivorLoadout(int iClient)
 		}
 	}
 	
+	//Reset custom models
+	SetVariantString("");
+	AcceptEntityInput(iClient, "SetCustomModel");
+	
 	//Prevent Survivors with voodoo-cursed souls
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
@@ -2772,25 +2776,42 @@ void HandleSurvivorLoadout(int iClient)
 
 void HandleZombieLoadout(int iClient)
 {
-	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
+	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient))
+		return;
 	
 	CheckClientWeapons(iClient);
 	
 	TFClassType nClass = TF2_GetPlayerClass(iClient);
 	
 	int iPos;
-	int iIndex;
-	char sAttrib[256];
+	WeaponClasses weapon;
 	if (g_nInfected[iClient] == Infected_None)
 	{
-		while (GetZombieWeapon(nClass, iPos, iIndex, sAttrib, sizeof(sAttrib)))
-			TF2_CreateAndEquipWeapon(iClient, iIndex, sAttrib);
+		while (GetZombieWeapon(nClass, iPos, weapon))
+			TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sClassname, weapon.sAttribs);
+		
+		ApplyVoodooCursedSoul(iClient);
 	}
 	else
 	{
-		while (GetInfectedWeapon(g_nInfected[iClient], iPos, iIndex, sAttrib, sizeof(sAttrib)))
+		while (GetInfectedWeapon(g_nInfected[iClient], iPos, weapon))
+			TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sClassname, weapon.sAttribs);
+		
+		char sModel[PLATFORM_MAX_PATH];
+		if (GetInfectedModel(g_nInfected[iClient], sModel, sizeof(sModel)))
 		{
-			TF2_CreateAndEquipWeapon(iClient, iIndex, sAttrib);
+			int iEntity = MaxClients+1;
+			while ((iEntity = FindEntityByClassname(iEntity, "tf_wearable*")) > MaxClients)
+				if (GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iEntity, Prop_Send, "moveparent") == iClient)
+					RemoveEntity(iEntity);
+			
+			SetVariantString(sModel);
+			AcceptEntityInput(iClient, "SetCustomModel");
+			SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", true);
+		}
+		else
+		{
+			ApplyVoodooCursedSoul(iClient);
 		}
 	}
 	
@@ -2804,10 +2825,6 @@ void HandleZombieLoadout(int iClient)
 	
 	//Set health back to what it should be after modifying weapons
 	SetEntityHealth(iClient, SDKCall_GetMaxHealth(iClient));
-	
-	//Reset custom models
-	SetVariantString("");
-	AcceptEntityInput(iClient, "SetCustomModel");
 }
 
 void SetValidSlot(int iClient)
@@ -3738,7 +3755,9 @@ public void DoHunterJump(int iClient)
 	vecVelocity[1] = Cosine(DegToRad(vecEyeAngles[0])) * Sine(DegToRad(vecEyeAngles[1])) * 920;
 	vecVelocity[2] = 460.0;
 	
+	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
+	SDKCall_PlaySpecificSequence(iClient, "Jump_Float_melee");
 }
 
 public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fVelocity[3], float fAngles[3], int &iWeapon)

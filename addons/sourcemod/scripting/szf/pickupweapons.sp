@@ -356,7 +356,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	TF2_RemoveItemInSlot(iClient, iSlot);
 	
 	//Generate and equip weapon
-	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, wep.sAttribs, wep.sText);
+	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, _, wep.sAttribs, wep.sText);
 	
 	char sClassname[256];
 	TF2Econ_GetItemClassName(wep.iIndex, sClassname, sizeof(sClassname));
