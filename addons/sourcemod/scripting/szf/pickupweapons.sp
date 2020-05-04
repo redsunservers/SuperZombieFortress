@@ -42,7 +42,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	int iEntity = -1;
 	int iRare;
 	
-	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(eWeaponsRarity_Common);
+	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
 	
 	while ((iEntity = FindEntityByClassname2(iEntity, "prop_dynamic")) != -1)
 	{
@@ -75,25 +75,25 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 				//If rare weapon cap is unreached, make it a "rare" weapon
 				if (iRare < MAX_RARE)
 				{
-					SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
+					SetRandomWeapon(iEntity, WeaponRarity_Rare);
 					iRare++;
 				}
 				//Else make it a uncommon weapon
 				else
 				{
-					SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
+					SetRandomWeapon(iEntity, WeaponRarity_Uncommon);
 				}
 			}
 			case WeaponType_RareSpawn:
 			{
-				SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
+				SetRandomWeapon(iEntity, WeaponRarity_Rare);
 			}
 			case WeaponType_Default, WeaponType_DefaultNoPickup:
 			{
 				//If rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
 				if (iRare < MAX_RARE && !GetRandomInt(0, 5))
 				{
-					SetRandomWeapon(iEntity, eWeaponsRarity_Rare);
+					SetRandomWeapon(iEntity, WeaponRarity_Rare);
 					iRare++;
 				}
 				//Pick-ups
@@ -104,13 +104,13 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 				//Else make it either common or uncommon weapon
 				else
 				{
-					int iCommon = GetRarityWeaponCount(eWeaponsRarity_Common);
-					int iUncommon = GetRarityWeaponCount(eWeaponsRarity_Uncommon);
+					int iCommon = GetRarityWeaponCount(WeaponRarity_Common);
+					int iUncommon = GetRarityWeaponCount(WeaponRarity_Uncommon);
 					
 					if (GetRandomInt(0, iCommon + iUncommon) < iCommon)
-						SetRandomWeapon(iEntity, eWeaponsRarity_Common);
+						SetRandomWeapon(iEntity, WeaponRarity_Common);
 					else
-						SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
+						SetRandomWeapon(iEntity, WeaponRarity_Uncommon);
 				}
 			}
 			case WeaponType_Static, WeaponType_StaticSpawn:
@@ -180,7 +180,7 @@ bool AttemptGrabItem(int iClient)
 		Call_Finish(bAllowPickup);
 	}
 	
-	if (wep.nRarity == eWeaponsRarity_Pickup)
+	if (wep.nRarity == WeaponRarity_Pickup)
 	{
 		if (!bAllowPickup)
 			return false;
@@ -205,7 +205,7 @@ bool AttemptGrabItem(int iClient)
 		int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 		if (iSlot >= 0 && bAllowPickup)
 		{
-			if (nRarity == eWeaponsRarity_Rare)
+			if (nRarity == WeaponRarity_Rare)
 			{
 				char sName[255];
 				TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
@@ -231,7 +231,7 @@ bool AttemptGrabItem(int iClient)
 			
 			return true;
 		}
-		else if (nRarity == eWeaponsRarity_Rare && g_flLastCallout[iClient] + 5.0 < GetGameTime())
+		else if (nRarity == WeaponRarity_Rare && g_flLastCallout[iClient] + 5.0 < GetGameTime())
 		{
 			char sName[255];
 			TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
@@ -437,7 +437,7 @@ void SetRandomPickup(int iEntity)
 	float vecAngles[3];
 	
 	TeleportEntity(iEntity, NULL_VECTOR, vecAngles, NULL_VECTOR);
-	SetRandomWeapon(iEntity, eWeaponsRarity_Pickup);
+	SetRandomWeapon(iEntity, WeaponRarity_Pickup);
 }
 
 void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
@@ -471,7 +471,7 @@ void SetWeaponModel(int iEntity, Weapon wep)
 	GetEntPropVector(iEntity, Prop_Send, "m_angRotation", vecAngles);
 	
 	//Offsets (will only work for pickups for now)
-	if (wep.nRarity == eWeaponsRarity_Pickup)
+	if (wep.nRarity == WeaponRarity_Pickup)
 	{
 		AddVectors(vecOrigin, wep.vecOrigin, vecOrigin);
 		AddVectors(vecAngles, wep.vecAngles, vecAngles);

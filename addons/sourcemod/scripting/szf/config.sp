@@ -89,10 +89,10 @@ ArrayList Config_LoadWeaponData()
 	if (mRarity == null)
 	{
 		mRarity = new StringMap();
-		mRarity.SetValue("common", eWeaponsRarity_Common);
-		mRarity.SetValue("uncommon", eWeaponsRarity_Uncommon);
-		mRarity.SetValue("rare", eWeaponsRarity_Rare);
-		mRarity.SetValue("pickup", eWeaponsRarity_Pickup);
+		mRarity.SetValue("common", WeaponRarity_Common);
+		mRarity.SetValue("uncommon", WeaponRarity_Uncommon);
+		mRarity.SetValue("rare", WeaponRarity_Rare);
+		mRarity.SetValue("pickup", WeaponRarity_Pickup);
 	}
 	
 	ArrayList aWeapons = new ArrayList(sizeof(Weapon));

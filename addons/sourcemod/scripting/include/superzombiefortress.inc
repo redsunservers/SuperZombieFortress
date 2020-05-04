@@ -5,10 +5,10 @@
 
 enum WeaponRarity
 {
-	eWeaponsRarity_Common,
-	eWeaponsRarity_Uncommon,
-	eWeaponsRarity_Rare,
-	eWeaponsRarity_Pickup,
+	WeaponRarity_Common,
+	WeaponRarity_Uncommon,
+	WeaponRarity_Rare,
+	WeaponRarity_Pickup,
 };
 
 /**
