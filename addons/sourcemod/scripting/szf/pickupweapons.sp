@@ -279,10 +279,11 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	g_bCanPickup[iClient] = false;
 	CreateTimer(PICKUP_COOLDOWN, Timer_ResetPickup, iClient);
 	
+	//Weapon pickup quote
 	char sSound[PLATFORM_MAX_PATH];
-	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	TFClassType iClass = TF2_GetPlayerClass(iClient);
 	
-	switch (nClass)
+	switch (iClass)
 	{
 		case TFClass_Scout: Format(sSound, sizeof(sSound), g_sVoWeaponScout[GetRandomInt(0, sizeof(g_sVoWeaponScout)-1)]);
 		case TFClass_Soldier: Format(sSound, sizeof(sSound), g_sVoWeaponSoldier[GetRandomInt(0, sizeof(g_sVoWeaponSoldier)-1)]);
@@ -297,41 +298,36 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	
 	EmitSoundToAll(sSound, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 	
-	int iSlot = TF2_GetItemSlot(wep.iIndex, nClass);
+	int iSlot = TF2_GetItemSlot(wep.iIndex, iClass);
+	WeaponType iWepType = GetWeaponType(iTarget);
 	
-	if (GetWeaponType(iTarget) != WeaponType_Spawn
-	&& GetWeaponType(iTarget) != WeaponType_RareSpawn
-	&& GetWeaponType(iTarget) != WeaponType_StaticSpawn)
+	//TODO: Use a flag for spawn weapons instead?
+	if (iWepType != WeaponType_Spawn && iWepType != WeaponType_RareSpawn && iWepType != WeaponType_StaticSpawn)
 	{
 		Weapon oldwep;
 		
 		int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
-		if (!IsValidEdict(iEntity))
-		{
-			//If weapon not found in slot, check if it a wearable
-			int iWearable = SDKCall_GetEquippedWearable(iClient, iSlot);
-			if (iWearable > MaxClients)
-				iEntity = iWearable;
-		}
+		if (!IsValidEntity(iEntity))
+			iEntity = SDKCall_GetEquippedWearable(iClient, iSlot); //If weapon not found in slot, check if it a wearable
 		
-		if (iEntity > MaxClients && IsValidEdict(iEntity))
+		if (IsValidEntity(iEntity))
 		{
 			int iOldIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
 			if (9 <= iOldIndex && iOldIndex <= 12)	//Shotgun
 				iOldIndex = 9;
 			
 			GetWeaponFromIndex(oldwep, iOldIndex);
-		}
-		
-		if (oldwep.iIndex > 0)
-		{
-			EmitSoundToClient(iClient, "ui/item_heavy_gun_drop.wav");
-			SetWeaponModel(iTarget, oldwep);
-		}
-		else
-		{
-			AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
-			AcceptEntityInput(iTarget, "Kill");
+			
+			if (oldwep.iIndex > 0)
+			{
+				EmitSoundToClient(iClient, "ui/item_heavy_gun_drop.wav");
+				SetWeaponModel(iTarget, oldwep);
+			}
+			else
+			{
+				AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
+				AcceptEntityInput(iTarget, "Kill");
+			}
 		}
 	}
 
@@ -379,7 +375,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
 		if (iAmmoType > -1)
 		{
-			//We want to set gas passer ammo empty, because thats how normal gas passer works
+			//We want to set gas passer's ammo to 0, because thats how normal gas passer works
 			int iMaxAmmo;
 			if (wep.iIndex == 1180)
 			{
