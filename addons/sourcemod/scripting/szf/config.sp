@@ -1,6 +1,6 @@
 #define CONFIG_WEAPONS       "configs/szf/weapons.cfg"
 #define CONFIG_CLASSES       "configs/szf/classes.cfg"
-#define CONFIG_WEAPONINDEXES "configs/szf/weaponindexes.cfg"
+#define CONFIG_RESKINS       "configs/szf/reskins.cfg"
 
 enum struct ConfigMelee
 {
@@ -439,7 +439,7 @@ ArrayList Config_LoadInfectedClasses()
 
 StringMap Config_LoadWeaponIndexes()
 {
-	KeyValues kv = LoadFile(CONFIG_WEAPONINDEXES, "Weapon Indexes");
+	KeyValues kv = LoadFile(CONFIG_RESKINS, "Weapon Indexes");
 	if (kv == null)
 		return null;
 	
