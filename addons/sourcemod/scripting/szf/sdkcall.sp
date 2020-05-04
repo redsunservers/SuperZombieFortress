@@ -3,6 +3,9 @@ static Handle g_hSDKCallGetMaxAmmo;
 static Handle g_hSDKCallEquipWearable;
 static Handle g_hSDKCallPlaySpecificSequence;
 static Handle g_hSDKCallGetEquippedWearable;
+static Handle g_hSDKCallGiveNamedItem;
+static Handle g_hSDKCallGetLoadoutItem;
+static Handle g_hSDKCallGetBaseEntity;
 
 void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 {
@@ -46,6 +49,34 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	g_hSDKCallGetEquippedWearable = EndPrepSDKCall();
 	if (!g_hSDKCallGetEquippedWearable)
 		LogError("Failed to create call: CTFPlayer::GetEquippedWearableForLoadoutSlot!");
+	
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CTFPlayer::GiveNamedItem");
+	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_ByValue);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_ByValue);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_ByValue);
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_ByValue);
+	g_hSDKCallGiveNamedItem = EndPrepSDKCall();
+	if (!g_hSDKCallGiveNamedItem)
+		LogError("Failed to create call: CTFPlayer::GiveNamedItem!");
+	
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::GetLoadoutItem");
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_ByValue);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_ByValue);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_ByValue);
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_ByValue);
+	g_hSDKCallGetLoadoutItem = EndPrepSDKCall();
+	if (!g_hSDKCallGetLoadoutItem)
+		LogError("Failed to create call: CTFPlayer::GetLoadoutItem!");
+	
+	StartPrepSDKCall(SDKCall_Raw);
+	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CBaseEntity::GetBaseEntity");
+	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
+	g_hSDKCallGetBaseEntity = EndPrepSDKCall();
+	if (!g_hSDKCallGetBaseEntity)
+		LogError("Failed to create call: CBaseEntity::GetBaseEntity!");
 }
 
 int SDKCall_GetMaxHealth(int iClient)
@@ -71,4 +102,23 @@ bool SDKCall_PlaySpecificSequence(int iClient, const char[] sAnimationName)
 int SDKCall_GetEquippedWearable(int iClient, int iSlot)
 {
 	return SDKCall(g_hSDKCallGetEquippedWearable, iClient, iSlot);
+}
+
+Address SDKCall_GiveNamedItem(int iClient, const char[] sClassname, int iSubType, Address pItem, bool bForce = false, bool bSkipHook = true)
+{
+	g_bSkipGiveNamedItemHook = bSkipHook;
+	return SDKCall(g_hSDKCallGiveNamedItem, iClient, sClassname, iSubType, pItem, bForce);
+}
+
+/*
+ * Returns a pointer to CEconItemView
+ */
+Address SDKCall_GetLoadoutItem(int iClient, TFClassType iClass, int iSlot)
+{
+	return SDKCall(g_hSDKCallGetLoadoutItem, iClient, iClass, iSlot, false);
+}
+
+int SDKCall_GetBaseEntity(Address pEnt)
+{
+	return SDKCall(g_hSDKCallGetBaseEntity, pEnt);
 }
