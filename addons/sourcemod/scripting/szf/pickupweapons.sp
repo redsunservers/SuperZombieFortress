@@ -358,6 +358,10 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	//Generate and equip weapon
 	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, wep.sAttribs, wep.sText);
 	
+	//If player is a scout receiving a pistol, give the pistol the same ammo count as the engie
+	if(nClass == TFClass_Scout && 22 <= wep.iIndex && wep.iIndex <= 23)
+		TF2Attrib_SetByDefIndex(iWeapon, 78, 5.55);
+	
 	char sClassname[256];
 	TF2Econ_GetItemClassName(wep.iIndex, sClassname, sizeof(sClassname));
 	if (StrContains(sClassname, "tf_wearable") == 0) 
