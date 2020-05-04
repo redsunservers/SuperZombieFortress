@@ -458,9 +458,8 @@ StringMap Config_LoadWeaponIndexes()
 			char sValueExploded[64][8];
 			int iCount = ExplodeString(sValue, " ", sValueExploded, sizeof(sValueExploded), sizeof(sValueExploded[]));
 			
-			if (iCount)
-				for (int i = 0; i < iCount; i++)
-					WeaponIndexes.SetValue(sValueExploded[i], iOrigIndex);
+			for (int i = 0; i < iCount; i++)
+				WeaponIndexes.SetValue(sValueExploded[i], iOrigIndex);
 		}
 		while (kv.GotoNextKey(false));
 	}
