@@ -120,10 +120,10 @@ int GetRarityWeaponCount(WeaponRarity iRarity)
 int GetReskinIndex(char[] sModel)
 {
 	int iIndex = -1;
-	if (g_WeaponsReskin.GetValue(sModel, iIndex))
-		return iIndex;
 	
-	return -1;
+	g_WeaponsReskin.GetValue(sModel, iIndex);
+	
+	return iIndex;
 }
 
 void Weapons_ReplaceEntityModel(int iEnt, int iIndex)
