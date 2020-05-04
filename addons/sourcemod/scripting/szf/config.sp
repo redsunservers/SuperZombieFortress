@@ -458,7 +458,7 @@ StringMap Config_LoadWeaponIndexes()
 			char sValueExploded[64][8];
 			int iCount = ExplodeString(sValue, " ", sValueExploded, sizeof(sValueExploded), sizeof(sValueExploded[]));
 			
-			if (sValueExploded[0][0] != '\0')
+			if (iCount)
 				for (int i = 0; i < iCount; i++)
 					WeaponIndexes.SetValue(sValueExploded[i], iOrigIndex);
 		}
