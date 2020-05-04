@@ -317,6 +317,7 @@ ArrayList Config_LoadZombieClasses()
 						{
 							WeaponClasses weapon;
 							weapon.iIndex = kv.GetNum("index", 5);
+							kv.GetString("classname", weapon.sClassname, sizeof(weapon.sClassname));
 							kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
 							
 							zom.aWeapons.PushArray(weapon);
@@ -399,6 +400,7 @@ ArrayList Config_LoadInfectedClasses()
 				inf.iDegen = kv.GetNum("degen", 3);
 				kv.GetColor4("color", inf.iColor);
 				kv.GetString("message", inf.sMsg, sizeof(inf.sMsg));
+				kv.GetString("model", inf.sModel, sizeof(inf.sModel));
 				inf.aWeapons = new ArrayList(sizeof(WeaponClasses));
 				
 				if (kv.GotoFirstSubKey(false))	//Find weapons
@@ -411,6 +413,7 @@ ArrayList Config_LoadInfectedClasses()
 						{
 							WeaponClasses weapon;
 							weapon.iIndex = kv.GetNum("index", 5);
+							kv.GetString("classname", weapon.sClassname, sizeof(weapon.sClassname));
 							kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
 							
 							inf.aWeapons.PushArray(weapon);

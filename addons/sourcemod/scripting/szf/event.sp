@@ -172,9 +172,6 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			if (g_nInfected[iClient] != Infected_Tank && !PerformFastRespawn(iClient))
 				TF2_AddCondition(iClient, TFCond_Ubercharged, 2.0);
 		
-		//Set zombie model / soul wearable
-		ApplyVoodooCursedSoul(iClient);
-		
 		HandleZombieLoadout(iClient);
 		if (GetCookie(iClient, g_cFirstTimeZombie) < 1)
 			InitiateZombieTutorial(iClient);

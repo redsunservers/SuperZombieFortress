@@ -620,11 +620,18 @@ stock void SetTeamRespawnTime(TFTeam nTeam, float flTime)
 //
 ////////////////////////////////////////////////////////////
 
-stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, char[] sAttribs = "", char[] sText = "")
+stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sClassnameTemp = NULL_STRING, const char[] sAttribs = NULL_STRING, const char[] sText = NULL_STRING)
 {
 	char sClassname[256];
-	TF2Econ_GetItemClassName(iIndex, sClassname, sizeof(sClassname));
-	TF2Econ_TranslateWeaponEntForClass(sClassname, sizeof(sClassname), TF2_GetPlayerClass(iClient));
+	if (sClassnameTemp[0] == '\0')
+	{
+		TF2Econ_GetItemClassName(iIndex, sClassname, sizeof(sClassname));
+		TF2Econ_TranslateWeaponEntForClass(sClassname, sizeof(sClassname), TF2_GetPlayerClass(iClient));
+	}
+	else
+	{
+		strcopy(sClassname, sizeof(sClassname), sClassnameTemp);
+	}
 	
 	bool bSapper;
 	if ((StrEqual(sClassname, "tf_weapon_builder") || StrEqual(sClassname, "tf_weapon_sapper")) && TF2_GetPlayerClass(iClient) == TFClass_Spy)
@@ -918,6 +925,10 @@ stock void ApplyVoodooCursedSoul(int iClient)
 {
 	if (TF2_IsPlayerInCondition(iClient, TFCond_HalloweenGhostMode))
 		return;
+	
+	//Reset custom models
+	SetVariantString("");
+	AcceptEntityInput(iClient, "SetCustomModel");
 	
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", true);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", (TF2_GetPlayerClass(iClient) == TFClass_Spy) ? SKIN_ZOMBIE_SPY : SKIN_ZOMBIE);
