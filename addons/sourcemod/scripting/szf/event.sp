@@ -238,6 +238,15 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				g_flDamageDealtAgainstTank[i] = 0.0;
 			}
 			
+			char sTargetName[255];
+			int iEntity = MaxClients+1;
+			while ((iEntity = FindEntityByClassname2(iEntity, "logic_relay")) != -1)
+			{
+				GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
+				if (StrEqual("szf_zombietank", sTargetName) || StrEqual("szf_tank", sTargetName))
+					AcceptEntityInput(iEntity, "FireUser1", iClient, iClient);
+			}
+			
 			Forward_OnTankSpawn(iClient);
 		}
 		
@@ -349,6 +358,15 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_bTankRefreshed = true;
 			g_nInfected[iVictim] = Infected_None;
 			ZombieTank();
+		}
+		
+		char sTargetName[255];
+		int iEntity = MaxClients+1;
+		while ((iEntity = FindEntityByClassname2(iEntity, "logic_relay")) != -1)
+		{
+			GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
+			if (StrEqual("szf_zombietank", sTargetName) || StrEqual("szf_tank", sTargetName))
+				AcceptEntityInput(iEntity, "FireUser2", iVictim, iVictim);
 		}
 		
 		Forward_OnTankDeath(iVictim, iWinner, RoundFloat(flHighest));
