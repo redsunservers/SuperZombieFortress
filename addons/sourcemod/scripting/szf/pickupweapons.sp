@@ -461,54 +461,51 @@ void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 
 void SetWeaponModel(int iEntity, Weapon wep)
 {
+	Weapon oldWep;
 	char sOldModel[256];
 	GetEntityModel(iEntity, sOldModel, sizeof(sOldModel));
-	
-	float vecOrigin[3];
-	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
-	
-	float vecAngles[3];
-	GetEntPropVector(iEntity, Prop_Send, "m_angRotation", vecAngles);
-	
-	//Offsets (will only work for pickups for now)
-	if (wep.nRarity == WeaponRarity_Pickup)
-	{
-		AddVectors(vecOrigin, wep.vecOrigin, vecOrigin);
-		AddVectors(vecAngles, wep.vecAngles, vecAngles);
-		
-		TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
-	}
-	
-	//Because sniper wearable have a really offplace origin prop, we have to move entity to a more reasonable spot
-	if (StrEqual(sOldModel, "models/player/items/sniper/knife_shield.mdl")
-		|| StrEqual(sOldModel, "models/player/items/sniper/xms_sniper_commandobackpack.mdl"))
-	{
-		float vecDirection[3];
-		GetAngleVectors(vecAngles, vecDirection, NULL_VECTOR, NULL_VECTOR);
-		ScaleVector(vecDirection, 64.0);
-		
-		vecOrigin[0] += vecDirection[1] * Sine(DegToRad(vecAngles[2]));
-		vecOrigin[1] -= vecDirection[0] * Sine(DegToRad(vecAngles[2]));
-		vecOrigin[2] += 64.0 * Cosine(DegToRad(vecAngles[2]));
-		
-		TeleportEntity(iEntity, vecOrigin, NULL_VECTOR, NULL_VECTOR);
-	}
+	GetWeaponFromModel(oldWep, sOldModel);
 	
 	SetEntityModel(iEntity, wep.sModel);
 	
-	if (StrEqual(wep.sModel, "models/player/items/sniper/knife_shield.mdl")
-		|| StrEqual(wep.sModel, "models/player/items/sniper/xms_sniper_commandobackpack.mdl"))
+	//Update model origin and angles from weapon offset and const
+	
+	float vecOrigin[3], vecAngles[3];
+	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
+	GetEntPropVector(iEntity, Prop_Send, "m_angRotation", vecAngles);
+	
+	SubtractVectors(vecAngles, oldWep.vecAnglesOffset, vecAngles);
+	
+	if (oldWep.flHeightOffset != 0.0)
 	{
 		float vecDirection[3];
 		GetAngleVectors(vecAngles, vecDirection, NULL_VECTOR, NULL_VECTOR);
-		ScaleVector(vecDirection, 64.0);
-		
+		ScaleVector(vecDirection, oldWep.flHeightOffset);
+		vecOrigin[0] += vecDirection[1] * Sine(DegToRad(vecAngles[2]));
+		vecOrigin[1] -= vecDirection[0] * Sine(DegToRad(vecAngles[2]));
+		vecOrigin[2] += oldWep.flHeightOffset * Cosine(DegToRad(vecAngles[2]));
+	}
+	
+	//No easy way to revert const from old weapon :(
+	for (int i = 0; i < 3; i++)
+	{
+		if (wep.bAnglesConst[i])
+			vecAngles[i] = wep.vecAnglesConst[i];
+	}
+	
+	AddVectors(vecAngles, wep.vecAnglesOffset, vecAngles);
+	
+	if (wep.flHeightOffset != 0.0)
+	{
+		float vecDirection[3];
+		GetAngleVectors(vecAngles, vecDirection, NULL_VECTOR, NULL_VECTOR);
+		ScaleVector(vecDirection, wep.flHeightOffset);
 		vecOrigin[0] -= vecDirection[1] * Sine(DegToRad(vecAngles[2]));
 		vecOrigin[1] += vecDirection[0] * Sine(DegToRad(vecAngles[2]));
-		vecOrigin[2] -= 64.0 * Cosine(DegToRad(vecAngles[2]));
-		
-		TeleportEntity(iEntity, vecOrigin, NULL_VECTOR, NULL_VECTOR);
+		vecOrigin[2] -= wep.flHeightOffset * Cosine(DegToRad(vecAngles[2]));
 	}
+	
+	TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
 }
 
 //Grabs the entity model by looking in the precache database of the server

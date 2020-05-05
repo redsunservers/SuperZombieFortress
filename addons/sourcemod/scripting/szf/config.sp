@@ -13,7 +13,7 @@ enum struct ConfigMelee
 
 ConfigMelee g_ConfigMeleeDefault;
 ArrayList g_aConfigMelee;
-StringMap g_OrigWeaponIndexes;
+StringMap g_mConfigReskins;
 
 void Config_Init()
 {
@@ -77,7 +77,7 @@ void Config_Refresh()
 	
 	delete kv;
 	
-	g_OrigWeaponIndexes = Config_LoadWeaponIndexes();
+	g_mConfigReskins = Config_LoadReskins();
 }
 
 ArrayList Config_LoadWeaponData()
@@ -168,8 +168,23 @@ ArrayList Config_LoadWeaponData()
 				wep.iColor[1] = iColor[1];
 				wep.iColor[2] = iColor[2];
 				
-				kv.GetVector("offset_origin", wep.vecOrigin);
-				kv.GetVector("offset_angles", wep.vecAngles);
+				wep.flHeightOffset = kv.GetFloat("height_offset");
+				kv.GetVector("angles_offset", wep.vecAnglesOffset);
+				
+				char sAnglesOffset[3][12];
+				kv.GetString("angles_const", sBuffer, sizeof(sBuffer));
+				int iCount = ExplodeString(sBuffer, " ", sAnglesOffset, sizeof(sAnglesOffset), sizeof(sAnglesOffset[]));
+				if (iCount == 3)
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						if (sAnglesOffset[i][0] != '~')
+						{
+							wep.vecAnglesConst[i] = StringToFloat(sAnglesOffset[i]);
+							wep.bAnglesConst[i] = true;
+						}
+					}
+				}
 				
 				aWeapons.PushArray(wep);
 				iLength++;
@@ -438,13 +453,13 @@ ArrayList Config_LoadInfectedClasses()
 	return aClasses;
 }
 
-StringMap Config_LoadWeaponIndexes()
+StringMap Config_LoadReskins()
 {
 	KeyValues kv = LoadFile(CONFIG_RESKINS, "Reskins");
 	if (kv == null)
 		return null;
 	
-	StringMap WeaponIndexes = new StringMap();
+	StringMap mReskins = new StringMap();
 	if (kv.GotoFirstSubKey(false))
 	{
 		do
@@ -460,13 +475,13 @@ StringMap Config_LoadWeaponIndexes()
 			int iCount = ExplodeString(sValue, " ", sValueExploded, sizeof(sValueExploded), sizeof(sValueExploded[]));
 			
 			for (int i = 0; i < iCount; i++)
-				WeaponIndexes.SetValue(sValueExploded[i], iOrigIndex);
+				mReskins.SetValue(sValueExploded[i], iOrigIndex);
 		}
 		while (kv.GotoNextKey(false));
 	}
 	
 	delete kv;
-	return WeaponIndexes;
+	return mReskins;
 }
 
 KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)

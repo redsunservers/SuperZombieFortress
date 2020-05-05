@@ -13,8 +13,10 @@ enum struct Weapon
 	char sText[256];
 	char sAttribs[256];
 	int iColor[3];
-	float vecOrigin[3];
-	float vecAngles[3];
+	float flHeightOffset;
+	float vecAnglesOffset[3];
+	float vecAnglesConst[3];
+	bool bAnglesConst[3];
 	Weapon_OnPickup callback;
 }
 
@@ -62,7 +64,7 @@ void Weapons_Precache()
 	PrecacheSound("ui/item_heavy_gun_drop.wav");
 }
 
-bool GetWeaponFromModel(Weapon buffer, char[] sModel)
+bool GetWeaponFromModel(Weapon buffer, const char[] sModel)
 {
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++) 
