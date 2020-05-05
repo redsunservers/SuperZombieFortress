@@ -292,6 +292,7 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 						vecVel[0] = 450.0 * Cosine(DegToRad(vecAngles[1]));
 						vecVel[1] = 450.0 * Sine(DegToRad(vecAngles[1]));
 						TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVel);
+						SDKCall_PlaySpecificSequence(iClient, "Charger_Charge");
 						
 						EmitSoundToAll(g_sVoZombieChargerCharge[GetRandomInt(0, sizeof(g_sVoZombieChargerCharge)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 					}
