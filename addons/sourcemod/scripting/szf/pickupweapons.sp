@@ -336,8 +336,15 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	//If player already have item in his inv, remove it before we generate new weapon for him
 	TF2_RemoveItemInSlot(iClient, iSlot);
 	
+	//Check if the player has specific attributes for their class for this weapon
+	char sAttribs[256];
+	sAttribs = wep.sAttribs;
+	
+	if (wep.aClassSpecific[iClass])
+	 wep.aClassSpecific[iClass].GetString(0, sAttribs, sizeof(sAttribs));
+	
 	//Generate and equip weapon
-	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, _, wep.sAttribs, wep.sText);
+	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, _, sAttribs, wep.sText);
 	
 	char sClassname[256];
 	TF2Econ_GetItemClassName(wep.iIndex, sClassname, sizeof(sClassname));

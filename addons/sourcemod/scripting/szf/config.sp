@@ -160,6 +160,28 @@ ArrayList Config_LoadWeaponData()
 				kv.GetString("attrib", wep.sAttribs, sizeof(wep.sAttribs));
 				kv.GetString("sound", wep.sSound, sizeof(wep.sSound));
 				
+				//Exceptions for specific classes
+				char sClassName[16];
+				if (kv.GotoFirstSubKey(false))
+				{
+					do
+					{
+						kv.GetSectionName(sClassName, sizeof(sClassName));
+						
+						TFClassType nClass = TF2_GetClass(sClassName);
+						
+						char sClassAttribs[256];
+						kv.GetString("attrib", sClassAttribs, sizeof(sClassAttribs));
+						
+						wep.aClassSpecific[nClass] = new ArrayList(256);
+						wep.aClassSpecific[nClass].PushString(sClassAttribs);
+						
+					}
+					while(kv.GotoNextKey(false));
+					kv.GoBack();
+				}
+				
+				
 				kv.GetString("callback", sBuffer, sizeof(sBuffer));
 				wep.callback = view_as<Weapon_OnPickup>(GetFunctionByName(null, sBuffer));
 				
