@@ -440,7 +440,7 @@ ArrayList Config_LoadInfectedClasses()
 
 StringMap Config_LoadWeaponIndexes()
 {
-	KeyValues kv = LoadFile(CONFIG_RESKINS, "Weapon Indexes");
+	KeyValues kv = LoadFile(CONFIG_RESKINS, "Reskins");
 	if (kv == null)
 		return null;
 	
