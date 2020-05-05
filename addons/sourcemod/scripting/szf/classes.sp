@@ -154,9 +154,11 @@ void Classes_Precache()
 {
 	for (Infected nInfected; nInfected < Infected; nInfected++)
 	{
-		//TODO download table
 		if (g_InfectedClasses[nInfected].sModel[0] != '\0')
+		{
 			PrecacheModel(g_InfectedClasses[nInfected].sModel);
+			AddModelToDownloadsTable(g_InfectedClasses[nInfected].sModel);
+		}
 	}
 }
 

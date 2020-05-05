@@ -940,6 +940,30 @@ stock void SayText2(int[] iClients, int iLength, int iEntity, bool bChat, const 
 
 /******************************************************************************************************/
 
+stock void AddModelToDownloadsTable(const char[] sModel)
+{
+	static const char sFileType[][] = {
+		"dx80.vtx",
+		"dx90.vtx",
+		"mdl",
+		"phy",
+		"sw.vtx",
+		"vvd",
+	};
+	
+	char sRoot[PLATFORM_MAX_PATH];
+	strcopy(sRoot, sizeof(sRoot), sModel);
+	ReplaceString(sRoot, sizeof(sRoot), ".mdl", "");
+	
+	for (int i = 0; i < sizeof(sFileType); i++)
+	{
+		char sBuffer[PLATFORM_MAX_PATH];
+		Format(sBuffer, sizeof(sBuffer), "%s.%s", sRoot, sFileType[i]);
+		if (FileExists(sBuffer))
+			AddFileToDownloadsTable(sBuffer);
+	}
+}
+
 stock int PrecacheZombieSouls()
 {
 	char sPath[64];
