@@ -141,15 +141,17 @@ ArrayList Config_LoadWeaponData()
 						continue;
 				}
 				
+				wep.iSkin = kv.GetNum("skin");
+				
 				//Check if the model is already taken by another weapon
 				Weapon duplicate;
 				for (int i = 0; i < iLength; i++) 
 				{
 					aWeapons.GetArray(i, duplicate);
 					
-					if (StrEqual(wep.sModel, duplicate.sModel))
+					if (StrEqual(wep.sModel, duplicate.sModel) && wep.iSkin == duplicate.iSkin)
 					{
-						LogError("%i: Model \"%s\" is already taken by weapon %i.", wep.iIndex, wep.sModel, duplicate.iIndex);
+						LogError("%i: Model \"%s\" with skin \"%d\" is already taken by weapon %i.", wep.iIndex, wep.sModel, wep.iSkin, duplicate.iIndex);
 						continue;
 					}
 				}

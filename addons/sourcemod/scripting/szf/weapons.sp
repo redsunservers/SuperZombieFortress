@@ -9,6 +9,7 @@ enum struct Weapon
 	int iIndex;
 	WeaponRarity nRarity;
 	char sModel[PLATFORM_MAX_PATH];
+	int iSkin;
 	char sSound[PLATFORM_MAX_PATH];
 	char sText[256];
 	char sAttribs[256];
@@ -64,15 +65,19 @@ void Weapons_Precache()
 	PrecacheSound("ui/item_heavy_gun_drop.wav");
 }
 
-bool GetWeaponFromModel(Weapon buffer, const char[] sModel)
+bool GetWeaponFromEntity(Weapon buffer, int iEntity)
 {
+	char sModel[PLATFORM_MAX_PATH];
+	GetEntityModel(iEntity, sModel, sizeof(sModel));
+	int iSkin = GetEntProp(iEntity, Prop_Send, "m_nSkin");
+	
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++) 
 	{
 		Weapon wep;
 		g_Weapons.GetArray(i, wep);
 		
-		if (StrEqual(sModel, wep.sModel))
+		if (StrEqual(sModel, wep.sModel) && iSkin == wep.iSkin)
 		{
 			buffer = wep;
 			return true;

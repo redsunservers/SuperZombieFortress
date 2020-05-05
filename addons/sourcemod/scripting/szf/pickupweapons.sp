@@ -165,11 +165,8 @@ bool AttemptGrabItem(int iClient)
 	if (iTarget <= 0 || !IsClassname(iTarget, "prop_dynamic") || GetWeaponType(iTarget) == WeaponType_Invalid)
 		return false;
 	
-	char sModel[256];
-	GetEntityModel(iTarget, sModel, sizeof(sModel));
-	
 	Weapon wep;
-	if (!GetWeaponFromModel(wep, sModel))
+	if (!GetWeaponFromEntity(wep, iTarget))
 		return false;
 	
 	bool bAllowPickup = true;
@@ -462,11 +459,10 @@ void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 void SetWeaponModel(int iEntity, Weapon wep)
 {
 	Weapon oldWep;
-	char sOldModel[256];
-	GetEntityModel(iEntity, sOldModel, sizeof(sOldModel));
-	GetWeaponFromModel(oldWep, sOldModel);
+	GetWeaponFromEntity(oldWep, iEntity);
 	
 	SetEntityModel(iEntity, wep.sModel);
+	SetEntProp(iEntity, Prop_Send, "m_nSkin", wep.iSkin);
 	
 	//Update model origin and angles from weapon offset and const
 	
