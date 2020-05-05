@@ -234,6 +234,9 @@ bool AttemptGrabItem(int iClient)
 			TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
 			SZF_CPrintToChatAll(iClient, "{limegreen}{param3} \x01here!", true, .sParam3 = sName);
 			
+			int iGlow = CreateWeaponGlow(iTarget);
+			CreateTimer(10.0, Timer_KillEntity, EntIndexToEntRef(iGlow));
+			
 			AddToCookie(iClient, 1, g_cWeaponsCalled);
 			if (GetCookie(iClient, g_cWeaponsCalled) <= 1)
 			{
@@ -515,4 +518,44 @@ void GetModelPath(int iIndex, char[] sModel, int iMaxSize)
 {
 	int iTable = FindStringTable("modelprecache");
 	ReadStringTable(iTable, iIndex, sModel, iMaxSize);
+}
+
+int CreateWeaponGlow(int iEntity)
+{
+	int iGlow = CreateEntityByName("tf_taunt_prop");
+	if (IsValidEntity(iGlow) && DispatchSpawn(iGlow))
+	{
+		Weapon wep;
+		GetWeaponFromEntity(wep, iEntity);
+		SetEntityModel(iGlow, wep.sModel);
+		SetEntProp(iGlow, Prop_Send, "m_nSkin", wep.iSkin);
+		
+		SetEntPropEnt(iGlow, Prop_Data, "m_hEffectEntity", iEntity);
+		SetEntProp(iGlow, Prop_Send, "m_bGlowEnabled", true);
+		
+		int iEffects = GetEntProp(iGlow, Prop_Send, "m_fEffects");
+		SetEntProp(iGlow, Prop_Send, "m_fEffects", iEffects | EF_BONEMERGE | EF_NOSHADOW | EF_NORECEIVESHADOW);
+		
+		SetVariantString("!activator");
+		AcceptEntityInput(iGlow, "SetParent", iEntity);
+		
+		SDKHook(iGlow, SDKHook_SetTransmit, Weapon_SetTransmit);
+	}
+	
+	return iGlow;
+}
+
+public Action Weapon_SetTransmit(int iEntity, int iClient)
+{
+	//Only glow to survivors who can pick up this weapon
+	if (IsValidLivingSurvivor(iClient))
+	{
+		Weapon wep;
+		GetWeaponFromEntity(wep, iEntity);
+		int iSlot = TF2_GetItemSlot(wep.iIndex, TF2_GetPlayerClass(iClient));
+		if (iSlot >= 0)
+			return Plugin_Continue;
+	}
+	
+	return Plugin_Handled;
 }
