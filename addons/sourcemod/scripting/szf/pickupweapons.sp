@@ -292,6 +292,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	if (iWepType != WeaponType_Spawn && iWepType != WeaponType_RareSpawn && iWepType != WeaponType_StaticSpawn)
 	{
 		Weapon oldwep;
+		bool bKillEntity = true;
 		
 		int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
 		if (!IsValidEntity(iEntity))
@@ -302,16 +303,18 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 			int iOldIndex = GetOriginalItemDefIndex(GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex"));
 			GetWeaponFromIndex(oldwep, iOldIndex);
 			
-			if (oldwep.iIndex > 0)
+			if (oldwep.iIndex >= 0)
 			{
 				EmitSoundToClient(iClient, "ui/item_heavy_gun_drop.wav");
 				SetWeaponModel(iTarget, oldwep);
+				bKillEntity = false;
 			}
-			else
-			{
-				AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
-				AcceptEntityInput(iTarget, "Kill");
-			}
+		}
+		
+		if (bKillEntity)
+		{
+			AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
+			RemoveEntity(iTarget);
 		}
 	}
 
