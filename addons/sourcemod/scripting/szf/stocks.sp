@@ -649,7 +649,7 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sClassn
 	Address pItem = SDKCall_GetLoadoutItem(iClient, iClass, iSlot);
 	
 	int iWeapon;
-	if (GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(4), NumberType_Int16)) == iIndex)
+	if (pItem && GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(4), NumberType_Int16)) == iIndex)
 	{
 		iWeapon = SDKCall_GetBaseEntity(SDKCall_GiveNamedItem(iClient, sClassnameCopy, 0, pItem));
 	}
@@ -766,7 +766,7 @@ stock int GetOriginalItemDefIndex(int iIndex)
 	char sIndex[8];
 	IntToString(iIndex, sIndex, sizeof(sIndex));
 	
-	if (g_OrigWeaponIndexes.GetValue(sIndex, iOrigIndex))
+	if (g_mConfigReskins.GetValue(sIndex, iOrigIndex))
 		return iOrigIndex;
 	else
 		return iIndex;
