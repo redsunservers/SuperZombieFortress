@@ -54,8 +54,8 @@
 			}
 			"CBaseEntity::GetBaseEntity"
 			{
-				"windows" "5"
-				"linux" "6"
+				"windows" 	"5"
+				"linux" 	"6"
 			}
 		}
 		"Functions"
