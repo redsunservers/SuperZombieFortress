@@ -355,8 +355,24 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	//If player already have item in his inv, remove it before we generate new weapon for him
 	TF2_RemoveItemInSlot(iClient, iSlot);
 	
+	//Check if the player has specific attributes for their class for this weapon
+	char sAttribs[256];
+	sAttribs = wep.sAttribs;
+	switch (nClass)
+	{
+		case TFClass_Scout: if(wep.weaponClassSpecific.sScoutAttribs[0]) sAttribs = wep.weaponClassSpecific.sScoutAttribs;
+		case TFClass_Soldier: if(wep.weaponClassSpecific.sSoldierAttribs[0]) sAttribs = wep.weaponClassSpecific.sSoldierAttribs;
+		case TFClass_Pyro: if(wep.weaponClassSpecific.sPyroAttribs[0]) sAttribs = wep.weaponClassSpecific.sPyroAttribs;
+		case TFClass_DemoMan: if(wep.weaponClassSpecific.sDemomanAttribs[0]) sAttribs = wep.weaponClassSpecific.sDemomanAttribs;
+		case TFClass_Heavy: if(wep.weaponClassSpecific.sHeavyAttribs[0]) sAttribs = wep.weaponClassSpecific.sHeavyAttribs;
+		case TFClass_Engineer: if(wep.weaponClassSpecific.sEngineerAttribs[0]) sAttribs = wep.weaponClassSpecific.sEngineerAttribs;
+		case TFClass_Medic: if(wep.weaponClassSpecific.sMedicAttribs[0]) sAttribs = wep.weaponClassSpecific.sMedicAttribs;
+		case TFClass_Sniper: if(wep.weaponClassSpecific.sSniperAttribs[0]) sAttribs = wep.weaponClassSpecific.sSniperAttribs;
+		case TFClass_Spy: if(wep.weaponClassSpecific.sSpyAttribs[0]) sAttribs = wep.weaponClassSpecific.sSpyAttribs;
+	}
+	
 	//Generate and equip weapon
-	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, wep.sAttribs, wep.sText);
+	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, sAttribs, wep.sText);
 	
 	char sClassname[256];
 	TF2Econ_GetItemClassName(wep.iIndex, sClassname, sizeof(sClassname));

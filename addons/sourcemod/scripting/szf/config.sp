@@ -154,6 +154,37 @@ ArrayList Config_LoadWeaponData()
 				kv.GetString("attrib", wep.sAttribs, sizeof(wep.sAttribs));
 				kv.GetString("sound", wep.sSound, sizeof(wep.sSound));
 				
+				//Exceptions for specific classes
+				char sClassName[16];
+				if (kv.GotoFirstSubKey(false))
+				{
+					do
+					{
+						kv.GetSectionName(sClassName, sizeof(sClassName));
+						
+						WeaponClassSpecific wcs;
+						
+						TFClassType nClass = TF2_GetClass(sClassName);
+						switch (nClass)
+						{
+							case TFClass_Scout: kv.GetString("attrib", wcs.sScoutAttribs, sizeof(wcs.sScoutAttribs));
+							case TFClass_Soldier:kv.GetString("attrib", wcs.sSoldierAttribs, sizeof(wcs.sSoldierAttribs));
+							case TFClass_Pyro: kv.GetString("attrib", wcs.sPyroAttribs, sizeof(wcs.sPyroAttribs));
+							case TFClass_DemoMan: kv.GetString("attrib", wcs.sDemomanAttribs, sizeof(wcs.sDemomanAttribs));
+							case TFClass_Heavy: kv.GetString("attrib", wcs.sHeavyAttribs, sizeof(wcs.sHeavyAttribs));
+							case TFClass_Engineer: kv.GetString("attrib", wcs.sEngineerAttribs, sizeof(wcs.sEngineerAttribs));
+							case TFClass_Medic: kv.GetString("attrib", wcs.sMedicAttribs, sizeof(wcs.sMedicAttribs));
+							case TFClass_Sniper: kv.GetString("attrib", wcs.sSniperAttribs, sizeof(wcs.sSniperAttribs));
+							case TFClass_Spy: kv.GetString("attrib", wcs.sSpyAttribs, sizeof(wcs.sSpyAttribs));
+						}
+						
+						wep.weaponClassSpecific = wcs;
+					}
+					while(kv.GotoNextKey(false));
+					kv.GoBack();
+				}
+				
+				
 				kv.GetString("callback", sBuffer, sizeof(sBuffer));
 				wep.callback = view_as<Weapon_OnPickup>(GetFunctionByName(null, sBuffer));
 				
