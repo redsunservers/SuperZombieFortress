@@ -18,7 +18,6 @@ StringMap g_OrigWeaponIndexes;
 void Config_Init()
 {
 	g_aConfigMelee = new ArrayList(sizeof(ConfigMelee));
-	g_OrigWeaponIndexes = Config_LoadWeaponIndexes();
 }
 
 void Config_Refresh()
@@ -77,6 +76,8 @@ void Config_Refresh()
 	}
 	
 	delete kv;
+	
+	g_OrigWeaponIndexes = Config_LoadWeaponIndexes();
 }
 
 ArrayList Config_LoadWeaponData()
