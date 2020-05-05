@@ -172,9 +172,6 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			if (g_nInfected[iClient] != Infected_Tank && !PerformFastRespawn(iClient))
 				TF2_AddCondition(iClient, TFCond_Ubercharged, 2.0);
 		
-		//Set zombie model / soul wearable
-		ApplyVoodooCursedSoul(iClient);
-		
 		HandleZombieLoadout(iClient);
 		if (GetCookie(iClient, g_cFirstTimeZombie) < 1)
 			InitiateZombieTutorial(iClient);
@@ -311,6 +308,15 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_bSpawnAsSpecialInfected[iKillers[1]] = true;
 	}
 	
+	if (iVictim != iKillers[0] && event.GetInt("weapon_def_index") == INDEX_FISTS && iKillers[0] == event.GetInt("inflictor_entindex"))
+	{
+		//Some custom special infected use fists, but kill icon reports it incorrectly
+		//TODO fix buildings kill aswell, those dont have 'weapon_def_index'
+		event.SetString("weapon_logclassname", "fists");
+		event.SetString("weapon", "fists");
+		event.SetInt("weaponid", TF_WEAPON_FISTS);
+	}
+	
 	if (g_nInfected[iVictim] == Infected_Tank)
 	{
 		g_iDamageZombie[iVictim] = 0;
@@ -389,7 +395,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		int iEntity = -1;
 		while ((iEntity = FindEntityByClassname(iEntity, "tf_ammo_pack")) != -1)
 			if (GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iVictim)
-				AcceptEntityInput(iEntity, "Kill");
+				RemoveEntity(iEntity);
 		
 		//Zombie rage: instant respawn
 		if (g_bZombieRage && g_nRoundState == SZFRoundState_Active)

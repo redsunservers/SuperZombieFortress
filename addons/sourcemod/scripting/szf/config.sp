@@ -1,5 +1,6 @@
-#define CONFIG_WEAPONS "configs/szf/weapons.cfg"
-#define CONFIG_CLASSES "configs/szf/classes.cfg"
+#define CONFIG_WEAPONS       "configs/szf/weapons.cfg"
+#define CONFIG_CLASSES       "configs/szf/classes.cfg"
+#define CONFIG_RESKINS       "configs/szf/reskins.cfg"
 
 enum struct ConfigMelee
 {
@@ -12,6 +13,7 @@ enum struct ConfigMelee
 
 ConfigMelee g_ConfigMeleeDefault;
 ArrayList g_aConfigMelee;
+StringMap g_mConfigReskins;
 
 void Config_Init()
 {
@@ -74,6 +76,8 @@ void Config_Refresh()
 	}
 	
 	delete kv;
+	
+	g_mConfigReskins = Config_LoadReskins();
 }
 
 ArrayList Config_LoadWeaponData()
@@ -86,10 +90,10 @@ ArrayList Config_LoadWeaponData()
 	if (mRarity == null)
 	{
 		mRarity = new StringMap();
-		mRarity.SetValue("common", eWeaponsRarity_Common);
-		mRarity.SetValue("uncommon", eWeaponsRarity_Uncommon);
-		mRarity.SetValue("rare", eWeaponsRarity_Rare);
-		mRarity.SetValue("pickup", eWeaponsRarity_Pickup);
+		mRarity.SetValue("common", WeaponRarity_Common);
+		mRarity.SetValue("uncommon", WeaponRarity_Uncommon);
+		mRarity.SetValue("rare", WeaponRarity_Rare);
+		mRarity.SetValue("pickup", WeaponRarity_Pickup);
 	}
 	
 	ArrayList aWeapons = new ArrayList(sizeof(Weapon));
@@ -137,15 +141,17 @@ ArrayList Config_LoadWeaponData()
 						continue;
 				}
 				
+				wep.iSkin = kv.GetNum("skin");
+				
 				//Check if the model is already taken by another weapon
 				Weapon duplicate;
 				for (int i = 0; i < iLength; i++) 
 				{
 					aWeapons.GetArray(i, duplicate);
 					
-					if (StrEqual(wep.sModel, duplicate.sModel))
+					if (StrEqual(wep.sModel, duplicate.sModel) && wep.iSkin == duplicate.iSkin)
 					{
-						LogError("%i: Model \"%s\" is already taken by weapon %i.", wep.iIndex, wep.sModel, duplicate.iIndex);
+						LogError("%i: Model \"%s\" with skin \"%d\" is already taken by weapon %i.", wep.iIndex, wep.sModel, wep.iSkin, duplicate.iIndex);
 						continue;
 					}
 				}
@@ -195,8 +201,23 @@ ArrayList Config_LoadWeaponData()
 				wep.iColor[1] = iColor[1];
 				wep.iColor[2] = iColor[2];
 				
-				kv.GetVector("offset_origin", wep.vecOrigin);
-				kv.GetVector("offset_angles", wep.vecAngles);
+				wep.flHeightOffset = kv.GetFloat("height_offset");
+				kv.GetVector("angles_offset", wep.vecAnglesOffset);
+				
+				char sAnglesOffset[3][12];
+				kv.GetString("angles_const", sBuffer, sizeof(sBuffer));
+				int iCount = ExplodeString(sBuffer, " ", sAnglesOffset, sizeof(sAnglesOffset), sizeof(sAnglesOffset[]));
+				if (iCount == 3)
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						if (sAnglesOffset[i][0] != '~')
+						{
+							wep.vecAnglesConst[i] = StringToFloat(sAnglesOffset[i]);
+							wep.bAnglesConst[i] = true;
+						}
+					}
+				}
 				
 				aWeapons.PushArray(wep);
 				iLength++;
@@ -348,6 +369,7 @@ ArrayList Config_LoadZombieClasses()
 						{
 							WeaponClasses weapon;
 							weapon.iIndex = kv.GetNum("index", 5);
+							kv.GetString("classname", weapon.sClassname, sizeof(weapon.sClassname));
 							kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
 							
 							zom.aWeapons.PushArray(weapon);
@@ -430,6 +452,7 @@ ArrayList Config_LoadInfectedClasses()
 				inf.iDegen = kv.GetNum("degen", 3);
 				kv.GetColor4("color", inf.iColor);
 				kv.GetString("message", inf.sMsg, sizeof(inf.sMsg));
+				kv.GetString("model", inf.sModel, sizeof(inf.sModel));
 				inf.aWeapons = new ArrayList(sizeof(WeaponClasses));
 				
 				if (kv.GotoFirstSubKey(false))	//Find weapons
@@ -442,6 +465,7 @@ ArrayList Config_LoadInfectedClasses()
 						{
 							WeaponClasses weapon;
 							weapon.iIndex = kv.GetNum("index", 5);
+							kv.GetString("classname", weapon.sClassname, sizeof(weapon.sClassname));
 							kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
 							
 							inf.aWeapons.PushArray(weapon);
@@ -460,6 +484,37 @@ ArrayList Config_LoadInfectedClasses()
 	
 	delete kv;
 	return aClasses;
+}
+
+StringMap Config_LoadReskins()
+{
+	KeyValues kv = LoadFile(CONFIG_RESKINS, "Reskins");
+	if (kv == null)
+		return null;
+	
+	StringMap mReskins = new StringMap();
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			char sName[256];
+			kv.GetSectionName(sName, sizeof(sName));
+			int iOrigIndex = StringToInt(sName);
+			
+			char sValue[512];
+			kv.GetString(NULL_STRING, sValue, sizeof(sValue));
+			
+			char sValueExploded[64][8];
+			int iCount = ExplodeString(sValue, " ", sValueExploded, sizeof(sValueExploded), sizeof(sValueExploded[]));
+			
+			for (int i = 0; i < iCount; i++)
+				mReskins.SetValue(sValueExploded[i], iOrigIndex);
+		}
+		while (kv.GotoNextKey(false));
+	}
+	
+	delete kv;
+	return mReskins;
 }
 
 KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)

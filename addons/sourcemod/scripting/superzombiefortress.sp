@@ -24,9 +24,31 @@
 
 #define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
 
+#define INDEX_FISTS			5
+
 #define BACKSTABDURATION_FULL		5.5
 #define BACKSTABDURATION_REDUCED	3.5
 #define STUNNED_DAMAGE_CAP			10.0
+
+// entity effects
+enum
+{
+	EF_BONEMERGE			= 0x001,	// Performs bone merge on client side
+	EF_BRIGHTLIGHT 			= 0x002,	// DLIGHT centered at entity origin
+	EF_DIMLIGHT 			= 0x004,	// player flashlight
+	EF_NOINTERP				= 0x008,	// don't interpolate the next frame
+	EF_NOSHADOW				= 0x010,	// Don't cast no shadow
+	EF_NODRAW				= 0x020,	// don't draw entity
+	EF_NORECEIVESHADOW		= 0x040,	// Don't receive no shadow
+	EF_BONEMERGE_FASTCULL	= 0x080,	// For use with EF_BONEMERGE. If this is set, then it places this ent's origin at its
+										// parent and uses the parent's bbox + the max extents of the aiment.
+										// Otherwise, it sets up the parent's bones every frame to figure out where to place
+										// the aiment, which is inefficient because it'll setup the parent's bones even if
+										// the parent is not in the PVS.
+	EF_ITEM_BLINK			= 0x100,	// blink an item so that the user notices it.
+	EF_PARENT_ANIMATES		= 0x200,	// always assume that the parent entity is animating
+	EF_MAX_BITS = 10
+};
 
 enum
 {
@@ -79,6 +101,7 @@ bool g_bEnabled;
 bool g_bNewRound;
 bool g_bLastSurvivor;
 bool g_bTF2Items;
+bool g_bSkipGiveNamedItemHook;
 
 float g_flSurvivorsLastDeath = 0.0;
 int g_iSurvivorsKilledCounter;
@@ -489,7 +512,14 @@ public void Client_OnPreThinkPost(int iClient)
 							if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
 								flSpeed -= 30.0; //Jarate'd by sniper
 						}
-
+						
+						//Charger: like in l4d, his charge is fucking fast so we also have it here, WEEEEEEE
+						case Infected_Charger:
+						{
+							if (TF2_IsPlayerInCondition(iClient, TFCond_Charging))
+								flSpeed = 600.0;
+						}
+						
 						//Cloaked: super speed if cloaked
 						case Infected_Stalker:
 						{
@@ -1052,12 +1082,12 @@ public Action Timer_GraceStartPost(Handle hTimer)
 	//Remove all dropped ammopacks.
 	iEntity = -1;
 	while ((iEntity = FindEntityByClassname(iEntity, "tf_ammo_pack")) != -1)
-		AcceptEntityInput(iEntity, "Kill");
+		RemoveEntity(iEntity);
 	
 	//Remove all ragdolls.
 	iEntity = -1;
 	while ((iEntity = FindEntityByClassname(iEntity, "tf_ragdoll")) != -1)
-		AcceptEntityInput(iEntity, "Kill");
+		RemoveEntity(iEntity);
 	
 	//Disable all payload cart dispensers.
 	iEntity = -1;
@@ -2763,6 +2793,10 @@ void HandleSurvivorLoadout(int iClient)
 		}
 	}
 	
+	//Reset custom models
+	SetVariantString("");
+	AcceptEntityInput(iClient, "SetCustomModel");
+	
 	//Prevent Survivors with voodoo-cursed souls
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
@@ -2772,25 +2806,42 @@ void HandleSurvivorLoadout(int iClient)
 
 void HandleZombieLoadout(int iClient)
 {
-	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient)) return;
+	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient))
+		return;
 	
 	CheckClientWeapons(iClient);
 	
 	TFClassType nClass = TF2_GetPlayerClass(iClient);
 	
 	int iPos;
-	int iIndex;
-	char sAttrib[256];
+	WeaponClasses weapon;
 	if (g_nInfected[iClient] == Infected_None)
 	{
-		while (GetZombieWeapon(nClass, iPos, iIndex, sAttrib, sizeof(sAttrib)))
-			TF2_CreateAndEquipWeapon(iClient, iIndex, sAttrib);
+		while (GetZombieWeapon(nClass, iPos, weapon))
+			TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sClassname, weapon.sAttribs);
+		
+		ApplyVoodooCursedSoul(iClient);
 	}
 	else
 	{
-		while (GetInfectedWeapon(g_nInfected[iClient], iPos, iIndex, sAttrib, sizeof(sAttrib)))
+		while (GetInfectedWeapon(g_nInfected[iClient], iPos, weapon))
+			TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sClassname, weapon.sAttribs);
+		
+		char sModel[PLATFORM_MAX_PATH];
+		if (GetInfectedModel(g_nInfected[iClient], sModel, sizeof(sModel)))
 		{
-			TF2_CreateAndEquipWeapon(iClient, iIndex, sAttrib);
+			int iEntity = MaxClients+1;
+			while ((iEntity = FindEntityByClassname(iEntity, "tf_wearable*")) > MaxClients)
+				if (GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iEntity, Prop_Send, "moveparent") == iClient)
+					RemoveEntity(iEntity);
+			
+			SetVariantString(sModel);
+			AcceptEntityInput(iClient, "SetCustomModel");
+			SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", true);
+		}
+		else
+		{
+			ApplyVoodooCursedSoul(iClient);
 		}
 	}
 	
@@ -2804,10 +2855,6 @@ void HandleZombieLoadout(int iClient)
 	
 	//Set health back to what it should be after modifying weapons
 	SetEntityHealth(iClient, SDKCall_GetMaxHealth(iClient));
-	
-	//Reset custom models
-	SetVariantString("");
-	AcceptEntityInput(iClient, "SetCustomModel");
 }
 
 void SetValidSlot(int iClient)
@@ -2859,7 +2906,7 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	}
 	else if (StrEqual(sClassname, "tf_dropped_weapon"))
 	{
-		AcceptEntityInput(iEntity, "kill");
+		RemoveEntity(iEntity);
 	}
 }
 
@@ -2941,7 +2988,7 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 	{
 		//Disable Sandvich and kill it
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
-		AcceptEntityInput(iEntity, "Kill");
+		RemoveEntity(iEntity);
 		
 		DealDamage(iOwner, iToucher, 55.0);
 		
@@ -2968,7 +3015,7 @@ public Action OnBananaTouch(int iEntity, int iClient)
 	{
 		//Disable Sandvich and kill it
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
-		AcceptEntityInput(iEntity, "Kill");
+		RemoveEntity(iEntity);
 		
 		DealDamage(iOwner, iToucher, 30.0);
 		
@@ -3050,7 +3097,7 @@ public Action Timer_RemoveParticle(Handle hTimer, int iParticle)
 		if (StrEqual(sClassname, "info_particle_system", false))
 		{
 			AcceptEntityInput(iParticle, "stop");
-			AcceptEntityInput(iParticle, "Kill");
+			RemoveEntity(iParticle);
 			iParticle = -1;
 		}
 	}
@@ -3738,7 +3785,9 @@ public void DoHunterJump(int iClient)
 	vecVelocity[1] = Cosine(DegToRad(vecEyeAngles[0])) * Sine(DegToRad(vecEyeAngles[1])) * 920;
 	vecVelocity[2] = 460.0;
 	
+	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
+	SDKCall_PlaySpecificSequence(iClient, "Jump_Float_melee");
 }
 
 public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fVelocity[3], float fAngles[3], int &iWeapon)
@@ -3936,6 +3985,12 @@ stock int GetMorale(int iClient)
 
 Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 {
+	if (g_bSkipGiveNamedItemHook)
+	{
+		g_bSkipGiveNamedItemHook = false;
+		return Plugin_Continue;
+	}
+	
 	int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 	
 	Action iAction = Plugin_Continue;
