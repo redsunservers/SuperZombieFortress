@@ -267,9 +267,12 @@ stock int TF2_GetSlotInItem(int iIndex, TFClassType nClass)
 		//Spy slots is a bit messy
 		if (nClass == TFClass_Spy)
 		{
-			if (iSlot == 1) iSlot = WeaponSlot_Primary;	//Revolver
-			if (iSlot == 4) iSlot = WeaponSlot_Secondary;	//Sapper
-			if (iSlot == 6) iSlot = WeaponSlot_InvisWatch;	//Invis Watch
+			switch (iSlot)
+			{
+				case 1: iSlot = WeaponSlot_Primary;     //Revolver
+				case 4: iSlot = WeaponSlot_Secondary;   //Sapper
+				case 6: iSlot = WeaponSlot_InvisWatch;  //Invis Watch
+			}
 		}
 	}
 	
@@ -619,38 +622,52 @@ stock void SetTeamRespawnTime(TFTeam nTeam, float flTime)
 // Weapon Utils
 //
 ////////////////////////////////////////////////////////////
-
-stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sClassnameTemp = NULL_STRING, const char[] sAttribs = NULL_STRING, const char[] sText = NULL_STRING)
+stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sClassname = "", const char[] sAttribs = "", const char[] sText = "")
 {
-	char sClassname[256];
-	if (sClassnameTemp[0] == '\0')
+	char sClassnameCopy[256];
+	if (sClassname[0] == '\0')
 	{
-		TF2Econ_GetItemClassName(iIndex, sClassname, sizeof(sClassname));
-		TF2Econ_TranslateWeaponEntForClass(sClassname, sizeof(sClassname), TF2_GetPlayerClass(iClient));
+		TF2Econ_GetItemClassName(iIndex, sClassnameCopy, sizeof(sClassnameCopy));
+		TF2Econ_TranslateWeaponEntForClass(sClassnameCopy, sizeof(sClassnameCopy), TF2_GetPlayerClass(iClient));
 	}
 	else
 	{
-		strcopy(sClassname, sizeof(sClassname), sClassnameTemp);
+		strcopy(sClassnameCopy, sizeof(sClassnameCopy), sClassname);
 	}
 	
 	bool bSapper;
-	if ((StrEqual(sClassname, "tf_weapon_builder") || StrEqual(sClassname, "tf_weapon_sapper")) && TF2_GetPlayerClass(iClient) == TFClass_Spy)
+	if ((StrEqual(sClassnameCopy, "tf_weapon_builder") || StrEqual(sClassnameCopy, "tf_weapon_sapper")) && TF2_GetPlayerClass(iClient) == TFClass_Spy)
 	{
 		bSapper = true;
 		
-		//tf_weapon_sapper is bad and give client crashes
-		sClassname = "tf_weapon_builder";
+		//Apparently tf_weapon_sapper causes client crashes
+		sClassnameCopy = "tf_weapon_builder";
 	}
 	
-	int iWeapon = CreateEntityByName(sClassname);
+	TFClassType iClass = TF2_GetPlayerClass(iClient);
+	int iSlot = TF2_GetItemSlot(iIndex, iClass);
+	Address pItem = SDKCall_GetLoadoutItem(iClient, iClass, iSlot);
+	
+	int iWeapon;
+	if (GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(4), NumberType_Int16)) == iIndex)
+	{
+		iWeapon = SDKCall_GetBaseEntity(SDKCall_GiveNamedItem(iClient, sClassnameCopy, 0, pItem));
+	}
+	else
+	{
+		iWeapon = CreateEntityByName(sClassnameCopy);
+		
+		if (IsValidEntity(iWeapon))
+		{
+			SetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex", iIndex);
+			SetEntProp(iWeapon, Prop_Send, "m_bInitialized", 1);
+			SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 0);
+			SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
+		}
+	}
+	
 	if (IsValidEntity(iWeapon))
 	{
-		SetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex", iIndex);
-		SetEntProp(iWeapon, Prop_Send, "m_bInitialized", 1);
-		
-		SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 6);
-		SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
-		
 		if (bSapper)
 		{
 			SetEntProp(iWeapon, Prop_Send, "m_iObjectType", TFObject_Sapper);
@@ -660,11 +677,11 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sClassn
 		//Attribute shittery inbound
 		if (!StrEqual(sAttribs, ""))
 		{
-			char atts[32][32];
-			int iCount = ExplodeString(sAttribs, " ; ", atts, 32, 32);
+			char sAttribs2[32][32];
+			int iCount = ExplodeString(sAttribs, " ; ", sAttribs2, 32, 32);
 			if (iCount > 1)
 				for (int i = 0; i < iCount; i+= 2)
-					TF2Attrib_SetByDefIndex(iWeapon, StringToInt(atts[i]), StringToFloat(atts[i+1]));
+					TF2Attrib_SetByDefIndex(iWeapon, StringToInt(sAttribs2[i]), StringToFloat(sAttribs2[i+1]));
 		}
 		
 		if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(sText, ""))
@@ -676,7 +693,7 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sClassn
 		DispatchSpawn(iWeapon);
 		SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", true);
 		
-		if (StrContains(sClassname, "tf_wearable") == 0)
+		if (StrContains(sClassnameCopy, "tf_wearable") == 0)
 			SDKCall_EquipWearable(iClient, iWeapon);
 		else
 			EquipPlayerWeapon(iClient, iWeapon);
@@ -740,6 +757,19 @@ stock void CheckClientWeapons(int iClient)
 				TF2_RemoveItemInSlot(iClient, iSlot);
 		}
 	}
+}
+
+stock int GetOriginalItemDefIndex(int iIndex)
+{
+	int iOrigIndex;
+	
+	char sIndex[8];
+	IntToString(iIndex, sIndex, sizeof(sIndex));
+	
+	if (g_OrigWeaponIndexes.GetValue(sIndex, iOrigIndex))
+		return iOrigIndex;
+	else
+		return iIndex;
 }
 
 ////////////////////////////////////////////////////////////

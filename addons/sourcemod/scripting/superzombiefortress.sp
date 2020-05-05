@@ -79,6 +79,7 @@ bool g_bEnabled;
 bool g_bNewRound;
 bool g_bLastSurvivor;
 bool g_bTF2Items;
+bool g_bSkipGiveNamedItemHook;
 
 float g_flSurvivorsLastDeath = 0.0;
 int g_iSurvivorsKilledCounter;
@@ -3955,6 +3956,12 @@ stock int GetMorale(int iClient)
 
 Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 {
+	if (g_bSkipGiveNamedItemHook)
+	{
+		g_bSkipGiveNamedItemHook = false;
+		return Plugin_Continue;
+	}
+	
 	int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
 	
 	Action iAction = Plugin_Continue;

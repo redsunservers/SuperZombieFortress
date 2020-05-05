@@ -28,6 +28,12 @@
 				"linux"		"@_ZN7CGameUI10DeactivateEP11CBaseEntity"
 				"windows"	"\x55\x8B\xEC\x51\x53\x56\x57\x8B\x2A\x8B\x97"
 			}
+			"CTFPlayer::GetLoadoutItem"
+			{
+				"library"	"server"
+				"linux"		"@_ZN9CTFPlayer14GetLoadoutItemEiib"
+				"windows"	"\x55\x8B\xEC\x51\x53\x56\x8B\xF1\x8B\x0D\x2A\x2A\x2A\x2A\x57\x89\x75\xFC"
+			}
 		}
 		"Offsets"
 		{
@@ -45,6 +51,11 @@
 			{
 				"linux"		"482"
 				"windows"	"475"
+			}
+			"CBaseEntity::GetBaseEntity"
+			{
+				"windows" 	"5"
+				"linux" 	"6"
 			}
 		}
 		"Functions"

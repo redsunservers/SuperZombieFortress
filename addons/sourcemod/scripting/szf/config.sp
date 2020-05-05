@@ -1,5 +1,6 @@
-#define CONFIG_WEAPONS "configs/szf/weapons.cfg"
-#define CONFIG_CLASSES "configs/szf/classes.cfg"
+#define CONFIG_WEAPONS       "configs/szf/weapons.cfg"
+#define CONFIG_CLASSES       "configs/szf/classes.cfg"
+#define CONFIG_RESKINS       "configs/szf/reskins.cfg"
 
 enum struct ConfigMelee
 {
@@ -12,6 +13,7 @@ enum struct ConfigMelee
 
 ConfigMelee g_ConfigMeleeDefault;
 ArrayList g_aConfigMelee;
+StringMap g_OrigWeaponIndexes;
 
 void Config_Init()
 {
@@ -74,6 +76,8 @@ void Config_Refresh()
 	}
 	
 	delete kv;
+	
+	g_OrigWeaponIndexes = Config_LoadWeaponIndexes();
 }
 
 ArrayList Config_LoadWeaponData()
@@ -86,10 +90,10 @@ ArrayList Config_LoadWeaponData()
 	if (mRarity == null)
 	{
 		mRarity = new StringMap();
-		mRarity.SetValue("common", eWeaponsRarity_Common);
-		mRarity.SetValue("uncommon", eWeaponsRarity_Uncommon);
-		mRarity.SetValue("rare", eWeaponsRarity_Rare);
-		mRarity.SetValue("pickup", eWeaponsRarity_Pickup);
+		mRarity.SetValue("common", WeaponRarity_Common);
+		mRarity.SetValue("uncommon", WeaponRarity_Uncommon);
+		mRarity.SetValue("rare", WeaponRarity_Rare);
+		mRarity.SetValue("pickup", WeaponRarity_Pickup);
 	}
 	
 	ArrayList aWeapons = new ArrayList(sizeof(Weapon));
@@ -432,6 +436,37 @@ ArrayList Config_LoadInfectedClasses()
 	
 	delete kv;
 	return aClasses;
+}
+
+StringMap Config_LoadWeaponIndexes()
+{
+	KeyValues kv = LoadFile(CONFIG_RESKINS, "Reskins");
+	if (kv == null)
+		return null;
+	
+	StringMap WeaponIndexes = new StringMap();
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			char sName[256];
+			kv.GetSectionName(sName, sizeof(sName));
+			int iOrigIndex = StringToInt(sName);
+			
+			char sValue[512];
+			kv.GetString(NULL_STRING, sValue, sizeof(sValue));
+			
+			char sValueExploded[64][8];
+			int iCount = ExplodeString(sValue, " ", sValueExploded, sizeof(sValueExploded), sizeof(sValueExploded[]));
+			
+			for (int i = 0; i < iCount; i++)
+				WeaponIndexes.SetValue(sValueExploded[i], iOrigIndex);
+		}
+		while (kv.GotoNextKey(false));
+	}
+	
+	delete kv;
+	return WeaponIndexes;
 }
 
 KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)
