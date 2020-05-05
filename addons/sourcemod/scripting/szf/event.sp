@@ -395,7 +395,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		int iEntity = -1;
 		while ((iEntity = FindEntityByClassname(iEntity, "tf_ammo_pack")) != -1)
 			if (GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iVictim)
-				AcceptEntityInput(iEntity, "Kill");
+				RemoveEntity(iEntity);
 		
 		//Zombie rage: instant respawn
 		if (g_bZombieRage && g_nRoundState == SZFRoundState_Active)

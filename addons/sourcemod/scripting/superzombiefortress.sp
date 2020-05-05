@@ -1082,12 +1082,12 @@ public Action Timer_GraceStartPost(Handle hTimer)
 	//Remove all dropped ammopacks.
 	iEntity = -1;
 	while ((iEntity = FindEntityByClassname(iEntity, "tf_ammo_pack")) != -1)
-		AcceptEntityInput(iEntity, "Kill");
+		RemoveEntity(iEntity);
 	
 	//Remove all ragdolls.
 	iEntity = -1;
 	while ((iEntity = FindEntityByClassname(iEntity, "tf_ragdoll")) != -1)
-		AcceptEntityInput(iEntity, "Kill");
+		RemoveEntity(iEntity);
 	
 	//Disable all payload cart dispensers.
 	iEntity = -1;
@@ -2906,7 +2906,7 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	}
 	else if (StrEqual(sClassname, "tf_dropped_weapon"))
 	{
-		AcceptEntityInput(iEntity, "kill");
+		RemoveEntity(iEntity);
 	}
 }
 
@@ -2988,7 +2988,7 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 	{
 		//Disable Sandvich and kill it
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
-		AcceptEntityInput(iEntity, "Kill");
+		RemoveEntity(iEntity);
 		
 		DealDamage(iOwner, iToucher, 55.0);
 		
@@ -3015,7 +3015,7 @@ public Action OnBananaTouch(int iEntity, int iClient)
 	{
 		//Disable Sandvich and kill it
 		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
-		AcceptEntityInput(iEntity, "Kill");
+		RemoveEntity(iEntity);
 		
 		DealDamage(iOwner, iToucher, 30.0);
 		
@@ -3097,7 +3097,7 @@ public Action Timer_RemoveParticle(Handle hTimer, int iParticle)
 		if (StrEqual(sClassname, "info_particle_system", false))
 		{
 			AcceptEntityInput(iParticle, "stop");
-			AcceptEntityInput(iParticle, "Kill");
+			RemoveEntity(iParticle);
 			iParticle = -1;
 		}
 	}

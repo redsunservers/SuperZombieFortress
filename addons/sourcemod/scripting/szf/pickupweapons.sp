@@ -66,7 +66,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 				else
 				{
 					//If we already went through every spawn weapons, no point having rest of it
-					AcceptEntityInput(iEntity, "Kill");
+					RemoveEntity(iEntity);
 					continue;
 				}
 			}
@@ -186,7 +186,7 @@ bool AttemptGrabItem(int iClient)
 			EmitSoundToClient(iClient, wep.sSound);
 		
 		AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
-		AcceptEntityInput(iTarget, "Kill");
+		RemoveEntity(iTarget);
 		
 		return true;
 	}

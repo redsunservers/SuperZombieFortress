@@ -884,7 +884,7 @@ public Action Timer_KillEntity(Handle hTimer, int iRef)
 {
 	int iEntity = EntRefToEntIndex(iRef);
 	if (IsValidEntity(iEntity))
-		AcceptEntityInput(iEntity, "Kill");
+		RemoveEntity(iEntity);
 }
 
 //Yoinked from https://github.com/DFS-Servers/Super-Zombie-Fortress/blob/master/addons/sourcemod/scripting/include/szf_util_base.inc
