@@ -308,6 +308,15 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_bSpawnAsSpecialInfected[iKillers[1]] = true;
 	}
 	
+	if (iVictim != iKillers[0] && event.GetInt("weapon_def_index") == INDEX_FISTS && iKillers[0] == event.GetInt("inflictor_entindex"))
+	{
+		//Some custom special infected use fists, but kill icon reports it incorrectly
+		//TODO fix buildings kill aswell, those dont have 'weapon_def_index'
+		event.SetString("weapon_logclassname", "fists");
+		event.SetString("weapon", "fists");
+		event.SetInt("weaponid", TF_WEAPON_FISTS);
+	}
+	
 	if (g_nInfected[iVictim] == Infected_Tank)
 	{
 		g_iDamageZombie[iVictim] = 0;
