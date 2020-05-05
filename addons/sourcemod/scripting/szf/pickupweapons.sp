@@ -339,9 +339,9 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	//Check if the player has specific attributes for their class for this weapon
 	char sAttribs[256];
 	sAttribs = wep.sAttribs;
-
-	if(wep.aClassSpecific[iClass])
-	wep.aClassSpecific[iClass].GetString(0, sAttribs, sizeof(sAttribs));
+	
+	if (wep.aClassSpecific[iClass])
+	 wep.aClassSpecific[iClass].GetString(0, sAttribs, sizeof(sAttribs));
 	
 	//Generate and equip weapon
 	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, _, sAttribs, wep.sText);
