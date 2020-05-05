@@ -168,23 +168,14 @@ ArrayList Config_LoadWeaponData()
 					{
 						kv.GetSectionName(sClassName, sizeof(sClassName));
 						
-						WeaponClassSpecific wcs;
-						
 						TFClassType nClass = TF2_GetClass(sClassName);
-						switch (nClass)
-						{
-							case TFClass_Scout: kv.GetString("attrib", wcs.sScoutAttribs, sizeof(wcs.sScoutAttribs));
-							case TFClass_Soldier:kv.GetString("attrib", wcs.sSoldierAttribs, sizeof(wcs.sSoldierAttribs));
-							case TFClass_Pyro: kv.GetString("attrib", wcs.sPyroAttribs, sizeof(wcs.sPyroAttribs));
-							case TFClass_DemoMan: kv.GetString("attrib", wcs.sDemomanAttribs, sizeof(wcs.sDemomanAttribs));
-							case TFClass_Heavy: kv.GetString("attrib", wcs.sHeavyAttribs, sizeof(wcs.sHeavyAttribs));
-							case TFClass_Engineer: kv.GetString("attrib", wcs.sEngineerAttribs, sizeof(wcs.sEngineerAttribs));
-							case TFClass_Medic: kv.GetString("attrib", wcs.sMedicAttribs, sizeof(wcs.sMedicAttribs));
-							case TFClass_Sniper: kv.GetString("attrib", wcs.sSniperAttribs, sizeof(wcs.sSniperAttribs));
-							case TFClass_Spy: kv.GetString("attrib", wcs.sSpyAttribs, sizeof(wcs.sSpyAttribs));
-						}
 						
-						wep.weaponClassSpecific = wcs;
+						char sClassAttribs[256];
+						kv.GetString("attrib", sClassAttribs, sizeof(sClassAttribs));
+						
+						wep.aClassSpecific[nClass] = new ArrayList(256);
+						wep.aClassSpecific[nClass].PushString(sClassAttribs);
+						
 					}
 					while(kv.GotoNextKey(false));
 					kv.GoBack();

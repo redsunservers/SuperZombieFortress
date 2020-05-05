@@ -4,19 +4,6 @@ static ArrayList g_Weapons;
 static ArrayList g_WepIndexesByRarity[view_as<int>(WeaponRarity)]; //Array indexes of g_Weapons array
 static StringMap g_WeaponsReskin;
 
-enum struct WeaponClassSpecific
-{
-	char sScoutAttribs[256];
-	char sSoldierAttribs[256];
-	char sPyroAttribs[256];
-	char sDemomanAttribs[256];
-	char sHeavyAttribs[256];
-	char sEngineerAttribs[256];
-	char sMedicAttribs[256];
-	char sSniperAttribs[256];
-	char sSpyAttribs[256];
-}
-
 enum struct Weapon
 {
 	int iIndex;
@@ -26,7 +13,7 @@ enum struct Weapon
 	char sSound[PLATFORM_MAX_PATH];
 	char sText[256];
 	char sAttribs[256];
-	WeaponClassSpecific weaponClassSpecific;
+	ArrayList aClassSpecific[view_as<int>(TFClassType)];
 	int iColor[3];
 	float flHeightOffset;
 	float vecAnglesOffset[3];
