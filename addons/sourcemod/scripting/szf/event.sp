@@ -455,7 +455,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		//Transfer player to zombie team.
 		CreateTimer(6.0, Timer_Zombify, iVictim, TIMER_FLAG_NO_MAPCHANGE);
 		//Check if he's the last
-		CreateTimer(0.1, CheckLastPlayer);
+		CheckLastSurvivor(iVictim);
 		
 		PlaySound(iVictim, SoundEvent_Dead, 3.0);
 	}

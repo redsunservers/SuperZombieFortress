@@ -417,6 +417,7 @@ public void OnClientDisconnect(int iClient)
 	
 	EndSound(iClient);
 	DropCarryingItem(iClient);
+	CheckLastSurvivor(iClient);
 	
 	if (iClient == g_iZombieTank)
 		g_iZombieTank = 0;
@@ -1500,31 +1501,34 @@ public Action Timer_RespawnPlayer(Handle hTimer, int iClient)
 		TF2_RespawnPlayer2(iClient);
 }
 
-public Action CheckLastPlayer(Handle hTimer)
+void CheckLastSurvivor(int iIgnoredClient = 0)
 {
-	int iCount = GetSurvivorCount();
-	if (iCount == 1 && !g_bLastSurvivor)
+	if (g_bLastSurvivor)
+		return;
+	
+	int iLastSurvivor;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (iClient != iIgnoredClient && IsValidLivingSurvivor(iClient))
 		{
-			if (IsValidLivingSurvivor(iClient))
-			{
-				SetEntityHealth(iClient, 400);
-				g_bLastSurvivor = true;
-				SetMorale(iClient, 100);
-				
-				char sName[255];
-				GetClientName2(iClient, sName, sizeof(sName));
-				CPrintToChatAllEx(iClient, "%s{green} is the last survivor!", sName);
-				
-				PlaySoundAll(SoundMusic_LastStand);
-				
-				Forward_OnLastSurvivor(iClient);
-			}
+			if (iLastSurvivor)	//More than 1 survivors
+				return;
+			
+			iLastSurvivor = iClient;
 		}
 	}
 	
-	return Plugin_Handled;
+	SetEntityHealth(iLastSurvivor, 400);
+	g_bLastSurvivor = true;
+	SetMorale(iLastSurvivor, 100);
+	
+	char sName[255];
+	GetClientName2(iLastSurvivor, sName, sizeof(sName));
+	CPrintToChatAllEx(iLastSurvivor, "%s{green} is the last survivor!", sName);
+	
+	PlaySoundAll(SoundMusic_LastStand);
+	
+	Forward_OnLastSurvivor(iLastSurvivor);
 }
 
 public void OnMapStart()
