@@ -24,17 +24,21 @@ enum struct Weapon
 
 void Weapons_Refresh()
 {
-	int iLength = g_Weapons.Length;
-	for (int i = 0; i < iLength; i++)
+	if (g_Weapons)
 	{
-		Weapon wep;
-		g_Weapons.GetArray(i, wep);
+		int iLength = g_Weapons.Length;
+		for (int i = 0; i < iLength; i++)
+		{
+			Weapon wep;
+			g_Weapons.GetArray(i, wep);
+			
+			for (TFClassType iClass; iClass < TFClassType; iClass++)
+				delete wep.aClassSpecific[iClass];
+		}
 		
-		for (TFClassType iClass; iClass < TFClassType; iClass++)
-			delete wep.aClassSpecific[iClass];
+		delete g_Weapons;
 	}
 	
-	delete g_Weapons;
 	delete g_WeaponsReskin;
 	
 	for (int i = 0; i < sizeof(g_WepIndexesByRarity); i++)
@@ -43,7 +47,7 @@ void Weapons_Refresh()
 	g_Weapons = Config_LoadWeaponData();
 	g_WeaponsReskin = Config_LoadWeaponReskinData();
 	
-	iLength = g_Weapons.Length;
+	int iLength = g_Weapons.Length;
 	for (int i = 0; i < view_as<int>(WeaponRarity); i++)
 	{
 		g_WepIndexesByRarity[i] = new ArrayList();
