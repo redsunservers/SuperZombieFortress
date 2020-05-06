@@ -262,6 +262,9 @@ public void OnPluginStart()
 	
 	AddNormalSoundHook(SoundHook);
 	
+	HookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
+	HookEntityOutput("math_counter", "OutValue", OnCounterValue);
+	
 	g_cFirstTimeZombie = new Cookie("szf_firsttimezombie", "is this the flowey map?", CookieAccess_Protected);
 	g_cFirstTimeSurvivor = new Cookie("szf_firsttimesurvivor2", "is this the flowey map?", CookieAccess_Protected);
 	g_cNoMusicForPlayer = new Cookie("szf_musicpreference", "is this the flowey map?", CookieAccess_Protected);
@@ -368,17 +371,8 @@ public void OnConfigsExecuted()
 
 public void OnMapEnd()
 {
-	//Close timer handles
-	delete g_hTimerMain;
-	delete g_hTimerMoraleDecay;
-	delete g_hTimerMainSlow;
-	delete g_hTimerHoarde;
-	
 	g_nRoundState = SZFRoundState_End;
 	SZFDisable();
-	
-	UnhookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
-	UnhookEntityOutput("math_counter", "OutValue", OnCounterValue);
 }
 
 void GetMapSettings()
@@ -1569,9 +1563,6 @@ public void OnMapStart()
 	
 	//Smoker beam
 	g_iSprite = PrecacheModel("materials/sprites/laser.vmt");
-	
-	HookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
-	HookEntityOutput("math_counter", "OutValue", OnCounterValue);
 	
 	DHook_HookGamerules();
 }
