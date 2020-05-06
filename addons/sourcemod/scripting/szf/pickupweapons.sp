@@ -44,7 +44,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	
 	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
 	
-	while ((iEntity = FindEntityByClassname2(iEntity, "prop_dynamic")) != -1)
+	while ((iEntity = FindEntityByClassname(iEntity, "prop_dynamic")) != -1)
 	{
 		WeaponType nWeaponType = GetWeaponType(iEntity);
 		

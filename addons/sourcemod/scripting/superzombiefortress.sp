@@ -385,7 +385,7 @@ public void OnMapEnd()
 void GetMapSettings()
 {
 	int iEntity = -1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "info_target")) != -1)
+	while ((iEntity = FindEntityByClassname(iEntity, "info_target")) != -1)
 	{
 		char sTargetName[64];
 		GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
@@ -2044,7 +2044,7 @@ void DetermineControlPoints()
 	
 	int iMaster = -1;
 	int iEntity = -1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "team_control_point_master")) != -1)
+	while ((iEntity = FindEntityByClassname(iEntity, "team_control_point_master")) != -1)
 		if (IsClassname(iEntity, "team_control_point_master"))
 			iMaster = iEntity;
 	
@@ -2052,7 +2052,7 @@ void DetermineControlPoints()
 		return;
 	
 	iEntity = -1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "team_control_point")) != -1)
+	while ((iEntity = FindEntityByClassname(iEntity, "team_control_point")) != -1)
 	{
 		if (IsClassname(iEntity, "team_control_point") && g_iControlPoints < sizeof(g_iControlPointsInfo))
 		{
@@ -2299,35 +2299,6 @@ public Action SoundHook(int iClients[64], int &iLength, char sSound[PLATFORM_MAX
 	return Plugin_Continue;
 }
 
-stock bool IsClassname(int iEntity, char[] sClassname)
-{
-	if (iEntity <= 0)
-		return false;
-	
-	if (!IsValidEdict(iEntity))
-		return false;
-	
-	char sClassname2[32];
-	GetEdictClassname(iEntity, sClassname2, sizeof(sClassname2));
-	if (StrEqual(sClassname, sClassname2, false))
-		return true;
-	
-	return false;
-}
-
-stock int FindChargerTarge(int iClient)
-{
-	int iEntity = MaxClients+1;
-	while((iEntity = FindEntityByClassname2(iEntity, "tf_wearable_demoshield")) != -1)
-	{
-		int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
-		if (iIndex == 406 && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient && !GetEntProp(iEntity, Prop_Send, "m_bDisguiseWearable"))
-			return iEntity;
-	}
-	
-	return -1;
-}
-
 void SetNextAttack(int iClient, float flDuration = 0.0, bool bMeleeOnly = true)
 {
 	if (!IsValidClient(iClient))
@@ -2348,7 +2319,7 @@ void SetNextAttack(int iClient, float flDuration = 0.0, bool bMeleeOnly = true)
 	}
 }
 
-stock void InitiateSurvivorTutorial(int iClient)
+void InitiateSurvivorTutorial(int iClient)
 {
 	DataPack data;
 	CreateDataTimer(1.0, Timer_DisplayTutorialMessage, data);
@@ -2394,7 +2365,7 @@ stock void InitiateSurvivorTutorial(int iClient)
 	SetCookie(iClient, 1, g_cFirstTimeSurvivor);
 }
 
-stock void InitiateZombieTutorial(int iClient)
+void InitiateZombieTutorial(int iClient)
 {
 	DataPack data;
 	CreateDataTimer(1.0, Timer_DisplayTutorialMessage, data);
@@ -2771,7 +2742,7 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 				//Block cosmetic if special infected have custom model
 				iAction = Plugin_Handled;
 			}
-			else if (TF2Econ_GetItemEquipRegionMask(g_iVoodooIndex[TF2_GetPlayerClass(iClient)]) & TF2Econ_GetItemEquipRegionMask(iIndex))
+			else if (TF2Econ_GetItemEquipRegionMask(GetClassVoodooItemDefIndex(TF2_GetPlayerClass(iClient))) & TF2Econ_GetItemEquipRegionMask(iIndex))
 			{
 				//Cosmetic is conflicting voodoo model
 				iAction = Plugin_Handled;

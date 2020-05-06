@@ -203,7 +203,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				flDamage = flDamage * g_flZombieDamageScale * 0.7; //Default: 0.7
 			
 			//Damage scaling Survivors
-			if (IsValidSurvivor(iAttacker) && !TF2_IsSentry(iInflicter))
+			if (IsValidSurvivor(iAttacker) && !IsClassname(iInflicter, "obj_sentrygun"))
 			{
 				float flMoraleBonus = fMin(GetMorale(iAttacker) * 0.005, 0.25); //50 morale: 0.25
 				flDamage = flDamage / g_flZombieDamageScale * (1.1 + flMoraleBonus); //Default: 1.1
@@ -299,7 +299,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			}
 			
 			//Disable physics force
-			if (TF2_IsSentry(iInflicter))
+			if (IsClassname(iInflicter, "obj_sentrygun"))
 				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
 			
 			if (IsValidSurvivor(iAttacker))
@@ -501,7 +501,7 @@ public Action CaptureArea_StartTouch(int iEntity, int iClient)
 		GetEntPropString(iEntity, Prop_Data, "m_iszCapPointName", sTriggerName, sizeof(sTriggerName));	//Get trigger cap name
 		
 		int i = -1;
-		while ((i = FindEntityByClassname2(i, "team_control_point")) != -1)	//find team_control_point
+		while ((i = FindEntityByClassname(i, "team_control_point")) != -1)	//find team_control_point
 		{
 			char sPointName[128];
 			GetEntPropString(i, Prop_Data, "m_iName", sPointName, sizeof(sPointName));
