@@ -18,6 +18,7 @@ enum struct ZombieClasses
 {
 	TFClassType nClass;
 	bool bEnabled;
+	int iHealth;
 	float flSpeed;
 	int iRegen;
 	int iDegen;
@@ -33,6 +34,7 @@ enum struct InfectedClasses
 	Infected nInfected;
 	TFClassType nClass;
 	bool bEnabled;
+	int iHealth;
 	float flSpeed;
 	int iRegen;
 	int iDegen;
@@ -232,6 +234,11 @@ stock int GetZombieClassCount()
 	return g_iZombieClassCount;
 }
 
+stock int GetZombieHealth(TFClassType nClass)
+{
+	return g_ZombieClasses[nClass].iHealth;
+}
+
 stock float GetZombieSpeed(TFClassType nClass)
 {
 	return g_ZombieClasses[nClass].flSpeed;
@@ -302,6 +309,11 @@ stock int GetInfectedCount()
 stock TFClassType GetInfectedClass(Infected nInfected)
 {
 	return g_InfectedClasses[nInfected].nClass;
+}
+
+stock int GetInfectedHealth(Infected nInfected)
+{
+	return g_InfectedClasses[nInfected].iHealth;
 }
 
 stock float GetInfectedSpeed(Infected nInfected)

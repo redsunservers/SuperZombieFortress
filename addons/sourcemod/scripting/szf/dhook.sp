@@ -1,17 +1,11 @@
-static Handle g_hDHookGetMaxHealth;
 static Handle g_hDHookSetWinningTeam;
 static Handle g_hDHookRoundRespawn;
 static Handle g_hDHookGiveNamedItem;
 
 static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
-void DHook_Init(GameData hSDKHooks, GameData hSZF)
+void DHook_Init(GameData hSZF)
 {
-	int iOffset = hSDKHooks.GetOffset("GetMaxHealth");
-	g_hDHookGetMaxHealth = DHookCreate(iOffset, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity);
-	if (g_hDHookGetMaxHealth == null)
-		LogMessage("Failed to create hook: CTFPlayer::GetMaxHealth");
-	
 	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
 	
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
@@ -71,11 +65,6 @@ bool DHook_IsGiveNamedItemActive()
 			return true;
 	
 	return false;
-}
-
-void DHook_HookClient(int iClient)
-{
-	DHookEntity(g_hDHookGetMaxHealth, false, iClient, _, DHook_GetMaxHealthPre);
 }
 
 void DHook_HookGamerules()
@@ -148,17 +137,6 @@ public void DHook_OnGiveNamedItemRemoved(int iHookId)
 			return;
 		}
 	}
-}
-
-public MRESReturn DHook_GetMaxHealthPre(int iClient, Handle hReturn)
-{
-	if (g_iMaxHealth[iClient] > 0)
-	{
-		DHookSetReturn(hReturn, g_iMaxHealth[iClient]);
-		return MRES_Supercede;
-	}
-	
-	return MRES_Ignored;
 }
 
 public MRESReturn DHook_SetWinningTeamPre(Handle hParams)

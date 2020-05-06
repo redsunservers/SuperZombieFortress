@@ -341,6 +341,7 @@ ArrayList Config_LoadZombieClasses()
 				}
 				
 				zom.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
+				zom.iHealth = kv.GetNum("health", 0);
 				zom.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(zom.nClass));
 				zom.iRegen = kv.GetNum("regen", 2);
 				zom.iDegen = kv.GetNum("degen", 3);
@@ -438,6 +439,7 @@ ArrayList Config_LoadInfectedClasses()
 				}
 				
 				inf.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
+				inf.iHealth = kv.GetNum("health", 0);
 				inf.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(inf.nClass));
 				inf.iRegen = kv.GetNum("regen", 2);
 				inf.iDegen = kv.GetNum("degen", 3);

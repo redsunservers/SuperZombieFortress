@@ -280,7 +280,7 @@ public void OnPluginStart()
 	if (!hSZF)
 		SetFailState("Could not find szf gamedata!");
 	
-	DHook_Init(hSDKHooks, hSZF);
+	DHook_Init(hSZF);
 	SDKCall_Init(hSDKHooks, hTF2, hSZF);
 	
 	delete hSDKHooks;
@@ -405,11 +405,11 @@ public void OnClientPutInServer(int iClient)
 {
 	CreateTimer(10.0, Timer_InitialHelp, iClient, TIMER_FLAG_NO_MAPCHANGE);
 	
-	DHook_HookClient(iClient);
 	DHook_HookGiveNamedItem(iClient);
 	
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
+	SDKHook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
 	
 	g_iDamageZombie[iClient] = 0;
 }
@@ -768,6 +768,27 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	
 	if (bChanged)
 		return Plugin_Changed;
+	
+	return Plugin_Continue;
+}
+
+public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
+{
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	if (g_iMaxHealth[iClient] > 0)
+	{
+		iMaxHealth = g_iMaxHealth[iClient];
+		return Plugin_Changed;
+	}
+	
+	int iHealth = g_nInfected[iClient] == Infected_None ? GetZombieHealth(TF2_GetPlayerClass(iClient)) : GetInfectedHealth(g_nInfected[iClient]);
+	if (iHealth > 0)
+	{
+		iMaxHealth = iHealth;
+		return Plugin_Changed;
+	}
 	
 	return Plugin_Continue;
 }
