@@ -824,27 +824,8 @@ public void OnGameFrame()
 	int iCount = GetSurvivorCount();
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && IsZombie(iClient))
-		{
-			if (g_nInfected[iClient] == Infected_Stalker)
-			{
-				TF2_SetCloakMeter(iClient, 100.0);
-			}
-			else if (g_nInfected[iClient] == Infected_Smoker)
-			{
-				//For visual purposes, really
-				if (TF2_GetCloakMeter(iClient) > 1.0)
-					TF2_SetCloakMeter(iClient, 1.0);
-				
-				if (TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
-					TF2_RemoveCondition(iClient, TFCond_Cloaked);
-			}
-			else if (TF2_GetCloakMeter(iClient) > 60.0)
-			{
-				//Limit spy cloak to 60% of max.
-				TF2_SetCloakMeter(iClient, 60.0);
-			}
-		}
+		if (IsValidLivingZombie(iClient) && g_nInfected[iClient] == Infected_Stalker)
+			TF2_SetCloakMeter(iClient, 100.0);
 		
 		if (g_nRoundState == SZFRoundState_Active)
 		{
