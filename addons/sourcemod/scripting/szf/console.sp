@@ -265,53 +265,7 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 			}
 			else if (g_iRageTimer[iClient] == 0)
 			{
-				switch (g_nInfected[iClient])
-				{
-					case Infected_None:
-					{
-						g_iRageTimer[iClient] = 31;
-						DoGenericRage(iClient);
-						EmitSoundToAll(g_sVoZombieCommonRage[GetRandomInt(0, sizeof(g_sVoZombieCommonRage)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-					}
-					case Infected_Boomer:
-					{
-						if (g_nRoundState == SZFRoundState_Active)
-						{
-							DoBoomerExplosion(iClient, 600.0);
-							EmitSoundToAll(g_sVoZombieBoomerExplode[GetRandomInt(0, sizeof(g_sVoZombieBoomerExplode)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-						}
-					}
-					case Infected_Charger:
-					{
-						g_iRageTimer[iClient] = 16;
-						TF2_AddCondition(iClient, TFCond_Charging, 1.65);
-						
-						//Can sometimes charge for 0.1 sec, add push force
-						float vecVel[3], vecAngles[3];
-						GetClientEyeAngles(iClient, vecAngles);
-						vecVel[0] = 450.0 * Cosine(DegToRad(vecAngles[1]));
-						vecVel[1] = 450.0 * Sine(DegToRad(vecAngles[1]));
-						TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVel);
-						SDKCall_PlaySpecificSequence(iClient, "Charger_Charge");
-						
-						EmitSoundToAll(g_sVoZombieChargerCharge[GetRandomInt(0, sizeof(g_sVoZombieChargerCharge)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-					}
-					case Infected_Kingpin:
-					{
-						g_iRageTimer[iClient] = 21;
-						DoKingpinRage(iClient, 600.0);
-						
-						char sPath[64];
-						Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(15, 16));
-						EmitSoundToAll(sPath, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-					}
-					case Infected_Hunter:
-					{
-						g_iRageTimer[iClient] = 3;
-						DoHunterJump(iClient);
-						EmitSoundToAll(g_sVoZombieHunterLeap[GetRandomInt(0, sizeof(g_sVoZombieHunterLeap) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-					}
-				}
+				Infected_DoRageAbility(iClient);
 			}
 			else
 			{

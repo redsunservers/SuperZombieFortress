@@ -381,18 +381,16 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	g_bReplaceRageWithSpecialInfectedSpawn[iVictim] = false;
 	
 	Infected g_nInfectedIndex = g_nInfected[iVictim];
-	g_nInfected[iVictim] = Infected_None;
 	
 	//Handle zombie death logic, all round states.
 	if (IsValidZombie(iVictim))
 	{
+		Infected_PlayerDeath(iVictim);
+		g_nInfected[iVictim] = Infected_None;
+		
 		//10%
 		if (IsValidSurvivor(iKillers[0]) && !GetRandomInt(0, 9) && g_nRoundState == SZFRoundState_Active)
 			g_bSpawnAsSpecialInfected[iVictim] = true;
-		
-		//Boomer
-		if (g_nInfectedIndex == Infected_Boomer)
-			DoBoomerExplosion(iVictim, 400.0);
 		
 		//Set special infected state
 		if (g_nNextInfected[iVictim] != Infected_None)
