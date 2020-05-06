@@ -438,9 +438,10 @@ ArrayList Config_LoadInfectedClasses()
 					inf.nClass = TFClass_Heavy;
 				}
 				
-				inf.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
+				inf.bEnabled = !!kv.GetNum("enable", true);
 				inf.iHealth = kv.GetNum("health", 0);
 				inf.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(inf.nClass));
+				inf.bGlow = !!kv.GetNum("glow", false);
 				inf.iRegen = kv.GetNum("regen", 2);
 				inf.iDegen = kv.GetNum("degen", 3);
 				kv.GetColor4("color", inf.iColor);

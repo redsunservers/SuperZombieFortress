@@ -1123,37 +1123,27 @@ void PrintInfoChat(int iClient)
 void SetGlow()
 {
 	int iCount = GetSurvivorCount();
-	int iGlow = 0;
-	int iGlow2;
-	
-	if (iCount >= 1 && iCount <= 3)
-		iGlow = 1;
+	bool bGlow = false;
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (IsClientInGame(iClient) && IsPlayerAlive(iClient))
+		if (IsValidLivingClient(iClient))
 		{
-			iGlow2 = iGlow;
-			
-			//Non-Survivors cannot glow by default
-			if (!IsSurvivor(iClient))
-				iGlow2 = 0;
-			
-			//Kingpin or Tank
-			if (IsZombie(iClient) && (g_nInfected[iClient] == Infected_Tank || g_nInfected[iClient] == Infected_Kingpin))
-				iGlow2 = 1;
-			
-			//Survivor with lower than 30 health or backstabbed
 			if (IsSurvivor(iClient))
 			{
-				if (GetClientHealth(iClient) <= 30)
-					iGlow2 = 1;
-				
-				if (g_bBackstabbed[iClient])
-					iGlow2 = 1;
+				if (1 <= iCount <= 3)
+					bGlow = true;
+				else if (GetClientHealth(iClient) <= 30)
+					bGlow = true;
+				else if (g_bBackstabbed[iClient])
+					bGlow = true;
+			}
+			else if (IsZombie(iClient) && (GetInfectedGlow(g_nInfected[iClient])))
+			{
+				bGlow = true;
 			}
 			
-			SetEntProp(iClient, Prop_Send, "m_bGlowEnabled", iGlow2);
+			SetEntProp(iClient, Prop_Send, "m_bGlowEnabled", bGlow);
 		}
 	}
 }

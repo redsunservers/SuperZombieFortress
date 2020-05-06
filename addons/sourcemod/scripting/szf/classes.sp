@@ -36,6 +36,7 @@ enum struct InfectedClasses
 	bool bEnabled;
 	int iHealth;
 	float flSpeed;
+	bool bGlow;
 	int iRegen;
 	int iDegen;
 	int iColor[4];
@@ -319,6 +320,11 @@ stock int GetInfectedHealth(Infected nInfected)
 stock float GetInfectedSpeed(Infected nInfected)
 {
 	return g_InfectedClasses[nInfected].flSpeed;
+}
+
+stock bool GetInfectedGlow(Infected nInfected)
+{
+	return g_InfectedClasses[nInfected].bGlow;
 }
 
 stock int GetInfectedRegen(Infected nInfected)
