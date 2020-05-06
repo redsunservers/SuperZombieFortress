@@ -312,7 +312,7 @@ public void OnLibraryAdded(const char[] sName)
 		
 		//We cant allow TF2Items load while GiveNamedItem already hooked due to crash
 		if (DHook_IsGiveNamedItemActive())
-			SetFailState("Do not load TF2Items midgame while Randomizer is already loaded!");
+			SetFailState("Do not load TF2Items midgame while Super Zombie Fortress is already loaded!");
 	}
 }
 
