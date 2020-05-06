@@ -35,11 +35,9 @@ char g_sClassFiles[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "so
 int g_iVoodooIndex[view_as<int>(TFClassType)] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
 int g_iZombieSoulIndex[view_as<int>(TFClassType)];
 
-////////////////////////////////////////////////////////////
-//
-// Math Utils
-//
-////////////////////////////////////////////////////////////
+////////////////
+// Math
+////////////////
 
 stock int max(int a, int b)
 {
@@ -61,11 +59,27 @@ stock float fMin(float a, float b)
 	return (a < b) ? a : b;
 }
 
-////////////////////////////////////////////////////////////
-//
-// SZF Team Utils
-//
-////////////////////////////////////////////////////////////
+stock void VectorTowards(float vecOrigin[3], float vecTarget[3], float vecAngle[3])
+{
+	float vecResults[3];
+	MakeVectorFromPoints(vecOrigin, vecTarget, vecResults);
+	GetVectorAngles(vecResults, vecAngle);
+}
+
+stock void AnglesToVelocity(float vecAngle[3], float vecVelocity[3], float flSpeed = 1.0)
+{
+	vecVelocity[0] = Cosine(DegToRad(vecAngle[1]));
+	vecVelocity[1] = Sine(DegToRad(vecAngle[1]));
+	vecVelocity[2] = Sine(DegToRad(vecAngle[0])) * -1.0;
+	
+	NormalizeVector(vecVelocity, vecVelocity);
+	
+	ScaleVector(vecVelocity, flSpeed);
+}
+
+////////////////
+// SZF Team
+////////////////
 
 stock int IsZombie(int iClient)
 {
@@ -77,11 +91,48 @@ stock int IsSurvivor(int iClient)
 	return TF2_GetClientTeam(iClient) == TFTeam_Survivor;
 }
 
-////////////////////////////////////////////////////////////
-//
-// Client Validity Utils
-//
-////////////////////////////////////////////////////////////
+stock int GetZombieCount()
+{
+	int iCount = 0;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidZombie(iClient))
+			iCount++;
+	
+	return iCount;
+}
+
+stock int GetSurvivorCount()
+{
+	int iCount = 0;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidLivingSurvivor(iClient))
+			iCount++;
+	
+	return iCount;
+}
+
+stock int GetActivePlayerCount()
+{
+	int i = 0;
+	for (int j = 1; j <= MaxClients; j++)
+		if (IsValidLivingClient(j)) i++;
+	
+	return i;
+}
+
+stock int GetReplaceRageWithSpecialInfectedSpawnCount()
+{
+	int iCount = 0;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidZombie(iClient) && g_bReplaceRageWithSpecialInfectedSpawn[iClient])
+			iCount++;
+	
+	return iCount;
+}
+
+////////////////
+// Client Validity
+////////////////
 
 stock bool IsValidClient(int iClient)
 {
@@ -113,11 +164,9 @@ stock bool IsValidLivingZombie(int iClient)
 	return IsValidZombie(iClient) && IsPlayerAlive(iClient);
 }
 
-////////////////////////////////////////////////////////////
-//
-// SZF Class Utils
-//
-////////////////////////////////////////////////////////////
+////////////////
+// SZF Class
+////////////////
 
 stock void TF2_GetClassName(char[] sBuffer, int iLength, int iClass)
 {
@@ -129,28 +178,48 @@ stock void GetInfectedName(char[] sBuffer, int iLength, int iInfected)
 	strcopy(sBuffer, iLength, g_sInfectedNames[iInfected]);
 }
 
-stock float TF2_GetClassSpeed(TFClassType nClass)
+////////////////
+// Morale
+////////////////
+
+stock void AddMorale(int iClient, int iAmount)
 {
-	switch (nClass)
-	{
-		case TFClass_Scout: return 400.0;
-		case TFClass_Soldier: return 240.0;
-		case TFClass_Pyro: return 300.0;
-		case TFClass_DemoMan: return 280.0;
-		case TFClass_Heavy: return 230.0;
-		case TFClass_Engineer: return 300.0;
-		case TFClass_Medic: return 320.0;
-		case TFClass_Sniper: return 300.0;
-		case TFClass_Spy: return 320.0;
-		default: return 0.0;
-	}
+	g_iMorale[iClient] = g_iMorale[iClient] + iAmount;
+	
+	if (g_iMorale[iClient] > 100)
+		g_iMorale[iClient] = 100;
+	
+	if (g_iMorale[iClient] < 0)
+		g_iMorale[iClient] = 0;
 }
 
-////////////////////////////////////////////////////////////
-//
-// Map Utils
-//
-////////////////////////////////////////////////////////////
+stock void AddMoraleAll(int iAmount)
+{
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidLivingSurvivor(iClient))
+			AddMorale(iClient, iAmount);
+}
+
+stock void SetMorale(int iClient, int iAmount)
+{
+	g_iMorale[iClient] = iAmount;
+}
+
+stock void SetMoraleAll(int iAmount)
+{
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidLivingSurvivor(iClient))
+			SetMorale(iClient, iAmount);
+}
+
+stock int GetMorale(int iClient)
+{
+	return g_iMorale[iClient];
+}
+
+////////////////
+// Map
+////////////////
 
 stock bool IsMapSZF()
 {
@@ -164,11 +233,9 @@ stock bool IsMapSZF()
 	return false;
 }
 
-////////////////////////////////////////////////////////////
-//
-// Round Utils
-//
-////////////////////////////////////////////////////////////
+////////////////
+// Round
+////////////////
 
 stock void TF2_EndRound(TFTeam nTeam)
 {
@@ -191,11 +258,9 @@ stock void TF2_EndRound(TFTeam nTeam)
 	}
 }
 
-////////////////////////////////////////////////////////////
-//
-// Weapon State Utils
-//
-////////////////////////////////////////////////////////////
+////////////////
+// Weapon State
+////////////////
 
 stock int TF2_GetActiveWeapon(int iClient)
 {
@@ -216,17 +281,6 @@ stock int TF2_GetSlotIndex(int iClient, int iSlot)
 	int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
 	if (iWeapon > MaxClients)
 		return GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
-	
-	return -1;
-}
-
-stock int TF2_GetActiveSlot(int iClient)
-{
-	int iWeapon = TF2_GetActiveWeapon(iClient);
-	
-	for (int iSlot = 0; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
-		if (GetPlayerWeaponSlot(iClient, iSlot) == iWeapon)
-			return iSlot;
 	
 	return -1;
 }
@@ -259,19 +313,43 @@ stock bool TF2_IsSlotClassname(int iClient, int iSlot, char[] sClassname)
 	return false;
 }
 
-stock int TF2_GetSlotInItem(int iIndex, TFClassType nClass)
+stock bool IsRazorbackActive(int iClient)
 {
-	int iSlot = TF2Econ_GetItemSlot(iIndex, nClass);
+	int iEntity = -1;
+	while ((iEntity = FindEntityByClassname2(iEntity, "tf_wearable_razorback")) != -1)
+		if (IsClassname(iEntity, "tf_wearable_razorback") && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient && GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex") == 57)
+			return GetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", TFWeaponSlot_Secondary) >= 100.0;
+	
+	return false;
+}
+
+stock int TF2_GetItemSlot(int iIndex, TFClassType iClass)
+{
+	int iSlot = TF2Econ_GetItemSlot(iIndex, iClass);
 	if (iSlot >= 0)
 	{
-		//Spy slots is a bit messy
-		if (nClass == TFClass_Spy)
+		// Econ reports wrong slots for Engineer and Spy
+		switch (iClass)
 		{
-			switch (iSlot)
+			case TFClass_Spy:
 			{
-				case 1: iSlot = WeaponSlot_Primary;     //Revolver
-				case 4: iSlot = WeaponSlot_Secondary;   //Sapper
-				case 6: iSlot = WeaponSlot_InvisWatch;  //Invis Watch
+				switch (iSlot)
+				{
+					case 1: iSlot = WeaponSlot_Primary; // Revolver
+					case 4: iSlot = WeaponSlot_Secondary; // Sapper
+					case 5: iSlot = WeaponSlot_PDADisguise; // Disguise Kit
+					case 6: iSlot = WeaponSlot_InvisWatch; // Invis Watch
+				}
+			}
+			
+			case TFClass_Engineer:
+			{
+				switch (iSlot)
+				{
+					case 4: iSlot = WeaponSlot_BuilderEngie; // Toolbox
+					case 5: iSlot = WeaponSlot_PDABuild; // Construction PDA
+					case 6: iSlot = WeaponSlot_PDADestroy; // Destruction PDA
+				}
 			}
 		}
 	}
@@ -279,18 +357,54 @@ stock int TF2_GetSlotInItem(int iIndex, TFClassType nClass)
 	return iSlot;
 }
 
-////////////////////////////////////////////////////////////
-//
-// Speed Utils
-//
-////////////////////////////////////////////////////////////
+stock int TF2_GetItemInSlot(int iClient, int iSlot)
+{
+	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
+	if (iEntity > MaxClients)
+		return iEntity;
+	
+	iEntity = SDKCall_GetEquippedWearable(iClient, iSlot);
+	if (iEntity > MaxClients)
+		return iEntity;
+	
+	return -1;
+}
+
+stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
+{
+	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
+	if (iEntity > MaxClients)
+		TF2_RemoveWeaponSlot(iClient, iSlot);
+	
+	int iWearable = SDKCall_GetEquippedWearable(iClient, iSlot);
+	if (iWearable > MaxClients)
+		TF2_RemoveWearable(iClient, iWearable);
+}
+
+////////////////
+// Speed
+////////////////
 
 stock void SetClientSpeed(int iClient, float flSpeed)
 {
-	// m_flMaxSpeed appears to be reset/recalculated when:
-	// + after switching weapons and before next prethinkpost
-	// + (soldier holding equalizer) every 17-19 frames
 	SetEntPropFloat(iClient, Prop_Data, "m_flMaxspeed", flSpeed);
+}
+
+stock float TF2_GetClassSpeed(TFClassType nClass)
+{
+	switch (nClass)
+	{
+		case TFClass_Scout: return 400.0;
+		case TFClass_Soldier: return 240.0;
+		case TFClass_Pyro: return 300.0;
+		case TFClass_DemoMan: return 280.0;
+		case TFClass_Heavy: return 230.0;
+		case TFClass_Engineer: return 300.0;
+		case TFClass_Medic: return 320.0;
+		case TFClass_Sniper: return 300.0;
+		case TFClass_Spy: return 320.0;
+		default: return 0.0;
+	}
 }
 
 stock float GetClientBonusSpeed(int iClient)
@@ -371,11 +485,9 @@ stock float GetClientBonusSpeed(int iClient)
 	return 0.0;
 }
 
-////////////////////////////////////////////////////////////
-//
-// Entity Name Utils
-//
-////////////////////////////////////////////////////////////
+////////////////
+// Entity Name
+////////////////
 
 stock bool IsClassnameContains(int iEntity, const char[] sClassname)
 {
@@ -389,28 +501,43 @@ stock bool IsClassnameContains(int iEntity, const char[] sClassname)
 	return false;
 }
 
+stock int FindEntityByClassname2(int startEnt, const char[] classname)
+{
+	/* If startEnt isn't valid shifting it back to the nearest valid one */
+	while (startEnt > -1 && !IsValidEntity(startEnt))
+		startEnt--;
+	
+	return FindEntityByClassname(startEnt, classname);
+}
+
+stock int FindEntityByTargetname(const char[] sTargetName, const char[] sClassname)
+{
+	char sBuffer[32];
+	int iEntity = -1;
+	
+	while(strcmp(sClassname, sTargetName) != 0 && (iEntity = FindEntityByClassname(iEntity, classname)) != -1)
+		GetEntPropString(iEntity, Prop_Data, "m_iName", sBuffer, sizeof(sBuffer));
+	
+	return iEntity;
+}
+
 stock bool TF2_IsSentry(int ent)
 {
 	return IsClassnameContains(ent, "obj_sentrygun");
 }
 
-////////////////////////////////////////////////////////////
-//
-// Glow Utils
-//
-////////////////////////////////////////////////////////////
+////////////////
+// Glow
+////////////////
 
 stock void TF2_SetGlow(int iClient, bool bEnable)
 {
 	SetEntProp(iClient, Prop_Send, "m_bGlowEnabled", bEnable);
 }
 
-////////////////////////////////////////////////////////////
-//
-// Cloak Utils
-// + Range 0.0 to 100.0
-//
-////////////////////////////////////////////////////////////
+////////////////
+// Cloak
+////////////////
 
 stock float TF2_GetCloakMeter(int iClient)
 {
@@ -426,72 +553,9 @@ stock void TF2_SetCloakMeter(int iClient, float flCloak)
 		SetEntPropFloat(iClient, Prop_Send, "m_flCloakMeter", flCloak);
 }
 
-////////////////////////////////////////////////////////////
-//
-// Uber Utils
-// + Range 0.0 to 1.0
-//
-////////////////////////////////////////////////////////////
-
-stock void TF2_AddUber(int iClient, float flCharge)
-{
-	int iWeapon = GetPlayerWeaponSlot(iClient, WeaponSlot_Secondary);
-	if(iWeapon > MaxClients && TF2_GetPlayerClass(iClient) == TFClass_Medic)
-	{
-		flCharge += GetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel");
-		SetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel", fMin(flCharge, 1.0));
-	}
-}
-
-stock void TF2_RemoveUber(int iClient, float flCharge)
-{
-	int iWeapon = GetPlayerWeaponSlot(iClient, WeaponSlot_Secondary);
-	if(iWeapon > MaxClients && TF2_GetPlayerClass(iClient) == TFClass_Medic)
-	{
-		flCharge -= GetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel");
-		SetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel", fMax(flCharge , 0.0));
-	}
-}
-
-////////////////////////////////////////////////////////////
-//
-// Metal Utils
-//
-////////////////////////////////////////////////////////////
-
-stock void TF2_AddMetal(int iClient, int iMetal)
-{
-	if (TF2_GetPlayerClass(iClient) == TFClass_Engineer)
-	{
-		iMetal += TF2_GetMetal(iClient);
-		TF2_SetMetal(iClient, min(iMetal, 200));
-	}
-}
-
-stock void TF2_RemoveMetal(int iClient, int iMetal)
-{
-	if (TF2_GetPlayerClass(iClient) == TFClass_Engineer)
-	{
-		iMetal -= TF2_GetMetal(iClient);
-		TF2_SetMetal(iClient, max(iMetal, 0));
-	}
-}
-
-stock int TF2_GetMetal(int iClient)
-{
-	return GetEntProp(iClient, Prop_Send, "m_iAmmo", _, 3);
-}
-
-stock void TF2_SetMetal(int iClient, int iMetal)
-{
-	SetEntProp(iClient, Prop_Send, "m_iAmmo", iMetal, _, 3);
-}
-
-////////////////////////////////////////////////////////////
-//
-// Ammo Add/Sub Utils
-//
-////////////////////////////////////////////////////////////
+////////////////
+// Ammo
+////////////////
 
 stock int TF2_GetClip(int iClient, int iSlot)
 {
@@ -557,11 +621,14 @@ stock void TF2_RemoveAmmo(int iClient, int iSlot, int iAmmo)
 	TF2_SetAmmo(iClient, iSlot, max(iAmmo, 0));
 }
 
-////////////////////////////////////////////////////////////
-//
-// Spawn Utils
-//
-////////////////////////////////////////////////////////////
+stock void TF2_SetMetal(int iClient, int iMetal)
+{
+	SetEntProp(iClient, Prop_Send, "m_iAmmo", iMetal, _, 3);
+}
+
+////////////////
+// Spawn
+////////////////
 
 stock void SpawnClient(int iClient, TFTeam nTeam, bool bRespawn = true)
 {
@@ -617,11 +684,10 @@ stock void SetTeamRespawnTime(TFTeam nTeam, float flTime)
 	}
 }
 
-////////////////////////////////////////////////////////////
-//
-// Weapon Utils
-//
-////////////////////////////////////////////////////////////
+////////////////
+// Weapon
+////////////////
+
 stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sClassname = "", const char[] sAttribs = "", const char[] sText = "")
 {
 	char sClassnameCopy[256];
@@ -720,30 +786,6 @@ stock void TF2_FlagWeaponDontDrop(int iWeapon, bool bVisibleHack = true)
 	if (bVisibleHack) SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", 1);
 }
 
-stock int TF2_GetItemInSlot(int iClient, int iSlot)
-{
-	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
-	if (iEntity > MaxClients)
-		return iEntity;
-	
-	iEntity = SDKCall_GetEquippedWearable(iClient, iSlot);
-	if (iEntity > MaxClients)
-		return iEntity;
-	
-	return -1;
-}
-
-stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
-{
-	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
-	if (iEntity > MaxClients)
-		TF2_RemoveWeaponSlot(iClient, iSlot);
-	
-	int iWearable = SDKCall_GetEquippedWearable(iClient, iSlot);
-	if (iWearable > MaxClients)
-		TF2_RemoveWearable(iClient, iWearable);
-}
-
 stock void CheckClientWeapons(int iClient)
 {
 	//Weapons
@@ -786,11 +828,9 @@ stock int GetOriginalItemDefIndex(int iIndex)
 		return iIndex;
 }
 
-////////////////////////////////////////////////////////////
-//
-// Cookie Utils
-//
-////////////////////////////////////////////////////////////
+////////////////
+// Cookie
+////////////////
 
 stock int GetCookie(int iClient, Cookie cookie)
 {
@@ -824,6 +864,162 @@ stock void SetCookie(int iClient, int iAmount, Cookie cookie)
 	cookie.Set(iClient, sValue);
 }
 
+////////////////
+// Trace
+////////////////
+
+stock bool PointsAtTarget(float vecPos[3], any iTarget)
+{
+	float vecTargetPos[3];
+	GetClientEyePosition(iTarget, vecTargetPos);
+	
+	Handle hTrace = TR_TraceRayFilterEx(vecPos, vecTargetPos, MASK_VISIBLE, RayType_EndPoint, Trace_DontHitOtherEntities, iTarget);
+	
+	int iHit = -1;
+	if (TR_DidHit(hTrace))
+		iHit = TR_GetEntityIndex(hTrace);
+	
+	delete hTrace;
+	return (iHit == iTarget);
+}
+
+stock int GetClientPointVisible(int iClient, float flDistance = 100.0)
+{
+	float vecOrigin[3], vecAngles[3], vecEndOrigin[3];
+	GetClientEyePosition(iClient, vecOrigin);
+	GetClientEyeAngles(iClient, vecAngles);
+	
+	Handle hTrace = TR_TraceRayFilterEx(vecOrigin, vecAngles, MASK_ALL, RayType_Infinite, Trace_DontHitEntity, iClient);
+	TR_GetEndPosition(vecEndOrigin, hTrace);
+	
+	int iReturn = -1;
+	int iHit = TR_GetEntityIndex(hTrace);
+	
+	if (TR_DidHit(hTrace) && iHit != iClient && GetVectorDistance(vecOrigin, vecEndOrigin) < flDistance)
+		iReturn = iHit;
+	
+	delete hTrace;
+	return iReturn;
+}
+
+stock bool ObstactleBetweenEntities(int iEntity1, int iEntity2)
+{
+	float vecOrigin1[3];
+	float vecOrigin2[3];
+	
+	if (IsValidClient(iEntity1))
+		GetClientEyePosition(iEntity1, vecOrigin1);
+	else
+		GetEntPropVector(iEntity1, Prop_Send, "m_vecOrigin", vecOrigin1);
+	
+	GetEntPropVector(iEntity2, Prop_Send, "m_vecOrigin", vecOrigin2);
+	
+	Handle hTrace = TR_TraceRayFilterEx(vecOrigin1, vecOrigin2, MASK_ALL, RayType_EndPoint, Trace_DontHitEntity, iEntity1);
+	
+	bool bHit = TR_DidHit(hTrace);
+	int iHit = TR_GetEntityIndex(hTrace);
+	delete hTrace;
+	
+	if (!bHit || iHit != iEntity2)
+		return true;
+	
+	return false;
+}
+
+stock bool IsEntityStuck(int iEntity)
+{
+	float vecMin[3];
+	float vecMax[3];
+	float vecOrigin[3];
+	
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMins", vecMin);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMaxs", vecMax);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
+	
+	TR_TraceHullFilter(vecOrigin, vecOrigin, vecMin, vecMax, MASK_SOLID, Trace_DontHitEntity, iEntity);
+	return (TR_DidHit());
+}
+
+public bool Trace_DontHitOtherEntities(int iEntity, int iMask, any iData)
+{
+	if (iEntity == iData)
+		return true;
+	
+	if (iEntity > 0)
+		return false;
+	
+	return true;
+}
+
+public bool Trace_DontHitEntity(int iEntity, int iMask, any iData)
+{
+	if (iEntity == iData)
+		return false;
+	
+	return true;
+}
+
+////////////////
+// Particles
+////////////////
+
+stock int ShowParticle(char[] sParticle, float flDuration, float vecPos[3], float vecAngles[3] = NULL_VECTOR)
+{
+	int iParticle = CreateEntityByName("info_particle_system");
+	if (IsValidEdict(iParticle))
+	{
+		TeleportEntity(iParticle, vecPos, vecAngles, NULL_VECTOR);
+		DispatchKeyValue(iParticle, "effect_name", sParticle);
+		ActivateEntity(iParticle);
+		AcceptEntityInput(iParticle, "start");
+		CreateTimer(flDuration, Timer_RemoveParticle, iParticle);
+	}
+	else
+	{
+		LogError("ShowParticle: could not create info_particle_system");
+		return -1;
+	}
+	
+	return iParticle;
+}
+
+stock void PrecacheParticle(char[] sParticleName)
+{
+	if (IsValidEntity(0))
+	{
+		int iParticle = CreateEntityByName("info_particle_system");
+		if (IsValidEdict(iParticle))
+		{
+			char sName[32];
+			GetEntPropString(0, Prop_Data, "m_iName", sName, sizeof(sName));
+			DispatchKeyValue(iParticle, "targetname", "tf2particle");
+			DispatchKeyValue(iParticle, "parentname", sName);
+			DispatchKeyValue(iParticle, "effect_name", sParticleName);
+			DispatchSpawn(iParticle);
+			SetVariantString(sName);
+			AcceptEntityInput(iParticle, "SetParent", 0, iParticle, 0);
+			ActivateEntity(iParticle);
+			AcceptEntityInput(iParticle, "start");
+			CreateTimer(0.01, Timer_RemoveParticle, iParticle);
+		}
+	}
+}
+
+public Action Timer_RemoveParticle(Handle hTimer, int iParticle)
+{
+	if (iParticle >= 0 && IsValidEntity(iParticle))
+	{
+		char sClassname[32];
+		GetEdictClassname(iParticle, sClassname, sizeof(sClassname));
+		if (StrEqual(sClassname, "info_particle_system", false))
+		{
+			AcceptEntityInput(iParticle, "stop");
+			RemoveEntity(iParticle);
+			iParticle = -1;
+		}
+	}
+}
+
 /******************************************************************************************************/
 
 stock void GetClientName2(int iClient, char[] sName, int iLength)
@@ -836,36 +1032,6 @@ stock void GetClientName2(int iClient, char[] sName, int iLength)
 		GetClientName(iClient, sName, iLength);
 		Format(sName, iLength, "{teamcolor}%s", sName);
 	}
-}
-
-stock void AddModelToDownload(char[] sModel)
-{
-	char sPath[256];
-	const char sModelExtensions[][] = {
-		".mdl",
-		".dx80.vtx",
-		".dx90.vtx",
-		".sw.vtx",
-		".vvd",
-		".phy"
-	};
-	
-	for (int iExt = 0; iExt < sizeof(sModelExtensions); iExt++)
-	{
-		Format(sPath, sizeof(sPath), "models/%s%s", sModel, sModelExtensions[iExt]);
-		AddFileToDownloadsTable(sPath);
-	}
-}
-
-stock int FindEntityByTargetname(const char[] sTargetName, const char[] sClassname)
-{
-	char sBuffer[32];
-	int iEntity = -1;
-	
-	while(strcmp(sClassname, sTargetName) != 0 && (iEntity = FindEntityByClassname(iEntity, classname)) != -1)
-		GetEntPropString(iEntity, Prop_Data, "m_iName", sBuffer, sizeof(sBuffer));
-	
-	return iEntity;
 }
 
 stock void Shake(int iClient, float flAmplitude, float flDuration)
@@ -952,8 +1118,6 @@ stock void SayText2(int[] iClients, int iLength, int iEntity, bool bChat, const 
 	EndMessage();
 }
 
-/******************************************************************************************************/
-
 stock void AddModelToDownloadsTable(const char[] sModel)
 {
 	static const char sFileType[][] = {
@@ -1007,42 +1171,6 @@ stock void ApplyVoodooCursedSoul(int iClient)
 		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", g_iZombieSoulIndex[view_as<int>(nClass)]);
 }
 
-//https://github.com/Mikusch/tfgo/blob/c6109ad9a2f04ac0267e0916145a8274c9f6662e/addons/sourcemod/scripting/tfgo/stocks.sp#L205-L237 :)
-stock int TF2_GetItemSlot(int iIndex, TFClassType iClass)
-{
-	int iSlot = TF2Econ_GetItemSlot(iIndex, iClass);
-	if (iSlot >= 0)
-	{
-		// Econ reports wrong slots for Engineer and Spy
-		switch (iClass)
-		{
-			case TFClass_Spy:
-			{
-				switch (iSlot)
-				{
-					case 1: iSlot = WeaponSlot_Primary; // Revolver
-					case 4: iSlot = WeaponSlot_Secondary; // Sapper
-					case 5: iSlot = WeaponSlot_PDADisguise; // Disguise Kit
-					case 6: iSlot = WeaponSlot_InvisWatch; // Invis Watch
-				}
-			}
-			
-			case TFClass_Engineer:
-			{
-				switch (iSlot)
-				{
-					case 4: iSlot = WeaponSlot_BuilderEngie; // Toolbox
-					case 5: iSlot = WeaponSlot_PDABuild; // Construction PDA
-					case 6: iSlot = WeaponSlot_PDADestroy; // Destruction PDA
-				}
-			}
-		}
-	}
-	
-	return iSlot;
-}
-
-
 /******************************************************************************************************/
 
 //SDKHooks_TakeDamage doesn't call OnTakeDamage, so we need to scale separately for 'indirect' damage
@@ -1055,4 +1183,18 @@ stock void DealDamage(int iAttacker, int iVictim, float flDamage)
 		flDamage = STUNNED_DAMAGE_CAP;
 	
 	SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, flDamage, DMG_PREVENT_PHYSICS_FORCE);
+}
+
+stock bool CanRecieveDamage(int iClient)
+{
+	if (iClient <= 0 || !IsClientInGame(iClient))
+		return true;
+	
+	if (TF2_IsPlayerInCondition(iClient, TFCond_Ubercharged))
+		return false;
+	
+	if (TF2_IsPlayerInCondition(iClient, TFCond_Bonked))
+		return false;
+	
+	return true;
 }

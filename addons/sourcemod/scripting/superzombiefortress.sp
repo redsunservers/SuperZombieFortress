@@ -1369,56 +1369,6 @@ void CheckZombieBypass(int iClient)
 	}
 }
 
-stock int GetConnectingCount()
-{
-	int iCount = 0;
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsClientAuthorized(iClient))
-			iCount++;
-	
-	return iCount;
-}
-
-stock int GetPlayerCount()
-{
-	int iCount = 0;
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsClientInGame(iClient) && (TF2_GetClientTeam(iClient) > TFTeam_Spectator))
-			iCount++;
-	
-	return iCount;
-}
-
-stock int GetSurvivorCount()
-{
-	int iCount = 0;
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidLivingSurvivor(iClient))
-			iCount++;
-	
-	return iCount;
-}
-
-stock int GetZombieCount()
-{
-	int iCount = 0;
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient))
-			iCount++;
-	
-	return iCount;
-}
-
-stock int GetReplaceRageWithSpecialInfectedSpawnCount()
-{
-	int iCount = 0;
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && g_bReplaceRageWithSpecialInfectedSpawn[iClient])
-			iCount++;
-	
-	return iCount;
-}
-
 void UpdateZombieDamageScale()
 {
 	g_flZombieDamageScale = 1.0;
@@ -1844,104 +1794,6 @@ void FastRespawnDataCollect()
 	}
 }
 
-stock void VectorTowards(float vecOrigin[3], float vecTarget[3], float vecAngle[3])
-{
-	float vecResults[3];
-	MakeVectorFromPoints(vecOrigin, vecTarget, vecResults);
-	GetVectorAngles(vecResults, vecAngle);
-}
-
-stock bool PointsAtTarget(float vecPos[3], any iTarget)
-{
-	float vecTargetPos[3];
-	GetClientEyePosition(iTarget, vecTargetPos);
-	
-	Handle hTrace = TR_TraceRayFilterEx(vecPos, vecTargetPos, MASK_VISIBLE, RayType_EndPoint, Trace_DontHitOtherEntities, iTarget);
-	
-	int iHit = -1;
-	if (TR_DidHit(hTrace))
-		iHit = TR_GetEntityIndex(hTrace);
-	
-	delete hTrace;
-	return (iHit == iTarget);
-}
-
-public bool Trace_DontHitOtherEntities(int iEntity, int iMask, any iData)
-{
-	if (iEntity == iData)
-		return true;
-	
-	if (iEntity > 0)
-		return false;
-	
-	return true;
-}
-
-public bool Trace_DontHitEntity(int iEntity, int iMask, any iData)
-{
-	if (iEntity == iData)
-		return false;
-	
-	return true;
-}
-
-stock bool CanRecieveDamage(int iClient)
-{
-	if (iClient <= 0 || !IsClientInGame(iClient))
-		return true;
-	
-	if (TF2_IsPlayerInCondition(iClient, TFCond_Ubercharged))
-		return false;
-	
-	if (TF2_IsPlayerInCondition(iClient, TFCond_Bonked))
-		return false;
-	
-	return true;
-}
-
-stock int GetClientPointVisible(int iClient, float flDistance = 100.0)
-{
-	float vecOrigin[3], vecAngles[3], vecEndOrigin[3];
-	GetClientEyePosition(iClient, vecOrigin);
-	GetClientEyeAngles(iClient, vecAngles);
-	
-	Handle hTrace = TR_TraceRayFilterEx(vecOrigin, vecAngles, MASK_ALL, RayType_Infinite, Trace_DontHitEntity, iClient);
-	TR_GetEndPosition(vecEndOrigin, hTrace);
-	
-	int iReturn = -1;
-	int iHit = TR_GetEntityIndex(hTrace);
-	
-	if (TR_DidHit(hTrace) && iHit != iClient && GetVectorDistance(vecOrigin, vecEndOrigin) < flDistance)
-		iReturn = iHit;
-	
-	delete hTrace;
-	return iReturn;
-}
-
-stock bool ObstactleBetweenEntities(int iEntity1, int iEntity2)
-{
-	float vecOrigin1[3];
-	float vecOrigin2[3];
-	
-	if (IsValidClient(iEntity1))
-		GetClientEyePosition(iEntity1, vecOrigin1);
-	else
-		GetEntPropVector(iEntity1, Prop_Send, "m_vecOrigin", vecOrigin1);
-	
-	GetEntPropVector(iEntity2, Prop_Send, "m_vecOrigin", vecOrigin2);
-	
-	Handle hTrace = TR_TraceRayFilterEx(vecOrigin1, vecOrigin2, MASK_ALL, RayType_EndPoint, Trace_DontHitEntity, iEntity1);
-	
-	bool bHit = TR_DidHit(hTrace);
-	int iHit = TR_GetEntityIndex(hTrace);
-	delete hTrace;
-	
-	if (!bHit || iHit != iEntity2)
-		return true;
-	
-	return false;
-}
-
 void HandleSurvivorLoadout(int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient))
@@ -2096,63 +1948,6 @@ void SetValidSlot(int iClient)
 	}
 }
 
-stock int ShowParticle(char[] sParticle, float flDuration, float vecPos[3], float vecAngles[3] = NULL_VECTOR)
-{
-	int iParticle = CreateEntityByName("info_particle_system");
-	if (IsValidEdict(iParticle))
-	{
-		TeleportEntity(iParticle, vecPos, vecAngles, NULL_VECTOR);
-		DispatchKeyValue(iParticle, "effect_name", sParticle);
-		ActivateEntity(iParticle);
-		AcceptEntityInput(iParticle, "start");
-		CreateTimer(flDuration, Timer_RemoveParticle, iParticle);
-	}
-	else
-	{
-		LogError("ShowParticle: could not create info_particle_system");
-		return -1;
-	}
-	
-	return iParticle;
-}
-
-stock void PrecacheParticle(char[] sParticleName)
-{
-	if (IsValidEntity(0))
-	{
-		int iParticle = CreateEntityByName("info_particle_system");
-		if (IsValidEdict(iParticle))
-		{
-			char sName[32];
-			GetEntPropString(0, Prop_Data, "m_iName", sName, sizeof(sName));
-			DispatchKeyValue(iParticle, "targetname", "tf2particle");
-			DispatchKeyValue(iParticle, "parentname", sName);
-			DispatchKeyValue(iParticle, "effect_name", sParticleName);
-			DispatchSpawn(iParticle);
-			SetVariantString(sName);
-			AcceptEntityInput(iParticle, "SetParent", 0, iParticle, 0);
-			ActivateEntity(iParticle);
-			AcceptEntityInput(iParticle, "start");
-			CreateTimer(0.01, Timer_RemoveParticle, iParticle);
-		}
-	}
-}
-
-public Action Timer_RemoveParticle(Handle hTimer, int iParticle)
-{
-	if (iParticle >= 0 && IsValidEntity(iParticle))
-	{
-		char sClassname[32];
-		GetEdictClassname(iParticle, sClassname, sizeof(sClassname));
-		if (StrEqual(sClassname, "info_particle_system", false))
-		{
-			AcceptEntityInput(iParticle, "stop");
-			RemoveEntity(iParticle);
-			iParticle = -1;
-		}
-	}
-}
-
 int GetMostDamageZom()
 {
 	ArrayList aClients = new ArrayList();
@@ -2237,49 +2032,6 @@ void ZombieTank(int iCaller = 0)
 	g_bReplaceRageWithSpecialInfectedSpawn[g_iZombieTank] = false;
 	g_flTankCooldown = GetGameTime() + 120.0; //Set new cooldown
 	SetMoraleAll(0); //Tank spawn, reset morale
-}
-
-stock int FindEntityByClassname2(int startEnt, const char[] classname)
-{
-	/* If startEnt isn't valid shifting it back to the nearest valid one */
-	while (startEnt > -1 && !IsValidEntity(startEnt))
-		startEnt--;
-	
-	return FindEntityByClassname(startEnt, classname);
-}
-
-stock bool IsRazorbackActive(int iClient)
-{
-	int iEntity = -1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "tf_wearable_razorback")) != -1)
-		if (IsClassname(iEntity, "tf_wearable_razorback") && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient && GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex") == 57)
-			return GetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", TFWeaponSlot_Secondary) >= 100.0;
-	
-	return false;
-}
-
-stock bool RemoveSecondaryWearable(int iClient)
-{
-	int iEntity = -1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "tf_wearable")) != -1)
-	{
-		if (IsClassname(iEntity, "tf_wearable") && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient)
-		{
-			RemoveEdict(iEntity);
-			return true;
-		}
-	}
-	
-	return false;
-}
-
-int GetActivePlayerCount()
-{
-	int i = 0;
-	for (int j = 1; j <= MaxClients; j++)
-		if (IsValidLivingClient(j)) i++;
-	
-	return i;
 }
 
 void DetermineControlPoints()
@@ -2447,31 +2199,6 @@ bool DropCarryingItem(int iClient, bool bDrop = true)
 	}
 	
 	return true;
-}
-
-stock void AnglesToVelocity(float vecAngle[3], float vecVelocity[3], float flSpeed = 1.0)
-{
-	vecVelocity[0] = Cosine(DegToRad(vecAngle[1]));
-	vecVelocity[1] = Sine(DegToRad(vecAngle[1]));
-	vecVelocity[2] = Sine(DegToRad(vecAngle[0])) * -1.0;
-	
-	NormalizeVector(vecVelocity, vecVelocity);
-	
-	ScaleVector(vecVelocity, flSpeed);
-}
-
-stock bool IsEntityStuck(int iEntity)
-{
-	float vecMin[3];
-	float vecMax[3];
-	float vecOrigin[3];
-	
-	GetEntPropVector(iEntity, Prop_Send, "m_vecMins", vecMin);
-	GetEntPropVector(iEntity, Prop_Send, "m_vecMaxs", vecMax);
-	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
-	
-	TR_TraceHullFilter(vecOrigin, vecOrigin, vecMin, vecMax, MASK_SOLID, Trace_DontHitEntity, iEntity);
-	return (TR_DidHit());
 }
 
 public Action SoundHook(int iClients[64], int &iLength, char sSound[PLATFORM_MAX_PATH], int &iClient, int &iChannel, float &flVolume, int &iLevel, int &iPitch, int &iFlags)
@@ -2942,7 +2669,7 @@ public Action Timer_SetHunterJump(Handle timer, any iClient)
 	return Plugin_Continue;
 }
 
-stock void SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, float flSlowdown = 0.5)
+void SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, float flSlowdown = 0.5)
 {
 	if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient))
 	{
@@ -2978,41 +2705,6 @@ public Action RemoveBackstab(Handle hTimer, int iClient)
 	
 	g_bBackstabbed[iClient] = false;
 	ClientCommand(iClient, "r_screenoverlay\"\"");
-}
-
-stock void AddMorale(int iClient, int iAmount)
-{
-	g_iMorale[iClient] = g_iMorale[iClient] + iAmount;
-	
-	if (g_iMorale[iClient] > 100)
-		g_iMorale[iClient] = 100;
-	
-	if (g_iMorale[iClient] < 0)
-		g_iMorale[iClient] = 0;
-}
-
-stock void AddMoraleAll(int iAmount)
-{
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidLivingSurvivor(iClient))
-			AddMorale(iClient, iAmount);
-}
-
-stock void SetMorale(int iClient, int iAmount)
-{
-	g_iMorale[iClient] = iAmount;
-}
-
-stock void SetMoraleAll(int iAmount)
-{
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidLivingSurvivor(iClient))
-			SetMorale(iClient, iAmount);
-}
-
-stock int GetMorale(int iClient)
-{
-	return g_iMorale[iClient];
 }
 
 Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
