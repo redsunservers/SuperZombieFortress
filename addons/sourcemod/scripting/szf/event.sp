@@ -63,8 +63,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 		TF2_RespawnPlayer2(iClient);
 		return;
 	}
-		
-	g_iEyelanderHead[iClient] = 0;
+	
 	g_iSuperHealthSubtract[iClient] = 0;
 	g_bHitOnce[iClient] = false;
 	g_bHopperIsUsingPounce[iClient] = false;
@@ -376,7 +375,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		Forward_OnTankDeath(iVictim, iWinner, RoundFloat(flHighest));
 	}
 	
-	g_iEyelanderHead[iVictim] = 0;
 	g_iMaxHealth[iVictim] = -1;
 	g_bShouldBacteriaPlay[iVictim] = true;
 	g_bReplaceRageWithSpecialInfectedSpawn[iVictim] = false;
@@ -469,16 +467,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_iZombiesKilledSpree++;
 			g_iZombiesKilledCounter++;
 			g_iZombiesKilledSurvivor[iKillers[0]]++;
-			
-			//very very very dirty fix for eyelander head
-			char sWeapon[128];
-			event.GetString("weapon", sWeapon, sizeof(sWeapon));
-			if (StrEqual(sWeapon, "sword")
-				|| StrEqual(sWeapon, "headtaker")
-				|| StrEqual(sWeapon, "nessieclub") )
-			{
-				g_iEyelanderHead[iKillers[0]]++;
-			}
 		}
 		
 		for (int i = 0; i < 2; i++)

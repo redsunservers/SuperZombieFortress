@@ -169,6 +169,7 @@ float g_flRageRespawnStress;
 float g_flInfectedCooldown[view_as<int>(Infected)];	//GameTime
 int g_iInfectedCooldown[view_as<int>(Infected)];	//Client who started the cooldown
 float g_flSelectSpecialCooldown;
+int g_iStartSurvivors;
 
 bool g_bZombieRage;
 int g_iZombieTank;
@@ -178,10 +179,8 @@ bool g_bHopperIsUsingPounce[TF_MAXPLAYERS];
 
 bool g_bSpawnAsSpecialInfected[TF_MAXPLAYERS];
 int g_iKillsThisLife[TF_MAXPLAYERS];
-int g_iEyelanderHead[TF_MAXPLAYERS];
 int g_iMaxHealth[TF_MAXPLAYERS];
 int g_iSuperHealthSubtract[TF_MAXPLAYERS];
-int g_iStartSurvivors;
 bool g_bShouldBacteriaPlay[TF_MAXPLAYERS] = true;
 bool g_bReplaceRageWithSpecialInfectedSpawn[TF_MAXPLAYERS];
 int g_iSmokerBeamHits[TF_MAXPLAYERS];

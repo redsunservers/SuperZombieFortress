@@ -143,16 +143,6 @@ public void Client_OnPreThinkPost(int iClient)
 				
 				if (g_bBackstabbed[iClient])
 					flSpeed *= 0.66;
-				
-				//very very very dirty fix for eyelander head
-				int iHeads = GetEntProp(iClient, Prop_Send, "m_iDecapitations");
-				if (nClass == TFClass_DemoMan && iHeads != g_iEyelanderHead[iClient])
-				{
-					SetEntProp(iClient, Prop_Send, "m_iDecapitations", g_iEyelanderHead[iClient]);
-					
-					//Recalculate player's speed
-					TF2_AddCondition(iClient, TFCond_SpeedBuffAlly, 0.01);
-				}
 			}
 			
 			SetClientSpeed(iClient, flSpeed);
