@@ -295,13 +295,14 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	int iVictim = GetClientOfUserId(event.GetInt("userid"));
 	iKillers[0] = GetClientOfUserId(event.GetInt("attacker"));
 	iKillers[1] = GetClientOfUserId(event.GetInt("assister"));
+	bool bDeadRinger = event.GetInt("death_flags") & TF_DEATHFLAG_DEADRINGER != 0;
 	
 	ClientCommand(iVictim, "r_screenoverlay\"\"");
 	
 	DropCarryingItem(iVictim);
 	
 	//Handle bonuses
-	if (IsValidZombie(iKillers[0]) && iKillers[0] != iVictim)
+	if (!bDeadRinger && IsValidZombie(iKillers[0]) && iKillers[0] != iVictim)
 	{
 		g_iKillsThisLife[iKillers[0]]++;
 		
@@ -313,7 +314,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			TF2_AddCondition(iKillers[0], TFCond_DefenseBuffed, TFCondDuration_Infinite);
 	}
 	
-	if (IsValidZombie(iKillers[1]) && iKillers[1] != iVictim)
+	if (!bDeadRinger && IsValidZombie(iKillers[1]) && iKillers[1] != iVictim)
 	{
 		//20%
 		if (g_nNextInfected[iVictim] == Infected_None && !GetRandomInt(0, 4) && g_nRoundState == SZFRoundState_Active)
@@ -433,7 +434,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	}
 	
 	//Handle survivor death logic, active round only.
-	if (IsValidSurvivor(iVictim))
+	if (IsValidSurvivor(iVictim) && !bDeadRinger)
 	{
 		//Black and white effect for death
 		ClientCommand(iVictim, "r_screenoverlay\"debug/yuv\"");
