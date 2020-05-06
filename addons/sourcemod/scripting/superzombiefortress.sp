@@ -1297,7 +1297,7 @@ void ResetClientState(int iClient)
 	g_iRageTimer[iClient] = 0;
 }
 
-public void PrintInfoChat(int iClient)
+void PrintInfoChat(int iClient)
 {
 	char sMessage[256];
 	Format(sMessage, sizeof(sMessage), "{lightsalmon}Welcome to Super Zombie Fortress.\nYou can open the instruction menu using {limegreen}/szf{lightsalmon}.");
@@ -1551,7 +1551,7 @@ void UpdateZombieDamageScale()
 	}
 }
 
-public Action Timer_RespawnPlayer(Handle hTimer, any iClient)
+public Action Timer_RespawnPlayer(Handle hTimer, int iClient)
 {
 	if (IsClientInGame(iClient) && !IsPlayerAlive(iClient))
 		TF2_RespawnPlayer2(iClient);
@@ -2725,7 +2725,7 @@ public Action Timer_DisplayTutorialMessage(Handle hTimer, DataPack data)
 }
 
 //Zombie Rages
-public void DoGenericRage(int iClient)
+void DoGenericRage(int iClient)
 {
 	int iHealth = GetClientHealth(iClient);
 	SetEntityHealth(iClient, RoundToCeil(iHealth * 1.5));
@@ -2738,7 +2738,7 @@ public void DoGenericRage(int iClient)
 	PrintHintText(iClient, "Rage Activated!");
 }
 
-public void DoBoomerExplosion(int iClient, float flRadius)
+void DoBoomerExplosion(int iClient, float flRadius)
 {
 	//No need to set rage cooldown: he's fucking dead LMAO
 	float vecClientPos[3];
@@ -2779,7 +2779,7 @@ public void DoBoomerExplosion(int iClient, float flRadius)
 		FakeClientCommandEx(iClient, "explode");
 }
 
-public void DoKingpinRage(int iClient, float flRadius)
+void DoKingpinRage(int iClient, float flRadius)
 {
 	float vecPosScreamer[3]; //Fun fact: this is based on l4d's scrapped "screamer" special infected, which "buffed" zombies with its presence
 	float vecPosZombie[3];
@@ -2800,7 +2800,7 @@ public void DoKingpinRage(int iClient, float flRadius)
 	}
 }
 
-public void DoHunterJump(int iClient)
+void DoHunterJump(int iClient)
 {
 	char sPath[64];
 	Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(18, 19));
@@ -2863,7 +2863,7 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 	return Plugin_Continue;
 }
 
-public void DoSmokerBeam(int iClient)
+void DoSmokerBeam(int iClient)
 {
 	float vecOrigin[3], vecAngles[3], vecEndOrigin[3], vecHitPos[3];
 	GetClientEyePosition(iClient, vecOrigin);
