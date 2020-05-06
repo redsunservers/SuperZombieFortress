@@ -746,15 +746,29 @@ stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
 
 stock void CheckClientWeapons(int iClient)
 {
+	//Weapons
 	for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
 	{
-		int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
+		int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
 		if (iWeapon > MaxClients)
 		{
 			char sClassname[256];
 			GetEntityClassname(iWeapon, sClassname, sizeof(sClassname));
 			if (OnGiveNamedItem(iClient, sClassname, GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
 				TF2_RemoveItemInSlot(iClient, iSlot);
+		}
+	}
+	
+	//Cosmetics
+	int iWearable = MaxClients+1;
+	while ((iWearable = FindEntityByClassname(iWearable, "tf_wearable*")) > MaxClients)
+	{
+		if (GetEntPropEnt(iWearable, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iWearable, Prop_Send, "moveparent") == iClient)
+		{
+			char sClassname[256];
+			GetEntityClassname(iWearable, sClassname, sizeof(sClassname));
+			if (OnGiveNamedItem(iClient, sClassname, GetEntProp(iWearable, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
+				TF2_RemoveWearable(iClient, iWearable);
 		}
 	}
 }

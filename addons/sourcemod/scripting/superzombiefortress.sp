@@ -2830,11 +2830,6 @@ void HandleZombieLoadout(int iClient)
 		char sModel[PLATFORM_MAX_PATH];
 		if (GetInfectedModel(g_nInfected[iClient], sModel, sizeof(sModel)))
 		{
-			int iEntity = MaxClients+1;
-			while ((iEntity = FindEntityByClassname(iEntity, "tf_wearable*")) > MaxClients)
-				if (GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iEntity, Prop_Send, "moveparent") == iClient)
-					RemoveEntity(iEntity);
-			
 			SetVariantString(sModel);
 			AcceptEntityInput(iClient, "SetCustomModel");
 			SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", true);
@@ -4032,6 +4027,19 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 					//Block literally everything else
 					iAction = Plugin_Handled;
 				}
+			}
+		}
+		else if (iSlot > WeaponSlot_BuilderEngie)
+		{
+			if (g_nInfected[iClient] != Infected_None && GetInfectedModel(g_nInfected[iClient], "", 1))
+			{
+				//Block cosmetic if special infected have custom model
+				iAction = Plugin_Handled;
+			}
+			else if (TF2Econ_GetItemEquipRegionMask(g_iVoodooIndex[TF2_GetPlayerClass(iClient)]) & TF2Econ_GetItemEquipRegionMask(iIndex))
+			{
+				//Cosmetic is conflicting voodoo model
+				iAction = Plugin_Handled;
 			}
 		}
 	}
