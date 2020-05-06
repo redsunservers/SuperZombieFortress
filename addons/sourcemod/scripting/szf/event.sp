@@ -3,6 +3,7 @@ void Event_Init()
 	HookEvent("teamplay_setup_finished", Event_SetupEnd);
 	HookEvent("teamplay_round_win", Event_RoundEnd);
 	HookEvent("player_spawn", Event_PlayerSpawn);
+	HookEvent("post_inventory_application", Event_PlayerInventoryUpdate);
 	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
 	HookEvent("player_hurt", Event_PlayerHurt, EventHookMode_Pre);
 	HookEvent("player_builtobject", Event_PlayerBuiltObject);
@@ -149,7 +150,6 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			return;
 		}
 		
-		HandleSurvivorLoadout(iClient);
 		if (GetCookie(iClient, g_cFirstTimeSurvivor) < 1)
 			InitiateSurvivorTutorial(iClient);
 	}
@@ -172,7 +172,6 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			if (g_nInfected[iClient] != Infected_Tank && !PerformFastRespawn(iClient))
 				TF2_AddCondition(iClient, TFCond_Ubercharged, 2.0);
 		
-		HandleZombieLoadout(iClient);
 		if (GetCookie(iClient, g_cFirstTimeZombie) < 1)
 			InitiateZombieTutorial(iClient);
 	}
@@ -273,6 +272,20 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	SetGlow();
 }
 
+public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool dontBroadcast)
+{
+	if (!g_bEnabled)
+		return;
+	
+	int iClient = GetClientOfUserId(event.GetInt("userid"));
+	if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
+		return;
+	
+	if (IsSurvivor(iClient))
+		HandleSurvivorLoadout(iClient);
+	else if (IsZombie(iClient))
+		HandleZombieLoadout(iClient);
+}
 
 public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {

@@ -2864,13 +2864,13 @@ void HandleZombieLoadout(int iClient)
 	//Fill meter for spitter's Gas Passer
 	SetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", 100.0, WeaponSlot_Secondary);
 	
+	//Reset metal for TF2 to give back correct amount from attribs
+	TF2_SetMetal(iClient, 0);
+	
 	//Set active wepaon slot to melee
 	int iMelee = TF2_GetItemInSlot(iClient, WeaponSlot_Melee);
 	if (iMelee > MaxClients)
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
-	
-	//Set health back to what it should be after modifying weapons
-	SetEntityHealth(iClient, SDKCall_GetMaxHealth(iClient));
 }
 
 void SetValidSlot(int iClient)
