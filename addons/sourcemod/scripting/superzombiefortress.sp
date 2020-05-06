@@ -4043,6 +4043,12 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 					if (StrContains(sClassname, "tf_weapon_lunchbox") == -1)
 						iAction = Plugin_Handled;
 				}
+				case TFClass_Engineer:
+				{
+					//Block all weapons that are not PDA and toolbox
+					if (iSlot <= WeaponSlot_Melee)
+						iAction = Plugin_Handled;
+				}
 				default:
 				{
 					//Block literally everything else
