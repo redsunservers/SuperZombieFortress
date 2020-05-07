@@ -6,7 +6,7 @@ static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
 void DHook_Init(GameData hSZF)
 {
-	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_CGameUI_Deactivate_Pre);
+	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
 	
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
@@ -73,15 +73,10 @@ void DHook_HookGamerules()
 	DHookGamerules(g_hDHookRoundRespawn, false, _, DHook_RoundRespawnPre);
 }
 
-public MRESReturn DHook_CGameUI_Deactivate_Pre(int iThis, Handle hParams)
+public MRESReturn DHook_DeactivatePre(int iThis, Handle hParams)
 {
 	if (!g_bEnabled)
 		return MRES_Ignored;
-	
-	int iClient = GetEntPropEnt(iThis, Prop_Data, "m_player");
-	// Don't allow zombies drop ammo and dropped weapon
-	if (0 < iClient <= MaxClients && IsZombie(iClient))
-		return MRES_Supercede;
 	
 	// Detour used to prevent a crash with "game_ui" entity
 	// World entity 0 should always be valid
