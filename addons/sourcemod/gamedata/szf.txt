@@ -70,7 +70,7 @@
 				{
 					"pActivator"
 					{
-						"type"	"cbaseentity"
+						"type"	"int"
 					}
 				}
 			}
