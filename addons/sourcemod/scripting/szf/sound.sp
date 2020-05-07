@@ -190,21 +190,6 @@ char g_sSoundSurivourWin[][PLATFORM_MAX_PATH] =
 	"left4fortress/we_survived.mp3"
 };
 
-/* OTHER SOUNDS */
-
-//Special infected spawned
-char g_sSoundSpawnInfected[][PLATFORM_MAX_PATH] =
-{
-	"misc/null.wav",						//no special infected
-	"misc/null.wav",						//tank
-	"left4fortress/boomerbacterias.mp3",	//boomer
-	"left4fortress/chargerbacterias.mp3",	//charger
-	"misc/null.wav",						//kingpin, used to use smoker's bacteria (need new sound for kingpin)
-	"left4fortress/jockeybacterias.mp3",	//stalker
-	"left4fortress/hunterbacterias.mp3",	//hunter
-	"left4fortress/smokerbacterias.mp3"		//smoker
-};
-
 /* VO */
 
 /* Scout */
@@ -557,8 +542,6 @@ void SoundPrecache()
 	for (int i = 0; i < sizeof(g_sSoundLastStand); i++) PrecacheSound2(g_sSoundLastStand[i]);
 	for (int i = 0; i < sizeof(g_sSoundZombieWin); i++) PrecacheSound2(g_sSoundZombieWin[i]);
 	for (int i = 0; i < sizeof(g_sSoundSurivourWin); i++) PrecacheSound2(g_sSoundSurivourWin[i]);
-	
-	for (int i = 0; i < sizeof(g_sSoundSpawnInfected); i++) PrecacheSound2(g_sSoundSpawnInfected[i]);
 	
 	//---//
 	

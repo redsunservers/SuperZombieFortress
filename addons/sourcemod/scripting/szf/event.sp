@@ -203,11 +203,14 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		
 		if (g_bShouldBacteriaPlay[iClient])
 		{
-			EmitSoundToClient(iClient, g_sSoundSpawnInfected[g_nInfected[iClient]]);
-			
-			for (int i = 1; i <= MaxClients; i++)
-				if (IsValidSurvivor(i))
-					EmitSoundToClient(i, g_sSoundSpawnInfected[g_nInfected[iClient]]);
+			if (g_ClientClasses[iClient].sSoundSpawn[0])
+			{
+				EmitSoundToClient(iClient, g_ClientClasses[iClient].sSoundSpawn);
+				
+				for (int i = 1; i <= MaxClients; i++)
+					if (IsValidLivingSurvivor(i))
+						EmitSoundToClient(i, g_ClientClasses[iClient].sSoundSpawn);
+			}
 			
 			g_bShouldBacteriaPlay[iClient] = false;
 		}

@@ -116,6 +116,7 @@ enum struct ClientClasses
 	int iColor[4];
 	char sMessage[256];
 	char sModel[PLATFORM_MAX_PATH];
+	char sSoundSpawn[PLATFORM_MAX_PATH];
 	int iRageCooldown;
 	Function callback_spawn;
 	Function callback_rage;

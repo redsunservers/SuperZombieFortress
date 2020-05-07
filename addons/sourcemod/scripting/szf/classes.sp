@@ -35,6 +35,7 @@ enum struct InfectedClasses
 	int iColor[4];
 	char sMessage[256];
 	char sModel[PLATFORM_MAX_PATH];
+	char sSoundSpawn[PLATFORM_MAX_PATH];
 	ArrayList aWeapons;
 	int iRageCooldown;
 	Function callback_spawn;
@@ -138,11 +139,14 @@ void Classes_Precache()
 {
 	for (Infected nInfected; nInfected < Infected; nInfected++)
 	{
-		if (g_InfectedClasses[nInfected].sModel[0] != '\0')
+		if (g_InfectedClasses[nInfected].sModel[0])
 		{
 			PrecacheModel(g_InfectedClasses[nInfected].sModel);
 			AddModelToDownloadsTable(g_InfectedClasses[nInfected].sModel);
 		}
+		
+		if (g_InfectedClasses[nInfected].sSoundSpawn[0])
+			PrecacheSound2(g_InfectedClasses[nInfected].sSoundSpawn);
 	}
 }
 
@@ -210,6 +214,7 @@ void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), 
 			g_ClientClasses[iClient].iColor = g_InfectedClasses[g_nInfected[iClient]].iColor;
 			strcopy(g_ClientClasses[iClient].sMessage, sizeof(g_ClientClasses[].sMessage), g_InfectedClasses[g_nInfected[iClient]].sMessage);
 			strcopy(g_ClientClasses[iClient].sModel, sizeof(g_ClientClasses[].sModel), g_InfectedClasses[g_nInfected[iClient]].sModel);
+			strcopy(g_ClientClasses[iClient].sSoundSpawn, sizeof(g_ClientClasses[].sSoundSpawn), g_InfectedClasses[g_nInfected[iClient]].sSoundSpawn);
 		}
 	}
 }

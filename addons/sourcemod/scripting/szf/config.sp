@@ -450,6 +450,7 @@ ArrayList Config_LoadInfectedClasses()
 				kv.GetColor4("color", inf.iColor);
 				kv.GetString("message", inf.sMessage, sizeof(inf.sMessage));
 				kv.GetString("model", inf.sModel, sizeof(inf.sModel));
+				kv.GetString("sound_spawn", inf.sSoundSpawn, sizeof(inf.sSoundSpawn));
 				inf.iRageCooldown = kv.GetNum("ragecooldown", 0);
 				inf.callback_spawn = Config_GetFunction(kv, "callback_spawn");
 				inf.callback_rage = Config_GetFunction(kv, "callback_rage");
