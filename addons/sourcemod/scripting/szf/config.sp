@@ -22,7 +22,7 @@ void Config_Init()
 
 void Config_Refresh()
 {
-	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
+	KeyValues kv = Config_LoadFile(CONFIG_WEAPONS, "Weapons");
 	if (kv == null)
 		return;
 	
@@ -82,7 +82,7 @@ void Config_Refresh()
 
 ArrayList Config_LoadWeaponData()
 {
-	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
+	KeyValues kv = Config_LoadFile(CONFIG_WEAPONS, "Weapons");
 	if (kv == null)
 		return null;
 	
@@ -223,7 +223,7 @@ ArrayList Config_LoadWeaponData()
 
 StringMap Config_LoadWeaponReskinData()
 {
-	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
+	KeyValues kv = Config_LoadFile(CONFIG_WEAPONS, "Weapons");
 	if (kv == null)
 		return null;
 	
@@ -252,7 +252,7 @@ StringMap Config_LoadWeaponReskinData()
 
 ArrayList Config_LoadSurvivorClasses()
 {
-	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
+	KeyValues kv = Config_LoadFile(CONFIG_CLASSES, "Classes");
 	if (kv == null)
 		return null;
 	
@@ -305,7 +305,7 @@ ArrayList Config_LoadSurvivorClasses()
 
 ArrayList Config_LoadZombieClasses()
 {
-	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
+	KeyValues kv = Config_LoadFile(CONFIG_CLASSES, "Classes");
 	if (kv == null)
 		return null;
 	
@@ -384,7 +384,7 @@ ArrayList Config_LoadZombieClasses()
 
 ArrayList Config_LoadInfectedClasses()
 {
-	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
+	KeyValues kv = Config_LoadFile(CONFIG_CLASSES, "Classes");
 	if (kv == null)
 		return null;
 	
@@ -430,12 +430,15 @@ ArrayList Config_LoadInfectedClasses()
 					}
 				}
 				
-				kv.GetString("class", sBuffer2, sizeof(sBuffer2));
-				inf.iInfectedClass = TF2_GetClass(sBuffer2);
-				if (inf.iInfectedClass == TFClass_Unknown)
+				if (inf.nInfected != Infected_None)
 				{
-					LogError("Invalid special infected class '%s'.", sBuffer);
-					inf.iInfectedClass = TFClass_Heavy;
+					kv.GetString("class", sBuffer2, sizeof(sBuffer2));
+					inf.iInfectedClass = TF2_GetClass(sBuffer2);
+					if (inf.iInfectedClass == TFClass_Unknown)
+					{
+						LogError("Invalid special infected class '%s'.", sBuffer);
+						inf.iInfectedClass = TFClass_Heavy;
+					}
 				}
 				
 				inf.bEnabled = !!kv.GetNum("enable", true);
@@ -447,6 +450,12 @@ ArrayList Config_LoadInfectedClasses()
 				kv.GetColor4("color", inf.iColor);
 				kv.GetString("message", inf.sMessage, sizeof(inf.sMessage));
 				kv.GetString("model", inf.sModel, sizeof(inf.sModel));
+				inf.iRageCooldown = kv.GetNum("ragecooldown", 0);
+				inf.callback_spawn = Config_GetFunction(kv, "callback_spawn");
+				inf.callback_rage = Config_GetFunction(kv, "callback_rage");
+				inf.callback_think = Config_GetFunction(kv, "callback_think");
+				inf.callback_death = Config_GetFunction(kv, "callback_death");
+				
 				inf.aWeapons = new ArrayList(sizeof(WeaponClasses));
 				
 				if (kv.GotoFirstSubKey(false))	//Find weapons
@@ -482,7 +491,7 @@ ArrayList Config_LoadInfectedClasses()
 
 StringMap Config_LoadReskins()
 {
-	KeyValues kv = LoadFile(CONFIG_RESKINS, "Reskins");
+	KeyValues kv = Config_LoadFile(CONFIG_RESKINS, "Reskins");
 	if (kv == null)
 		return null;
 	
@@ -511,7 +520,7 @@ StringMap Config_LoadReskins()
 	return mReskins;
 }
 
-KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)
+KeyValues Config_LoadFile(const char[] sConfigFile, const char [] sConfigSection)
 {
 	char sConfigPath[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, sConfigPath, sizeof(sConfigPath), sConfigFile);
@@ -532,4 +541,18 @@ KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)
 	}
 	
 	return kv;
+}
+
+Function Config_GetFunction(KeyValues kv, const char[] sKey)
+{
+	char sBuffer[64];
+	kv.GetString(sKey, sBuffer, sizeof(sBuffer));
+	if (!sBuffer[0])
+		return INVALID_FUNCTION;
+	
+	Function func = GetFunctionByName(null, sBuffer);
+	if (func == INVALID_FUNCTION)
+		LogError("Unable to find function '%s' in config", sBuffer);
+	
+	return func;
 }

@@ -116,6 +116,11 @@ enum struct ClientClasses
 	int iColor[4];
 	char sMessage[256];
 	char sModel[PLATFORM_MAX_PATH];
+	int iRageCooldown;
+	Function callback_spawn;
+	Function callback_rage;
+	Function callback_think;
+	Function callback_death;
 	
 	bool GetWeapon(int &iPos, WeaponClasses weapon)
 	{
@@ -148,6 +153,7 @@ Cookie g_cForceZombieStart;
 bool g_bEnabled;
 bool g_bLateLoad;
 bool g_bNewRound;
+bool g_bFirstRound = true;
 bool g_bLastSurvivor;
 bool g_bTF2Items;
 bool g_bSkipGiveNamedItemHook;
@@ -163,7 +169,6 @@ int g_iMorale[TF_MAXPLAYERS];
 int g_iHorde[TF_MAXPLAYERS];
 int g_iCapturingPoint[TF_MAXPLAYERS];
 int g_iRageTimer[TF_MAXPLAYERS];
-bool g_iScreamerNearby[TF_MAXPLAYERS];
 
 bool g_bStartedAsZombie[TF_MAXPLAYERS];
 float g_flStopChatSpam[TF_MAXPLAYERS];
@@ -200,10 +205,7 @@ int g_iDamageTakenLife[TF_MAXPLAYERS];
 int g_iDamageDealtLife[TF_MAXPLAYERS];
 
 float g_flDamageDealtAgainstTank[TF_MAXPLAYERS];
-float g_flTankLifetime[TF_MAXPLAYERS];
 bool g_bTankRefreshed;
-
-bool g_bFirstRound = true;
 
 int g_iControlPointsInfo[20][2];
 int g_iControlPoints;
@@ -223,17 +225,12 @@ int g_iStartSurvivors;
 bool g_bZombieRage;
 int g_iZombieTank;
 bool g_bZombieRageAllowRespawn;
-bool g_bHitOnce[TF_MAXPLAYERS];
-bool g_bHopperIsUsingPounce[TF_MAXPLAYERS];
 
 bool g_bSpawnAsSpecialInfected[TF_MAXPLAYERS];
 int g_iKillsThisLife[TF_MAXPLAYERS];
 int g_iMaxHealth[TF_MAXPLAYERS];
-int g_iSuperHealthSubtract[TF_MAXPLAYERS];
 bool g_bShouldBacteriaPlay[TF_MAXPLAYERS] = true;
 bool g_bReplaceRageWithSpecialInfectedSpawn[TF_MAXPLAYERS];
-int g_iSmokerBeamHits[TF_MAXPLAYERS];
-int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
 float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
 
@@ -354,8 +351,6 @@ public void OnPluginStart()
 	Event_Init();
 	Weapons_Init();
 	
-	Config_Refresh();
-		
 	//Incase of late-load
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		if (IsClientInGame(iClient))
@@ -623,8 +618,6 @@ public Action Timer_Main(Handle hTimer) //1 second
 			//Alive infected
 			if (IsValidLivingZombie(iClient))
 			{
-				Infected_TimerMin(iClient);
-				
 				//If no special select cooldown is active and less than 2 people have been selected for the respawn into special infected
 				//AND
 				//damage scale is 120% and a dice roll is hit OR the damage scale is 160%
@@ -794,9 +787,6 @@ public void OnGameFrame()
 	int iCount = GetSurvivorCount();
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (IsValidLivingZombie(iClient))
-			Infected_GameFrame(iClient);
-		
 		if (g_nRoundState == SZFRoundState_Active)
 		{
 			//Last man gets minicrit boost if 6 players ingame
@@ -976,8 +966,12 @@ void Handle_ZombieAbilities()
 				
 				//Handle additional regeneration
 				iHealth += 1 * g_iHorde[iClient]; //Horde bonus
-				if (g_bZombieRage) iHealth += 3; //Zombie rage
-				if (g_iScreamerNearby[iClient]) iHealth += 2; //Kingpin
+				
+				if (g_bZombieRage)
+					iHealth += 3; //Zombie rage
+				
+				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
+					iHealth += 2; //Kingpin
 				
 				iHealth = min(iHealth, iMaxHealth);
 				SetEntityHealth(iClient, iHealth);
@@ -1158,7 +1152,6 @@ void ResetClientState(int iClient)
 	g_iMorale[iClient] = 0;
 	g_iHorde[iClient] = 0;
 	g_iCapturingPoint[iClient] = -1;
-	g_iScreamerNearby[iClient] = false;
 	g_iRageTimer[iClient] = 0;
 }
 
@@ -2267,7 +2260,15 @@ public Action Timer_DisplayTutorialMessage(Handle hTimer, DataPack data)
 public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fVelocity[3], float fAngles[3], int &iWeapon)
 {
 	if (IsValidLivingZombie(iClient))
-		Infected_PlayerRunCmd(iClient, iButtons);
+	{
+		if (g_ClientClasses[iClient].callback_think != INVALID_FUNCTION)
+		{
+			Call_StartFunction(null, g_ClientClasses[iClient].callback_think);
+			Call_PushCell(iClient);
+			Call_PushCellRef(iButtons);
+			Call_Finish();
+		}
+	}
 	
 	//If an item was succesfully grabbed
 	if ((iButtons & IN_ATTACK || iButtons & IN_ATTACK2) && AttemptGrabItem(iClient))

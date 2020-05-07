@@ -63,9 +63,6 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		return;
 	}
 	
-	g_iSuperHealthSubtract[iClient] = 0;
-	g_bHitOnce[iClient] = false;
-	g_bHopperIsUsingPounce[iClient] = false;
 	g_bBackstabbed[iClient] = false;
 	g_iKillsThisLife[iClient] = 0;
 	g_iDamageTakenLife[iClient] = 0;
@@ -181,72 +178,11 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 	
 	if (g_nRoundState == SZFRoundState_Active)
 	{
-		if (g_nInfected[iClient] == Infected_Tank)
+		if (g_ClientClasses[iClient].callback_spawn != INVALID_FUNCTION)
 		{
-			//TAAAAANK
-			g_flTankLifetime[iClient] = GetGameTime();
-			
-			int iSurvivors = GetSurvivorCount();
-			int iHealth = g_cvTankHealth.IntValue * iSurvivors;
-			
-			if (iHealth < g_cvTankHealthMin.IntValue)
-				iHealth = g_cvTankHealthMin.IntValue;
-			
-			if (iHealth > g_cvTankHealthMax.IntValue)
-				iHealth = g_cvTankHealthMax.IntValue;
-			
-			g_iMaxHealth[iClient] = iHealth;
-			SetEntityHealth(iClient, iHealth);
-			
-			int iSubtract = 0;
-			if (g_cvTankTime.FloatValue > 0.0)
-			{
-				iSubtract = RoundFloat(float(iHealth) / g_cvTankTime.FloatValue);
-				if (iSubtract < 3)
-					iSubtract = 3;
-			}
-			
-			g_iSuperHealthSubtract[iClient] = iSubtract;
-			TF2_AddCondition(iClient, TFCond_Kritzkrieged, TFCondDuration_Infinite);
-			
-			EmitSoundToAll(g_sVoZombieTankOnFire[GetRandomInt(0, sizeof(g_sVoZombieTankOnFire)-1)]);
-			
-			for (int i = 1; i <= MaxClients; i++)
-			{
-				if (IsValidClient(i))
-				{
-					if (GetCookie(i, g_cFirstTimeSurvivor) < 2)
-					{
-						DataPack data;
-						CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
-						data.WriteCell(i);
-						data.WriteFloat(4.0);
-						data.WriteString("Do not let the Tank get close to you, his attacks are very lethal.");
-						
-						CreateDataTimer(4.5, Timer_DisplayTutorialMessage, data);
-						data.WriteCell(i);
-						data.WriteFloat(4.0);
-						data.WriteString("Run and shoot the Tank, it will slow the Tank down and kill it.");
-						
-						SetCookie(i, 2, g_cFirstTimeSurvivor);
-					}
-					
-					SetVariantString("IsMvMDefender:1");
-					AcceptEntityInput(i, "AddContext");
-					SetVariantString("TLK_MVM_TANK_CALLOUT");
-					AcceptEntityInput(i, "SpeakResponseConcept");
-					AcceptEntityInput(i, "ClearContext");
-					
-					CPrintToChat(i, "{red}Incoming TAAAAANK!");
-					
-					if (GetCurrentSound(i) != SoundMusic_LastStand || !IsMusicOverrideOn()) //lms current sound check seems not to work, may need to check it later
-						PlaySound(i, SoundMusic_Tank);	
-				}
-				
-				g_flDamageDealtAgainstTank[i] = 0.0;
-			}
-			
-			Forward_OnTankSpawn(iClient);
+			Call_StartFunction(null, g_ClientClasses[iClient].callback_spawn);
+			Call_PushCell(iClient);
+			Call_Finish();
 		}
 		
 		if (g_nInfected[iClient] != Infected_None)
@@ -324,58 +260,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		event.SetInt("weaponid", TF_WEAPON_FISTS);
 	}
 	
-	if (g_nInfected[iVictim] == Infected_Tank)
-	{
-		g_iDamageZombie[iVictim] = 0;
-		
-		int iWinner = 0;
-		float flHighest = 0.0;
-		
-		for (int i = 0; i < sizeof(iKillers); i++)
-		{
-			SetVariantString("TLK_MVM_TANK_DEAD");
-			AcceptEntityInput(iKillers[i], "SpeakResponseConcept");
-		}
-		
-		EmitSoundToAll(g_sVoZombieTankDeath[GetRandomInt(0, sizeof(g_sVoZombieTankDeath)-1)]);
-		
-		for (int i = 1; i <= MaxClients; i++)
-		{
-			//If current music is tank, end it
-			if (GetCurrentSound(i) == SoundMusic_Tank)
-				EndSound(i);
-			
-			if (IsValidLivingSurvivor(i))
-			{
-				if (flHighest < g_flDamageDealtAgainstTank[i])
-				{
-					flHighest = g_flDamageDealtAgainstTank[i];
-					iWinner = i;
-				}
-				
-				AddMorale(i, 20);
-			}
-		}
-		
-		if (flHighest > 0.0)
-		{
-			SetHudTextParams(-1.0, 0.3, 8.0, 200, 255, 200, 128, 1);
-			
-			for (int i = 1; i <= MaxClients; i++)
-				if (IsValidClient(i))
-					ShowHudText(i, 5, "The Tank '%N' has died\nMost damage: %N (%d)", iVictim, iWinner, RoundFloat(flHighest));
-		}
-		
-		if (g_iDamageDealtLife[iVictim] <= 50 && g_iDamageTakenLife[iVictim] <= 150 && !g_bTankRefreshed)
-		{
-			g_bTankRefreshed = true;
-			Classes_SetClient(iVictim, Infected_None);
-			ZombieTank();
-		}
-		
-		Forward_OnTankDeath(iVictim, iWinner, RoundFloat(flHighest));
-	}
-	
 	g_iMaxHealth[iVictim] = -1;
 	g_bShouldBacteriaPlay[iVictim] = true;
 	g_bReplaceRageWithSpecialInfectedSpawn[iVictim] = false;
@@ -385,7 +269,15 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	//Handle zombie death logic, all round states.
 	if (IsValidZombie(iVictim))
 	{
-		Infected_PlayerDeath(iVictim);
+		if (g_ClientClasses[iVictim].callback_death != INVALID_FUNCTION)
+		{
+			Call_StartFunction(null, g_ClientClasses[iVictim].callback_death);
+			Call_PushCell(iVictim);
+			Call_PushCell(iKillers[0]);
+			Call_PushCell(iKillers[1]);
+			Call_Finish();
+		}
+		
 		Classes_SetClient(iVictim, Infected_None);
 		
 		//10%

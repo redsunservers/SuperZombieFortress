@@ -48,7 +48,7 @@ public void Client_OnPreThinkPost(int iClient)
 	if (!g_bEnabled)
 		return;
 	
-	if (IsValidLivingClient(iClient))
+	if (IsPlayerAlive(iClient))
 	{
 		//Handle speed bonuses.
 		if ((!TF2_IsPlayerInCondition(iClient, TFCond_Slowed) && !TF2_IsPlayerInCondition(iClient, TFCond_Dazed)) || g_bBackstabbed[iClient])
@@ -141,13 +141,6 @@ public void Client_OnPreThinkPost(int iClient)
 			
 			SetClientSpeed(iClient, flSpeed);
 		}
-		
-		//Handle hunter-specific logic.
-		if (IsZombie(iClient) && g_nInfected[iClient] == Infected_Hunter && g_bHopperIsUsingPounce[iClient])
-		{
-			if (GetEntityFlags(iClient) & FL_ONGROUND == FL_ONGROUND)
-				g_bHopperIsUsingPounce[iClient] = false;
-		}
 	}
 	
 	UpdateClientCarrying(iClient);
@@ -164,9 +157,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	bool bChanged = false;
 	if (IsValidClient(iVictim) && IsValidClient(iAttacker))
 	{
-		g_bHitOnce[iVictim] = true;
-		g_bHitOnce[iAttacker] = true;
-		
 		if (GetClientTeam(iVictim) != GetClientTeam(iAttacker))
 			EndGracePeriod();
 	}
