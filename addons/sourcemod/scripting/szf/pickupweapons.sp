@@ -268,9 +268,9 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	
 	switch (wep.nRarity)
 	{
-		case WeaponRarity_Common: SetVariantString("MP_CONCEPT_MVM_LOOT_COMMON");
-		case WeaponRarity_Uncommon: SetVariantString("MP_CONCEPT_MVM_LOOT_RARE");
-		case WeaponRarity_Rare: SetVariantString("MP_CONCEPT_MVM_LOOT_ULTRARARE");
+		case WeaponRarity_Common: SetVariantString("TLK_MVM_LOOT_COMMON");
+		case WeaponRarity_Uncommon: SetVariantString("TLK_MVM_LOOT_RARE");
+		case WeaponRarity_Rare: SetVariantString("TLK_MVM_LOOT_ULTRARARE");
 	}
 	
 	AcceptEntityInput(iClient, "SpeakResponseConcept");

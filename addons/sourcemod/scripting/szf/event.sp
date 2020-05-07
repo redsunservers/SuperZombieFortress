@@ -227,7 +227,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 						SetCookie(i, 2, g_cFirstTimeSurvivor);
 					}
 					
-					SetVariantString("MP_CONCEPT_MVM_TANK_CALLOUT");
+					SetVariantString("TLK_MVM_TANK_CALLOUT");
 					AcceptEntityInput(i, "SpeakResponseConcept");
 					
 					CPrintToChat(i, "{red}Incoming TAAAAANK!");
@@ -342,7 +342,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		
 		for (int i = 0; i < sizeof(iKillers); i++)
 		{
-			SetVariantString("MP_CONCEPT_MVM_TANK_DEAD");
+			SetVariantString("TLK_MVM_TANK_DEAD");
 			AcceptEntityInput(iKillers[i], "SpeakResponseConcept");
 		}
 		

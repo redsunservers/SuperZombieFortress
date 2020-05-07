@@ -306,7 +306,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 					//"SHOOT THAT TANK" voice call
 					if (g_flDamageDealtAgainstTank[iAttacker] == 0)
 					{
-						SetVariantString("MP_CONCEPT_MVM_ATTACK_THE_TANK");
+						SetVariantString("TLK_MVM_ATTACK_THE_TANK");
 						AcceptEntityInput(iAttacker, "SpeakResponseConcept");
 					}
 					
