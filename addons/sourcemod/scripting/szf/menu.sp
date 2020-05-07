@@ -247,6 +247,8 @@ public void Menu_PrintSurInfo(int iClient, TFClassType nClass)
 	panel.SetTitle(sClass);
 	panel.DrawText("-------------------------------------------");
 	
+	//TODO move all of this to config
+	/*
 	//If they can gain/lose ammo on kill
 	if (GetSurvivorAmmo(nClass))
 	{
@@ -260,6 +262,7 @@ public void Menu_PrintSurInfo(int iClient, TFClassType nClass)
 		Format(sClass, sizeof(sClass), "Movement speed %s to %d (from %d).", GetSurvivorSpeed(nClass) > TF2_GetClassSpeed(nClass) ? "increased" : "lowered", RoundFloat(GetSurvivorSpeed(nClass)), TF2_GetClassSpeed(nClass));
 		panel.DrawText(sClass);
 	}
+	*/
 	
 	switch (nClass)
 	{
@@ -310,13 +313,15 @@ public void Menu_PrintZomInfo(int iClient, TFClassType nClass)
 	panel.SetTitle(sClass);
 	panel.DrawText("-------------------------------------------");
 	
+	//TODO move all of this to config
+	/*
 	//If their speed has been modified
 	if (GetZombieSpeed(nClass) != TF2_GetClassSpeed(nClass))
 	{
 		Format(sClass, sizeof(sClass), "Movement speed %s to %d (from %d).", GetZombieSpeed(nClass) > TF2_GetClassSpeed(nClass) ? "increased" : "lowered", RoundFloat(GetZombieSpeed(nClass)), TF2_GetClassSpeed(nClass));
 		panel.DrawText(sClass);
 	}
-	
+	*/
 	switch (nClass)
 	{
 		case TFClass_Scout:

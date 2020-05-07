@@ -625,6 +625,8 @@ stock void SpawnClient(int iClient, TFTeam nTeam, bool bRespawn = true)
 		TF2_ChangeClientTeam(iClient, nTeam);
 		SetEntProp(iClient, Prop_Send, "m_lifeState", 0);
 		
+		Classes_SetClient(iClient);
+		
 		if (bRespawn)
 			TF2_RespawnPlayer(iClient);
 	}
@@ -640,6 +642,8 @@ stock void TF2_RespawnPlayer2(int iClient)
 		
 	if (nTeam == TFTeam_Survivor && !IsValidSurvivorClass(nClass))
 		TF2_SetPlayerClass(iClient, GetRandomSurvivorClass());
+	
+	Classes_SetClient(iClient);
 	
 	TF2_RespawnPlayer(iClient);
 }

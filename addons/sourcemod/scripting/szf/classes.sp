@@ -1,13 +1,6 @@
-enum struct WeaponClasses
-{
-	int iIndex;
-	char sClassname[256];
-	char sAttribs[256];
-}
-
 enum struct SurvivorClasses
 {
-	TFClassType nClass;
+	TFClassType iClass;
 	bool bEnabled;
 	float flSpeed;
 	int iRegen;
@@ -16,7 +9,7 @@ enum struct SurvivorClasses
 
 enum struct ZombieClasses
 {
-	TFClassType nClass;
+	TFClassType iClass;
 	bool bEnabled;
 	int iHealth;
 	float flSpeed;
@@ -32,7 +25,7 @@ enum struct ZombieClasses
 enum struct InfectedClasses
 {
 	Infected nInfected;
-	TFClassType nClass;
+	TFClassType iInfectedClass;
 	bool bEnabled;
 	int iHealth;
 	float flSpeed;
@@ -40,106 +33,79 @@ enum struct InfectedClasses
 	int iRegen;
 	int iDegen;
 	int iColor[4];
-	char sMsg[256];
+	char sMessage[256];
 	char sModel[PLATFORM_MAX_PATH];
 	ArrayList aWeapons;
 }
 
-TFClassType[view_as<int>(TFClassType)] g_nSurvivorClass;
-TFClassType[view_as<int>(TFClassType)] g_nZombieClass;
-Infected[view_as<int>(Infected)] g_nInfectedClass;
+static TFClassType g_nSurvivorClass[view_as<int>(TFClassType)];
+static TFClassType g_nZombieClass[view_as<int>(TFClassType)];
+static Infected g_nInfectedClass[view_as<int>(Infected)];
 
-int g_iSurvivorClassCount;
-int g_iZombieClassCount;
-int g_iInfectedClassCount;
+static int g_iSurvivorClassCount;
+static int g_iZombieClassCount;
+static int g_iInfectedClassCount;
 
 static SurvivorClasses g_SurvivorClasses[view_as<int>(TFClassType)];
 static ZombieClasses g_ZombieClasses[view_as<int>(TFClassType)];
 static InfectedClasses g_InfectedClasses[view_as<int>(Infected)];
 
-static ArrayList g_aSurvivorClasses;
-static ArrayList g_aZombieClasses;
-static ArrayList g_aInfectedClasses;
-
 void Classes_Refresh()
 {
-	delete g_aSurvivorClasses;
-	
 	//Load survivor config
-	g_aSurvivorClasses = Config_LoadSurvivorClasses();
+	ArrayList aSurvivorClasses = Config_LoadSurvivorClasses();
 	
 	g_iSurvivorClassCount = 0;
-	int iLength = g_aSurvivorClasses.Length;
+	int iLength = aSurvivorClasses.Length;
 	for (int i = 0; i < iLength; i++)
 	{
 		SurvivorClasses sur;
-		g_aSurvivorClasses.GetArray(i, sur);
+		aSurvivorClasses.GetArray(i, sur);
 		
 		if (sur.bEnabled)
 		{
-			g_nSurvivorClass[g_iSurvivorClassCount] = sur.nClass;
+			g_nSurvivorClass[g_iSurvivorClassCount] = sur.iClass;
 			g_iSurvivorClassCount++;
 		}
 		
-		g_SurvivorClasses[sur.nClass] = sur;
+		g_SurvivorClasses[sur.iClass] = sur;
 	}
 	
-	//Delete zombie handles
-	if (g_aZombieClasses)
-	{
-		iLength = g_aZombieClasses.Length;
-		for (int i = 0; i < iLength; i++)
-		{
-			ZombieClasses zom;
-			g_aZombieClasses.GetArray(i, zom);
-			delete zom.aWeapons;
-		}
-		
-		delete g_aZombieClasses;
-	}
+	delete aSurvivorClasses;
 	
 	//Load zombie config
-	g_aZombieClasses = Config_LoadZombieClasses();
+	ArrayList aZombieClasses = Config_LoadZombieClasses();
 	
-	iLength = g_aZombieClasses.Length;
 	g_iZombieClassCount = 0;
+	iLength = aZombieClasses.Length;
 	for (int i = 0; i < iLength; i++)
 	{
 		ZombieClasses zom;
-		g_aZombieClasses.GetArray(i, zom);
+		aZombieClasses.GetArray(i, zom);
 		
 		if (zom.bEnabled)
 		{
-			g_nZombieClass[g_iZombieClassCount] = zom.nClass;
+			g_nZombieClass[g_iZombieClassCount] = zom.iClass;
 			g_iZombieClassCount++;
 		}
 		
-		g_ZombieClasses[zom.nClass] = zom;
+		//Delete handles
+		delete g_ZombieClasses[zom.iClass].aWeapons;
+		
+		g_ZombieClasses[zom.iClass] = zom;
 	}
 	
-	//Delete infected handles
-	if (g_aInfectedClasses)
-	{
-		iLength = g_aInfectedClasses.Length;
-		for (int i = 0; i < iLength; i++)
-		{
-			InfectedClasses inf;
-			g_aInfectedClasses.GetArray(i, inf);
-			delete inf.aWeapons;
-		}
-		
-		delete g_aInfectedClasses;
-	}
+	delete aZombieClasses;
 	
 	//Load infected config
-	g_aInfectedClasses = Config_LoadInfectedClasses();
+	ArrayList aInfectedClasses = Config_LoadInfectedClasses();
 	
-	iLength = g_aInfectedClasses.Length;
 	g_iInfectedClassCount = 0;
+	iLength = aInfectedClasses.Length;
 	for (int i = 0; i < iLength; i++)
 	{
 		InfectedClasses inf;
-		g_aInfectedClasses.GetArray(i, inf);
+		aInfectedClasses.GetArray(i, inf);
 		
 		if (inf.bEnabled)
 		{
@@ -147,8 +113,13 @@ void Classes_Refresh()
 			g_iInfectedClassCount++;
 		}
 		
+		//Delete handles
+		delete g_InfectedClasses[inf.nInfected].aWeapons;
+		
 		g_InfectedClasses[inf.nInfected] = inf;
 	}
+	
+	delete aInfectedClasses;
 	
 	Classes_Precache();
 }
@@ -165,28 +136,65 @@ void Classes_Precache()
 	}
 }
 
-stock float GetClientBaseSpeed(int iClient)
+void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), TFClassType iClass = TFClass_Unknown)
 {
-	if (IsValidZombie(iClient))
+	ClientClasses nothing;
+	g_ClientClasses[iClient] = nothing;
+	
+	if (nInfected != view_as<Infected>(-1))
+		g_nInfected[iClient] = nInfected;
+	
+	if (g_nInfected[iClient] != Infected_None)
+		iClass = GetInfectedClass(g_nInfected[iClient]);
+	else if (iClass == TFClass_Unknown)
+		iClass = TF2_GetPlayerClass(iClient);
+	
+	if (IsSurvivor(iClient))
 	{
-		if (g_nInfected[iClient] != Infected_None)
-			return g_InfectedClasses[g_nInfected[iClient]].flSpeed;
-
-		return g_ZombieClasses[TF2_GetPlayerClass(iClient)].flSpeed;
+		//Survivor classes
+		g_ClientClasses[iClient].flSpeed = g_SurvivorClasses[iClass].flSpeed;
+		g_ClientClasses[iClient].iRegen = g_SurvivorClasses[iClass].iRegen;
+		g_ClientClasses[iClient].iAmmo = g_SurvivorClasses[iClass].iAmmo;
 	}
-
-	return g_SurvivorClasses[TF2_GetPlayerClass(iClient)].flSpeed;
+	else if (IsZombie(iClient))
+	{
+		//Zombie classes, special infected unaffected
+		g_ClientClasses[iClient].flSpree = g_ZombieClasses[iClass].flSpree;
+		g_ClientClasses[iClient].flHorde = g_ZombieClasses[iClass].flHorde;
+		g_ClientClasses[iClient].flMaxSpree = g_ZombieClasses[iClass].flMaxSpree;
+		g_ClientClasses[iClient].flMaxHorde = g_ZombieClasses[iClass].flMaxHorde;
+		
+		if (g_nInfected[iClient] == Infected_None)
+		{
+			//Zombie classes
+			g_ClientClasses[iClient].flSpeed = g_ZombieClasses[iClass].flSpeed;
+			g_ClientClasses[iClient].iRegen = g_ZombieClasses[iClass].iRegen;
+			g_ClientClasses[iClient].iHealth = g_ZombieClasses[iClass].iHealth;
+			g_ClientClasses[iClient].iDegen = g_ZombieClasses[iClass].iDegen;
+			g_ClientClasses[iClient].aWeapons = g_ZombieClasses[iClass].aWeapons;
+		}
+		else
+		{
+			//Infected classes
+			g_ClientClasses[iClient].flSpeed = g_InfectedClasses[g_nInfected[iClient]].flSpeed;
+			g_ClientClasses[iClient].iRegen = g_InfectedClasses[g_nInfected[iClient]].iRegen;
+			g_ClientClasses[iClient].iHealth = g_InfectedClasses[g_nInfected[iClient]].iHealth;
+			g_ClientClasses[iClient].iDegen = g_InfectedClasses[g_nInfected[iClient]].iDegen;
+			g_ClientClasses[iClient].aWeapons = g_InfectedClasses[g_nInfected[iClient]].aWeapons;
+			
+			//Infected classes, zombies don't get one
+			g_ClientClasses[iClient].iInfectedClass = g_InfectedClasses[g_nInfected[iClient]].iInfectedClass;
+			g_ClientClasses[iClient].bGlow = g_InfectedClasses[g_nInfected[iClient]].bGlow;
+			g_ClientClasses[iClient].iColor = g_InfectedClasses[g_nInfected[iClient]].iColor;
+			strcopy(g_ClientClasses[iClient].sMessage, sizeof(g_ClientClasses[].sMessage), g_InfectedClasses[g_nInfected[iClient]].sMessage);
+			strcopy(g_ClientClasses[iClient].sModel, sizeof(g_ClientClasses[].sModel), g_InfectedClasses[g_nInfected[iClient]].sModel);
+		}
+	}
 }
 
-////////////////////////////////////////////////////////////
-//
-// Survivor Variables
-//
-////////////////////////////////////////////////////////////
-
-stock bool IsValidSurvivorClass(TFClassType nClass)
+stock bool IsValidSurvivorClass(TFClassType iClass)
 {
-	return g_SurvivorClasses[nClass].bEnabled;
+	return g_SurvivorClasses[iClass].bEnabled;
 }
 
 stock TFClassType GetRandomSurvivorClass()
@@ -199,30 +207,9 @@ stock int GetSurvivorClassCount()
 	return g_iSurvivorClassCount;
 }
 
-stock float GetSurvivorSpeed(TFClassType nClass)
+stock bool IsValidZombieClass(TFClassType iClass)
 {
-	return g_SurvivorClasses[nClass].flSpeed;
-}
-
-stock int GetSurvivorRegen(TFClassType nClass)
-{
-	return g_SurvivorClasses[nClass].iRegen;
-}
-
-stock int GetSurvivorAmmo(TFClassType nClass)
-{
-	return g_SurvivorClasses[nClass].iAmmo;
-}
-
-////////////////////////////////////////////////////////////
-//
-// Zombie Variables
-//
-////////////////////////////////////////////////////////////
-
-stock bool IsValidZombieClass(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].bEnabled;
+	return g_ZombieClasses[iClass].bEnabled;
 }
 
 stock TFClassType GetRandomZombieClass()
@@ -234,63 +221,6 @@ stock int GetZombieClassCount()
 {
 	return g_iZombieClassCount;
 }
-
-stock int GetZombieHealth(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].iHealth;
-}
-
-stock float GetZombieSpeed(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].flSpeed;
-}
-
-stock int GetZombieRegen(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].iRegen;
-}
-
-stock int GetZombieDegen(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].iDegen;
-}
-
-stock float GetZombieSpree(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].flSpree;
-}
-
-stock float GetZombieHorde(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].flHorde;
-}
-
-stock float GetZombieMaxSpree(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].flMaxSpree;
-}
-
-stock float GetZombieMaxHorde(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].flMaxHorde;
-}
-
-stock bool GetZombieWeapon(TFClassType nClass, int &iPos, WeaponClasses weapon)
-{
-	if (!g_ZombieClasses[nClass].aWeapons || iPos < 0 || iPos >= g_ZombieClasses[nClass].aWeapons.Length)
-		return false;
-	
-	g_ZombieClasses[nClass].aWeapons.GetArray(iPos, weapon);
-	
-	iPos++;
-	return true;
-}
-
-////////////////////////////////////////////////////////////
-//
-// Special Infected Variables
-//
-////////////////////////////////////////////////////////////
 
 stock bool IsValidInfected(Infected nInfected)
 {
@@ -309,64 +239,5 @@ stock int GetInfectedCount()
 
 stock TFClassType GetInfectedClass(Infected nInfected)
 {
-	return g_InfectedClasses[nInfected].nClass;
-}
-
-stock int GetInfectedHealth(Infected nInfected)
-{
-	return g_InfectedClasses[nInfected].iHealth;
-}
-
-stock float GetInfectedSpeed(Infected nInfected)
-{
-	return g_InfectedClasses[nInfected].flSpeed;
-}
-
-stock bool GetInfectedGlow(Infected nInfected)
-{
-	return g_InfectedClasses[nInfected].bGlow;
-}
-
-stock int GetInfectedRegen(Infected nInfected)
-{
-	return g_InfectedClasses[nInfected].iRegen;
-}
-
-stock int GetInfectedDegen(Infected nInfected)
-{
-	return g_InfectedClasses[nInfected].iDegen;
-}
-
-stock int GetInfectedColor(int iValue, Infected nInfected)
-{
-	return g_InfectedClasses[nInfected].iColor[iValue];
-}
-
-stock bool GetInfectedMessage(char[] sBuffer, int iLength, Infected nInfected)
-{
-	if (g_InfectedClasses[nInfected].sMsg[0] == '\0')
-		return false;
-	
-	strcopy(sBuffer, iLength, g_InfectedClasses[nInfected].sMsg);
-	return true;
-}
-
-stock bool GetInfectedModel(Infected nInfected, char[] sBuffer, int iLength)
-{
-	if (g_InfectedClasses[nInfected].sModel[0] == '\0')
-		return false;
-	
-	strcopy(sBuffer, iLength, g_InfectedClasses[nInfected].sModel);
-	return true;
-}
-
-stock bool GetInfectedWeapon(Infected nInfected, int &iPos, WeaponClasses weapon)
-{
-	if (!g_InfectedClasses[nInfected].aWeapons || iPos < 0 || iPos >= g_InfectedClasses[nInfected].aWeapons.Length)
-		return false;
-	
-	g_InfectedClasses[nInfected].aWeapons.GetArray(iPos, weapon);
-	
-	iPos++;
-	return true;
+	return g_InfectedClasses[nInfected].iInfectedClass;
 }

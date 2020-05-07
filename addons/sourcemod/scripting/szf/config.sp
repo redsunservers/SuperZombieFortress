@@ -128,9 +128,9 @@ ArrayList Config_LoadWeaponData()
 				{
 					//Skip weapon if weapon is not for any class enabled
 					bool bFound = false;
-					for (TFClassType nClass = TFClass_Scout; nClass <= TFClass_Engineer; nClass++)
+					for (TFClassType iClass = TFClass_Scout; iClass <= TFClass_Engineer; iClass++)
 					{
-						if (IsValidSurvivorClass(nClass) && TF2Econ_GetItemSlot(wep.iIndex, nClass) >= 0)
+						if (IsValidSurvivorClass(iClass) && TF2Econ_GetItemSlot(wep.iIndex, iClass) >= 0)
 						{
 							bFound = true;
 							break;
@@ -168,13 +168,13 @@ ArrayList Config_LoadWeaponData()
 					{
 						kv.GetSectionName(sClassName, sizeof(sClassName));
 						
-						TFClassType nClass = TF2_GetClass(sClassName);
+						TFClassType iClass = TF2_GetClass(sClassName);
 						
 						char sClassAttribs[256];
 						kv.GetString("attrib", sClassAttribs, sizeof(sClassAttribs));
 						
-						wep.aClassSpecific[nClass] = new ArrayList(256);
-						wep.aClassSpecific[nClass].PushString(sClassAttribs);
+						wep.aClassSpecific[iClass] = new ArrayList(256);
+						wep.aClassSpecific[iClass].PushString(sClassAttribs);
 						
 					}
 					while(kv.GotoNextKey(false));
@@ -270,8 +270,8 @@ ArrayList Config_LoadSurvivorClasses()
 				char sBuffer[256];
 				kv.GetSectionName(sBuffer, sizeof(sBuffer));
 				
-				sur.nClass = TF2_GetClass(sBuffer);
-				if (sur.nClass == TFClass_Unknown)
+				sur.iClass = TF2_GetClass(sBuffer);
+				if (sur.iClass == TFClass_Unknown)
 					LogError("Invalid survivor class '%s'.", sBuffer);
 				
 				//Check if the class is already defined
@@ -280,15 +280,15 @@ ArrayList Config_LoadSurvivorClasses()
 				{
 					aClasses.GetArray(i, duplicate);
 					
-					if (sur.nClass == duplicate.nClass)
+					if (sur.iClass == duplicate.iClass)
 					{
-						LogError("Survivor class '%s' is already defined.", sur.nClass);
+						LogError("Survivor class '%s' is already defined.", sur.iClass);
 						break;
 					}
 				}
 				
 				sur.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
-				sur.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(sur.nClass));
+				sur.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(sur.iClass));
 				sur.iRegen = kv.GetNum("regen", 2);
 				sur.iAmmo = kv.GetNum("ammo");
 				
@@ -323,8 +323,8 @@ ArrayList Config_LoadZombieClasses()
 				char sBuffer[256];
 				kv.GetSectionName(sBuffer, sizeof(sBuffer));
 				
-				zom.nClass = TF2_GetClass(sBuffer);
-				if (zom.nClass == TFClass_Unknown)
+				zom.iClass = TF2_GetClass(sBuffer);
+				if (zom.iClass == TFClass_Unknown)
 					LogError("Invalid zombie class '%s'.", sBuffer);
 				
 				//Check if the class is already defined
@@ -333,16 +333,16 @@ ArrayList Config_LoadZombieClasses()
 				{
 					aClasses.GetArray(i, duplicate);
 					
-					if (zom.nClass == duplicate.nClass)
+					if (zom.iClass == duplicate.iClass)
 					{
-						LogError("Zombie class '%s' is already defined.", zom.nClass);
+						LogError("Zombie class '%s' is already defined.", zom.iClass);
 						break;
 					}
 				}
 				
 				zom.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
 				zom.iHealth = kv.GetNum("health", 0);
-				zom.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(zom.nClass));
+				zom.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(zom.iClass));
 				zom.iRegen = kv.GetNum("regen", 2);
 				zom.iDegen = kv.GetNum("degen", 3);
 				zom.flSpree = kv.GetFloat("spree", 1.0);
@@ -431,21 +431,21 @@ ArrayList Config_LoadInfectedClasses()
 				}
 				
 				kv.GetString("class", sBuffer2, sizeof(sBuffer2));
-				inf.nClass = TF2_GetClass(sBuffer2);
-				if (inf.nClass == TFClass_Unknown)
+				inf.iInfectedClass = TF2_GetClass(sBuffer2);
+				if (inf.iInfectedClass == TFClass_Unknown)
 				{
 					LogError("Invalid special infected class '%s'.", sBuffer);
-					inf.nClass = TFClass_Heavy;
+					inf.iInfectedClass = TFClass_Heavy;
 				}
 				
 				inf.bEnabled = !!kv.GetNum("enable", true);
 				inf.iHealth = kv.GetNum("health", 0);
-				inf.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(inf.nClass));
+				inf.flSpeed = kv.GetFloat("speed", 0.0);
 				inf.bGlow = !!kv.GetNum("glow", false);
 				inf.iRegen = kv.GetNum("regen", 2);
 				inf.iDegen = kv.GetNum("degen", 3);
 				kv.GetColor4("color", inf.iColor);
-				kv.GetString("message", inf.sMsg, sizeof(inf.sMsg));
+				kv.GetString("message", inf.sMessage, sizeof(inf.sMessage));
 				kv.GetString("model", inf.sModel, sizeof(inf.sModel));
 				inf.aWeapons = new ArrayList(sizeof(WeaponClasses));
 				

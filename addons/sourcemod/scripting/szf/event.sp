@@ -2,7 +2,6 @@ void Event_Init()
 {
 	HookEvent("teamplay_setup_finished", Event_SetupEnd);
 	HookEvent("teamplay_round_win", Event_RoundEnd);
-	HookEvent("player_spawn", Event_PlayerSpawn);
 	HookEvent("post_inventory_application", Event_PlayerInventoryUpdate);
 	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
 	HookEvent("player_hurt", Event_PlayerHurt, EventHookMode_Pre);
@@ -44,7 +43,7 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	return Plugin_Continue;
 }
 
-public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
 		return;
@@ -79,6 +78,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	SetEntityRenderMode(iClient, RENDER_NORMAL);
 	
 	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	Infected nInfected = g_nInfected[iClient];
 	
 	//Figure out what special infected client is
 	if (g_nRoundState == SZFRoundState_Active)
@@ -86,14 +86,14 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 		if (g_iZombieTank > 0 && g_iZombieTank == iClient)
 		{
 			g_iZombieTank = 0;
-			g_nInfected[iClient] = Infected_Tank;
+			nInfected = Infected_Tank;
 		}
 		else
 		{
 			//If client got a force set as specific special infected, set as that infected
 			if (g_nNextInfected[iClient] != Infected_None)
 			{
-				g_nInfected[iClient] = g_nNextInfected[iClient];
+				nInfected = g_nNextInfected[iClient];
 			}
 			else if (g_bSpawnAsSpecialInfected[iClient] == true)
 			{
@@ -110,12 +110,12 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 				
 				//Go through each special infected in the list and find the first one thats not in cooldown
 				int i = 0;
-				while (g_nInfected[iClient] == Infected_None && i < iLength)
+				while (nInfected == Infected_None && i < iLength)
 				{
 					if (IsValidInfected(nSpecialInfected[i]) && g_flInfectedCooldown[nSpecialInfected[i]] <= GetGameTime() - 12.0 && g_iInfectedCooldown[nSpecialInfected[i]] != iClient)
 					{
 						//We found it, set as that special infected
-						g_nInfected[iClient] = nSpecialInfected[i];
+						nInfected = nSpecialInfected[i];
 					}
 					
 					i++;
@@ -134,6 +134,8 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 		}
 	}
 	
+	Classes_SetClient(iClient, nInfected);
+	
 	//Force respawn if client is playing as disallowed class
 	if (IsSurvivor(iClient))
 	{
@@ -149,6 +151,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			return;
 		}
 		
+		HandleSurvivorLoadout(iClient);
 		if (GetCookie(iClient, g_cFirstTimeSurvivor) < 1)
 			InitiateSurvivorTutorial(iClient);
 	}
@@ -171,6 +174,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 			if (g_nInfected[iClient] != Infected_Tank && !PerformFastRespawn(iClient))
 				TF2_AddCondition(iClient, TFCond_Ubercharged, 2.0);
 		
+		HandleZombieLoadout(iClient);
 		if (GetCookie(iClient, g_cFirstTimeZombie) < 1)
 			InitiateZombieTutorial(iClient);
 	}
@@ -245,11 +249,10 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 		if (g_nInfected[iClient] != Infected_None)
 		{
 			SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-			SetEntityRenderColor(iClient, GetInfectedColor(0, g_nInfected[iClient]), GetInfectedColor(1, g_nInfected[iClient]), GetInfectedColor(2, g_nInfected[iClient]), GetInfectedColor(3, g_nInfected[iClient]));
+			SetEntityRenderColor(iClient, g_ClientClasses[iClient].iColor[0], g_ClientClasses[iClient].iColor[1], g_ClientClasses[iClient].iColor[2], g_ClientClasses[iClient].iColor[3]);
 			
-			char sMsg[256];
-			if (GetInfectedMessage(sMsg, sizeof(sMsg), g_nInfected[iClient]))
-				CPrintToChat(iClient, sMsg);
+			if (g_ClientClasses[iClient].sMessage[0])
+				CPrintToChat(iClient, g_ClientClasses[iClient].sMessage);
 			
 			if (g_nInfected[iClient] != Infected_Tank && g_iInfectedCooldown[g_nInfected[iClient]] != iClient)
 			{
@@ -272,21 +275,6 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 	}
 	
 	SetGlow();
-}
-
-public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool dontBroadcast)
-{
-	if (!g_bEnabled)
-		return;
-	
-	int iClient = GetClientOfUserId(event.GetInt("userid"));
-	if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
-		return;
-	
-	if (IsSurvivor(iClient))
-		HandleSurvivorLoadout(iClient);
-	else if (IsZombie(iClient))
-		HandleZombieLoadout(iClient);
 }
 
 public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
@@ -378,7 +366,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		if (g_iDamageDealtLife[iVictim] <= 50 && g_iDamageTakenLife[iVictim] <= 150 && !g_bTankRefreshed)
 		{
 			g_bTankRefreshed = true;
-			g_nInfected[iVictim] = Infected_None;
+			Classes_SetClient(iVictim, Infected_None);
 			ZombieTank();
 		}
 		
@@ -395,7 +383,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	if (IsValidZombie(iVictim))
 	{
 		Infected_PlayerDeath(iVictim);
-		g_nInfected[iVictim] = Infected_None;
+		Classes_SetClient(iVictim, Infected_None);
 		
 		//10%
 		if (IsValidSurvivor(iKillers[0]) && !GetRandomInt(0, 9) && g_nRoundState == SZFRoundState_Active)
@@ -405,7 +393,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		if (g_nNextInfected[iVictim] != Infected_None)
 		{
 			if (iVictim != g_iZombieTank)
-				g_nInfected[iVictim] = g_nNextInfected[iVictim];
+				Classes_SetClient(iVictim, g_nNextInfected[iVictim]);
 			
 			g_nNextInfected[iVictim] = Infected_None;
 		}
@@ -482,7 +470,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			if (IsValidLivingClient(iKillers[i]))
 			{
 				//Handle ammo kill bonuses.
-				TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, GetSurvivorAmmo(TF2_GetPlayerClass(iKillers[i])));
+				TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, g_ClientClasses[iKillers[i]].iAmmo);
 				
 				//Handle morale bonuses.
 				//+ Each kill adds morale.

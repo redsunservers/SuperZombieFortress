@@ -53,18 +53,16 @@ public void Client_OnPreThinkPost(int iClient)
 		//Handle speed bonuses.
 		if ((!TF2_IsPlayerInCondition(iClient, TFCond_Slowed) && !TF2_IsPlayerInCondition(iClient, TFCond_Dazed)) || g_bBackstabbed[iClient])
 		{
-			TFClassType nClass = TF2_GetPlayerClass(iClient);
-			float flSpeed;
+			float flSpeed = g_ClientClasses[iClient].flSpeed;
+			if (flSpeed == 0.0)
+				flSpeed = TF2_GetClassSpeed(TF2_GetPlayerClass(iClient));
 			
 			if (IsZombie(iClient))
 			{
 				if (g_nInfected[iClient] == Infected_None)
 				{
-					//Zombies: hoarde bonus to movement speed and ignite speed bonus
-					flSpeed = GetZombieSpeed(nClass);
-					
 					//Movement speed increase
-					flSpeed += fMin(GetZombieMaxSpree(nClass), GetZombieSpree(nClass) * g_iZombiesKilledSpree) + fMin(GetZombieMaxHorde(nClass), GetZombieHorde(nClass) * g_iHorde[iClient]);
+					flSpeed += fMin(g_ClientClasses[iClient].flMaxSpree, g_ClientClasses[iClient].flSpree * g_iZombiesKilledSpree) + fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
 					
 					if (g_bZombieRage)
 						flSpeed += 40.0; //Map-wide zombie enrage event
@@ -87,15 +85,11 @@ public void Client_OnPreThinkPost(int iClient)
 				}
 				else
 				{
-					flSpeed = GetInfectedSpeed(g_nInfected[iClient]);
-					
 					switch (g_nInfected[iClient])
 					{
 						//Tank: movement speed bonus based on damage taken and ignite speed bonus
 						case Infected_Tank:
 						{
-							flSpeed = GetInfectedSpeed(Infected_Tank);
-
 							//Reduce speed when tank deals damage to survivors 
 							flSpeed -= fMin(60.0, (float(g_iDamageDealtLife[iClient]) / 10.0));
 
@@ -134,7 +128,7 @@ public void Client_OnPreThinkPost(int iClient)
 				}
 				else
 				{
-					flSpeed = GetSurvivorSpeed(nClass) + GetClientBonusSpeed(iClient);
+					flSpeed += GetClientBonusSpeed(iClient);
 					
 					//If under 50 health, tick away one speed per hp lost
 					if (GetClientHealth(iClient) < 50)
@@ -360,10 +354,9 @@ public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
 		return Plugin_Changed;
 	}
 	
-	int iHealth = g_nInfected[iClient] == Infected_None ? GetZombieHealth(TF2_GetPlayerClass(iClient)) : GetInfectedHealth(g_nInfected[iClient]);
-	if (iHealth > 0)
+	if (g_ClientClasses[iClient].iHealth > 0)
 	{
-		iMaxHealth = iHealth;
+		iMaxHealth = g_ClientClasses[iClient].iHealth;
 		return Plugin_Changed;
 	}
 	

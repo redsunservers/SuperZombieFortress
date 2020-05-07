@@ -83,6 +83,54 @@ enum Infected
 	Infected_Spitter,
 }
 
+enum struct WeaponClasses
+{
+	int iIndex;
+	char sClassname[256];
+	char sAttribs[256];
+}
+
+enum struct ClientClasses
+{
+	//Survivor, Zombie and Infected
+	float flSpeed;
+	int iRegen;
+	
+	//Zombie and Infected
+	int iHealth;
+	int iDegen;
+	ArrayList aWeapons;
+	
+	//Survivor
+	int iAmmo;
+	
+	//Non-Infected
+	float flSpree;
+	float flHorde;
+	float flMaxSpree;
+	float flMaxHorde;
+	
+	//Infected
+	TFClassType iInfectedClass;
+	bool bGlow;
+	int iColor[4];
+	char sMessage[256];
+	char sModel[PLATFORM_MAX_PATH];
+	
+	bool GetWeapon(int &iPos, WeaponClasses weapon)
+	{
+		if (!this.aWeapons || iPos < 0 || iPos >= this.aWeapons.Length)
+			return false;
+		
+		this.aWeapons.GetArray(iPos, weapon);
+		
+		iPos++;
+		return true;
+	}
+}
+
+ClientClasses g_ClientClasses[TF_MAXPLAYERS];
+
 SZFRoundState g_nRoundState = SZFRoundState_Setup;
 
 Infected g_nInfected[TF_MAXPLAYERS];
@@ -781,8 +829,8 @@ void Handle_SurvivorAbilities()
 			int iMaxHealth = SDKCall_GetMaxHealth(iClient);
 			if (iHealth < iMaxHealth)
 			{
-				iHealth += GetSurvivorRegen(TF2_GetPlayerClass(iClient));
-
+				iHealth += g_ClientClasses[iClient].iRegen;
+				
 				if (TF2_GetPlayerClass(iClient) == TFClass_Medic && TF2_IsEquipped(iClient, 36)) iHealth--;
 				iHealth += (!g_bSurvival) ? RoundToFloor(fMin(GetMorale(iClient) * 0.166, 4.0)) : 1;
 				iHealth = min(iHealth, iMaxHealth);
@@ -902,7 +950,6 @@ void Handle_SurvivorAbilities()
 
 void Handle_ZombieAbilities()
 {
-	TFClassType nClass;
 	int iHealth;
 	int iMaxHealth;
 	
@@ -910,7 +957,6 @@ void Handle_ZombieAbilities()
 	{
 		if (IsValidLivingZombie(iClient) && g_nInfected[iClient] != Infected_Tank)
 		{
-			nClass = TF2_GetPlayerClass(iClient);
 			iHealth = GetClientHealth(iClient);
 			iMaxHealth = SDKCall_GetMaxHealth(iClient);
 			
@@ -919,7 +965,7 @@ void Handle_ZombieAbilities()
 			//       zombies (hoarde bonus). Zombies decay health when overhealed.
 			if (iHealth < iMaxHealth)
 			{
-				iHealth += g_nInfected[iClient] == Infected_None ? GetZombieRegen(nClass) : GetInfectedRegen(g_nInfected[iClient]);
+				iHealth += g_ClientClasses[iClient].iRegen;
 				
 				//Handle additional regeneration
 				iHealth += 1 * g_iHorde[iClient]; //Horde bonus
@@ -931,7 +977,7 @@ void Handle_ZombieAbilities()
 			}
 			else if (iHealth > iMaxHealth)
 			{
-				iHealth -= g_nInfected[iClient] == Infected_None ? GetZombieDegen(nClass) : GetInfectedDegen(g_nInfected[iClient]);
+				iHealth -= g_ClientClasses[iClient].iDegen;
 				iHealth = max(iHealth, iMaxHealth);
 				SetEntityHealth(iClient, iHealth);
 			}
@@ -1138,7 +1184,7 @@ void SetGlow()
 				else if (g_bBackstabbed[iClient])
 					bGlow = true;
 			}
-			else if (IsZombie(iClient) && (GetInfectedGlow(g_nInfected[iClient])))
+			else if (g_ClientClasses[iClient].bGlow)
 			{
 				bGlow = true;
 			}
@@ -1690,33 +1736,20 @@ void HandleZombieLoadout(int iClient)
 	
 	CheckClientWeapons(iClient);
 	
-	TFClassType nClass = TF2_GetPlayerClass(iClient);
-	
 	int iPos;
 	WeaponClasses weapon;
-	if (g_nInfected[iClient] == Infected_None)
+	while (g_ClientClasses[iClient].GetWeapon(iPos, weapon))
+		TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sClassname, weapon.sAttribs);
+	
+	if (g_ClientClasses[iClient].sModel[0])
 	{
-		while (GetZombieWeapon(nClass, iPos, weapon))
-			TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sClassname, weapon.sAttribs);
-		
-		ApplyVoodooCursedSoul(iClient);
+		SetVariantString(g_ClientClasses[iClient].sModel);
+		AcceptEntityInput(iClient, "SetCustomModel");
+		SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", true);
 	}
 	else
 	{
-		while (GetInfectedWeapon(g_nInfected[iClient], iPos, weapon))
-			TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sClassname, weapon.sAttribs);
-		
-		char sModel[PLATFORM_MAX_PATH];
-		if (GetInfectedModel(g_nInfected[iClient], sModel, sizeof(sModel)))
-		{
-			SetVariantString(sModel);
-			AcceptEntityInput(iClient, "SetCustomModel");
-			SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", true);
-		}
-		else
-		{
-			ApplyVoodooCursedSoul(iClient);
-		}
+		ApplyVoodooCursedSoul(iClient);
 	}
 	
 	//Fill meter for spitter's Gas Passer
@@ -2337,9 +2370,9 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 		}
 		else if (iSlot > WeaponSlot_BuilderEngie)
 		{
-			if (g_nInfected[iClient] != Infected_None && GetInfectedModel(g_nInfected[iClient], "", 1))
+			if (g_ClientClasses[iClient].sModel[0])
 			{
-				//Block cosmetic if special infected have custom model
+				//Block cosmetic if have custom model
 				iAction = Plugin_Handled;
 			}
 			else if (TF2Econ_GetItemEquipRegionMask(GetClassVoodooItemDefIndex(TF2_GetPlayerClass(iClient))) & TF2Econ_GetItemEquipRegionMask(iIndex))

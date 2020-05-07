@@ -163,7 +163,10 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 	{
 		//Check if the player selected a valid zombie class
 		if (IsValidZombieClass(TF2_GetClass(sArg)))
+		{
+			Classes_SetClient(iClient, _, TF2_GetClass(sArg));
 			return Plugin_Continue;
+		}
 		
 		//It's invalid, then display which classes the player can choose
 		for (int i = 1; i < view_as<int>(TFClassType); i++)
@@ -193,7 +196,10 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 		
 		//Check if the player selected a valid survivor class
 		if (IsValidSurvivorClass(TF2_GetClass(sArg)))
+		{
+			Classes_SetClient(iClient, _, TF2_GetClass(sArg));
 			return Plugin_Continue;
+		}
 		
 		//It's invalid, then display which classes the player can choose
 		for (int i = 1; i < view_as<int>(TFClassType); i++)
