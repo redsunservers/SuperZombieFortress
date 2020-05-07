@@ -96,7 +96,7 @@ public MRESReturn DHook_DeactivatePre(int iClient, Handle hParams)
 		return MRES_Ignored;
 	
 	//Don't allow zombies drop ammo and dropped weapon
-	if (IsZombie(iClient))
+	if (0 < iClient <= MaxClients && IsZombie(iClient))
 		return MRES_Supercede;
 	
 	return MRES_Ignored;
