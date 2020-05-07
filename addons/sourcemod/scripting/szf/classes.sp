@@ -36,6 +36,11 @@ enum struct InfectedClasses
 	char sMessage[256];
 	char sModel[PLATFORM_MAX_PATH];
 	ArrayList aWeapons;
+	int iRageCooldown;
+	Function callback_spawn;
+	Function callback_rage;
+	Function callback_think;
+	Function callback_death;
 }
 
 static TFClassType g_nSurvivorClass[view_as<int>(TFClassType)];
@@ -122,6 +127,11 @@ void Classes_Refresh()
 	delete aInfectedClasses;
 	
 	Classes_Precache();
+	
+	//Set new config to clients
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsClientInGame(iClient))
+			Classes_SetClient(iClient);
 }
 
 void Classes_Precache()
@@ -155,6 +165,11 @@ void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), 
 		g_ClientClasses[iClient].flSpeed = g_SurvivorClasses[iClass].flSpeed;
 		g_ClientClasses[iClient].iRegen = g_SurvivorClasses[iClass].iRegen;
 		g_ClientClasses[iClient].iAmmo = g_SurvivorClasses[iClass].iAmmo;
+		
+		g_ClientClasses[iClient].callback_spawn = INVALID_FUNCTION;
+		g_ClientClasses[iClient].callback_rage = INVALID_FUNCTION;
+		g_ClientClasses[iClient].callback_think = INVALID_FUNCTION;
+		g_ClientClasses[iClient].callback_death = INVALID_FUNCTION;
 	}
 	else if (IsZombie(iClient))
 	{
@@ -163,6 +178,13 @@ void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), 
 		g_ClientClasses[iClient].flHorde = g_ZombieClasses[iClass].flHorde;
 		g_ClientClasses[iClient].flMaxSpree = g_ZombieClasses[iClass].flMaxSpree;
 		g_ClientClasses[iClient].flMaxHorde = g_ZombieClasses[iClass].flMaxHorde;
+		
+		//Normal and Special infected
+		g_ClientClasses[iClient].iRageCooldown = g_InfectedClasses[g_nInfected[iClient]].iRageCooldown;
+		g_ClientClasses[iClient].callback_spawn = g_InfectedClasses[g_nInfected[iClient]].callback_spawn;
+		g_ClientClasses[iClient].callback_rage = g_InfectedClasses[g_nInfected[iClient]].callback_rage;
+		g_ClientClasses[iClient].callback_think = g_InfectedClasses[g_nInfected[iClient]].callback_think;
+		g_ClientClasses[iClient].callback_death = g_InfectedClasses[g_nInfected[iClient]].callback_death;
 		
 		if (g_nInfected[iClient] == Infected_None)
 		{
