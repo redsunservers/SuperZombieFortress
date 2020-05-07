@@ -73,7 +73,7 @@ void DHook_HookGamerules()
 	DHookGamerules(g_hDHookRoundRespawn, false, _, DHook_RoundRespawnPre);
 }
 
-public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
+public MRESReturn DHook_DeactivatePre(int iThis, Handle hParams)
 {
 	if (!g_bEnabled)
 		return MRES_Ignored;
@@ -87,18 +87,6 @@ public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
 		DHookSetParam(hParams, 1, GetEntityAddress(iEntity));
 		return MRES_ChangedHandled;
 	}
-	return MRES_Ignored;
-}
-
-public MRESReturn DHook_DeactivatePre(int iClient, Handle hParams)
-{
-	if (!g_bEnabled)
-		return MRES_Ignored;
-	
-	//Don't allow zombies drop ammo and dropped weapon
-	if (0 < iClient <= MaxClients && IsZombie(iClient))
-		return MRES_Supercede;
-	
 	return MRES_Ignored;
 }
 
