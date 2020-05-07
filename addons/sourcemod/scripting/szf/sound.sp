@@ -562,17 +562,15 @@ void SoundPrecache()
 	
 	//---//
 	
+	for (int i = 0; i < sizeof(g_sVoCarryScout); i++) PrecacheSound(g_sVoCarryScout[i]);
 	for (int i = 0; i < sizeof(g_sVoCarrySoldier); i++) PrecacheSound(g_sVoCarrySoldier[i]);
-	
 	for (int i = 0; i < sizeof(g_sVoCarryPyro); i++) PrecacheSound(g_sVoCarryPyro[i]);
-	
 	for (int i = 0; i < sizeof(g_sVoCarryDemoman); i++) PrecacheSound(g_sVoCarryDemoman[i]);
-	
+	for (int i = 0; i < sizeof(g_sVoCarryHeavy); i++) PrecacheSound(g_sVoCarryHeavy[i]);
 	for (int i = 0; i < sizeof(g_sVoCarryEngineer); i++) PrecacheSound(g_sVoCarryEngineer[i]);
-	
 	for (int i = 0; i < sizeof(g_sVoCarryMedic); i++) PrecacheSound(g_sVoCarryMedic[i]);
-	
 	for (int i = 0; i < sizeof(g_sVoCarrySniper); i++) PrecacheSound(g_sVoCarrySniper[i]);
+	for (int i = 0; i < sizeof(g_sVoCarrySpy); i++) PrecacheSound(g_sVoCarrySpy[i]);
 	
 	//---//
 	
