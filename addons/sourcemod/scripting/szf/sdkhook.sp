@@ -300,8 +300,13 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 					//"SHOOT THAT TANK" voice call
 					if (g_flDamageDealtAgainstTank[iAttacker] == 0)
 					{
+						SetVariantString("randomnum:100");
+						AcceptEntityInput(iAttacker, "AddContext");
+						SetVariantString("IsMvMDefender:1");
+						AcceptEntityInput(iAttacker, "AddContext");
 						SetVariantString("TLK_MVM_ATTACK_THE_TANK");
 						AcceptEntityInput(iAttacker, "SpeakResponseConcept");
+						AcceptEntityInput(iAttacker, "ClearContext");
 					}
 					
 					//Don't instantly kill the tank on a backstab

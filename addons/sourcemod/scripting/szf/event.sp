@@ -231,8 +231,11 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 						SetCookie(i, 2, g_cFirstTimeSurvivor);
 					}
 					
+					SetVariantString("IsMvMDefender:1");
+					AcceptEntityInput(i, "AddContext");
 					SetVariantString("TLK_MVM_TANK_CALLOUT");
 					AcceptEntityInput(i, "SpeakResponseConcept");
+					AcceptEntityInput(i, "ClearContext");
 					
 					CPrintToChat(i, "{red}Incoming TAAAAANK!");
 					

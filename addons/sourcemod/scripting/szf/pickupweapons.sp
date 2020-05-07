@@ -266,6 +266,9 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	g_bCanPickup[iClient] = false;
 	CreateTimer(PICKUP_COOLDOWN, Timer_ResetPickup, iClient);
 	
+	SetVariantString("randomnum:100");
+	AcceptEntityInput(iClient, "AddContext");
+	
 	switch (wep.nRarity)
 	{
 		case WeaponRarity_Common: SetVariantString("TLK_MVM_LOOT_COMMON");
@@ -274,6 +277,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	}
 	
 	AcceptEntityInput(iClient, "SpeakResponseConcept");
+	AcceptEntityInput(iClient, "ClearContext");
 	
 	TFClassType iClass = TF2_GetPlayerClass(iClient);
 	int iSlot = TF2_GetItemSlot(wep.iIndex, iClass);
