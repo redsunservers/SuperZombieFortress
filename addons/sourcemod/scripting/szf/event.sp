@@ -227,6 +227,9 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 						SetCookie(i, 2, g_cFirstTimeSurvivor);
 					}
 					
+					SetVariantString("MP_CONCEPT_MVM_TANK_CALLOUT");
+					AcceptEntityInput(i, "SpeakResponseConcept");
+					
 					CPrintToChat(i, "{red}Incoming TAAAAANK!");
 					
 					if (GetCurrentSound(i) != SoundMusic_LastStand || !IsMusicOverrideOn()) //lms current sound check seems not to work, may need to check it later
@@ -336,6 +339,12 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		
 		int iWinner = 0;
 		float flHighest = 0.0;
+		
+		for (int i = 0; i < sizeof(iKillers); i++)
+		{
+			SetVariantString("MP_CONCEPT_MVM_TANK_DEAD");
+			AcceptEntityInput(iKillers[i], "SpeakResponseConcept");
+		}
 		
 		EmitSoundToAll(g_sVoZombieTankDeath[GetRandomInt(0, sizeof(g_sVoZombieTankDeath)-1)]);
 		

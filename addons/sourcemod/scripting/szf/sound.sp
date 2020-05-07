@@ -216,14 +216,6 @@ char g_sVoCarryScout[][PLATFORM_MAX_PATH] =
 	"scout_go02.mp3"
 };
 
-char g_sVoWeaponScout[][PLATFORM_MAX_PATH] =
-{
-	"scout_mvm_loot_common03.mp3",
-	"scout_mvm_loot_common04.mp3",
-	"scout_mvm_loot_rare01.mp3",
-	"scout_mvm_loot_rare02.mp3"
-};
-
 
 /* Soldier */
 char g_sVoCarrySoldier[][PLATFORM_MAX_PATH] =
@@ -245,23 +237,6 @@ char g_sVoCarrySoldier[][PLATFORM_MAX_PATH] =
 	"vo/soldier_battlecry06.mp3"
 };
 
-char g_sVoWeaponSoldier[][PLATFORM_MAX_PATH] =
-{
-	"vo/soldier_mvm_loot_common01.mp3",
-	"vo/soldier_mvm_loot_common02.mp3",
-	"vo/soldier_mvm_loot_common03.mp3",
-	"vo/soldier_mvm_loot_rare01.mp3",
-	"vo/soldier_mvm_loot_rare02.mp3",
-	"vo/soldier_mvm_loot_rare03.mp3",
-	"vo/soldier_mvm_loot_rare04.mp3"
-};
-
-char g_sVoTankSoldier[][PLATFORM_MAX_PATH] =
-{
-	"vo/soldier_mvm_tank_shooting01.mp3",
-	"vo/soldier_mvm_tank_shooting02.mp3"
-};
-
 
 /* Pyro */
 char g_sVoCarryPyro[][PLATFORM_MAX_PATH] =
@@ -275,15 +250,8 @@ char g_sVoCarryPyro[][PLATFORM_MAX_PATH] =
 	"vo/pyro_moveup01.mp3"
 };
 
-char g_sVoWeaponPyro[][PLATFORM_MAX_PATH] =
-{
-	"vo/pyro_battlecry01.mp3",
-	"vo/pyro_battlecry02.mp3",
-	"vo/pyro_positivevocalization01.mp3"
-};
 
-
-/* Demoman -- does not have tank lines */
+/* Demoman */
 char g_sVoCarryDemoman[][PLATFORM_MAX_PATH] =
 {
 	"vo/demoman_go01.mp3",
@@ -302,17 +270,6 @@ char g_sVoCarryDemoman[][PLATFORM_MAX_PATH] =
 	"vo/demoman_gibberish13.mp3"
 };
 
-char g_sVoWeaponDemoman[][PLATFORM_MAX_PATH] =
-{
-	"vo/demoman_mvm_loot_common01.mp3",
-	"vo/demoman_mvm_loot_common02.mp3",
-	"vo/demoman_mvm_loot_common03.mp3",
-	"vo/demoman_mvm_loot_common04.mp3",
-	"vo/demoman_mvm_loot_godlike01.mp3",
-	"vo/demoman_mvm_loot_rare01.mp3",
-	"vo/demoman_mvm_loot_rare02.mp3"
-};
-
 
 /* Heavy */
 char g_sVoCarryHeavy[][PLATFORM_MAX_PATH] =
@@ -320,23 +277,6 @@ char g_sVoCarryHeavy[][PLATFORM_MAX_PATH] =
 	"heavy_autocappedintelligence01.mp3",
 	"heavy_go02.mp3",
 	"heavy_go03.mp3"
-};
-
-char g_sVoWeaponHeavy[][PLATFORM_MAX_PATH] =
-{
-	"heavy_mvm_get_upgrade04.mp3",
-	"heavy_mvm_loot_common01.mp3",
-	"heavy_mvm_loot_common02.mp3",
-	"heavy_mvm_loot_godlike02.mp3",
-	"heavy_specialweapon05.mp3",
-	"heavy_specialweapon09.mp3"
-};
-
-char g_sVoTankHeavy[][PLATFORM_MAX_PATH] =
-{
-	"heavy_mvm_tank_alert01.mp3",
-	"heavy_mvm_tank_alert02.mp3",
-	"heavy_mvm_tank_alert03.mp3"
 };
 
 /* Engineer */
@@ -351,25 +291,6 @@ char g_sVoCarryEngineer[][PLATFORM_MAX_PATH] =
 	"vo/engineer_laughevil01.mp3",
 	"vo/engineer_laughevil04.mp3",
 	"vo/engineer_laughevil06.mp3"
-};
-
-char g_sVoWeaponEngineer[][PLATFORM_MAX_PATH] =
-{
-	"vo/engineer_mvm_loot_common01.mp3",
-	"vo/engineer_mvm_loot_common02.mp3",
-	"vo/engineer_mvm_loot_godlike01.mp3",
-	"vo/engineer_mvm_loot_godlike02.mp3",
-	"vo/engineer_mvm_loot_godlike03.mp3",
-	"vo/engineer_mvm_loot_rare01.mp3",
-	"vo/engineer_mvm_loot_rare02.mp3",
-	"vo/engineer_mvm_loot_rare03.mp3",
-	"vo/engineer_mvm_loot_rare04.mp3"
-};
-
-char g_sVoTankEngineer[][PLATFORM_MAX_PATH] =
-{
-	"vo/engineer_mvm_tank_shooting01.mp3",
-	"vo/engineer_meleedare01.mp3"
 };
 
 
@@ -387,27 +308,8 @@ char g_sVoCarryMedic[][PLATFORM_MAX_PATH] =
 	"vo/medic_yes03.mp3"
 };
 
-char g_sVoWeaponMedic[][PLATFORM_MAX_PATH] =
-{
-	"vo/medic_mvm_loot_common01.mp3",
-	"vo/medic_mvm_loot_common02.mp3",
-	"vo/medic_mvm_loot_common03.mp3",
-	"vo/medic_mvm_loot_rare02.mp3",
-	"vo/medic_mvm_loot_godlike01.mp3",
-	"vo/medic_mvm_loot_godlike02.mp3",
-	"vo/medic_mvm_loot_godlike03.mp3",
-	"vo/medic_specialcompleted02.mp3",
-	"vo/medic_specialcompleted03.mp3"
-};
 
-char g_sVoTankMedic[][PLATFORM_MAX_PATH] =
-{
-	"vo/medic_mvm_tank_shooting01.mp3",
-	"vo/medic_mvm_tank_shooting02.mp3"
-};
-
-
-/* Sniper -- does not have tank lines */
+/* Sniper */
 char g_sVoCarrySniper[][PLATFORM_MAX_PATH] =
 {
 	"vo/sniper_autocappedcontrolpoint01.mp3",
@@ -436,19 +338,6 @@ char g_sVoCarrySniper[][PLATFORM_MAX_PATH] =
 	"vo/sniper_specialweapon09.mp3"
 };
 
-char g_sVoWeaponSniper[][PLATFORM_MAX_PATH] =
-{
-	"vo/sniper_specialweapon01.mp3",
-	"vo/sniper_specialweapon02.mp3",
-	"vo/sniper_specialweapon03.mp3",
-	"vo/sniper_specialweapon04.mp3",
-	"vo/sniper_specialweapon05.mp3",
-	"vo/sniper_specialweapon06.mp3",
-	"vo/sniper_specialweapon07.mp3",
-	"vo/sniper_specialweapon08.mp3",
-	"vo/sniper_specialweapon09.mp3"
-};
-
 
 /* Spy */
 char g_sVoCarrySpy[][PLATFORM_MAX_PATH] =
@@ -458,10 +347,6 @@ char g_sVoCarrySpy[][PLATFORM_MAX_PATH] =
 	"spy_go02.mp3"
 };
 
-char g_sVoWeaponSpy[][PLATFORM_MAX_PATH] =
-{
-	"spy_mvm_loot_common01.mp3"
-};
 
 /* Common Infected */
 char g_sVoZombieCommonDefault[][PLATFORM_MAX_PATH] =
@@ -678,25 +563,16 @@ void SoundPrecache()
 	//---//
 	
 	for (int i = 0; i < sizeof(g_sVoCarrySoldier); i++) PrecacheSound(g_sVoCarrySoldier[i]);
-	for (int i = 0; i < sizeof(g_sVoWeaponSoldier); i++) PrecacheSound(g_sVoWeaponSoldier[i]);
-	for (int i = 0; i < sizeof(g_sVoTankSoldier); i++) PrecacheSound(g_sVoTankSoldier[i]);
 	
 	for (int i = 0; i < sizeof(g_sVoCarryPyro); i++) PrecacheSound(g_sVoCarryPyro[i]);
-	for (int i = 0; i < sizeof(g_sVoWeaponPyro); i++) PrecacheSound(g_sVoWeaponPyro[i]);
 	
 	for (int i = 0; i < sizeof(g_sVoCarryDemoman); i++) PrecacheSound(g_sVoCarryDemoman[i]);
-	for (int i = 0; i < sizeof(g_sVoWeaponDemoman); i++) PrecacheSound(g_sVoCarryDemoman[i]);
 	
 	for (int i = 0; i < sizeof(g_sVoCarryEngineer); i++) PrecacheSound(g_sVoCarryEngineer[i]);
-	for (int i = 0; i < sizeof(g_sVoWeaponEngineer); i++) PrecacheSound(g_sVoWeaponEngineer[i]);
-	for (int i = 0; i < sizeof(g_sVoTankEngineer); i++) PrecacheSound(g_sVoTankEngineer[i]);
 	
 	for (int i = 0; i < sizeof(g_sVoCarryMedic); i++) PrecacheSound(g_sVoCarryMedic[i]);
-	for (int i = 0; i < sizeof(g_sVoWeaponMedic); i++) PrecacheSound(g_sVoWeaponMedic[i]);
-	for (int i = 0; i < sizeof(g_sVoTankMedic); i++) PrecacheSound(g_sVoTankMedic[i]);
 	
 	for (int i = 0; i < sizeof(g_sVoCarrySniper); i++) PrecacheSound(g_sVoCarrySniper[i]);
-	for (int i = 0; i < sizeof(g_sVoWeaponSniper); i++) PrecacheSound(g_sVoWeaponSniper[i]);
 	
 	//---//
 	
