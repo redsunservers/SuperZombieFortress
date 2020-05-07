@@ -30,7 +30,7 @@
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
 
 static char g_sClassNames[view_as<int>(TFClassType)][16] = { "", "Scout", "Sniper", "Soldier", "Demoman", "Medic", "Heavy", "Pyro", "Spy", "Engineer" };
-static char g_sInfectedNames[view_as<int>(Infected)][16] = { "None", "Tank", "Boomer", "Charger", "Kingpin", "Stalker", "Hunter", "Smoker", "Spitter" };
+static char g_sInfectedNames[view_as<int>(Infected)][16] = { "None", "Tank", "Boomer", "Charger", "Kingpin", "Stalker", "Hunter", "Smoker", "Spitter", "Jockey" };
 static char g_sClassFiles[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
 static int g_iVoodooIndex[view_as<int>(TFClassType)] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
 static int g_iZombieSoulIndex[view_as<int>(TFClassType)];
@@ -59,14 +59,14 @@ stock float fMin(float a, float b)
 	return (a < b) ? a : b;
 }
 
-stock void VectorTowards(float vecOrigin[3], float vecTarget[3], float vecAngle[3])
+stock void VectorTowards(const float vecOrigin[3], const float vecTarget[3], float vecAngle[3])
 {
 	float vecResults[3];
 	MakeVectorFromPoints(vecOrigin, vecTarget, vecResults);
 	GetVectorAngles(vecResults, vecAngle);
 }
 
-stock void AnglesToVelocity(float vecAngle[3], float vecVelocity[3], float flSpeed = 1.0)
+stock void AnglesToVelocity(const float vecAngle[3], float vecVelocity[3], float flSpeed = 1.0)
 {
 	vecVelocity[0] = Cosine(DegToRad(vecAngle[1]));
 	vecVelocity[1] = Sine(DegToRad(vecAngle[1]));

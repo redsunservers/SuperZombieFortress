@@ -555,3 +555,103 @@ void Infected_DoSmokerBeam(int iClient)
 	
 	delete hTrace;
 }
+
+////////////////
+// Spitter
+////////////////
+
+// nothing lol
+
+////////////////
+// Jockey
+////////////////
+
+static int g_iJockeyTarget[TF_MAXPLAYERS];
+
+public void Infected_DoJockeyJump(int iClient)
+{
+	char sPath[64];
+	Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(18, 19));
+	EmitSoundToAll(sPath, iClient, SNDLEVEL_AIRCRAFT);
+	
+	float vecVelocity[3];
+	float vecEyeAngles[3];
+	
+	GetClientEyeAngles(iClient, vecEyeAngles);
+	
+	vecVelocity[0] = Cosine(DegToRad(vecEyeAngles[0])) * Cosine(DegToRad(vecEyeAngles[1])) * 690;
+	vecVelocity[1] = Cosine(DegToRad(vecEyeAngles[0])) * Sine(DegToRad(vecEyeAngles[1])) * 690;
+	vecVelocity[2] = 345.0;
+	
+	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
+	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
+}
+
+public void Infected_OnJockeyThink(int iClient, int &iButtons)
+{
+	int iTarget = g_iJockeyTarget[iClient];
+	if (0 < iTarget <= MaxClients)
+	{
+		if (IsValidLivingSurvivor(iTarget))
+		{
+			//Force jockey to crouch
+			SetEntProp(iClient, Prop_Send, "m_bDucking", true);
+			SetEntProp(iClient, Prop_Send, "m_bDucked", true);
+			SetEntityFlags(iClient, GetEntityFlags(iClient)|FL_DUCKING);
+			
+			float flSpeed = g_ClientClasses[iTarget].flSpeed;
+			if (flSpeed == 0.0)
+				flSpeed = TF2_GetClassSpeed(TF2_GetPlayerClass(iTarget));
+			
+			//Move target by 75% jockey and 25% themself
+			float vecJockeyEye[3], vecTargetEye[3], vecJockeyVel[3], vecTargetVel[3], vecFinalVel[3];
+			GetClientEyeAngles(iClient, vecJockeyEye);
+			GetClientEyeAngles(iTarget, vecTargetEye);
+			vecJockeyEye[2] = 0.0;
+			vecTargetEye[2] = 0.0;
+			AnglesToVelocity(vecJockeyEye, vecJockeyVel, flSpeed * 0.75);
+			AnglesToVelocity(vecTargetEye, vecTargetVel, flSpeed * 0.25);
+			
+			AddVectors(vecJockeyVel, vecTargetVel, vecFinalVel);
+			TeleportEntity(iTarget, NULL_VECTOR, NULL_VECTOR, vecFinalVel);
+			
+			//Teleport jockey to target eye
+			GetClientEyePosition(iTarget, vecTargetEye);
+			TeleportEntity(iClient, vecTargetEye, NULL_VECTOR, vecFinalVel);
+			
+			return;
+		}
+		else
+		{
+			//Jockey target no longer valid
+			g_iJockeyTarget[iClient] = 0;
+			
+			SetEntityMoveType(iClient, MOVETYPE_WALK);
+			SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 5);
+		}
+	}
+	
+	//Must be in air to pounce
+	if (GetEntityFlags(iClient) & FL_ONGROUND)
+		return;
+	
+	//Find whoever survivor jockey is looking at
+	//TODO should use SDKHook touch instead
+	iTarget = GetClientPointVisible(iClient, 70.0);
+	if (!IsValidLivingSurvivor(iTarget))
+		return;
+	
+	//Jockey must be higher enough than survivor to pounce it
+	float vecJockeyEye[3], vecTargetEye[3];
+	GetClientEyePosition(iClient, vecJockeyEye);
+	GetClientEyePosition(iTarget, vecTargetEye);
+	
+	if (vecJockeyEye[2] < vecTargetEye[2] + 20.0)
+		return;
+	
+	g_iJockeyTarget[iClient] = iTarget;
+	Shake(iTarget, 3.0, 3.0);
+	
+	SetEntityMoveType(iClient, MOVETYPE_NONE);
+	SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 2);
+}

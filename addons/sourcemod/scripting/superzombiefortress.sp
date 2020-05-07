@@ -81,6 +81,7 @@ enum Infected
 	Infected_Hunter,
 	Infected_Smoker,
 	Infected_Spitter,
+	Infected_Jockey,
 }
 
 enum struct WeaponClasses
