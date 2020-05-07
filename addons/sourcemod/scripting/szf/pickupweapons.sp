@@ -266,25 +266,16 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	g_bCanPickup[iClient] = false;
 	CreateTimer(PICKUP_COOLDOWN, Timer_ResetPickup, iClient);
 	
-	//Weapon pickup quote
-	char sSound[PLATFORM_MAX_PATH];
-	TFClassType iClass = TF2_GetPlayerClass(iClient);
-	
-	switch (iClass)
+	switch (wep.nRarity)
 	{
-		case TFClass_Scout: Format(sSound, sizeof(sSound), g_sVoWeaponScout[GetRandomInt(0, sizeof(g_sVoWeaponScout)-1)]);
-		case TFClass_Soldier: Format(sSound, sizeof(sSound), g_sVoWeaponSoldier[GetRandomInt(0, sizeof(g_sVoWeaponSoldier)-1)]);
-		case TFClass_Pyro: Format(sSound, sizeof(sSound), g_sVoWeaponPyro[GetRandomInt(0, sizeof(g_sVoWeaponPyro)-1)]);
-		case TFClass_DemoMan: Format(sSound, sizeof(sSound), g_sVoWeaponDemoman[GetRandomInt(0, sizeof(g_sVoWeaponDemoman)-1)]);
-		case TFClass_Heavy: Format(sSound, sizeof(sSound), g_sVoWeaponHeavy[GetRandomInt(0, sizeof(g_sVoWeaponHeavy)-1)]);
-		case TFClass_Engineer: Format(sSound, sizeof(sSound), g_sVoWeaponEngineer[GetRandomInt(0, sizeof(g_sVoWeaponEngineer)-1)]);
-		case TFClass_Medic: Format(sSound, sizeof(sSound), g_sVoWeaponMedic[GetRandomInt(0, sizeof(g_sVoWeaponMedic)-1)]);
-		case TFClass_Sniper: Format(sSound, sizeof(sSound), g_sVoWeaponSniper[GetRandomInt(0, sizeof(g_sVoWeaponSniper)-1)]);
-		case TFClass_Spy: Format(sSound, sizeof(sSound), g_sVoWeaponSpy[GetRandomInt(0, sizeof(g_sVoWeaponSpy)-1)]);
+		case WeaponRarity_Common: SetVariantString("MP_CONCEPT_MVM_LOOT_COMMON");
+		case WeaponRarity_Uncommon: SetVariantString("MP_CONCEPT_MVM_LOOT_RARE");
+		case WeaponRarity_Rare: SetVariantString("MP_CONCEPT_MVM_LOOT_ULTRARARE");
 	}
 	
-	EmitSoundToAll(sSound, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+	AcceptEntityInput(iClient, "SpeakResponseConcept");
 	
+	TFClassType iClass = TF2_GetPlayerClass(iClient);
 	int iSlot = TF2_GetItemSlot(wep.iIndex, iClass);
 	WeaponType iWepType = GetWeaponType(iTarget);
 	

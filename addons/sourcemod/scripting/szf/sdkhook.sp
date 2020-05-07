@@ -306,17 +306,8 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 					//"SHOOT THAT TANK" voice call
 					if (g_flDamageDealtAgainstTank[iAttacker] == 0)
 					{
-						char sPath[PLATFORM_MAX_PATH];
-						switch (TF2_GetPlayerClass(iAttacker))
-						{
-							case TFClass_Soldier: Format(sPath, sizeof(sPath), g_sVoTankSoldier[GetRandomInt(0, sizeof(g_sVoTankSoldier)-1)]);
-							case TFClass_Heavy: Format(sPath, sizeof(sPath), g_sVoTankHeavy[GetRandomInt(0, sizeof(g_sVoTankHeavy)-1)]);
-							case TFClass_Engineer: Format(sPath, sizeof(sPath), g_sVoTankEngineer[GetRandomInt(0, sizeof(g_sVoTankEngineer)-1)]);
-							case TFClass_Medic: Format(sPath, sizeof(sPath), g_sVoTankMedic[GetRandomInt(0, sizeof(g_sVoTankMedic)-1)]);
-						}
-						
-						if (sPath[0] != '\0')
-							EmitSoundToAll(sPath, iAttacker, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+						SetVariantString("MP_CONCEPT_MVM_ATTACK_THE_TANK");
+						AcceptEntityInput(iAttacker, "SpeakResponseConcept");
 					}
 					
 					//Don't instantly kill the tank on a backstab
