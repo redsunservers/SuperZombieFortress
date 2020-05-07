@@ -146,6 +146,7 @@ Cookie g_cForceZombieStart;
 
 //Global State
 bool g_bEnabled;
+bool g_bLateLoad;
 bool g_bNewRound;
 bool g_bLastSurvivor;
 bool g_bTF2Items;
@@ -289,6 +290,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	Native_AskLoad();
 	
 	RegPluginLibrary("superzombiefortress");
+	
+	g_bLateLoad = late;
 }
 
 public void OnPluginStart()
@@ -307,7 +310,11 @@ public void OnPluginStart()
 	g_bEnabled = false;
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
-	g_nRoundState = SZFRoundState_Setup;
+	
+	if (!g_bLateLoad)
+		g_nRoundState = SZFRoundState_Setup;
+	else
+		g_nRoundState = SZFRoundState_Grace;
 	
 	AddNormalSoundHook(SoundHook);
 	
@@ -382,6 +389,8 @@ public void OnLibraryRemoved(const char[] sName)
 
 public void OnPluginEnd()
 {
+	TF2_EndRound(TFTeam_Zombie);
+	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		if (IsClientInGame(iClient))
@@ -414,8 +423,6 @@ public void OnConfigsExecuted()
 	{
 		g_cvForceOn.BoolValue ? SZFEnable() : SZFDisable();
 	}
-	
-	g_nRoundState = SZFRoundState_Setup;
 }
 
 public void OnMapEnd()
