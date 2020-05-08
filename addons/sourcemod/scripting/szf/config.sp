@@ -447,7 +447,13 @@ ArrayList Config_LoadInfectedClasses()
 				inf.bGlow = !!kv.GetNum("glow", false);
 				inf.iRegen = kv.GetNum("regen", 2);
 				inf.iDegen = kv.GetNum("degen", 3);
-				kv.GetColor4("color", inf.iColor);
+				
+				kv.GetString("color", sBuffer, sizeof(sBuffer));
+				if (sBuffer[0])
+					kv.GetColor4("color", inf.iColor);
+				else
+					inf.iColor = { 255, 255, 255, 255 };
+				
 				kv.GetString("message", inf.sMessage, sizeof(inf.sMessage));
 				kv.GetString("model", inf.sModel, sizeof(inf.sModel));
 				kv.GetString("sound_spawn", inf.sSoundSpawn, sizeof(inf.sSoundSpawn));
