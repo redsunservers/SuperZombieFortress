@@ -468,8 +468,7 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 	if (nObjectType == TFObject_Dispenser && !IsZombie(iClient))
 	{
 		SetEntProp(iEntity, Prop_Send, "m_bCarried", 1);	// Disable healing/ammo and upgrading
-		SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", 300);	// Disable dispensers when they begin construction
-		AcceptEntityInput(iEntity, "Disable");	// Increase max health to 300 (default level 1 is 150)
+		SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", 300);	// Increase max health to 300 (default level 1 is 150)
 	}
 	
 	return Plugin_Continue;
