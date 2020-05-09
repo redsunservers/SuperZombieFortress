@@ -5,6 +5,7 @@ static Handle g_hSDKCallPlaySpecificSequence;
 static Handle g_hSDKCallGetEquippedWearable;
 static Handle g_hSDKCallGiveNamedItem;
 static Handle g_hSDKCallGetLoadoutItem;
+static Handle g_hSDKCallTossJarThink;
 static Handle g_hSDKCallGetBaseEntity;
 
 void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
@@ -14,7 +15,7 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	g_hSDKCallGetMaxHealth = EndPrepSDKCall();
 	if (!g_hSDKCallGetMaxHealth)
-		LogError("Failed to create call: CTFPlayer::GetMaxHealth!");
+		LogError("Failed to create call: CTFPlayer::GetMaxHealth");
 	
 	int iRemoveWearableOffset = hTF2.GetOffset("RemoveWearable");
 	
@@ -23,7 +24,7 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	PrepSDKCall_AddParameter(SDKType_CBaseEntity, SDKPass_Pointer);
 	g_hSDKCallEquipWearable = EndPrepSDKCall();
 	if (!g_hSDKCallEquipWearable)
-		LogError("Failed to create call: CBasePlayer::EquipWearable!");
+		LogError("Failed to create call: CBasePlayer::EquipWearable");
 	
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::GetMaxAmmo");
@@ -32,7 +33,7 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	g_hSDKCallGetMaxAmmo = EndPrepSDKCall();
 	if (!g_hSDKCallGetMaxAmmo)
-		LogError("Failed to create call: CTFPlayer::GetMaxAmmo!");
+		LogError("Failed to create call: CTFPlayer::GetMaxAmmo");
 	
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::PlaySpecificSequence");
@@ -48,7 +49,7 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
 	g_hSDKCallGetEquippedWearable = EndPrepSDKCall();
 	if (!g_hSDKCallGetEquippedWearable)
-		LogError("Failed to create call: CTFPlayer::GetEquippedWearableForLoadoutSlot!");
+		LogError("Failed to create call: CTFPlayer::GetEquippedWearableForLoadoutSlot");
 	
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CTFPlayer::GiveNamedItem");
@@ -59,7 +60,7 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_ByValue);
 	g_hSDKCallGiveNamedItem = EndPrepSDKCall();
 	if (!g_hSDKCallGiveNamedItem)
-		LogError("Failed to create call: CTFPlayer::GiveNamedItem!");
+		LogError("Failed to create call: CTFPlayer::GiveNamedItem");
 	
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::GetLoadoutItem");
@@ -69,14 +70,20 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_ByValue);
 	g_hSDKCallGetLoadoutItem = EndPrepSDKCall();
 	if (!g_hSDKCallGetLoadoutItem)
-		LogError("Failed to create call: CTFPlayer::GetLoadoutItem!");
+		LogError("Failed to create call: CTFPlayer::GetLoadoutItem");
 	
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CTFJar::TossJarThink");
+	g_hSDKCallTossJarThink = EndPrepSDKCall();
+	if (!g_hSDKCallTossJarThink)
+		LogError("Failed to create call: CTFJar::TossJarThink");
+		
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CBaseEntity::GetBaseEntity");
 	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
 	g_hSDKCallGetBaseEntity = EndPrepSDKCall();
 	if (!g_hSDKCallGetBaseEntity)
-		LogError("Failed to create call: CBaseEntity::GetBaseEntity!");
+		LogError("Failed to create call: CBaseEntity::GetBaseEntity");
 }
 
 int SDKCall_GetMaxHealth(int iClient)
@@ -110,12 +117,14 @@ Address SDKCall_GiveNamedItem(int iClient, const char[] sClassname, int iSubType
 	return SDKCall(g_hSDKCallGiveNamedItem, iClient, sClassname, iSubType, pItem, bForce);
 }
 
-/*
- * Returns a pointer to CEconItemView
- */
 Address SDKCall_GetLoadoutItem(int iClient, TFClassType iClass, int iSlot)
 {
 	return SDKCall(g_hSDKCallGetLoadoutItem, iClient, iClass, iSlot, false);
+}
+
+void SDKCall_TossJarThink(int iEntity)
+{
+	SDKCall(g_hSDKCallTossJarThink, iEntity);
 }
 
 int SDKCall_GetBaseEntity(Address pEnt)

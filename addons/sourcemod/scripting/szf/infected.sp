@@ -560,7 +560,12 @@ void Infected_DoSmokerBeam(int iClient)
 // Spitter
 ////////////////
 
-// nothing lol
+public void Infected_DoSpitterGas(int iClient)
+{
+	int iGas = TF2_GetItemInSlot(iClient, WeaponSlot_Secondary);
+	if (iGas > MaxClients)
+		SDKCall_TossJarThink(iGas);
+}
 
 ////////////////
 // Jockey

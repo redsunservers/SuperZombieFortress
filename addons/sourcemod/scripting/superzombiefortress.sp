@@ -1754,9 +1754,6 @@ void HandleZombieLoadout(int iClient)
 		ApplyVoodooCursedSoul(iClient);
 	}
 	
-	//Fill meter for spitter's Gas Passer
-	SetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", 100.0, WeaponSlot_Secondary);
-	
 	//Reset metal for TF2 to give back correct amount from attribs
 	TF2_SetMetal(iClient, 0);
 	
