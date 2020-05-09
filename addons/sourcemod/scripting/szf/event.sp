@@ -302,6 +302,17 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			if (GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iVictim)
 				RemoveEntity(iEntity);
 		
+		//Destroy buildings from zombies
+		int iBuilding = -1;
+		while ((iBuilding = FindEntityByClassname(iBuilding, "obj_*")) != -1)
+		{
+			if (GetEntPropEnt(iBuilding, Prop_Send, "m_hBuilder") == iVictim)
+			{
+				SetVariantInt(GetEntProp(iBuilding, Prop_Send, "m_iHealth"));
+				AcceptEntityInput(iBuilding, "RemoveHealth");
+			}
+		}
+		
 		//Zombie rage: instant respawn
 		if (g_bZombieRage && g_nRoundState == SZFRoundState_Active)
 		{
@@ -465,7 +476,7 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 	int iEntity = event.GetInt("index");
 	TFObjectType nObjectType = view_as<TFObjectType>(event.GetInt("object"));
 	   
-	if (nObjectType == TFObject_Dispenser && !IsZombie(iClient))
+	if (nObjectType == TFObject_Dispenser && IsSurvivor(iClient))
 	{
 		SetEntProp(iEntity, Prop_Send, "m_bCarried", 1);	// Disable healing/ammo and upgrading
 		SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", 300);	// Increase max health to 300 (default level 1 is 150)
