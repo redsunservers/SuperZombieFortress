@@ -1951,21 +1951,9 @@ bool AttemptCarryItem(int iClient)
 	PrintHintText(iClient, "Call 'MEDIC!' to drop your item!\nYou can attack while wielding an item.");
 	AcceptEntityInput(iTarget, "FireUser1", iClient, iClient);
 	
-	char sPath[PLATFORM_MAX_PATH];
-	switch (TF2_GetPlayerClass(iClient))
-	{
-		case TFClass_Scout: Format(sPath, sizeof(sPath), g_sVoCarryScout[GetRandomInt(0, sizeof(g_sVoCarryScout)-1)]);
-		case TFClass_Soldier: Format(sPath, sizeof(sPath), g_sVoCarrySoldier[GetRandomInt(0, sizeof(g_sVoCarrySoldier)-1)]);
-		case TFClass_Pyro: Format(sPath, sizeof(sPath), g_sVoCarryPyro[GetRandomInt(0, sizeof(g_sVoCarryPyro)-1)]);
-		case TFClass_DemoMan: Format(sPath, sizeof(sPath), g_sVoCarryDemoman[GetRandomInt(0, sizeof(g_sVoCarryDemoman)-1)]);
-		case TFClass_Heavy: Format(sPath, sizeof(sPath), g_sVoCarryHeavy[GetRandomInt(0, sizeof(g_sVoCarryHeavy)-1)]);
-		case TFClass_Engineer: Format(sPath, sizeof(sPath), g_sVoCarryEngineer[GetRandomInt(0, sizeof(g_sVoCarryEngineer)-1)]);
-		case TFClass_Medic: Format(sPath, sizeof(sPath), g_sVoCarryMedic[GetRandomInt(0, sizeof(g_sVoCarryMedic)-1)]);
-		case TFClass_Sniper: Format(sPath, sizeof(sPath), g_sVoCarrySniper[GetRandomInt(0, sizeof(g_sVoCarrySniper)-1)]);
-		case TFClass_Spy: Format(sPath, sizeof(sPath), g_sVoCarrySpy[GetRandomInt(0, sizeof(g_sVoCarrySpy)-1)]);
-	}
+	SetVariantString("TLK_PLAYER_MOVEUP");
+	AcceptEntityInput(iClient, "SpeakResponseConcept");
 	
-	EmitSoundToAll(sPath, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 	return true;
 }
 
