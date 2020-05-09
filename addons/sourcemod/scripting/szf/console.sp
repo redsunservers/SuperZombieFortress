@@ -303,10 +303,6 @@ public Action Console_Build(int iClient, const char[] sCommand, int iArgs)
 	GetCmdArg(1, sObjectType, sizeof(sObjectType));
 	TFObjectType nObjectType = view_as<TFObjectType>(StringToInt(sObjectType));
 	
-	//if not a sentry and is a zombie, then block building
-	if (IsZombie(iClient) && nObjectType != TFObject_Sentry)
-		return Plugin_Handled;
-	
 	//if not sentry or dispenser, then block building
 	if (nObjectType != TFObject_Dispenser && nObjectType != TFObject_Sentry)
 		return Plugin_Handled;

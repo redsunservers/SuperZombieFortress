@@ -461,18 +461,15 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
+	int iClient = GetClientOfUserId(event.GetInt("userid"));
 	int iEntity = event.GetInt("index");
 	TFObjectType nObjectType = view_as<TFObjectType>(event.GetInt("object"));
-	
-	//1. Handle dispenser rules.
-	//       Disable dispensers when they begin construction.
-	//       Increase max health to 300 (default level 1 is 150).
-	if (nObjectType == TFObject_Dispenser)
+	   
+	if (nObjectType == TFObject_Dispenser && !IsZombie(iClient))
 	{
-		SetEntProp(iEntity, Prop_Send, "m_bDisabled", 1); //fuck you
-		SetEntProp(iEntity, Prop_Send, "m_bCarried", 1); //die already
-		SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", 300);
-		AcceptEntityInput(iEntity, "Disable"); //just stop doing that beam thing you cunt
+		SetEntProp(iEntity, Prop_Send, "m_bCarried", 1);	// Disable healing/ammo and upgrading
+		SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", 300);	// Disable dispensers when they begin construction
+		AcceptEntityInput(iEntity, "Disable");	// Increase max health to 300 (default level 1 is 150)
 	}
 	
 	return Plugin_Continue;
