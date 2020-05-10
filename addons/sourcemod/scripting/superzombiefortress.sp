@@ -1431,6 +1431,9 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 		}
 	}
 	
+	if (!iLastSurvivor)
+		return;
+	
 	TF2_AddCondition(iLastSurvivor, TFCond_KingRune, TFCondDuration_Infinite);
 	g_bLastSurvivor = true;
 	SetMorale(iLastSurvivor, 100);
