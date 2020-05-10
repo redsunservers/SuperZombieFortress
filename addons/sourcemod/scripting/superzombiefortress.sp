@@ -129,7 +129,7 @@ enum Infected
 	Infected_Tank,
 	Infected_Boomer,
 	Infected_Charger,
-	Infected_Kingpin,
+	Infected_Screamer,
 	Infected_Stalker,
 	Infected_Hunter,
 	Infected_Smoker,
@@ -2090,7 +2090,7 @@ public Action SoundHook(int iClients[64], int &iLength, char sSound[PLATFORM_MAX
 		switch (g_nInfected[iClient])
 		{
 			//Normal infected & kingpin(pitch only)
-			case Infected_None, Infected_Kingpin:
+			case Infected_None, Infected_Screamer:
 			{
 				if (StrContains(sSound, "_pain", false) != -1)
 				{
@@ -2112,7 +2112,7 @@ public Action SoundHook(int iClients[64], int &iLength, char sSound[PLATFORM_MAX
 					EmitSoundToAll(g_sVoZombieCommonDefault[GetRandomInt(0, sizeof(g_sVoZombieCommonDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 				}
 				
-				if (g_nInfected[iClient] == Infected_Kingpin)
+				if (g_nInfected[iClient] == Infected_Screamer)
 					iPitch = 80;
 			}
 			

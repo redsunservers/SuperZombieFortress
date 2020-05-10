@@ -398,12 +398,12 @@ public void Menu_PrintSpecial(int iClient, Infected nInfected)
 			panel.DrawText("His inner rage and insanity has caused him to lose any care for how he uses his body, as long as he can take somebody with it.");
 			panel.DrawText("- Using rage to charge the Charger is able to disable a survivor for a short period, damaging based on the victim's health.");
 		}
-		case Infected_Kingpin:
+		case Infected_Screamer:
 		{
-			panel.DrawText("The Kingpin is the director of the pack, he makes sure that the Zombies give their fullest in taking down the survivors.");
-			panel.DrawText("- Using rage, the Kingpin will rally up the Zombies with an ear-piercing yell, increasing the overall power of the zombies.");
-			panel.DrawText("- The Kingpin motivates zombies by standing near them, increasing their efficiency.");
-			panel.DrawText("- The Kingpin is slower, but takes less damage from attacks.");
+			panel.DrawText("The Screamer is the director of the pack, he makes sure that the Zombies give their fullest in taking down the survivors.");
+			panel.DrawText("- Using rage, the Screamer will rally up the Zombies with an ear-piercing yell, increasing the overall power of the zombies.");
+			panel.DrawText("- The Screamer motivates zombies by standing near them, increasing their efficiency.");
+			panel.DrawText("- The Screamer is slower, but takes less damage from attacks.");
 		}
 		case Infected_Stalker:
 		{
