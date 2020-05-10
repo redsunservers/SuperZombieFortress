@@ -11,6 +11,5 @@ cp -r addons/sourcemod/plugins/superzombiefortress.smx package/addons/sourcemod/
 cp -r ../addons/sourcemod/configs/szf package/addons/sourcemod/configs
 cp -r ../addons/sourcemod/gamedata/szf.txt package/addons/sourcemod/gamedata
 cp -r ../addons/sourcemod/translations package/addons/sourcemod
-cp -r ../materials package
 cp -r ../models package
 cp -r ../sound package

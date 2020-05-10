@@ -439,7 +439,6 @@ public Action GasManager_Touch(int iGasManager, int iClient)
 			TF2_MakeBleed(iClient, iOwner, 0.5);
 			
 			//Fade screen slightly green
-			ClientCommand(iClient, "r_screenoverlay\"left4fortress/goo\"");
 			PlaySound(iClient, SoundEvent_Drown);
 		}
 		

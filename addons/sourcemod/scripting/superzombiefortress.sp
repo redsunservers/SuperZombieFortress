@@ -1459,10 +1459,6 @@ public void OnMapStart()
 	
 	PrecacheParticle("spell_cast_wheel_blue");
 	
-	//Spitter
-	PrecacheParticle("asplode_hoodoo_green");
-	AddFileToDownloadsTable("materials/left4fortress/goo.vmt");
-	
 	//Boomer
 	PrecacheParticle("asplode_hoodoo_debris");
 	PrecacheParticle("asplode_hoodoo_dust");
