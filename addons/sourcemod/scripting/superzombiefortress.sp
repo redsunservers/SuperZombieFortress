@@ -1429,7 +1429,7 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 		}
 	}
 	
-	SetEntityHealth(iLastSurvivor, 400);
+	TF2_AddCondition(iLastSurvivor, TFCond_KingRune, TFCondDuration_Infinite);
 	g_bLastSurvivor = true;
 	SetMorale(iLastSurvivor, 100);
 	
