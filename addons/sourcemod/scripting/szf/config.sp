@@ -47,7 +47,7 @@ void Config_Refresh()
 				}
 				else if (StringToIntEx(sBuffer, iIndex) == 0)
 				{
-					LogMessage("Invalid index \"%s\" at Weapons config melee secton", sBuffer);
+					LogError("Invalid index \"%s\" at Weapons config melee secton", sBuffer);
 				}
 				else
 				{

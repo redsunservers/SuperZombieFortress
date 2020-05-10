@@ -197,7 +197,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	g_nRoundState = SZFRoundState_Grace;
 	
-	CPrintToChatAll("{green}Grace period begun. Survivors can change classes.");
+	CPrintToChatAll("%t", "Grace_Start", "{green}");
 	
 	//Assign players to zombie and survivor teams.
 	if (g_bNewRound)
@@ -250,7 +250,7 @@ public MRESReturn DHook_RoundRespawnPre()
 				else if (g_bForceZombieStart[iClient] && !g_bFirstRound)
 				{
 					//If they attempted to skip playing as zombie last time, force him to be in zombie team
-					CPrintToChat(iClient, "{red}You have been forcibly set to infected team due to attempting to skip playing as a infected.");
+					CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}");
 					g_bForceZombieStart[iClient] = false;
 					SetClientCookie(iClient, g_cForceZombieStart, "0");
 					

@@ -12,7 +12,7 @@ public void Infected_DoGenericRage(int iClient)
 	vecClientPos[2] -= 60.0; //Wheel goes down or smth, so thats why i did that i guess
 	
 	ShowParticle("spell_cast_wheel_blue", 4.0, vecClientPos);
-	PrintHintText(iClient, "Rage Activated!");
+	PrintHintText(iClient, "%t", "Infected_RageUsed");
 	EmitSoundToAll(g_sVoZombieCommonRage[GetRandomInt(0, sizeof(g_sVoZombieCommonRage)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 }
 
@@ -45,7 +45,7 @@ public void Infected_OnTankSpawn(int iClient)
 	g_iTankHealthSubtract[iClient] = iSubtract;
 	TF2_AddCondition(iClient, TFCond_Kritzkrieged, TFCondDuration_Infinite);
 	
-	CPrintToChatAll("{red}Incoming TAAAAANK!");
+	CPrintToChatAll("%t", "Tank_Spawn");
 	EmitSoundToAll(g_sVoZombieTankOnFire[GetRandomInt(0, sizeof(g_sVoZombieTankOnFire)-1)]);
 	
 	for (int i = 1; i <= MaxClients; i++)
@@ -58,12 +58,12 @@ public void Infected_OnTankSpawn(int iClient)
 				CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
 				data.WriteCell(i);
 				data.WriteFloat(4.0);
-				data.WriteString("Do not let the Tank get close to you, his attacks are very lethal.");
+				data.WriteString("Tutorial_TankSpawn1");
 				
 				CreateDataTimer(4.5, Timer_DisplayTutorialMessage, data);
 				data.WriteCell(i);
 				data.WriteFloat(4.0);
-				data.WriteString("Run and shoot the Tank, it will slow the Tank down and kill it.");
+				data.WriteString("Tutorial_TankSpawn2");
 				
 				SetCookie(i, 2, g_cFirstTimeSurvivor);
 			}
@@ -190,7 +190,7 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 		
 		for (int i = 1; i <= MaxClients; i++)
 			if (IsValidClient(i))
-				ShowHudText(i, 5, "The Tank '%N' has died\nMost damage: %N (%d)", iVictim, iWinner, RoundFloat(flHighest));
+				ShowHudText(i, 5, "%t", "Tank_Died", iVictim, iWinner, RoundFloat(flHighest));
 	}
 	
 	if (g_iDamageDealtLife[iVictim] <= 50 && g_iDamageTakenLife[iVictim] <= 150 && !g_bTankRefreshed)

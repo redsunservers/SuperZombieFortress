@@ -1,0 +1,518 @@
+"Phrases"
+{
+	"Welcome"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"en"		"{1}Welcome to Super Zombie Fortress.\nYou can open the instruction menu using {2}/szf{3}."
+	}
+	
+	"Grace_Start"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Grace period begun. Survivors can change classes."
+	}
+	
+	"Grace_End"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Grace period complete. Survivors can no longer change classes."
+	}
+	
+	"Grace_InfectedBoost"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Infected have received extra health and other benefits to ensure game balance at the start of the round."
+	}
+	
+	"Frenzy_Start"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Zombies are frenzied: they respawn faster and are more powerful!"
+	}
+	
+	"Frenzy_End"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Zombies are resting..."
+	}
+	
+	"Tank_AlreadyHaveOne"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Zombies already have a tank."
+	}
+	
+	"Tank_AlreadyOnWay"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}A zombie tank is already on the way."
+	}
+	
+	"Tank_FrenzyOn"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Zombies are frenzied, tanks cannot spawn during frenzy."
+	}
+	
+	"Tank_Chosen"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1} {2}was chosen to become the TANK!"
+	}
+	
+	"Tank_Called"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Called tank."
+	}
+	
+	"Tank_Spawn"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Incoming TAAAAANK!"
+	}
+	
+	"Tank_Died"
+	{
+		"#format"	"{1:N}{2:N}{3:d}"
+		"en"		"The Tank '%N' has died\nMost damage: %N (%d)"
+	}
+	
+	"Carry_Pickup"
+	{
+		"en"		"Call 'MEDIC!' to drop your item!\nYou can attack while wielding an item."
+	}
+	
+	"Weapon_Pickup"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"en"		"I have picked up a {1}{2}{3}!"
+	}
+	
+	"Weapon_Callout"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"en"		"{1}{2} {3}here!"
+	}
+	
+	"Hud_Focus"
+	{
+		"#format"	"{1:d}"
+		"en"		"Focus: {1}/100"
+	}
+	
+	"Hud_Mangler"
+	{
+		"#format"	"{1:d}"
+		"en"		"Mangler: {1}\%"
+	}
+	
+	"Hud_Pomson"
+	{
+		"#format"	"{1:d}"
+		"en"		"Pomson: {1}\%"
+	}
+	
+	"Hud_Heads"
+	{
+		"#format"	"{1:d}"
+		"en"		"Heads: {1}"
+	}
+	
+	"Hud_Crits"
+	{
+		"#format"	"{1:d}"
+		"en"		"Crits: {1}"
+	}
+	
+	"Hud_Bison"
+	{
+		"#format"	"{1:d}"
+		"en"		"Bison: {1}\%"
+	}
+	
+	"Hud_Rage"
+	{
+		"#format"	"{1:d}"
+		"en"		"Rage: {1}/100"
+	}
+	
+	"Hud_Gas"
+	{
+		"#format"	"{1:d}"
+		"en"		"Gas: {1}/100"
+	}
+	
+	"Hud_Crikey"
+	{
+		"#format"	"{1:d}"
+		"en"		"Crikey: {1}/100"
+	}
+	
+	"Survivor_Last"
+	{
+		"#format"	"{1:s}{2:s}"
+		"en"		"{1}{2} is the last survivor!"
+	}
+	
+	"Infected_Zombify"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}You have perished and turned into a zombie..."
+	}
+	
+	"Infected_SelectedRespawn"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}You have been selected to become a Special Infected! {2}Call 'MEDIC!' to respawn as one or become one on death."
+	}
+	
+	"Infected_UsedQuickRespawn"
+	{
+		"#format"	"{1:s},{2:s},{3:s},{4:s}"
+		"en"		"(TEAM) {1}{2} : I have used my {3}quick respawn into special infected{4}!"
+	}
+	
+	"Infected_AllInCooldown"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}All special infected seems to be in a cooldown..."
+	}
+	
+	"Infected_ForceStart"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}You have been forcibly set to infected team due to attempting to skip playing as a infected."
+	}
+	
+	"Infected_CallMedic"
+	{
+		"en"		"Call 'MEDIC!' to respawn as a special infected!"
+	}
+	
+	"Infected_RageReady"
+	{
+		"en"		"Rage is ready!"
+	}
+	
+	"Infected_RageReadyInSec"
+	{
+		"#format"	"{1:d}"
+		"en"		"Rage is ready in {1} seconds!"
+	}
+	
+	"Infected_CantUseRage"
+	{
+		"en"		"Can't Activate Rage!"
+	}
+	
+	"Infected_RageUsed"
+	{
+		"en"		"Rage Activated!"
+	}
+	
+	"Tutorial_SurvivorStart1"
+	{
+		"en"		"Welcome to Super Zombie Fortress!"
+	}
+	
+	"Tutorial_SurvivorStart2"
+	{
+		"en"		"You are currently playing as a Survivor."
+	}
+	
+	"Tutorial_SurvivorStart3"
+	{
+		"en"		"As a Survivor, your goal is to complete the map objective."
+	}
+	
+	"Tutorial_SurvivorStart4"
+	{
+		"en"		"You may have noticed you do not have any weapons."
+	}
+	
+	"Tutorial_SurvivorStart5"
+	{
+		"en"		"You can pick up weapons by calling for medic or attacking it."
+	}
+	
+	"Tutorial_SurvivorStart6"
+	{
+		"en"		"There are normal infected but also special infected, so watch out for those!"
+	}
+	
+	"Tutorial_SurvivorStart7"
+	{
+		"en"		"You can check out more information by typing '/szf' into the chat."
+	}
+	
+	"Tutorial_SurvivorStart8"
+	{
+		"en"		"Enjoy the round and good luck out there!"
+	}
+	
+	"Tutorial_ZombieStart1"
+	{
+		"en"		"Welcome to Super Zombie Fortress!"
+	}
+	
+	"Tutorial_ZombieStart2"
+	{
+		"en"		"You are currently playing as a Zombie."
+	}
+	
+	"Tutorial_ZombieStart3"
+	{
+		"en"		"As a Zombie, your goal is to kill the Survivors."
+	}
+	
+	"Tutorial_ZombieStart4"
+	{
+		"en"		"You and your teammates may be selected to become special infected later on."
+	}
+	
+	"Tutorial_ZombieStart5"
+	{
+		"en"		"In addition, a tank may be spawned later in the round."
+	}
+	
+	"Tutorial_ZombieStart6"
+	{
+		"en"		"You can check out more information by typing '/szf' into the chat."
+	}
+	
+	"Tutorial_ZombieStart7"
+	{
+		"en"		"Enjoy the round and get them!"
+	}
+	
+	"Tutorial_PickupCommon1"
+	{
+		"en"		"You have picked up a weapon."
+	}
+	
+	"Tutorial_PickupCommon2"
+	{
+		"en"		"Finding weapons is crucial to ensure survival."
+	}
+	
+	"Tutorial_PickupRare1"
+	{
+		"en"		"You have picked up a very effective weapon."
+	}
+	
+	"Tutorial_PickupRare2"
+	{
+		"en"		"Some weapons have a lower chance of appearing, like this one."
+	}
+	
+	"Tutorial_Callout1"
+	{
+		"en"		"Calling out specific weapons allows other teammates to pick up the weapon."
+	}
+	
+	"Tutorial_TankSpawn1"
+	{
+		"en"		"Do not let the Tank get close to you, his attacks are very lethal."
+	}
+	
+	"Tutorial_TankSpawn2"
+	{
+		"en"		"Run and shoot the Tank, it will slow the Tank down and kill it."
+	}
+	
+	"Command_InfectedUsage"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Usage: sm_infected [target] [infected]"
+	}
+	
+	"Command_InfectedNoInfected"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}Unable to find infected \"{2}\""
+	}
+	
+	"Command_InfectedNoTarget"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Could not find anyone to set next infected."
+	}
+	
+	"Command_InfectedNoZombie"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Could not find any zombies to set next infected."
+	}
+	
+	"Command_InfectedSet"
+	{
+		"#format"	"{1:s},{2:d},{3:s}"
+		"en"		"{1}Set {2} zombies to become next infected \"{3}\""
+	}
+	
+	"Command_MusicEnable"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Music has been enabled."
+	}
+	
+	"Command_MusicDisable"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Music has been disabled."
+	}
+	
+	"JoinTeam_CantSwitchGrace"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}You can not switch to the opposing team during grace period."
+	}
+	
+	"JoinTeam_WillJoinInfectedGrace"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}You will join the Infected team when grace period ends."
+	}
+	
+	"JoinTeam_CancelGraceEnd"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}You will no longer automatically join the Infected team when grace period ends."
+	}
+	
+	"JoinTeam_CantJoinSurvivorGrace"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Can not join the Survivor team at this time. You will join the Infected team when grace period ends."
+	}
+	
+	"JoinClass_ValidZombies"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}Valid zombies:{2}."
+	}
+	
+	"JoinClass_ValidSurvivors"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}Valid survivors:{2}."
+	}
+	
+	"JoinClass_SurvivorsCantChange"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Survivors can't change classes during a round"
+	}
+	
+	"SpecialInfected_Boomer"
+	{
+		"en"		"{green}YOU ARE A BOOMER:\n{orange}- Call 'MEDIC!' to EXPLODE and JARATE nearby enemies!\n- You also explode upon dying, coating the killer and assister in JARATE."
+	}
+	
+	"SpecialInfected_Charger"
+	{
+		"en"		"{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}(16 second cooldown)"
+	}
+	
+	"SpecialInfected_Screamer"
+	{
+		"en"		"{green}YOU ARE A SCREAMER:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(21 second cooldown){orange}\n- Zombies standing near you are more powerful."
+	}
+	
+	"SpecialInfected_Stalker"
+	{
+		"en"		"{green}YOU ARE A STALKER:\n{orange}- If not close to any survivors, you will be cloaked and gain super speed!\n- Your backstabs do more damage."
+	}
+	
+	"SpecialInfected_Hunter"
+	{
+		"en"		"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}(3 on miss & 21 on hit second cooldown)"
+	}
+	
+	"SpecialInfected_Smoker"
+	{
+		"en"		"{green}YOU ARE A SMOKER:\n{orange}- Right click to fire a beam to enemy players and pull them towards you! {yellow}(no cooldown)"
+	}
+	
+	"SpecialInfected_Spitter"
+	{
+		"en"		"{green}YOU ARE A SPITTER:\n{orange}- Call 'MEDIC!' to throw your GAS to pile of survivors to deal damage! {yellow}(16 second cooldown)"
+	}
+	
+	"SpecialInfected_Jockey"
+	{
+		"en"		"{green}YOU ARE A JOCKEY:\n{orange}- Call 'MEDIC!' to LEAP into SURVIVORS and control movements! {yellow}(6 second cooldown)"
+	}
+	
+	"Melee_CandyCane"
+	{
+		"en"		"{orange}The Candy Cane {red}makes you take 10%% additional damage."
+	}
+	
+	"Melee_PainTrain"
+	{
+		"en"		"{orange}The Pain Train {red}makes you take 10%% additional damage."
+	}
+	
+	"Melee_HalfZatochi"
+	{
+		"en"		"{orange}The Half-Zatoichi {red}drains your max health while active."
+	}
+	
+	"Melee_MarketGardener"
+	{
+		"en"		"{orange}The Market Gardener {green}makes you take 20%% less damage from Rocket Jumping."
+	}
+	
+	"Melee_Homewrecker"
+	{
+		"en"		"{orange}The Homewrecker & reskins {green}have their damage penalty removed."
+	}
+	
+	"Melee_BackScratcher"
+	{
+		"en"		"{orange}The Back Scratcher {red}has a 90% health from healers penalty."
+	}
+	
+	"Melee_KillingGlovesofBoxing"
+	{
+		"en"		"{orange}The Killing Gloves of Boxing {red}gives 3 seconds of minicrits on kill."
+	}
+	
+	"Melee_FistsofSteel"
+	{
+		"en"		"{orange}The Fists of Steel {green}gives 10%% melee resistance while active."
+	}
+	
+	"Melee_SouthernHospitality"
+	{
+		"en"		"{orange}The Southern Hospitality {red}has a 15%% firing speed penalty."
+	}
+	
+	"Melee_EurekaEffect"
+	{
+		"en"		"{orange}The Eureka Effect {red}is disabled."
+	}
+	
+	"Melee_Ubersaw"
+	{
+		"en"		"{orange}The Ubersaw {red}gives 10%% uber on hit."
+	}
+	
+	"Melee_Amputator"
+	{
+		"en"		"{orange}The Amputator {red}does not heal in an area when taunting."
+	}
+	
+	"Melee_TribalmansShiv"
+	{
+		"en"		"{orange}The Tribalman's Shiv {green}has its damage penalty reduced to 20%%."
+	}
+	
+	"Melee_CloakandDagger"
+	{
+		"en"		"{orange}The Cloak and Dagger {red}is disabled."
+	}
+}
+

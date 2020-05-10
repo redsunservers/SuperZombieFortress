@@ -354,6 +354,8 @@ public void OnPluginStart()
 	AddServerTag("zf");
 	AddServerTag("szf");
 	
+	LoadTranslations("superzombiefortress.phrases");
+	
 	//Initialize global state
 	g_bFirstRound = true;
 	g_bSurvival = false;
@@ -584,7 +586,7 @@ void EndGracePeriod()
 		return; //No point in ending grace period if it's not grace period it in the first place.
 	
 	g_nRoundState = SZFRoundState_Active;
-	CPrintToChatAll("{orange}Grace period complete. Survivors can no longer change classes.");
+	CPrintToChatAll("%t", "Grace_End", "{orange}");
 	
 	//Disable func_respawnroom so clients dont accidentally respawn and join zombie
 	int iEntity = -1;
@@ -616,7 +618,7 @@ void EndGracePeriod()
 					g_bSpawnAsSpecialInfected[iClient] = true;
 				}
 				
-				CPrintToChat(iClient, "%sInfected have received extra health and other benefits to ensure game balance at the start of the round.", (IsZombie(iClient)) ? "{green}" : "{red}");
+				CPrintToChat(iClient, "%t", "Infected_SelectedRespawn", (IsZombie(iClient)) ? "{green}" : "{red}");
 			}
 		}
 	}
@@ -692,7 +694,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 					g_bSpawnAsSpecialInfected[iClient] = true;
 					g_bReplaceRageWithSpecialInfectedSpawn[iClient] = true;
 					g_flSelectSpecialCooldown = GetGameTime() + 20.0;
-					CPrintToChat(iClient, "{green}You have been selected to become a Special Infected! {orange}Call 'MEDIC!' to respawn as one or become one on death.");
+					CPrintToChat(iClient, "%t", "Infected_SelectedRespawn", "{green}", "{orange}");
 				}
 			}
 		}
@@ -823,7 +825,7 @@ public Action Timer_Zombify(Handle hTimer, int iClient)
 	
 	if (IsValidClient(iClient))
 	{
-		CPrintToChat(iClient, "{red}You have perished and turned into a zombie...");
+		CPrintToChat(iClient, "%t", "Infected_Zombify", "{red}");
 		SpawnClient(iClient, TFTeam_Zombie);
 	}
 	
@@ -912,27 +914,27 @@ void Handle_SurvivorAbilities()
 				if (GetEntProp(iPrimary, Prop_Send, "m_iItemDefinitionIndex") == 752)
 				{
 					float flFocus = GetEntPropFloat(iClient, Prop_Send, "m_flRageMeter");
-					ShowHudText(iClient, 0, "Focus: %d/100", RoundToZero(flFocus));
+					ShowHudText(iClient, 0, "%t", "Hud_Focus", RoundToZero(flFocus));
 				}
 				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Primary, "tf_weapon_particle_cannon"))
 				{
 					float flEnergy = GetEntPropFloat(iPrimary, Prop_Send, "m_flEnergy");
-					ShowHudText(iClient, 0, "Mangler: %d\%", RoundFloat(flEnergy)*5);
+					ShowHudText(iClient, 0, "%t", "Hud_Mangler", RoundFloat(flEnergy)*5);
 				}
 				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Primary, "tf_weapon_drg_pomson"))
 				{
 					float flEnergy = GetEntPropFloat(iPrimary, Prop_Send, "m_flEnergy");
-					ShowHudText(iClient, 0, "Pomson: %d\%", RoundFloat(flEnergy)*5);
+					ShowHudText(iClient, 0, "%t", "Hud_Pomson", RoundFloat(flEnergy)*5);
 				}
 				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Primary, "tf_weapon_sniperrifle_decap"))
 				{
 					int iHeads = GetEntProp(iClient, Prop_Send, "m_iDecapitations");
-					ShowHudText(iClient, 0, "Heads: %d", iHeads);
+					ShowHudText(iClient, 0, "%t", "Hud_Heads", iHeads);
 				}
 				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Primary, "tf_weapon_sentry_revenge"))
 				{
 					int iCrits = GetEntProp(iClient, Prop_Send, "m_iRevengeCrits");
-					ShowHudText(iClient, 0, "Crits: %d", iCrits);
+					ShowHudText(iClient, 0, "%t", "Hud_Crits", iCrits);
 				}
 			}
 			
@@ -944,22 +946,22 @@ void Handle_SurvivorAbilities()
 				if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_raygun"))
 				{
 					float flEnergy = GetEntPropFloat(iSecondary, Prop_Send, "m_flEnergy");
-					ShowHudText(iClient, 5, "Bison: %d\%", RoundFloat(flEnergy)*5);
+					ShowHudText(iClient, 5, "%t", "Hud_Bison", RoundFloat(flEnergy)*5);
 				}
 				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_buff_item"))
 				{
 					float flRage = GetEntPropFloat(iClient, Prop_Send, "m_flRageMeter");
-					ShowHudText(iClient, 5, "Rage: %d/100", RoundToZero(flRage));
+					ShowHudText(iClient, 5, "%t", "Hud_Rage", RoundToZero(flRage));
 				}
 				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_jar_gas"))
 				{
 					float flMeter = GetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", 1);
-					ShowHudText(iClient, 5, "Gas: %d/100", RoundToZero(flMeter));
+					ShowHudText(iClient, 5, "%t", "Hud_Gas", RoundToZero(flMeter));
 				}
 				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_charged_smg"))
 				{
 					float flRage = GetEntPropFloat(iSecondary, Prop_Send, "m_flMinicritCharge");
-					ShowHudText(iClient, 5, "Crikey: %d/100", RoundToZero(flRage));
+					ShowHudText(iClient, 5, "%t", "Hud_Crikey", RoundToZero(flRage));
 				}
 			}
 
@@ -1043,17 +1045,17 @@ void Handle_ZombieAbilities()
 			//2.1. Handle fast respawn into special infected HUD message
 			if (g_nRoundState == SZFRoundState_Active && g_bReplaceRageWithSpecialInfectedSpawn[iClient])
 			{
-				PrintHintText(iClient, "Call 'MEDIC!' to respawn as a special infected!");
+				PrintHintText(iClient, "%t", "Infected_CallMedic");
 			}
 			//2.2. Handle zombie rage timer
 			//       Rage recharges every 20(special)/30(normal) seconds.
 			else if (g_iRageTimer[iClient] > 0)
 			{
-				if (g_iRageTimer[iClient] == 1) PrintHintText(iClient, "Rage is ready!");
-				if (g_iRageTimer[iClient] == 6) PrintHintText(iClient, "Rage is ready in 5 seconds!");
-				if (g_iRageTimer[iClient] == 11) PrintHintText(iClient, "Rage is ready in 10 seconds!");
-				if (g_iRageTimer[iClient] == 21) PrintHintText(iClient, "Rage is ready in 20 seconds!");
-				if (g_iRageTimer[iClient] == 31) PrintHintText(iClient, "Rage is ready in 30 seconds!");
+				if (g_iRageTimer[iClient] == 1) PrintHintText(iClient, "%t", "Infected_RageReady");
+				if (g_iRageTimer[iClient] == 6) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 5);
+				if (g_iRageTimer[iClient] == 11) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 10);
+				if (g_iRageTimer[iClient] == 21) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 20);
+				if (g_iRageTimer[iClient] == 31) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 30);
 				
 				g_iRageTimer[iClient]--;
 			}
@@ -1215,7 +1217,7 @@ void ResetClientState(int iClient)
 void PrintInfoChat(int iClient)
 {
 	char sMessage[256];
-	Format(sMessage, sizeof(sMessage), "{lightsalmon}Welcome to Super Zombie Fortress.\nYou can open the instruction menu using {limegreen}/szf{lightsalmon}.");
+	Format(sMessage, sizeof(sMessage), "%t", "Welcome", "{lightsalmon}", "{limegreen}", "{lightsalmon}");
 	
 	if (iClient == 0)
 		CPrintToChatAll(sMessage);
@@ -1435,7 +1437,7 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	
 	char sName[255];
 	GetClientName2(iLastSurvivor, sName, sizeof(sName));
-	CPrintToChatAllEx(iLastSurvivor, "%s{green} is the last survivor!", sName);
+	CPrintToChatAllEx(iLastSurvivor, "%t", "Survivor_Last", sName, "{green}");
 	
 	PlaySoundAll(SoundMusic_LastStand);
 	
@@ -1545,7 +1547,7 @@ int ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 		{
 			if (IsClientInGame(iClient))
 			{
-				CPrintToChat(iClient, "%sZombies are frenzied: they respawn faster and are more powerful!", (IsZombie(iClient)) ? "{green}" : "{red}");
+				CPrintToChat(iClient, "%t", "Frenzy_Start", (IsZombie(iClient)) ? "{green}" : "{red}");
 				
 				if (IsZombie(iClient) && !IsPlayerAlive(iClient))
 				{
@@ -1579,7 +1581,7 @@ public Action Timer_StopZombieRage(Handle hTimer)
 	if (g_nRoundState == SZFRoundState_Active)
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 			if (IsClientInGame(iClient))
-				CPrintToChat(iClient, "%sZombies are resting...", (IsZombie(iClient)) ? "{red}" : "{green}");
+				CPrintToChat(iClient, "%t", "Frenzy_End", (IsZombie(iClient)) ? "{red}" : "{green}");
 }
 
 int FastRespawnNearby(int iClient, float flDistance, bool bMustBeInvisible = true)
@@ -1756,7 +1758,7 @@ void HandleSurvivorLoadout(int iClient)
 					//Print text with cooldown to prevent spam
 					if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(Melee.sText, ""))
 					{
-						CPrintToChat(iClient, Melee.sText);
+						CPrintToChat(iClient, "%t", Melee.sText);
 						g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
 					}
 					
@@ -1884,19 +1886,19 @@ void ZombieTank(int iCaller = 0)
 	if (ZombiesHaveTank())
 	{
 		if (IsValidClient(iCaller))
-			CPrintToChat(iCaller, "{red}Zombies already have a tank.");
+			CPrintToChat(iCaller, "%t", "Tank_AlreadyHaveOne", "{red}");
 		return;
 	}
 	else if (g_iZombieTank > 0)
 	{
 		if (IsValidClient(iCaller))
-			CPrintToChat(iCaller, "{red}A zombie tank is already on the way.");
+			CPrintToChat(iCaller, "%t", "Tank_AlreadyOnWay", "{red}");
 		return;
 	}
 	else if (g_bZombieRage)
 	{
 		if (IsValidClient(iCaller))
-			CPrintToChat(iCaller, "{red}Zombies are frenzied, tanks cannot spawn during frenzy.");
+			CPrintToChat(iCaller, "%t", "Tank_FrenzyOn", "{red}");
 		return;
 	}
 	
@@ -1913,10 +1915,10 @@ void ZombieTank(int iCaller = 0)
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		if (IsValidZombie(iClient))
-			CPrintToChatEx(iClient, g_iZombieTank, "%s {green}was chosen to become the TANK!", sName);
+			CPrintToChatEx(iClient, g_iZombieTank, "%t", "Tank_Chosen", sName, "{green}");
 	
 	if (IsValidClient(iCaller))
-		CPrintToChat(iCaller, "{green}Called tank.");
+		CPrintToChat(iCaller, "%t", "Tank_Called", "{green}");
 	
 	g_bReplaceRageWithSpecialInfectedSpawn[g_iZombieTank] = false;
 	g_flTankCooldown = GetGameTime() + 120.0; //Set new cooldown
@@ -2003,7 +2005,7 @@ bool AttemptCarryItem(int iClient)
 	SetEntProp(iTarget, Prop_Send, "m_nSolidType", 0);
 	
 	EmitSoundToClient(iClient, "ui/item_paint_can_pickup.wav");
-	PrintHintText(iClient, "Call 'MEDIC!' to drop your item!\nYou can attack while wielding an item.");
+	PrintHintText(iClient, "%t", "Carry_Pickup");
 	AcceptEntityInput(iTarget, "FireUser1", iClient, iClient);
 	
 	SetVariantString("TLK_PLAYER_MOVEUP");
@@ -2202,42 +2204,42 @@ void InitiateSurvivorTutorial(int iClient)
 	CreateDataTimer(1.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("Welcome to Super Zombie Fortress!");
+	data.WriteString("Tutorial_SurvivorStart1");
 	
 	CreateDataTimer(6.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("You are currently playing as a Survivor.");
+	data.WriteString("Tutorial_SurvivorStart2");
 	
 	CreateDataTimer(11.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("As a Survivor, your goal is to complete the map objective.");
+	data.WriteString("Tutorial_SurvivorStart3");
 	
 	CreateDataTimer(16.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("You may have noticed you do not have any weapons.");
+	data.WriteString("Tutorial_SurvivorStart4");
 	
 	CreateDataTimer(21.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("You can pick up weapons by calling for medic or attacking it.");
+	data.WriteString("Tutorial_SurvivorStart5");
 	
 	CreateDataTimer(26.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("There are normal infected but also special infected, so watch out for those!");
+	data.WriteString("Tutorial_SurvivorStart6");
 	
 	CreateDataTimer(31.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("You can check out more information by typing '/szf' into the chat.");
+	data.WriteString("Tutorial_SurvivorStart7");
 	
 	CreateDataTimer(36.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("Enjoy the round and good luck out there!");
+	data.WriteString("Tutorial_SurvivorStart8");
 	
 	SetCookie(iClient, 1, g_cFirstTimeSurvivor);
 }
@@ -2248,37 +2250,37 @@ void InitiateZombieTutorial(int iClient)
 	CreateDataTimer(1.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("Welcome to Super Zombie Fortress!");
+	data.WriteString("Tutorial_ZombieStart1");
 	
 	CreateDataTimer(6.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("You are currently playing as a Zombie.");
+	data.WriteString("Tutorial_ZombieStart2");
 	
 	CreateDataTimer(11.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("As a Zombie, your goal is to kill the Survivors.");
+	data.WriteString("Tutorial_ZombieStart3");
 	
 	CreateDataTimer(16.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("You and your teammates may be selected to become special infected later on.");
+	data.WriteString("Tutorial_ZombieStart4");
 	
 	CreateDataTimer(21.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("In addition, a tank may be spawned later in the round.");
+	data.WriteString("Tutorial_ZombieStart5");
 	
 	CreateDataTimer(26.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("You can check out more information by typing '/szf' into the chat.");
+	data.WriteString("Tutorial_ZombieStart6");
 	
 	CreateDataTimer(31.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("Enjoy the round and get them!");
+	data.WriteString("Tutorial_ZombieStart7");
 	
 	SetCookie(iClient, 1, g_cFirstTimeZombie);
 }
@@ -2296,7 +2298,7 @@ public Action Timer_DisplayTutorialMessage(Handle hTimer, DataPack data)
 		return;
 	
 	SetHudTextParams(-1.0, 0.32, flDuration, 100, 100, 255, 128);
-	ShowHudText(iClient, 4, sDisplay);
+	ShowHudText(iClient, 4, "%t", sDisplay);
 }
 
 public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fVelocity[3], float fAngles[3], int &iWeapon)

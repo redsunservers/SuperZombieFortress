@@ -123,7 +123,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 				{
 					//Check if they did not become special infected because all is in cooldown
 					if (g_nInfected[iClient] == Infected_None)
-						CPrintToChat(iClient, "{red}All special infected seems to be in a cooldown...");
+						CPrintToChat(iClient, "%t", "Infected_AllInCooldown", "{red}");
 					
 					g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
 				}
@@ -188,7 +188,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		SetEntityRenderColor(iClient, g_ClientClasses[iClient].iColor[0], g_ClientClasses[iClient].iColor[1], g_ClientClasses[iClient].iColor[2], g_ClientClasses[iClient].iColor[3]);
 		
 		if (g_ClientClasses[iClient].sMessage[0])
-			CPrintToChat(iClient, g_ClientClasses[iClient].sMessage);
+			CPrintToChat(iClient, "%t", g_ClientClasses[iClient].sMessage);
 		
 		if (g_nInfected[iClient] != Infected_None && g_nInfected[iClient] != Infected_Tank && g_iInfectedCooldown[g_nInfected[iClient]] != iClient)
 		{

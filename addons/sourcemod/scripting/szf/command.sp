@@ -62,7 +62,7 @@ public Action Command_ForceInfected(int iClient, int iArgs)
 	
 	if (iArgs < 2)
 	{
-		CReplyToCommand(iClient, "{red}Usage: sm_infected [target] [infected]");
+		CReplyToCommand(iClient, "%t", "Command_InfectedUsage", "{red}");
 		return Plugin_Handled;
 	}
 	
@@ -85,7 +85,7 @@ public Action Command_ForceInfected(int iClient, int iArgs)
 	
 	if (nInfected == Infected_None)
 	{
-		CReplyToCommand(iClient, "{red}Unable to find infected \"%s\"", sInfected);
+		CReplyToCommand(iClient, "%t", "Command_InfectedNoInfected", "{red}", sInfected);
 		return Plugin_Handled;
 	}
 	
@@ -96,7 +96,7 @@ public Action Command_ForceInfected(int iClient, int iArgs)
 	int iTargetCount = ProcessTargetString(sTarget, iClient, iTargetList, sizeof(iTargetList), COMMAND_FILTER_NO_IMMUNITY, sTargetName, sizeof(sTargetName), bIsML);
 	if (iTargetCount <= 0)
 	{
-		CReplyToCommand(iClient, "{red}Could not find anyone to set next infected");
+		CReplyToCommand(iClient, "%t", "Command_InfectedNoTarget", "{red}");
 		return Plugin_Handled;
 	}
 	
@@ -111,9 +111,9 @@ public Action Command_ForceInfected(int iClient, int iArgs)
 	}
 	
 	if (iCount == 0)
-		CReplyToCommand(iClient, "{red}Could not find any zombies to set next infected");
+		CReplyToCommand(iClient, "%t", "Command_InfectedNoZombie", "{red}");
 	else
-		CReplyToCommand(iClient, "{limegreen}Set %d zombies to become next infected \"%s\"", iCount, sInfected);
+		CReplyToCommand(iClient, "%t", "Command_InfectedSet", "{limegreen}", iCount, sInfected);
 	
 	return Plugin_Handled;
 }
@@ -149,12 +149,12 @@ public Action Command_MusicToggle(int iClient, int iArgs)
 		if (g_bNoMusicForClient[iClient])
 		{
 			g_bNoMusicForClient[iClient] = false;
-			CPrintToChat(iClient, "{limegreen}Music has been enabled.");
+			CPrintToChat(iClient, "%t", "Command_MusicEnable", "{limegreen}");
 		}
 		else if (!g_bNoMusicForClient[iClient])
 		{
 			g_bNoMusicForClient[iClient] = true;
-			CPrintToChat(iClient, "{limegreen}Music has been disabled.");
+			CPrintToChat(iClient, "%t", "Command_MusicDisable", "{limegreen}");
 		}
 		
 		Format(sPreference, sizeof(sPreference), "%d", g_bNoMusicForClient[iClient]);

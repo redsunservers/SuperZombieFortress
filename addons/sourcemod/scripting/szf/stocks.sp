@@ -1055,15 +1055,15 @@ public Action Timer_KillEntity(Handle hTimer, int iRef)
 }
 
 //Yoinked from https://github.com/DFS-Servers/Super-Zombie-Fortress/blob/master/addons/sourcemod/scripting/include/szf_util_base.inc
-stock void SZF_CPrintToChatAll(int iClient, char[] sText, bool bTeam = false, const char[] sParam1="", const char[] sParam2="", const char[] sParam3="", const char[] sParam4="")
+stock void CPrintToChatTranslation(int iClient, int iCaller, char[] sText, bool bTeam = false, const char[] sParam1="", const char[] sParam2="", const char[] sParam3="", const char[] sParam4="")
 {
-	if (bTeam && !IsValidClient(iClient))
+	if (bTeam && !IsValidClient(iCaller))
 		return;
 	
 	char sName[80], sMessage[255];
-	if (0 < iClient <= MaxClients)
+	if (0 < iCaller <= MaxClients)
 	{
-		GetClientName2(iClient, sName, sizeof(sName));
+		GetClientName2(iCaller, sName, sizeof(sName));
 		if (bTeam)
 			Format(sMessage, sizeof(sMessage), "\x01(TEAM) %s\x01 : %s", sName, sText);
 		else
@@ -1074,18 +1074,11 @@ stock void SZF_CPrintToChatAll(int iClient, char[] sText, bool bTeam = false, co
 	ReplaceString(sMessage, sizeof(sMessage), "{param2}", "%s2");
 	ReplaceString(sMessage, sizeof(sMessage), "{param3}", "%s3");
 	ReplaceString(sMessage, sizeof(sMessage), "{param4}", "%s4");
-	CReplaceColorCodes(sMessage, iClient, _, sizeof(sMessage));
+	CReplaceColorCodes(sMessage, iCaller, _, sizeof(sMessage));
 	
-	int iClients[MAXPLAYERS+1], iLength;
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (!IsValidClient(i) || (bTeam &&  GetClientTeam(i) != GetClientTeam(iClient)))
-			continue;
-		
-		iClients[iLength++] = i;
-	}
-	
-	SayText2(iClients, iLength, iClient, true, sMessage, sParam1, sParam2, sParam3, sParam4);
+	int iClients[1];
+	iClients[0] = iClient;
+	SayText2(iClients, 1, iClient, true, sMessage, sParam1, sParam2, sParam3, sParam4);
 }
 
 stock void SayText2(int[] iClients, int iLength, int iEntity, bool bChat, const char[] sMessage, const char[] sParam1="", const char[] sParam2="", const char[] sParam3="", const char[] sParam4="")

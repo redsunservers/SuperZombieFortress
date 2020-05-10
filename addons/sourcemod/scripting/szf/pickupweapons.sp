@@ -204,9 +204,18 @@ bool AttemptGrabItem(int iClient)
 		{
 			if (nRarity == WeaponRarity_Rare)
 			{
-				char sName[255];
+				char sName[256];
 				TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
-				SZF_CPrintToChatAll(iClient, "I have picked up a {limegreen}{param3}\x01!", true, .sParam3 = sName);
+				
+				for (int i = 1; i <= MaxClients; i++)
+				{
+					if (IsValidLivingSurvivor(i))
+					{
+						char sBuffer[256];
+						Format(sBuffer, sizeof(sBuffer), "%T", "Weapon_Pickup", i, "{limegreen}", "{param3}", "\x01");
+						CPrintToChatTranslation(i, iClient, sBuffer, true, .sParam3 = sName);
+					}
+				}
 				
 				AddToCookie(iClient, 1, g_cWeaponsRarePicked);
 				if (GetCookie(iClient, g_cWeaponsRarePicked) <= 1)
@@ -215,12 +224,12 @@ bool AttemptGrabItem(int iClient)
 					CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
 					data.WriteCell(iClient);
 					data.WriteFloat(2.0);
-					data.WriteString("You have picked up a very effective weapon.");
+					data.WriteString("Tutorial_PickupRare1");
 					
 					CreateDataTimer(2.5, Timer_DisplayTutorialMessage, data);
 					data.WriteCell(iClient);
 					data.WriteFloat(3.0);
-					data.WriteString("Some weapons have a lower chance of appearing, like this one.");
+					data.WriteString("Tutorial_PickupRare2");
 				}
 			}
 			
@@ -232,7 +241,16 @@ bool AttemptGrabItem(int iClient)
 		{
 			char sName[255];
 			TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
-			SZF_CPrintToChatAll(iClient, "{limegreen}{param3} \x01here!", true, .sParam3 = sName);
+			
+			for (int i = 1; i <= MaxClients; i++)
+			{
+				if (IsValidLivingSurvivor(i))
+				{
+					char sBuffer[256];
+					Format(sBuffer, sizeof(sBuffer), "%T", "Weapon_Callout", i, "{limegreen}", "{param3}", "\x01");
+					CPrintToChatTranslation(i, iClient, sBuffer, true, .sParam3 = sName);
+				}
+			}
 			
 			int iGlow = CreateWeaponGlow(iTarget);
 			CreateTimer(10.0, Timer_KillEntity, EntIndexToEntRef(iGlow));
@@ -244,7 +262,7 @@ bool AttemptGrabItem(int iClient)
 				CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
 				data.WriteCell(iClient);
 				data.WriteFloat(4.0);
-				data.WriteString("Calling out specific weapons allows other teammates to pick up the weapon.");
+				data.WriteString("Tutorial_Callout1");
 			}
 			
 			g_flLastCallout[iClient] = GetGameTime();
@@ -388,12 +406,12 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
 		data.WriteCell(iClient);
 		data.WriteFloat(2.5);
-		data.WriteString("You have picked up a weapon.");
+		data.WriteString("Tutorial_PickupCommon1");
 		
 		CreateDataTimer(3.0, Timer_DisplayTutorialMessage, data);
 		data.WriteCell(iClient);
 		data.WriteFloat(3.5);
-		data.WriteString("Finding weapons is crucial to ensure survival.");
+		data.WriteString("Tutorial_PickupCommon2");
 	}
 	
 	//Trigger ENT_ONPICKUP

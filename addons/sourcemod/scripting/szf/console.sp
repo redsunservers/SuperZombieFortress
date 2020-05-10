@@ -63,7 +63,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 			//...as survivor, don't let them.
 			if (nTeam == TFTeam_Survivor)
 			{
-				CPrintToChat(iClient, "{red}You can not switch to the opposing team during grace period.");
+				CPrintToChat(iClient, "%t", "JoinTeam_CantSwitchGrace", "{red}");
 				return Plugin_Handled;
 			}
 			
@@ -75,7 +75,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 					if (nTeam == TFTeam_Unassigned) //If they're unassigned, let them spectate for now.
 						TF2_ChangeClientTeam(iClient, TFTeam_Spectator);
 					
-					CPrintToChat(iClient, "{red}You will join the Infected team when grace period ends.");
+					CPrintToChat(iClient, "%t", "JoinTeam_WillJoinInfectedGrace", "{red}");
 					g_bWaitingForTeamSwitch[iClient] = true;
 				}
 				
@@ -89,7 +89,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 		{
 			if (nTeam <= TFTeam_Spectator && g_bWaitingForTeamSwitch[iClient])
 			{
-				CPrintToChat(iClient, "{green}You will no longer automatically join the Infected team when grace period ends.");
+				CPrintToChat(iClient, "%t", "JoinTeam_CancelGraceEnd", "{green}");
 				g_bWaitingForTeamSwitch[iClient] = false;
 			}
 			
@@ -113,7 +113,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 					if (nTeam == TFTeam_Unassigned) //If they're unassigned, let them spectate for now.
 						TF2_ChangeClientTeam(iClient, TFTeam_Spectator);
 					
-					CPrintToChat(iClient, "{red}Can not join the Survivor team at this time. You will join the Infected team when grace period ends.");
+					CPrintToChat(iClient, "%t", "JoinTeam_CantJoinSurvivorGrace", "{red}");
 					g_bWaitingForTeamSwitch[iClient] = true;
 				}
 			}
@@ -182,7 +182,7 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 			}
 		}
 		
-		CPrintToChat(iClient, "{red}Valid zombies:%s.", sMsg);
+		CPrintToChat(iClient, "%t", "JoinClass_ValidZombies", "{red}", sMsg);
 		return Plugin_Continue;
 	}
 	else if (IsSurvivor(iClient))
@@ -190,7 +190,7 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 		//Prevent survivors from switching classes during the round.
 		if (g_nRoundState == SZFRoundState_Active)
 		{
-			CPrintToChat(iClient, "{red}Survivors can't change classes during a round.");
+			CPrintToChat(iClient, "%t", "JoinClass_SurvivorsCantChange", "{red}");
 			return Plugin_Handled;
 		}
 		
@@ -215,7 +215,7 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 			}
 		}
 		
-		CPrintToChat(iClient, "{red}Valid survivors:%s.", sMsg);
+		CPrintToChat(iClient, "%t", "JoinClass_ValidSurvivors", "{red}", sMsg);
 		return Plugin_Continue;
 	}
 	
@@ -261,13 +261,11 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 				
 				//Broadcast to team
 				char sName[255];
-				char sMessage[255];
 				GetClientName2(iClient, sName, sizeof(sName));
 				
-				Format(sMessage, sizeof(sMessage), "(TEAM) %s\x01 : I have used my {limegreen}quick respawn into special infected\x01!", sName);
 				for (int i = 1; i <= MaxClients; i++)
 					if (IsValidClient(i) && GetClientTeam(i) == GetClientTeam(iClient))
-						CPrintToChatEx(i, iClient, sMessage);
+						CPrintToChatEx(i, iClient, "%t", "Infected_UsedQuickRespawn", sName, "\x01", "{limegreen}", "\x01");
 			}
 			else if (g_iRageTimer[iClient] == 0)
 			{
@@ -283,7 +281,7 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 			else
 			{
 				ClientCommand(iClient, "voicemenu 2 5");
-				PrintHintText(iClient, "Can't Activate Rage!");
+				PrintHintText(iClient, "%t", "Infected_CantUseRage");
 			}
 			
 			return Plugin_Handled;
