@@ -91,10 +91,10 @@ public void Client_OnPreThinkPost(int iClient)
 						case Infected_Tank:
 						{
 							//Reduce speed when tank deals damage to survivors 
-							flSpeed -= fMin(60.0, (float(g_iDamageDealtLife[iClient]) / 10.0));
+							flSpeed -= fMin(70.0, (float(g_iDamageDealtLife[iClient]) / 10.0));
 
 							//Reduce speed when tank takes damage from survivors 
-							flSpeed -= fMin(80.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
+							flSpeed -= fMin(100.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
 
 							if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
 								flSpeed += 40.0; //On fire
