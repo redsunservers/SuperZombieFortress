@@ -197,9 +197,6 @@ void Classes_Precache()
 
 void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), TFClassType iClass = TFClass_Unknown)
 {
-	ClientClasses nothing;
-	g_ClientClasses[iClient] = nothing;
-	
 	if (nInfected != view_as<Infected>(-1))
 		g_nInfected[iClient] = nInfected;
 	
@@ -210,59 +207,14 @@ void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), 
 	
 	if (IsSurvivor(iClient))
 	{
-		//Survivor classes
-		g_ClientClasses[iClient].flSpeed = g_SurvivorClasses[iClass].flSpeed;
-		g_ClientClasses[iClient].iRegen = g_SurvivorClasses[iClass].iRegen;
-		g_ClientClasses[iClient].iAmmo = g_SurvivorClasses[iClass].iAmmo;
-		
-		g_ClientClasses[iClient].callback_spawn = INVALID_FUNCTION;
-		g_ClientClasses[iClient].callback_rage = INVALID_FUNCTION;
-		g_ClientClasses[iClient].callback_think = INVALID_FUNCTION;
-		g_ClientClasses[iClient].callback_anim = INVALID_FUNCTION;
-		g_ClientClasses[iClient].callback_death = INVALID_FUNCTION;
+		g_ClientClasses[iClient] = g_SurvivorClasses[iClass];
 	}
 	else if (IsZombie(iClient))
 	{
-		//Zombie classes, special infected unaffected
-		g_ClientClasses[iClient].flSpree = g_ZombieClasses[iClass].flSpree;
-		g_ClientClasses[iClient].flHorde = g_ZombieClasses[iClass].flHorde;
-		g_ClientClasses[iClient].flMaxSpree = g_ZombieClasses[iClass].flMaxSpree;
-		g_ClientClasses[iClient].flMaxHorde = g_ZombieClasses[iClass].flMaxHorde;
-		
-		//Normal and Special infected
-		g_ClientClasses[iClient].iRageCooldown = g_InfectedClasses[g_nInfected[iClient]].iRageCooldown;
-		g_ClientClasses[iClient].callback_spawn = g_InfectedClasses[g_nInfected[iClient]].callback_spawn;
-		g_ClientClasses[iClient].callback_rage = g_InfectedClasses[g_nInfected[iClient]].callback_rage;
-		g_ClientClasses[iClient].callback_think = g_InfectedClasses[g_nInfected[iClient]].callback_think;
-		g_ClientClasses[iClient].callback_anim = g_InfectedClasses[g_nInfected[iClient]].callback_anim;
-		g_ClientClasses[iClient].callback_death = g_InfectedClasses[g_nInfected[iClient]].callback_death;
-		
 		if (g_nInfected[iClient] == Infected_None)
-		{
-			//Zombie classes
-			g_ClientClasses[iClient].flSpeed = g_ZombieClasses[iClass].flSpeed;
-			g_ClientClasses[iClient].iRegen = g_ZombieClasses[iClass].iRegen;
-			g_ClientClasses[iClient].iHealth = g_ZombieClasses[iClass].iHealth;
-			g_ClientClasses[iClient].iDegen = g_ZombieClasses[iClass].iDegen;
-			g_ClientClasses[iClient].aWeapons = g_ZombieClasses[iClass].aWeapons;
-		}
+			g_ClientClasses[iClient] = g_ZombieClasses[iClass];
 		else
-		{
-			//Infected classes
-			g_ClientClasses[iClient].flSpeed = g_InfectedClasses[g_nInfected[iClient]].flSpeed;
-			g_ClientClasses[iClient].iRegen = g_InfectedClasses[g_nInfected[iClient]].iRegen;
-			g_ClientClasses[iClient].iHealth = g_InfectedClasses[g_nInfected[iClient]].iHealth;
-			g_ClientClasses[iClient].iDegen = g_InfectedClasses[g_nInfected[iClient]].iDegen;
-			g_ClientClasses[iClient].aWeapons = g_InfectedClasses[g_nInfected[iClient]].aWeapons;
-			
-			//Infected classes, zombies don't get one
-			g_ClientClasses[iClient].iInfectedClass = g_InfectedClasses[g_nInfected[iClient]].iInfectedClass;
-			g_ClientClasses[iClient].bGlow = g_InfectedClasses[g_nInfected[iClient]].bGlow;
-			g_ClientClasses[iClient].iColor = g_InfectedClasses[g_nInfected[iClient]].iColor;
-			strcopy(g_ClientClasses[iClient].sMessage, sizeof(g_ClientClasses[].sMessage), g_InfectedClasses[g_nInfected[iClient]].sMessage);
-			strcopy(g_ClientClasses[iClient].sModel, sizeof(g_ClientClasses[].sModel), g_InfectedClasses[g_nInfected[iClient]].sModel);
-			strcopy(g_ClientClasses[iClient].sSoundSpawn, sizeof(g_ClientClasses[].sSoundSpawn), g_InfectedClasses[g_nInfected[iClient]].sSoundSpawn);
-		}
+			g_ClientClasses[iClient] = g_InfectedClasses[g_nInfected[iClient]];
 	}
 }
 
