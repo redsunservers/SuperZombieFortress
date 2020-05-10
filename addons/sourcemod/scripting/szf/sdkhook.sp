@@ -278,14 +278,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			
 			if (IsValidSurvivor(iAttacker))
 			{
-				//Screamer takes 33% less damage from attacks
-				if (g_nInfected[iVictim] == Infected_Screamer)
-				{
-					flDamage *= 0.66;
-					bChanged = true;
-				}
-				
-				else if (g_nInfected[iVictim] == Infected_Tank)
+				if (g_nInfected[iVictim] == Infected_Tank)
 				{
 					//"SHOOT THAT TANK" voice call
 					if (g_flDamageDealtAgainstTank[iAttacker] == 0)

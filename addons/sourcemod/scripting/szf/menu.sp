@@ -403,7 +403,6 @@ public void Menu_PrintSpecial(int iClient, Infected nInfected)
 			panel.DrawText("The Screamer is the director of the pack, he makes sure that the Zombies give their fullest in taking down the survivors.");
 			panel.DrawText("- Using rage, the Screamer will rally up the Zombies with an ear-piercing yell, increasing the overall power of the zombies.");
 			panel.DrawText("- The Screamer motivates zombies by standing near them, increasing their efficiency.");
-			panel.DrawText("- The Screamer is slower, but takes less damage from attacks.");
 		}
 		case Infected_Stalker:
 		{
