@@ -114,7 +114,7 @@ public void Client_OnPreThinkPost(int iClient)
 						case Infected_Stalker:
 						{
 							if (TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
-								flSpeed += 120.0;
+								flSpeed += 80.0;
 						}
 					}
 				}
