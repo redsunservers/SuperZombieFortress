@@ -461,6 +461,7 @@ ArrayList Config_LoadInfectedClasses()
 				inf.callback_spawn = Config_GetFunction(kv, "callback_spawn");
 				inf.callback_rage = Config_GetFunction(kv, "callback_rage");
 				inf.callback_think = Config_GetFunction(kv, "callback_think");
+				inf.callback_anim = Config_GetFunction(kv, "callback_anim");
 				inf.callback_death = Config_GetFunction(kv, "callback_death");
 				
 				inf.aWeapons = new ArrayList(sizeof(WeaponClasses));

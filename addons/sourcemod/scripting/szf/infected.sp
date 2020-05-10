@@ -122,6 +122,28 @@ public Action Infected_TankTimer(Handle hTimer, int iSerial)
 	return Plugin_Continue;
 }
 
+public Action Infected_OnTankAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
+{
+	if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
+	{
+		//One of those anim always get played because of force crit, pick one of those at random
+		//TODO check if all 3 anim exists
+		
+		switch (GetRandomInt(1, 3))
+		{
+			case 1: nAnim = PLAYERANIMEVENT_ATTACK_PRIMARY;
+			case 2: nAnim = PLAYERANIMEVENT_ATTACK_SECONDARY;
+			case 3: nAnim = PLAYERANIMEVENT_ATTACK_GRENADE;
+		}
+		
+		return Plugin_Changed;
+	}
+	
+	//TODO check death anim
+	
+	return Plugin_Continue;
+}
+
 public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 {
 	delete g_hTimerTank[iVictim];
@@ -188,6 +210,26 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 public void Infected_DoBoomerRage(int iClient)
 {
 	Infected_DoBoomerExplosion(iClient, 600.0);
+}
+
+public Action Infected_OnBoomerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
+{
+	if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
+	{
+		//One of those anim always get played because of no random crit, pick one of those at random
+		//TODO check if all 3 anim exists
+		
+		switch (GetRandomInt(1, 3))
+		{
+			case 1: nAnim = PLAYERANIMEVENT_ATTACK_PRIMARY;
+			case 2: nAnim = PLAYERANIMEVENT_ATTACK_SECONDARY;
+			case 3: nAnim = PLAYERANIMEVENT_ATTACK_GRENADE;
+		}
+		
+		return Plugin_Changed;
+	}
+	
+	return Plugin_Continue;
 }
 
 public void Infected_OnBoomerDeath(int iClient, int iKiller, int iAssist)
@@ -474,6 +516,9 @@ public void Infected_OnSmokerThink(int iClient, int &iButtons)
 {
 	if (iButtons & IN_ATTACK2 && (GetEntityFlags(iClient) & FL_ONGROUND == FL_ONGROUND))
 	{
+		if (GetEntityMoveType(iClient) == MOVETYPE_NONE)
+			SDKCall_PlaySpecificSequence(iClient, "tongue_attack_grab_survivor");
+		
 		SetEntityMoveType(iClient, MOVETYPE_NONE);
 		Infected_DoSmokerBeam(iClient);
 	}
@@ -498,12 +543,13 @@ void Infected_DoSmokerBeam(int iClient)
 	if (GetVectorDistance(vecOrigin, vecEndOrigin) > 1150.0)
 	{
 		delete hTrace;
+		SDKCall_PlaySpecificSequence(iClient, "tongue_attack_drag_survivor");
 		return;
 	}
 	
 	//Smoker's tongue beam
 	//Beam that gets sent to all other clients
-	TE_SetupBeamPoints(vecOrigin, vecEndOrigin, g_iSprite, 0, 0, 0, 0.08, 5.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
+	TE_SetupBeamPoints(vecOrigin, vecEndOrigin, g_iSprite, 0, 0, 0, 0.08, 5.0, 5.0, 10, 0.0, { 64, 0, 0, 255 }, 0);
 	int iTotal = 0;
 	int[] iClients = new int[MaxClients];
 	for (int i = 1; i <= MaxClients; i++)
@@ -517,7 +563,7 @@ void Infected_DoSmokerBeam(int iClient)
 	vecNewOrigin[0] = vecOrigin[0];
 	vecNewOrigin[1] = vecOrigin[1];
 	vecNewOrigin[2] = vecOrigin[2] - 7.0;
-	TE_SetupBeamPoints(vecNewOrigin, vecEndOrigin, g_iSprite, 0, 0, 0, 0.08, 2.0, 5.0, 10, 0.0, { 255, 255, 255, 255 }, 0);
+	TE_SetupBeamPoints(vecNewOrigin, vecEndOrigin, g_iSprite, 0, 0, 0, 0.08, 2.0, 5.0, 10, 0.0, { 64, 0, 0, 255 }, 0);
 	TE_SendToClient(iClient);
 	
 	int iHit = TR_GetEntityIndex(hTrace);
@@ -525,21 +571,20 @@ void Infected_DoSmokerBeam(int iClient)
 	if (TR_DidHit(hTrace) && IsValidLivingSurvivor(iHit) && !TF2_IsPlayerInCondition(iHit, TFCond_Dazed))
 	{
 		//Calculate pull velocity towards Smoker
-		if (!g_bBackstabbed[iClient])
-		{
-			float vecVelocity[3];
-			GetClientAbsOrigin(iHit, vecHitPos);
-			MakeVectorFromPoints(vecOrigin, vecHitPos, vecVelocity);
-			NormalizeVector(vecVelocity, vecVelocity);
-			ScaleVector(vecVelocity, fMin(-450.0 + GetClientHealth(iHit), -10.0) );
-			TeleportEntity(iHit, NULL_VECTOR, NULL_VECTOR, vecVelocity);
-		}
+		float vecVelocity[3];
+		GetClientAbsOrigin(iHit, vecHitPos);
+		MakeVectorFromPoints(vecOrigin, vecHitPos, vecVelocity);
+		NormalizeVector(vecVelocity, vecVelocity);
+		ScaleVector(vecVelocity, fMin(-450.0 + GetClientHealth(iHit), -10.0) );
+		TeleportEntity(iHit, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 		
 		//If target changed, change stored target AND reset beam hit count
 		if (g_iSmokerBeamHitVictim[iClient] != iHit)
 		{
 			g_iSmokerBeamHitVictim[iClient] = iHit;
 			g_iSmokerBeamHits[iClient] = 0;
+			
+			SDKCall_PlaySpecificSequence(iClient, "tongue_attack_drag_survivor_idle");
 		}
 		
 		//Increase count and if it reaches a threshold, apply damage
@@ -552,6 +597,13 @@ void Infected_DoSmokerBeam(int iClient)
 		
 		Shake(iHit, 4.0, 0.2); //Shake effect
 	}
+	else if (g_iSmokerBeamHitVictim[iClient])
+	{
+		g_iSmokerBeamHitVictim[iClient] = 0;
+		g_iSmokerBeamHits[iClient] = 0;
+		
+		SDKCall_PlaySpecificSequence(iClient, "tongue_attack_drag_survivor");
+	}
 	
 	delete hTrace;
 }
@@ -562,9 +614,22 @@ void Infected_DoSmokerBeam(int iClient)
 
 public void Infected_DoSpitterGas(int iClient)
 {
+	SDKCall_PlaySpecificSequence(iClient, "spitter_spitting");
+	SetEntityMoveType(iClient, MOVETYPE_NONE);
+	CreateTimer(2.0, Infected_SpitterTimer, GetClientSerial(iClient));
+	
 	int iGas = TF2_GetItemInSlot(iClient, WeaponSlot_Secondary);
 	if (iGas > MaxClients)
 		SDKCall_TossJarThink(iGas);
+}
+
+public Action Infected_SpitterTimer(Handle hTimer, int iSerial)
+{
+	int iClient = GetClientFromSerial(iSerial);
+	if (!IsValidLivingZombie(iClient) || g_nInfected[iClient] != Infected_Spitter)
+		return;
+	
+	SetEntityMoveType(iClient, MOVETYPE_WALK);
 }
 
 ////////////////
@@ -590,6 +655,7 @@ public void Infected_DoJockeyJump(int iClient)
 	
 	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
+	SDKCall_PlaySpecificSequence(iClient, "Pounce");
 }
 
 public void Infected_OnJockeyThink(int iClient, int &iButtons)
@@ -659,4 +725,5 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 	
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
 	SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 2);
+	SDKCall_PlaySpecificSequence(iClient, "jockey_ride");
 }

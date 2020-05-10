@@ -22,6 +22,12 @@
 				"linux"		"@_ZN9CTFPlayer20PlaySpecificSequenceEPKc"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x30\x53\x56\x8B\x75\x08\x57\x56\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x8B\xD8\x83\xFB\xFF\x74\x2A\x8B\x35\x2A\x2A\x2A\x2A\x8B\xCE\x8B\x16\xFF\x52\x2A\x8B\x8F\x2A\x2A\x2A\x2A\x53\x6A\x13\x8B\x01\xFF\x50"
 			}
+			"CTFPlayer::DoAnimationEvent"
+			{
+				"library"	"server"
+				"linux"		"@_ZN9CTFPlayer16DoAnimationEventE17PlayerAnimEvent_ti"
+				"windows"	"\x55\x8B\xEC\x51\x53\x56\x8B\x35\x2A\x2A\x2A\x2A\x8B\xD9\x8B\xCE"
+			}
 			"CGameUI::Deactivate"
 			{
 				"library"	"server"
@@ -65,6 +71,24 @@
 		}
 		"Functions"
 		{
+			"CTFPlayer::DoAnimationEvent"
+			{
+				"signature"	"CTFPlayer::DoAnimationEvent"
+				"callconv"	"thiscall"
+				"return"	"void"
+				"this"		"entity"
+				"arguments"
+				{
+					"event"
+					{
+						"type"	"int"
+					}
+					"nData"
+					{
+						"type"	"int"
+					}
+				}
+			}
 			"CGameUI::Deactivate"
 			{
 				"signature"	"CGameUI::Deactivate"

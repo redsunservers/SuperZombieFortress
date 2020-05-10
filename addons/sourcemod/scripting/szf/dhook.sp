@@ -6,6 +6,7 @@ static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
 void DHook_Init(GameData hSZF)
 {
+	DHook_CreateDetour(hSZF, "CTFPlayer::DoAnimationEvent", DHook_DoAnimationEventPre, _);
 	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
 	
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
@@ -71,6 +72,35 @@ void DHook_HookGamerules()
 {
 	DHookGamerules(g_hDHookSetWinningTeam, false, _, DHook_SetWinningTeamPre);
 	DHookGamerules(g_hDHookRoundRespawn, false, _, DHook_RoundRespawnPre);
+}
+
+public MRESReturn DHook_DoAnimationEventPre(int iClient, Handle hParams)
+{
+	if (g_ClientClasses[iClient].callback_anim != INVALID_FUNCTION)
+	{
+		PlayerAnimEvent_t nAnim = DHookGetParam(hParams, 1);
+		int iData = DHookGetParam(hParams, 2);
+		
+		Call_StartFunction(null, g_ClientClasses[iClient].callback_anim);
+		Call_PushCell(iClient);
+		Call_PushCellRef(nAnim);
+		Call_PushCellRef(iData);
+		
+		Action action;
+		Call_Finish(action);
+		
+		if (action >= Plugin_Handled)
+			return MRES_Supercede;
+		
+		if (action == Plugin_Changed)
+		{
+			DHookSetParam(hParams, 1, nAnim);
+			DHookSetParam(hParams, 2, iData);
+			return MRES_ChangedOverride;
+		}
+	}
+	
+	return MRES_Ignored;
 }
 
 public MRESReturn DHook_DeactivatePre(int iThis, Handle hParams)

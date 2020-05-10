@@ -41,6 +41,7 @@ enum struct InfectedClasses
 	Function callback_spawn;
 	Function callback_rage;
 	Function callback_think;
+	Function callback_anim;
 	Function callback_death;
 }
 
@@ -173,6 +174,7 @@ void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), 
 		g_ClientClasses[iClient].callback_spawn = INVALID_FUNCTION;
 		g_ClientClasses[iClient].callback_rage = INVALID_FUNCTION;
 		g_ClientClasses[iClient].callback_think = INVALID_FUNCTION;
+		g_ClientClasses[iClient].callback_anim = INVALID_FUNCTION;
 		g_ClientClasses[iClient].callback_death = INVALID_FUNCTION;
 	}
 	else if (IsZombie(iClient))
@@ -188,6 +190,7 @@ void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), 
 		g_ClientClasses[iClient].callback_spawn = g_InfectedClasses[g_nInfected[iClient]].callback_spawn;
 		g_ClientClasses[iClient].callback_rage = g_InfectedClasses[g_nInfected[iClient]].callback_rage;
 		g_ClientClasses[iClient].callback_think = g_InfectedClasses[g_nInfected[iClient]].callback_think;
+		g_ClientClasses[iClient].callback_anim = g_InfectedClasses[g_nInfected[iClient]].callback_anim;
 		g_ClientClasses[iClient].callback_death = g_InfectedClasses[g_nInfected[iClient]].callback_death;
 		
 		if (g_nInfected[iClient] == Infected_None)
