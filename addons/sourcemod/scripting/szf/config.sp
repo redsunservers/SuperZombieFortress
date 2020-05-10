@@ -349,27 +349,7 @@ ArrayList Config_LoadZombieClasses()
 				zom.flHorde = kv.GetFloat("horde", 2.0);
 				zom.flMaxSpree = kv.GetFloat("maxspree", 20.0);
 				zom.flMaxHorde = kv.GetFloat("maxhorde", 20.0);
-				zom.aWeapons = new ArrayList(sizeof(WeaponClasses));
-				
-				if (kv.GotoFirstSubKey(false))	//Find weapons
-				{
-					do
-					{
-						char sSubkey[256];
-						kv.GetSectionName(sSubkey, sizeof(sSubkey));
-						if (StrEqual(sSubkey, "weapon"))
-						{
-							WeaponClasses weapon;
-							weapon.iIndex = kv.GetNum("index", 5);
-							kv.GetString("classname", weapon.sClassname, sizeof(weapon.sClassname));
-							kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
-							
-							zom.aWeapons.PushArray(weapon);
-						}
-					}
-					while(kv.GotoNextKey(false));
-					kv.GoBack();
-				}
+				zom.aWeapons = Config_GetWeaponClasses(kv);
 				
 				aClasses.PushArray(zom);
 				iLength++;
@@ -463,28 +443,7 @@ ArrayList Config_LoadInfectedClasses()
 				inf.callback_think = Config_GetFunction(kv, "callback_think");
 				inf.callback_anim = Config_GetFunction(kv, "callback_anim");
 				inf.callback_death = Config_GetFunction(kv, "callback_death");
-				
-				inf.aWeapons = new ArrayList(sizeof(WeaponClasses));
-				
-				if (kv.GotoFirstSubKey(false))	//Find weapons
-				{
-					do
-					{
-						char sSubkey[256];
-						kv.GetSectionName(sSubkey, sizeof(sSubkey));
-						if (StrEqual(sSubkey, "weapon"))
-						{
-							WeaponClasses weapon;
-							weapon.iIndex = kv.GetNum("index", 5);
-							kv.GetString("classname", weapon.sClassname, sizeof(weapon.sClassname));
-							kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
-							
-							inf.aWeapons.PushArray(weapon);
-						}
-					}
-					while(kv.GotoNextKey(false));
-					kv.GoBack();
-				}
+				inf.aWeapons = Config_GetWeaponClasses(kv);
 				
 				aClasses.PushArray(inf);
 				iLength++;
@@ -495,6 +454,36 @@ ArrayList Config_LoadInfectedClasses()
 	
 	delete kv;
 	return aClasses;
+}
+
+ArrayList Config_GetWeaponClasses(KeyValues kv)
+{
+	ArrayList aWeapons = new ArrayList(sizeof(WeaponClasses));
+	
+	if (kv.GotoFirstSubKey(false))	//Find weapons
+	{
+		do
+		{
+			char sSubkey[256];
+			kv.GetSectionName(sSubkey, sizeof(sSubkey));
+			if (StrEqual(sSubkey, "weapon"))
+			{
+				WeaponClasses weapon;
+				weapon.iIndex = kv.GetNum("index", 5);
+				kv.GetString("classname", weapon.sClassname, sizeof(weapon.sClassname));
+				kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
+				weapon.iWeaponId = kv.GetNum("index");
+				kv.GetString("logname", weapon.sLogName, sizeof(weapon.sLogName));
+				kv.GetString("iconname", weapon.sIconName, sizeof(weapon.sIconName));
+				
+				aWeapons.PushArray(weapon);
+			}
+		}
+		while(kv.GotoNextKey(false));
+		kv.GoBack();
+	}
+	
+	return aWeapons;
 }
 
 StringMap Config_LoadReskins()

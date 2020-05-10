@@ -254,13 +254,26 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_bSpawnAsSpecialInfected[iKillers[1]] = true;
 	}
 	
-	if (iVictim != iKillers[0] && event.GetInt("weapon_def_index") == INDEX_FISTS && iKillers[0] == event.GetInt("inflictor_entindex"))
+	if (iVictim != iKillers[0] && iKillers[0] == event.GetInt("inflictor_entindex"))
 	{
-		//Some custom special infected use fists, but kill icon reports it incorrectly
-		//TODO fix buildings kill aswell, those dont have 'weapon_def_index'
-		event.SetString("weapon_logclassname", "fists");
-		event.SetString("weapon", "fists");
-		event.SetInt("weaponid", TF_WEAPON_FISTS);
+		int iPos;
+		WeaponClasses weapon;
+		while (g_ClientClasses[iKillers[0]].GetWeapon(iPos, weapon))
+		{
+			if (weapon.iIndex == event.GetInt("weapon_def_index"))
+			{
+				//TODO fix buildings kill, those dont have 'weapon_def_index'
+				
+				if (weapon.iWeaponId != TF_WEAPON_NONE)
+					event.SetInt("weaponid", weapon.iWeaponId);
+				
+				if (weapon.sLogName[0])
+					event.SetString("weapon_logclassname", weapon.sLogName);
+				
+				if (weapon.sIconName[0])
+					event.SetString("weapon", weapon.sIconName);
+			}
+		}
 	}
 	
 	g_iMaxHealth[iVictim] = -1;

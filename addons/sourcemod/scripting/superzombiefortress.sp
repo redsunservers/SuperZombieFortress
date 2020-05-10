@@ -24,8 +24,6 @@
 
 #define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
 
-#define INDEX_FISTS			5
-
 #define BACKSTABDURATION_FULL		5.5
 #define BACKSTABDURATION_REDUCED	3.5
 #define STUNNED_DAMAGE_CAP			10.0
@@ -142,6 +140,9 @@ enum struct WeaponClasses
 	int iIndex;
 	char sClassname[256];
 	char sAttribs[256];
+	int iWeaponId;
+	char sLogName[64];
+	char sIconName[64];
 }
 
 enum struct ClientClasses
