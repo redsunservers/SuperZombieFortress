@@ -7,14 +7,7 @@ void Command_Init()
 	
 	RegAdminCmd("sm_tank", Command_ZombieTank, ADMFLAG_CHANGEMAP, "(Try to) call a tank.");
 	RegAdminCmd("sm_rage", Command_ZombieRage, ADMFLAG_CHANGEMAP, "(Try to) call a frenzy.");
-	RegAdminCmd("sm_boomer", Command_ForceBoomer, ADMFLAG_CHANGEMAP, "Become a boomer on next respawn.");
-	RegAdminCmd("sm_charger", Command_ForceCharger, ADMFLAG_CHANGEMAP, "Become a charger on next respawn.");
-	RegAdminCmd("sm_kingpin", Command_ForceScreamer, ADMFLAG_CHANGEMAP, "Become a screamer on next respawn.");
-	RegAdminCmd("sm_stalker", Command_ForcePredator, ADMFLAG_CHANGEMAP, "Become a predator on next respawn.");
-	RegAdminCmd("sm_hunter", Command_ForceHopper, ADMFLAG_CHANGEMAP, "Become a hunter on next respawn.");
-	RegAdminCmd("sm_smoker", Command_ForceSmoker, ADMFLAG_CHANGEMAP, "Become a smoker on next respawn.");
-	RegAdminCmd("sm_spitter", Command_ForceSpitter, ADMFLAG_CHANGEMAP, "Become a spitter on next respawn.");
-	RegAdminCmd("sm_jockey", Command_ForceJockey, ADMFLAG_CHANGEMAP, "Become a jockey on next respawn.");
+	RegAdminCmd("sm_infected", Command_ForceInfected, ADMFLAG_CHANGEMAP, "Force someone to become infected on next spawn.");
 	RegAdminCmd("sm_szfreload", Command_ReloadConfigs, ADMFLAG_RCON, "Reload SZF configs.");
 	
 	RegConsoleCmd("sm_zf", Command_MainMenu);
@@ -24,95 +17,103 @@ void Command_Init()
 
 public Action Command_ServerTank(int iArgs)
 {
-	ZombieTank();
+	if (!g_bEnabled)
+		return Plugin_Continue;
 	
+	ZombieTank();
 	return Plugin_Handled;
 }
 
 public Action Command_ServerRage(int iArgs)
 {
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
 	char sDuration[256];
 	GetCmdArgString(sDuration, sizeof(sDuration));
 	float flDuration = StringToFloat(sDuration);
 	
 	ZombieRage(flDuration);
-	
 	return Plugin_Handled;
 }
 
 public Action Command_ZombieTank(int iClient, int iArgs)
 {
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
 	ZombieTank(iClient);
 	return Plugin_Handled;
 }
 
 public Action Command_ZombieRage(int iClient, int iArgs)
 {
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
 	ZombieRage();
-	
 	return Plugin_Handled;
 }
 
-public Action Command_ForceBoomer(int iClient, int iArgs)
+public Action Command_ForceInfected(int iClient, int iArgs)
 {
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Boomer;
+	if (!g_bEnabled)
+		return Plugin_Continue;
 	
-	return Plugin_Handled;
-}
-
-public Action Command_ForceCharger(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Charger;
+	if (iArgs < 2)
+	{
+		CReplyToCommand(iClient, "{red}Usage: sm_infected [target] [infected]");
+		return Plugin_Handled;
+	}
 	
-	return Plugin_Handled;
-}
-
-public Action Command_ForceScreamer(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Kingpin;
+	char sTarget[32], sInfected[32];
+	GetCmdArg(1, sTarget, sizeof(sTarget));
+	GetCmdArg(2, sInfected, sizeof(sInfected));
 	
-	return Plugin_Handled;
-}
-
-public Action Command_ForcePredator(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Stalker;
+	Infected nInfected = Infected_None;
+	for (int i = 2; i < view_as<int>(Infected); i++)
+	{
+		char sBuffer[32];
+		GetInfectedName(sBuffer, sizeof(sBuffer), i);
+		if (StrContains(sBuffer, sInfected, false) > -1)
+		{
+			nInfected = view_as<Infected>(i);
+			strcopy(sInfected, sizeof(sInfected), sBuffer);
+			break;
+		}
+	}
 	
-	return Plugin_Handled;
-}
-
-public Action Command_ForceHopper(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Hunter;
+	if (nInfected == Infected_None)
+	{
+		CReplyToCommand(iClient, "{red}Unable to find infected \"%s\"", sInfected);
+		return Plugin_Handled;
+	}
 	
-	return Plugin_Handled;
-}
-
-public Action Command_ForceSmoker(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Smoker;
+	int iTargetList[TF_MAXPLAYERS];
+	char sTargetName[MAX_TARGET_LENGTH];
+	bool bIsML;
 	
-	return Plugin_Handled;
-}
-
-public Action Command_ForceSpitter(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Spitter;
+	int iTargetCount = ProcessTargetString(sTarget, iClient, iTargetList, sizeof(iTargetList), COMMAND_FILTER_NO_IMMUNITY, sTargetName, sizeof(sTargetName), bIsML);
+	if (iTargetCount <= 0)
+	{
+		CReplyToCommand(iClient, "{red}Could not find anyone to set next infected");
+		return Plugin_Handled;
+	}
 	
-	return Plugin_Handled;
-}
-
-public Action Command_ForceJockey(int iClient, int iArgs)
-{
-	if (IsZombie(iClient))
-		g_nNextInfected[iClient] = Infected_Jockey;
+	int iCount = 0;
+	for (int i = 0; i < iTargetCount; i++)
+	{
+		if (IsZombie(iTargetList[i]))
+		{
+			g_nNextInfected[iClient] = nInfected;
+			iCount++;
+		}
+	}
+	
+	if (iCount == 0)
+		CReplyToCommand(iClient, "{red}Could not find any zombies to set next infected");
+	else
+		CReplyToCommand(iClient, "{limegreen}Set %d zombies to become next infected \"%s\"", iCount, sInfected);
 	
 	return Plugin_Handled;
 }
@@ -138,6 +139,9 @@ public Action Command_MainMenu(int iClient, int iArgs)
 
 public Action Command_MusicToggle(int iClient, int iArgs)
 {
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
 	if (IsValidClient(iClient))
 	{
 		char sPreference[32];
