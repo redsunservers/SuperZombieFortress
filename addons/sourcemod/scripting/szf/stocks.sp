@@ -206,6 +206,15 @@ stock void GetInfectedName(char[] sBuffer, int iLength, int iInfected)
 	strcopy(sBuffer, iLength, g_sInfectedNames[iInfected]);
 }
 
+stock Infected GetInfected(const char[] sBuffer)
+{
+	for (int i; i < sizeof(g_sInfectedNames); i++)
+		if (StrEqual(sBuffer, g_sInfectedNames[i], false))
+			return view_as<Infected>(i);
+	
+	return Infected_Unknown;
+}
+
 ////////////////
 // Client Validity
 ////////////////

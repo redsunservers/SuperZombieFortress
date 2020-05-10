@@ -184,21 +184,17 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 			Call_PushCell(iClient);
 			Call_Finish();
 		}
+		SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
+		SetEntityRenderColor(iClient, g_ClientClasses[iClient].iColor[0], g_ClientClasses[iClient].iColor[1], g_ClientClasses[iClient].iColor[2], g_ClientClasses[iClient].iColor[3]);
 		
-		if (g_nInfected[iClient] != Infected_None)
+		if (g_ClientClasses[iClient].sMessage[0])
+			CPrintToChat(iClient, g_ClientClasses[iClient].sMessage);
+		
+		if (g_nInfected[iClient] != Infected_None && g_nInfected[iClient] != Infected_Tank && g_iInfectedCooldown[g_nInfected[iClient]] != iClient)
 		{
-			SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
-			SetEntityRenderColor(iClient, g_ClientClasses[iClient].iColor[0], g_ClientClasses[iClient].iColor[1], g_ClientClasses[iClient].iColor[2], g_ClientClasses[iClient].iColor[3]);
-			
-			if (g_ClientClasses[iClient].sMessage[0])
-				CPrintToChat(iClient, g_ClientClasses[iClient].sMessage);
-			
-			if (g_nInfected[iClient] != Infected_Tank && g_iInfectedCooldown[g_nInfected[iClient]] != iClient)
-			{
-				//Set new cooldown
-				g_flInfectedCooldown[g_nInfected[iClient]] = GetGameTime();	//time for cooldown
-				g_iInfectedCooldown[g_nInfected[iClient]] = iClient;			//client to prevent abuse to cycle through any infected
-			}
+			//Set new cooldown
+			g_flInfectedCooldown[g_nInfected[iClient]] = GetGameTime();	//time for cooldown
+			g_iInfectedCooldown[g_nInfected[iClient]] = iClient;			//client to prevent abuse to cycle through any infected
 		}
 		
 		if (g_bShouldBacteriaPlay[iClient])

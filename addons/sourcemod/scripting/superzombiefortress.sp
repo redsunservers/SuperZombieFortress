@@ -123,6 +123,7 @@ enum SZFRoundState
 
 enum Infected
 {
+	Infected_Unknown = -1,
 	Infected_None,
 	Infected_Tank,
 	Infected_Boomer,
@@ -148,25 +149,21 @@ enum struct WeaponClasses
 enum struct ClientClasses
 {
 	//Survivor, Zombie and Infected
+	bool bEnabled;
+	int iHealth;
 	float flSpeed;
 	int iRegen;
-	
-	//Zombie and Infected
-	int iHealth;
-	int iDegen;
-	ArrayList aWeapons;
 	
 	//Survivor
 	int iAmmo;
 	
-	//Non-Infected
+	//Zombie and Infected
+	int iDegen;
+	ArrayList aWeapons;
 	float flSpree;
 	float flHorde;
 	float flMaxSpree;
 	float flMaxHorde;
-	
-	//Infected
-	TFClassType iInfectedClass;
 	bool bGlow;
 	int iColor[4];
 	char sMessage[256];
@@ -178,6 +175,9 @@ enum struct ClientClasses
 	Function callback_think;
 	Function callback_anim;
 	Function callback_death;
+	
+	//Infected
+	TFClassType iInfectedClass;
 	
 	bool GetWeapon(int &iPos, WeaponClasses weapon)
 	{

@@ -1,5 +1,4 @@
 #define CONFIG_WEAPONS       "configs/szf/weapons.cfg"
-#define CONFIG_CLASSES       "configs/szf/classes.cfg"
 #define CONFIG_RESKINS       "configs/szf/reskins.cfg"
 
 enum struct ConfigMelee
@@ -250,210 +249,57 @@ StringMap Config_LoadWeaponReskinData()
 	return mReskin;
 }
 
-ArrayList Config_LoadSurvivorClasses()
+bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 {
-	KeyValues kv = Config_LoadFile(CONFIG_CLASSES, "Classes");
-	if (kv == null)
-		return null;
+	//Survivor, Zombie and Infected
+	classes.bEnabled = !!kv.GetNum("enable", classes.bEnabled);
+	classes.flSpeed = kv.GetFloat("speed", classes.flSpeed);
+	classes.iRegen = kv.GetNum("regen", classes.iRegen);
 	
-	ArrayList aClasses = new ArrayList(sizeof(SurvivorClasses));
-	int iLength = 0;
+	//Survivor
+	classes.iAmmo = kv.GetNum("ammo", classes.iAmmo);
 	
-	if (kv.JumpToKey("survivors", false))
-	{
-		if (kv.GotoFirstSubKey(false))
-		{
-			do
-			{
-				SurvivorClasses sur;
-				
-				char sBuffer[256];
-				kv.GetSectionName(sBuffer, sizeof(sBuffer));
-				
-				sur.iClass = TF2_GetClass(sBuffer);
-				if (sur.iClass == TFClass_Unknown)
-					LogError("Invalid survivor class '%s'.", sBuffer);
-				
-				//Check if the class is already defined
-				SurvivorClasses duplicate;
-				for (int i = 0; i < iLength; i++) 
-				{
-					aClasses.GetArray(i, duplicate);
-					
-					if (sur.iClass == duplicate.iClass)
-					{
-						LogError("Survivor class '%s' is already defined.", sur.iClass);
-						break;
-					}
-				}
-				
-				sur.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
-				sur.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(sur.iClass));
-				sur.iRegen = kv.GetNum("regen", 2);
-				sur.iAmmo = kv.GetNum("ammo");
-				
-				aClasses.PushArray(sur);
-				iLength++;
-			} 
-			while (kv.GotoNextKey(false));
-		}
-	}
+	//Zombie and Infected
+	classes.iHealth = kv.GetNum("health", classes.iHealth);
+	classes.iDegen = kv.GetNum("degen", classes.iDegen);
+	classes.aWeapons = Config_GetWeaponClasses(kv);
+	classes.flSpree = kv.GetFloat("spree", classes.flSpree);
+	classes.flHorde = kv.GetFloat("horde", classes.flHorde);
+	classes.flMaxSpree = kv.GetFloat("maxspree", classes.flMaxSpree);
+	classes.flMaxHorde = kv.GetFloat("maxhorde", classes.flMaxHorde);
+	classes.bGlow = !!kv.GetNum("glow", classes.bGlow);
 	
-	delete kv;
-	return aClasses;
+	//GetColor4 dont have default buffer to set
+	char sBuffer[1];
+	kv.GetString("color", sBuffer, sizeof(sBuffer));
+	if (sBuffer[0])
+		kv.GetColor4("color", classes.iColor);
+	
+	kv.GetString("message", classes.sMessage, sizeof(classes.sMessage));
+	kv.GetString("model", classes.sModel, sizeof(classes.sModel));
+	kv.GetString("sound_spawn", classes.sSoundSpawn, sizeof(classes.sSoundSpawn));
+	classes.iRageCooldown = kv.GetNum("ragecooldown", 0);
+	classes.callback_spawn = Config_GetFunction(kv, "callback_spawn");
+	classes.callback_rage = Config_GetFunction(kv, "callback_rage");
+	classes.callback_think = Config_GetFunction(kv, "callback_think");
+	classes.callback_anim = Config_GetFunction(kv, "callback_anim");
+	classes.callback_death = Config_GetFunction(kv, "callback_death");
+	
+	return true;
 }
 
-ArrayList Config_LoadZombieClasses()
+Function Config_GetFunction(KeyValues kv, const char[] sKey)
 {
-	KeyValues kv = Config_LoadFile(CONFIG_CLASSES, "Classes");
-	if (kv == null)
-		return null;
+	char sBuffer[64];
+	kv.GetString(sKey, sBuffer, sizeof(sBuffer));
+	if (!sBuffer[0])
+		return INVALID_FUNCTION;
 	
-	ArrayList aClasses = new ArrayList(sizeof(ZombieClasses));
-	int iLength = 0;
+	Function func = GetFunctionByName(null, sBuffer);
+	if (func == INVALID_FUNCTION)
+		LogError("Unable to find function '%s' in config", sBuffer);
 	
-	if (kv.JumpToKey("zombies", false))
-	{
-		if (kv.GotoFirstSubKey(false))
-		{
-			do
-			{
-				ZombieClasses zom;
-				
-				char sBuffer[256];
-				kv.GetSectionName(sBuffer, sizeof(sBuffer));
-				
-				zom.iClass = TF2_GetClass(sBuffer);
-				if (zom.iClass == TFClass_Unknown)
-					LogError("Invalid zombie class '%s'.", sBuffer);
-				
-				//Check if the class is already defined
-				ZombieClasses duplicate;
-				for (int i = 0; i < iLength; i++) 
-				{
-					aClasses.GetArray(i, duplicate);
-					
-					if (zom.iClass == duplicate.iClass)
-					{
-						LogError("Zombie class '%s' is already defined.", zom.iClass);
-						break;
-					}
-				}
-				
-				zom.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
-				zom.iHealth = kv.GetNum("health", 0);
-				zom.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(zom.iClass));
-				zom.iRegen = kv.GetNum("regen", 2);
-				zom.iDegen = kv.GetNum("degen", 3);
-				zom.flSpree = kv.GetFloat("spree", 1.0);
-				zom.flHorde = kv.GetFloat("horde", 2.0);
-				zom.flMaxSpree = kv.GetFloat("maxspree", 20.0);
-				zom.flMaxHorde = kv.GetFloat("maxhorde", 20.0);
-				zom.aWeapons = Config_GetWeaponClasses(kv);
-				
-				aClasses.PushArray(zom);
-				iLength++;
-			} 
-			while (kv.GotoNextKey(false));
-		}
-	}
-	
-	delete kv;
-	return aClasses;
-}
-
-ArrayList Config_LoadInfectedClasses()
-{
-	KeyValues kv = Config_LoadFile(CONFIG_CLASSES, "Classes");
-	if (kv == null)
-		return null;
-	
-	ArrayList aClasses = new ArrayList(sizeof(InfectedClasses));
-	int iLength = 0;
-	
-	if (kv.JumpToKey("infected", false))
-	{
-		if (kv.GotoFirstSubKey(false))
-		{
-			do
-			{
-				InfectedClasses inf;
-				
-				char sBuffer[256], sBuffer2[32];
-				kv.GetSectionName(sBuffer, sizeof(sBuffer));
-				
-				for (int i = 0; i < view_as<int>(Infected); i++)
-				{
-					GetInfectedName(sBuffer2, sizeof(sBuffer2), i);
-					if (StrEqual(sBuffer2, sBuffer, false))
-					{
-						inf.nInfected = view_as<Infected>(i);
-						break;
-					}
-					else if (i == view_as<int>(Infected)-1)
-					{
-						inf.nInfected = Infected_None;
-						LogError("Invalid special infected '%s'.", sBuffer);
-					}
-				}
-				
-				//Check if special infected is already defined
-				InfectedClasses duplicate;
-				for (int i = 0; i < iLength; i++) 
-				{
-					aClasses.GetArray(i, duplicate);
-					
-					if (inf.nInfected == duplicate.nInfected)
-					{
-						LogError("Special infected '%s' is already defined.", inf.nInfected);
-						break;
-					}
-				}
-				
-				if (inf.nInfected != Infected_None)
-				{
-					kv.GetString("class", sBuffer2, sizeof(sBuffer2));
-					inf.iInfectedClass = TF2_GetClass(sBuffer2);
-					if (inf.iInfectedClass == TFClass_Unknown)
-					{
-						LogError("Invalid special infected class '%s'.", sBuffer);
-						inf.iInfectedClass = TFClass_Heavy;
-					}
-				}
-				
-				inf.bEnabled = !!kv.GetNum("enable", true);
-				inf.iHealth = kv.GetNum("health", 0);
-				inf.flSpeed = kv.GetFloat("speed", 0.0);
-				inf.bGlow = !!kv.GetNum("glow", false);
-				inf.iRegen = kv.GetNum("regen", 2);
-				inf.iDegen = kv.GetNum("degen", 3);
-				
-				kv.GetString("color", sBuffer, sizeof(sBuffer));
-				if (sBuffer[0])
-					kv.GetColor4("color", inf.iColor);
-				else
-					inf.iColor = { 255, 255, 255, 255 };
-				
-				kv.GetString("message", inf.sMessage, sizeof(inf.sMessage));
-				kv.GetString("model", inf.sModel, sizeof(inf.sModel));
-				kv.GetString("sound_spawn", inf.sSoundSpawn, sizeof(inf.sSoundSpawn));
-				inf.iRageCooldown = kv.GetNum("ragecooldown", 0);
-				inf.callback_spawn = Config_GetFunction(kv, "callback_spawn");
-				inf.callback_rage = Config_GetFunction(kv, "callback_rage");
-				inf.callback_think = Config_GetFunction(kv, "callback_think");
-				inf.callback_anim = Config_GetFunction(kv, "callback_anim");
-				inf.callback_death = Config_GetFunction(kv, "callback_death");
-				inf.aWeapons = Config_GetWeaponClasses(kv);
-				
-				aClasses.PushArray(inf);
-				iLength++;
-			} 
-			while (kv.GotoNextKey(false));
-		}
-	}
-	
-	delete kv;
-	return aClasses;
+	return func;
 }
 
 ArrayList Config_GetWeaponClasses(KeyValues kv)
@@ -538,18 +384,4 @@ KeyValues Config_LoadFile(const char[] sConfigFile, const char [] sConfigSection
 	}
 	
 	return kv;
-}
-
-Function Config_GetFunction(KeyValues kv, const char[] sKey)
-{
-	char sBuffer[64];
-	kv.GetString(sKey, sBuffer, sizeof(sBuffer));
-	if (!sBuffer[0])
-		return INVALID_FUNCTION;
-	
-	Function func = GetFunctionByName(null, sBuffer);
-	if (func == INVALID_FUNCTION)
-		LogError("Unable to find function '%s' in config", sBuffer);
-	
-	return func;
 }
