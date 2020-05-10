@@ -1027,7 +1027,7 @@ void Handle_ZombieAbilities()
 					iHealth += 3; //Zombie rage
 				
 				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
-					iHealth += 2; //Kingpin
+					iHealth += 2; //Screamer
 				
 				iHealth = min(iHealth, iMaxHealth);
 				SetEntityHealth(iClient, iHealth);
@@ -1464,7 +1464,7 @@ public void OnMapStart()
 	//Map pickup
 	PrecacheSound("ui/item_paint_can_pickup.wav");
 	
-	//Kingpin scream
+	//Screamer scream
 	PrecacheSound("ambient/halloween/male_scream_15.wav");
 	PrecacheSound("ambient/halloween/male_scream_16.wav");
 	
@@ -2089,7 +2089,7 @@ public Action SoundHook(int iClients[64], int &iLength, char sSound[PLATFORM_MAX
 		
 		switch (g_nInfected[iClient])
 		{
-			//Normal infected & kingpin(pitch only)
+			//Normal infected & Screamer(pitch only)
 			case Infected_None, Infected_Screamer:
 			{
 				if (StrContains(sSound, "_pain", false) != -1)

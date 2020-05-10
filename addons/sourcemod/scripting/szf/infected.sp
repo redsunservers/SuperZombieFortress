@@ -342,10 +342,10 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 }
 
 ////////////////
-// Kingpin
+// Screamer
 ////////////////
 
-public void Infected_DoKingpinRage(int iClient)
+public void Infected_DoScreamerRage(int iClient)
 {
 	char sPath[64];
 	Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(15, 16));
@@ -370,7 +370,7 @@ public void Infected_DoKingpinRage(int iClient)
 	}
 }
 
-public void Infected_OnKingpinThink(int iClient, int &iButtons)
+public void Infected_OnScreamerThink(int iClient, int &iButtons)
 {
 	float flPosClient[3];
 	float flPosScreamer[3];

@@ -71,7 +71,7 @@ public void Client_OnPreThinkPost(int iClient)
 						flSpeed += 20.0; //On fire
 					
 					if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
-						flSpeed += 20.0; //Kingpin effect
+						flSpeed += 20.0; //Screamer effect
 					
 					if (GetClientHealth(iClient) > SDKCall_GetMaxHealth(iClient))
 						flSpeed += 20.0; //Has overheal due to normal rage
