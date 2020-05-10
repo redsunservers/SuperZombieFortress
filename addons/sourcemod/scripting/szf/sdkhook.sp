@@ -430,7 +430,7 @@ public Action Banana_Touch(int iEntity, int iClient)
 
 public Action GasManager_Touch(int iGasManager, int iClient)
 {
-	if (IsSurvivor(iClient))
+	if (IsValidSurvivor(iClient))
 	{
 		if (!TF2_IsPlayerInCondition(iClient, TFCond_Bleeding))
 		{
