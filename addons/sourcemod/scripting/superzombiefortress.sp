@@ -166,7 +166,8 @@ enum struct ClientClasses
 	float flMaxHorde;
 	bool bGlow;
 	int iColor[4];
-	char sMessage[256];
+	char sMessage[64];
+	char sMenu[64];
 	char sModel[PLATFORM_MAX_PATH];
 	char sSoundSpawn[PLATFORM_MAX_PATH];
 	int iRageCooldown;
@@ -200,6 +201,45 @@ Infected g_nNextInfected[TF_MAXPLAYERS];
 
 TFTeam TFTeam_Zombie = TFTeam_Blue;
 TFTeam TFTeam_Survivor = TFTeam_Red;
+
+TFClassType g_iClassDisplay[] = {
+	TFClass_Unknown,
+	TFClass_Scout,
+	TFClass_Soldier,
+	TFClass_Pyro,
+	TFClass_DemoMan,
+	TFClass_Heavy,
+	TFClass_Engineer,
+	TFClass_Medic,
+	TFClass_Sniper,
+	TFClass_Spy,
+};
+
+char g_sClassNames[view_as<int>(TFClassType)][] = {
+	"",
+	"Scout",
+	"Sniper",
+	"Soldier",
+	"Demoman",
+	"Medic",
+	"Heavy",
+	"Pyro",
+	"Spy",
+	"Engineer",
+};
+
+char g_sInfectedNames[view_as<int>(Infected)][] = {
+	"None",
+	"Tank",
+	"Boomer",
+	"Charger",
+	"Screamer",
+	"Stalker",
+	"Hunter",
+	"Smoker",
+	"Spitter",
+	"Jockey",
+};
 
 Cookie g_cFirstTimeSurvivor;
 Cookie g_cFirstTimeZombie;

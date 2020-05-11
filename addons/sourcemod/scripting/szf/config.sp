@@ -276,6 +276,7 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 		kv.GetColor4("color", classes.iColor);
 	
 	kv.GetString("message", classes.sMessage, sizeof(classes.sMessage));
+	kv.GetString("menu", classes.sMenu, sizeof(classes.sMenu));
 	kv.GetString("model", classes.sModel, sizeof(classes.sModel));
 	kv.GetString("sound_spawn", classes.sSoundSpawn, sizeof(classes.sSoundSpawn));
 	classes.iRageCooldown = kv.GetNum("ragecooldown", 0);

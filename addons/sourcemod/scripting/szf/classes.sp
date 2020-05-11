@@ -223,6 +223,15 @@ stock bool IsValidSurvivorClass(TFClassType iClass)
 	return g_SurvivorClasses[iClass].bEnabled;
 }
 
+stock bool GetSurvivorMenu(TFClassType iClass, char[] sBuffer, int iLength)
+{
+	if (!g_SurvivorClasses[iClass].sMenu[0])
+		return false;
+	
+	strcopy(sBuffer, iLength, g_SurvivorClasses[iClass].sMenu);
+	return true;
+}
+
 stock TFClassType GetRandomSurvivorClass()
 {
 	return g_nSurvivorClass[GetRandomInt(0, g_iSurvivorClassCount-1)];
@@ -238,6 +247,15 @@ stock bool IsValidZombieClass(TFClassType iClass)
 	return g_ZombieClasses[iClass].bEnabled;
 }
 
+stock bool GetZombieMenu(TFClassType iClass, char[] sBuffer, int iLength)
+{
+	if (!g_ZombieClasses[iClass].sMenu[0])
+		return false;
+	
+	strcopy(sBuffer, iLength, g_ZombieClasses[iClass].sMenu);
+	return true;
+}
+
 stock TFClassType GetRandomZombieClass()
 {
 	return g_nZombieClass[GetRandomInt(0, g_iZombieClassCount-1)];
@@ -251,6 +269,15 @@ stock int GetZombieClassCount()
 stock bool IsValidInfected(Infected nInfected)
 {
 	return g_InfectedClasses[nInfected].bEnabled;
+}
+
+stock bool GetInfectedMenu(Infected nInfected, char[] sBuffer, int iLength)
+{
+	if (!g_InfectedClasses[nInfected].sMenu[0])
+		return false;
+	
+	strcopy(sBuffer, iLength, g_InfectedClasses[nInfected].sMenu);
+	return true;
 }
 
 stock Infected GetRandomInfected()

@@ -132,7 +132,7 @@ public Action Command_MainMenu(int iClient, int iArgs)
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
-	Menu_PrintMain(iClient);
+	Menu_DisplayMain(iClient);
 
 	return Plugin_Handled;
 }

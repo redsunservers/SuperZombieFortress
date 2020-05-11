@@ -29,8 +29,6 @@
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
 
-static char g_sClassNames[view_as<int>(TFClassType)][16] = { "", "Scout", "Sniper", "Soldier", "Demoman", "Medic", "Heavy", "Pyro", "Spy", "Engineer" };
-static char g_sInfectedNames[view_as<int>(Infected)][16] = { "None", "Tank", "Boomer", "Charger", "Screamer", "Stalker", "Hunter", "Smoker", "Spitter", "Jockey" };
 static char g_sClassFiles[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
 static int g_iVoodooIndex[view_as<int>(TFClassType)] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
 static int g_iZombieSoulIndex[view_as<int>(TFClassType)];
@@ -1008,6 +1006,13 @@ public Action Timer_RemoveParticle(Handle hTimer, int iParticle)
 }
 
 /******************************************************************************************************/
+
+stock void StrToLower(const char[] sInput, char[] sOutput, int iLength)
+{
+	iLength = strlen(sInput) > iLength ? iLength : strlen(sInput);
+	for (int i = 0; i < iLength; i++)
+		sOutput[i] = CharToLower(sInput[i]);
+}
 
 stock void GetClientName2(int iClient, char[] sName, int iLength)
 {

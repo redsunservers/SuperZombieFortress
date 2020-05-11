@@ -514,5 +514,180 @@
 	{
 		"en"		"{orange}The Cloak and Dagger {red}is disabled."
 	}
+	
+	"Menu_MainTitle"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"Super Zombie Fortress - {1}.{2}"
+	}
+	
+	"Menu_MainOverview"
+	{
+		"en"		"Overview"
+	}
+	
+	"Menu_MainTeamSurvivor"
+	{
+		"en"		"Team: Survivors"
+	}
+	
+	"Menu_MainTeamZombie"
+	{
+		"en"		"Team: Infected"
+	}
+	
+	"Menu_MainClassesSurvivor"
+	{
+		"en"		"Classes: Survivors"
+	}
+	
+	"Menu_MainClassesZombie"
+	{
+		"en"		"Classes: Infected"
+	}
+	
+	"Menu_MainClassesInfected"
+	{
+		"en"		"Classes: Infected (Special)"
+	}
+	
+	"Menu_MainBack"
+	{
+		"en"		"Back"
+	}
+	
+	"Menu_Overview"
+	{
+		"en"		"Survivors must survive the endless hoarde of Infected.\nWhen a Survivor dies, they join the Zombie team and play as a Zombie.\nZombies need to work together to take down the survivors.\nSurvivor gain access to morale and weapon pickups, while zombies gain access to special infected."
+	}
+	
+	"Menu_TeamSurvivors"
+	{
+		"en"		"Survivors consist of Soldiers, Pyros, Demoman, Medics, Engineers and Snipers.\nSurvivors gain regeneration and a small bonus to their damage based on Morale.\nMorale is gained by doing objectives and killing infected but is also lost over time and by negative events.\nSurvivors only start with a melee weapon and pick up weapons (using CALL 'MEDIC!', 'mouse1' or 'mouse2') as they progress through the map."
+	}
+	
+	"Menu_TeamZombie"
+	{
+		"en"		"Infected consist of Scouts, Heavies and Spies.\nInfected gain bonuses when sticking together as a hoarde and can enrage which boost health or activate special abilities as special infected.\nEnrage is used by calling for a 'medic' and has a cooldown after use.\nUpon killing a survivor, you may be given the option to respawn as a special infected using ."
+	}
+	
+	"Menu_ClassesSurvivorsSoldier"
+	{
+		"en"		"Gains 2 rimary ammo per kill, this can go beyond the usual maximum capacity of your weapon"
+	}
+	
+	"Menu_ClassesSurvivorsPyro"
+	{
+		"en"		"Burning zombies move faster.\nFlamethrower ammo limited to 100."
+	}
+	
+	"Menu_ClassesSurvivorsDemoman"
+	{
+		"en"		"Gains 1 rimary ammo per kill, this can go beyond the usual maximum capacity of your weapon"
+	}
+	
+	"Menu_ClassesSurvivorsHeavy"
+	{
+		"en"		"Minigun ammo limited to 100."
+	}
+	
+	"Menu_ClassesSurvivorsEngineer"
+	{
+		"en"		"Buildables cannot be upgraded.\nCan only build sentries and dispensers.\nSentry ammo is limited, decays and cannot be replenished.\nDispensers act as walls, with higher health than usual but no ammo replenishment."
+	}
+	
+	"Menu_ClassesSurvivorsMedic"
+	{
+		"en"		"Overheal limited to 25%% of maximum health but sticks for a longer duration."
+	}
+	
+	"Menu_ClassesSurvivorsSniper"
+	{
+		"en"		"SMG doesn't have to reload.\nJarate slows down Infected.\nGains 2 rimary ammo per kill, this can go beyond the usual maximum capacity of your weapon"
+	}
+	
+	"Menu_ClassesSurvivorsSpy"
+	{
+		"en"		"Can't use cloak watches but can use disguises.\nGains 1 rimary ammo per kill, this can go beyond the usual maximum capacity of your weapon"
+	}
+	
+	"Menu_ClassesInfectedScout"
+	{
+		"en"		"Balls fired from the Sandman do not stun, it emits a toxic gas that damages Survivors who stand on it instead."
+	}
+	
+	"Menu_ClassesInfectedSoldier"
+	{
+		"en"		"Suffers less knockback from attackers.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
+	}
+	
+	"Menu_ClassesInfectedPyro"
+	{
+		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde."
+	}
+	
+	"Menu_ClassesInfectedDemoman"
+	{
+		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde."
+	}
+	
+	"Menu_ClassesInfectedHeavy"
+	{
+		"en"		"Blocks fatal attacks, reducing damage to 150.\nSuffers less knockback from attacks.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
+	}
+	
+	"Menu_ClassesInfectedEngineer"
+	{
+		"en"		"Buildables cannot be upgraded.\nCan only build sentries.\nSentry ammo is limited, decays and cannot be replenished."
+	}
+	
+	"Menu_ClassesInfectedMedic"
+	{
+		"en"		"Benefits less from health regeneration bonuses while in a horde."
+	}
+	
+	"Menu_ClassesInfectedSpy"
+	{
+		"en"		"Backstabs put the victim into a 'scared' state, slowing and disabling weapon usage for 5.5 seconds.\nSurvivors may become a bit resistant to backstabs, reducing the duration, to ensure game balance."
+	}
+	
+	"Menu_ClassesInfectedSpecialTank"
+	{
+		"en"		"As one of the strongest and brutal infected he has the ability to quickly take down an unsuspecting team of survivors.\n- The Tank has a lot of health which he eventually loses after a while.\n- The Tank starts of fast but is slowed down if damaged by the survivors.\n- The Tank spawns if certain conditions are met."
+	}
+	
+	"Menu_ClassesInfectedSpecialBoomer"
+	{
+		"en"		"He is gross, he is dirty and is not afraid to share this with any unlucky survivors.\n- Upon raging the Boomer explodes, covering survivors close to him in Jarate.\n- On death, the killer and the assister of the killer will be coated in Jarate for a short duration."
+	}
+	
+	"Menu_ClassesInfectedSpecialCharger"
+	{
+		"en"		"His inner rage and insanity has caused him to lose any care for how he uses his body, as long as he can take somebody with it.\n- Using rage to charge the Charger is able to disable a survivor for a short period, damaging based on the victim's health."
+	}
+	
+	"Menu_ClassesInfectedSpecialScreamer"
+	{
+		"en"		"The Screamer is the director of the pack, he makes sure that the Zombies give their fullest in taking down the survivors.\n- Using rage, the Screamer will rally up the Zombies with an ear-piercing yell, increasing the overall power of the zombies.\n- The Screamer motivates zombies by standing near them, increasing their efficiency."
+	}
+	
+	"Menu_ClassesInfectedSpecialStalker"
+	{
+		"en"		"The Stalker is elusive, being able to get close to survivors and back away in the blink of an eye.\n- The Stalker is always cloaked if not close to any survivor.\n- The Stalker is always cloaked if not close to any survivor.\n- Backstabs deal 50 health damage to a survivor, making it 2.5x stronger than a normal backstab."
+	}
+	
+	"Menu_ClassesInfectedSpecialHunter"
+	{
+		"en"		"The Hunter is a fast being, being very agile they can easily reach beyond the level's obstacles and be hard to get rid off during hectic combat.\n- Using rage, the Hunter will perform a swift leap which can pounce enemies when making physical contact while leaping.\n- Upon pounce, you will be 'stuck' inside the enemy, making you a very dangerous encounter to face when the opponent is alone."
+	}
+	
+	"Menu_ClassesInfectedSpecialSmoker"
+	{
+		"en"		"The Smoker relies on his toxic beam which damages survivors can pulls them towards the Smoker.\n- The pull power grows stronger the less health the victim has.\n- Cannot use rage."
+	}
+	
+	"Menu_ClassesInfectedSpecialSpitter"
+	{
+		"en"		"The Spitter has a filled nasty gas, giving bleed to survivors at medium range for a few seconds\n- Can damage heavily to team if many survivors is nearby eachother\n- Cannot use rage."
+	}
 }
-
