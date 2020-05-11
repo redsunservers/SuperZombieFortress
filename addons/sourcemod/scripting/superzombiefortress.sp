@@ -577,13 +577,6 @@ public void OnClientDisconnect(int iClient)
 	Weapons_ClientDisconnect(iClient);
 }
 
-public void TF2_OnConditionAdded(int iClient, TFCond nCond)
-{
-	//Dont give gas cond from spitter
-	if (nCond == TFCond_Gas && IsSurvivor(iClient))
-		TF2_RemoveCondition(iClient, TFCond_Gas);
-}
-
 public void OnEntityCreated(int iEntity, const char[] sClassname)
 {
 	if (StrContains(sClassname, "item_healthkit") == 0 || StrContains(sClassname, "item_ammopack") == 0 || StrEqual(sClassname, "tf_ammo_pack"))
@@ -615,6 +608,32 @@ public void TF2_OnWaitingForPlayersEnd()
 		return;
 
 	g_nRoundState = SZFRoundState_Grace;
+}
+
+public void TF2_OnConditionAdded(int iClient, TFCond nCond)
+{
+	if (!g_bEnabled)
+		return;
+	
+	//Dont give gas cond from spitter
+	if (nCond == TFCond_Gas && IsSurvivor(iClient))
+		TF2_RemoveCondition(iClient, TFCond_Gas);
+}
+
+public Action TF2_OnIsHolidayActive(TFHoliday nHoliday, bool &bResult)
+{
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	//Force enable full moon to allow zombie voodoo soul to work
+	//Shouldnt use TFHoliday_Halloween because of souls and halloween taunt
+	if (nHoliday == TFHoliday_FullMoon || nHoliday == TFHoliday_HalloweenOrFullMoon || nHoliday == TFHoliday_HalloweenOrFullMoonOrValentines)
+	{
+		bResult = true;
+		return Plugin_Changed;
+	}
+	
+	return Plugin_Continue;
 }
 
 void EndGracePeriod()
