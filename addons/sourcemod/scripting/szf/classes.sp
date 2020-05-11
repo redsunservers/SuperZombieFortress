@@ -35,6 +35,10 @@ void Classes_Refresh()
 	DefaultClasses.callback_anim = INVALID_FUNCTION;
 	DefaultClasses.callback_death = INVALID_FUNCTION;
 	
+	g_iSurvivorClassCount = 0;
+	g_iZombieClassCount = 0;
+	g_iInfectedClassCount = 0;
+	
 	//Set survivors default
 	for (int i; i < sizeof(g_SurvivorClasses); i++)
 	{
