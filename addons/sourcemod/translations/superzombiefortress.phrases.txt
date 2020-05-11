@@ -470,11 +470,6 @@
 		"en"		"{orange}The Homewrecker & reskins {green}have their damage penalty removed."
 	}
 	
-	"Melee_BackScratcher"
-	{
-		"en"		"{orange}The Back Scratcher {red}has a 90% health from healers penalty."
-	}
-	
 	"Melee_KillingGlovesofBoxing"
 	{
 		"en"		"{orange}The Killing Gloves of Boxing {red}gives 3 seconds of minicrits on kill."
