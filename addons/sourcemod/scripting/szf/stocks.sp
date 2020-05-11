@@ -29,6 +29,8 @@
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
 
+#define ATTRIB_VISION		406
+
 static char g_sClassFiles[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
 static int g_iVoodooIndex[view_as<int>(TFClassType)] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
 static int g_iZombieSoulIndex[view_as<int>(TFClassType)];
@@ -180,7 +182,7 @@ stock void ApplyVoodooCursedSoul(int iClient)
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", (TF2_GetPlayerClass(iClient) == TFClass_Spy) ? SKIN_ZOMBIE_SPY : SKIN_ZOMBIE);
 	
 	TFClassType nClass = TF2_GetPlayerClass(iClient);
-	int iWearable = TF2_CreateAndEquipWeapon(iClient, g_iVoodooIndex[view_as<int>(nClass)]);	//Not really a weapon, but still works
+	int iWearable = TF2_CreateAndEquipWeapon(iClient, g_iVoodooIndex[view_as<int>(nClass)]); //Not really a weapon, but still works
 	if (IsValidEntity(iWearable))
 		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", g_iZombieSoulIndex[view_as<int>(nClass)]);
 }
@@ -188,6 +190,15 @@ stock void ApplyVoodooCursedSoul(int iClient)
 stock int GetClassVoodooItemDefIndex(TFClassType iClass)
 {
 	return g_iZombieSoulIndex[iClass];
+}
+
+stock void AddWeaponVision(int iWeapon, int iFlag)
+{
+	//Get current flag and add into it
+	float flVal = float(TF_VISION_FILTER_NONE);
+	TF2_WeaponFindAttribute(iWeapon, ATTRIB_VISION, flVal);
+	flVal = float(RoundToNearest(flVal)|iFlag);
+	TF2Attrib_SetByDefIndex(iWeapon, ATTRIB_VISION, flVal);
 }
 
 ////////////////
@@ -769,6 +780,30 @@ stock void TF2_FlagWeaponDontDrop(int iWeapon, bool bVisibleHack = true)
 	
 	StoreToAddress(addr, FLAG_DONT_DROP_WEAPON, NumberType_Int32);
 	if (bVisibleHack) SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", 1);
+}
+
+stock bool TF2_WeaponFindAttribute(int iWeapon, int iAttrib, float &flVal)
+{
+	Address addAttrib = TF2Attrib_GetByDefIndex(iWeapon, iAttrib);
+	if (addAttrib == Address_Null)
+	{
+		int iItemDefIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
+		int iAttributes[16];
+		float flAttribValues[16];
+
+		int iMaxAttrib = TF2Attrib_GetStaticAttribs(iItemDefIndex, iAttributes, flAttribValues);
+		for (int i = 0; i < iMaxAttrib; i++)
+		{
+			if (iAttributes[i] == iAttrib)
+			{
+				flVal = flAttribValues[i];
+				return true;
+			}
+		}
+		return false;
+	}
+	flVal = TF2Attrib_GetValue(addAttrib);
+	return true;
 }
 
 stock void CheckClientWeapons(int iClient)

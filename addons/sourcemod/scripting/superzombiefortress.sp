@@ -28,6 +28,12 @@
 #define BACKSTABDURATION_REDUCED	3.5
 #define STUNNED_DAMAGE_CAP			10.0
 
+// Also used in the item schema to define vision filter or vision mode opt in
+#define TF_VISION_FILTER_NONE		0
+#define TF_VISION_FILTER_PYRO		(1<<0)	// 1
+#define TF_VISION_FILTER_HALLOWEEN	(1<<1)	// 2
+#define TF_VISION_FILTER_ROME		(1<<2)	// 4
+
 // entity effects
 enum
 {
@@ -1835,6 +1841,11 @@ void HandleSurvivorLoadout(int iClient)
 		}
 	}
 	
+	//Give halloween vision
+	int iMelee = TF2_GetItemInSlot(iClient, WeaponSlot_Melee);
+	if (iMelee > MaxClients)
+		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);
+	
 	//Reset custom models
 	SetVariantString("");
 	AcceptEntityInput(iClient, "SetCustomModel");
@@ -1875,7 +1886,10 @@ void HandleZombieLoadout(int iClient)
 	//Set active wepaon slot to melee
 	int iMelee = TF2_GetItemInSlot(iClient, WeaponSlot_Melee);
 	if (iMelee > MaxClients)
+	{
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
+		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);
+	}
 }
 
 void SetValidSlot(int iClient)
