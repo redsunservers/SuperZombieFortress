@@ -180,6 +180,7 @@ enum struct ClientClasses
 	Function callback_spawn;
 	Function callback_rage;
 	Function callback_think;
+	Function callback_touch;
 	Function callback_anim;
 	Function callback_death;
 	

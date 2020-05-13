@@ -457,7 +457,7 @@ public void Infected_DoHunterJump(int iClient)
 	SDKCall_PlaySpecificSequence(iClient, "Jump_Float_melee");
 }
 
-public void Infected_OnHunterThink(int iClient, int &iButtons)
+public void Infected_OnHunterTouch(int iClient, int iToucher)
 {
 	if (g_bHunterIsUsingPounce[iClient])
 	{
@@ -467,40 +467,27 @@ public void Infected_OnHunterThink(int iClient, int &iButtons)
 			return;
 		}
 		
-		float vecPosClient[3];
-		float flPosHopper[3];
-		float flDistance;
-		GetClientEyePosition(iClient, flPosHopper);
-		
-		for (int i = 1; i <= MaxClients; i++)
+		if (IsValidLivingSurvivor(iToucher))
 		{
-			if (IsClientInGame(i) && IsPlayerAlive(i) && IsSurvivor(i))
+			if (!g_bBackstabbed[iToucher])
 			{
-				GetClientEyePosition(i, vecPosClient);
-				flDistance = GetVectorDistance(flPosHopper, vecPosClient);
-				if (flDistance <= 90.0)
-				{
-					if (!g_bBackstabbed[i])
-					{
-						SetEntityHealth(i, GetClientHealth(i) - 20);
-						
-						SetBackstabState(i, BACKSTABDURATION_FULL, 1.0);
-						SetNextAttack(iClient, GetGameTime() + 0.6);
-						
-						//Teleport hunter inside the target
-						GetClientAbsOrigin(i, vecPosClient);
-						TeleportEntity(iClient, vecPosClient, NULL_VECTOR, NULL_VECTOR);
-						//Dont allow hunter to move during lock
-						TF2_StunPlayer(iClient, BACKSTABDURATION_FULL, 1.0, TF_STUNFLAG_SLOWDOWN, 0);
-						
-						Forward_OnHunterHit(iClient, i);
-					}
-					
-					g_iRageTimer[iClient] = 21;
-					g_bHunterIsUsingPounce[iClient] = false;
-					break; //Break the loop, since we found our target
-				}
+				SetEntityHealth(iToucher, GetClientHealth(iToucher) - 20);
+				
+				SetBackstabState(iToucher, BACKSTABDURATION_FULL, 1.0);
+				SetNextAttack(iClient, GetGameTime() + 0.6);
+				
+				//Teleport hunter inside the target
+				float vecPosClient[3];
+				GetClientAbsOrigin(iToucher, vecPosClient);
+				TeleportEntity(iClient, vecPosClient, NULL_VECTOR, NULL_VECTOR);
+				//Dont allow hunter to move during lock
+				TF2_StunPlayer(iClient, BACKSTABDURATION_FULL, 1.0, TF_STUNFLAG_SLOWDOWN, 0);
+				
+				Forward_OnHunterHit(iClient, iToucher);
 			}
+			
+			g_iRageTimer[iClient] = 21;
+			g_bHunterIsUsingPounce[iClient] = false;
 		}
 	}
 }
@@ -701,27 +688,28 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 5);
 		}
 	}
-	
-	//Must be in air to pounce
-	if (GetEntityFlags(iClient) & FL_ONGROUND)
+}
+
+public void Infected_OnJockeyTouch(int iClient, int iToucher)
+{
+	//Already pouncing someone and must be in air to pounce
+	if (0 < g_iJockeyTarget[iClient] <= MaxClients || GetEntityFlags(iClient) & FL_ONGROUND || !IsValidLivingSurvivor(iToucher))
 		return;
 	
-	//Find whoever survivor jockey is looking at
-	//TODO should use SDKHook touch instead
-	iTarget = GetClientPointVisible(iClient, 70.0);
-	if (!IsValidLivingSurvivor(iTarget))
+	//Jockey must be looking at toucher
+	if (GetClientPointVisible(iClient, 200.0) != iToucher)
 		return;
 	
 	//Jockey must be higher enough than survivor to pounce it
 	float vecJockeyEye[3], vecTargetEye[3];
 	GetClientEyePosition(iClient, vecJockeyEye);
-	GetClientEyePosition(iTarget, vecTargetEye);
+	GetClientEyePosition(iToucher, vecTargetEye);
 	
 	if (vecJockeyEye[2] < vecTargetEye[2] + 20.0)
 		return;
 	
-	g_iJockeyTarget[iClient] = iTarget;
-	Shake(iTarget, 3.0, 3.0);
+	g_iJockeyTarget[iClient] = iToucher;
+	Shake(iToucher, 3.0, 3.0);
 	
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
 	SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 2);

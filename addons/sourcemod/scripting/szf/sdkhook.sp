@@ -1,6 +1,7 @@
 void SDKHook_HookClient(int iClient)
 {
-	SDKHook(iClient, SDKHook_PreThinkPost, Client_OnPreThinkPost);
+	SDKHook(iClient, SDKHook_PreThinkPost, Client_PreThinkPost);
+	SDKHook(iClient, SDKHook_Touch, Client_Touch);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	SDKHook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
 }
@@ -43,7 +44,7 @@ public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
 	SDKHook(iEntity, SDKHook_Touch, OnSandvichTouch);
 }
 
-public void Client_OnPreThinkPost(int iClient)
+public void Client_PreThinkPost(int iClient)
 {
 	if (!g_bEnabled)
 		return;
@@ -144,6 +145,17 @@ public void Client_OnPreThinkPost(int iClient)
 	}
 	
 	UpdateClientCarrying(iClient);
+}
+
+public Action Client_Touch(int iClient, int iToucher)
+{
+	if (g_ClientClasses[iClient].callback_touch != INVALID_FUNCTION)
+	{
+		Call_StartFunction(null, g_ClientClasses[iClient].callback_touch);
+		Call_PushCell(iClient);
+		Call_PushCell(iToucher);
+		Call_Finish();
+	}
 }
 
 public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)

@@ -283,6 +283,7 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	classes.callback_spawn = Config_GetFunction(kv, "callback_spawn");
 	classes.callback_rage = Config_GetFunction(kv, "callback_rage");
 	classes.callback_think = Config_GetFunction(kv, "callback_think");
+	classes.callback_touch = Config_GetFunction(kv, "callback_touch");
 	classes.callback_anim = Config_GetFunction(kv, "callback_anim");
 	classes.callback_death = Config_GetFunction(kv, "callback_death");
 	
