@@ -2451,7 +2451,7 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 	}
 	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie)
 	{
-		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee)
+		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee || g_nInfected[iClient] != Infected_None)
 		{
 			iAction = Plugin_Handled;
 		}
@@ -2461,8 +2461,8 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 			{
 				case TFClass_Scout:
 				{
-					//Block scout drinks for special infected
-					if (g_nInfected[iClient] != Infected_None || StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
+					//Block all secondary weapons that are not drinks
+					if (StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
 						iAction = Plugin_Handled;
 				}
 				case TFClass_Soldier:
