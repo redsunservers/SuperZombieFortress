@@ -680,7 +680,7 @@ void EndGracePeriod()
 					g_bSpawnAsSpecialInfected[iClient] = true;
 				}
 				
-				CPrintToChat(iClient, "%t", "Infected_SelectedRespawn", (IsZombie(iClient)) ? "{green}" : "{red}");
+				CPrintToChat(iClient, "%t", "Grace_InfectedBoost", (IsZombie(iClient)) ? "{green}" : "{red}");
 			}
 		}
 	}
