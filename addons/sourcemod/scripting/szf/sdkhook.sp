@@ -306,6 +306,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 					{
 						flDamage = g_iMaxHealth[iVictim]/11.0;
 						iDamageType |= DMG_CRIT;
+						SetNextAttack(iAttacker, GetGameTime() + 1.25);
 					}
 					
 					g_flDamageDealtAgainstTank[iAttacker] += flDamage;
