@@ -226,11 +226,8 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				bChanged = true;
 			}
 			
-			//Taunt, backstabs and highly critical damage
-			if (iDamageCustom == TF_CUSTOM_TAUNT_HIGH_NOON
-				|| iDamageCustom == TF_CUSTOM_TAUNT_GRAND_SLAM
-				|| iDamageCustom == TF_CUSTOM_BACKSTAB
-				|| flDamage >= SDKCall_GetMaxHealth(iVictim) - 20)
+			//Taunt kill, backstabs and highly critical damage
+			if (flDamage >= 300.0)
 			{
 				if (!g_bBackstabbed[iVictim])
 				{
