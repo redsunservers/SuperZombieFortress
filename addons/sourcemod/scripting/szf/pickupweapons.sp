@@ -354,7 +354,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	sAttribs = wep.sAttribs;
 	
 	if (wep.aClassSpecific[iClass])
-	 wep.aClassSpecific[iClass].GetString(0, sAttribs, sizeof(sAttribs));
+		wep.aClassSpecific[iClass].GetString(0, sAttribs, sizeof(sAttribs));
 	
 	//Generate and equip weapon
 	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, _, sAttribs, wep.sText);
@@ -366,17 +366,12 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		if (GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon") <= MaxClients)
 		{
 			//Looks like player's active weapon got replaced into wearable, fix that by using melee
-			int iMelee = GetPlayerWeaponSlot(iClient, TFWeaponSlot_Melee);
-			SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
+			int iMelee = GetPlayerWeaponSlot(iClient, WeaponSlot_Melee);
+			if (iMelee > MaxClients)
+				TF2_SwitchActiveWeapon(iClient, iMelee);
 		}
 	}
 	else 
-	{
-		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
-	}
-	
-	//Set ammo as weapon's max ammo
-	if (HasEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType"))	//Wearables dont have ammo netprop
 	{
 		int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
 		if (iAmmoType > -1)
@@ -385,6 +380,8 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 			SetEntProp(iClient, Prop_Send, "m_iAmmo", 0, _, iAmmoType);
 			GivePlayerAmmo(iClient, 9999, iAmmoType, true);
 		}
+		
+		TF2_SwitchActiveWeapon(iClient, iWeapon);
 	}
 	
 	//Reset meter to default value

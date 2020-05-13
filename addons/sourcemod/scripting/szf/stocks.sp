@@ -359,6 +359,13 @@ stock bool TF2_IsWielding(int iClient, int iIndex)
 	return false;
 }
 
+stock void TF2_SwitchActiveWeapon(int iClient, int iWeapon)
+{
+	char sClassname[256];
+	GetEntityClassname(iWeapon, sClassname, sizeof(sClassname));
+	FakeClientCommand(iClient, "use %s", sClassname);
+}
+
 stock bool TF2_IsSlotClassname(int iClient, int iSlot, char[] sClassname)
 {
 	int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);

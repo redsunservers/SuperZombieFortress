@@ -1839,10 +1839,12 @@ void HandleSurvivorLoadout(int iClient)
 		}
 	}
 	
-	//Give halloween vision
 	int iMelee = TF2_GetItemInSlot(iClient, WeaponSlot_Melee);
 	if (iMelee > MaxClients)
-		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);
+	{
+		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);	//Give halloween vision
+		TF2_SwitchActiveWeapon(iClient, iMelee);
+	}
 	
 	//Reset custom models
 	SetVariantString("");
@@ -1851,8 +1853,6 @@ void HandleSurvivorLoadout(int iClient)
 	//Prevent Survivors with voodoo-cursed souls
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
-	
-	SetValidSlot(iClient);
 }
 
 void HandleZombieLoadout(int iClient)
@@ -1887,25 +1887,6 @@ void HandleZombieLoadout(int iClient)
 	{
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
 		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);
-	}
-}
-
-void SetValidSlot(int iClient)
-{
-	int iOld = GetEntProp(iClient, Prop_Send, "m_hActiveWeapon");
-	if (iOld > 0)
-		return;
-	
-	int iSlot;
-	int iEntity;
-	for (iSlot = 0; iSlot <= 5; iSlot++)
-	{
-		iEntity = GetPlayerWeaponSlot(iClient, iSlot);
-		if (iEntity > 0 && IsValidEdict(iEntity))
-		{
-			SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iEntity);
-			return;
-		}
 	}
 }
 
