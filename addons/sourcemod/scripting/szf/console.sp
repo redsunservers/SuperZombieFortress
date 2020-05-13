@@ -188,7 +188,7 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 	else if (IsSurvivor(iClient))
 	{
 		//Prevent survivors from switching classes during the round.
-		if (g_nRoundState == SZFRoundState_Active)
+		if (g_nRoundState == SZFRoundState_Active && IsPlayerAlive(iClient))
 		{
 			CPrintToChat(iClient, "%t", "JoinClass_SurvivorsCantChange", "{red}");
 			return Plugin_Handled;
