@@ -373,7 +373,6 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	else 
 	{
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
-		TF2_FlagWeaponDontDrop(iWeapon);
 	}
 	
 	//Set ammo as weapon's max ammo

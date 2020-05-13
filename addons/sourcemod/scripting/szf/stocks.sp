@@ -21,10 +21,6 @@
 //Medic
 #define WEAPON_OVERDOSE 412
 
-//Required for TF2_FlagWeaponNoDrop
-#define FLAG_DONT_DROP_WEAPON 				0x23E173A2
-#define OFFSET_DONT_DROP					36
-
 //Zombie Soul related indexes
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
@@ -762,24 +758,6 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sClassn
 	}
 	
 	return iWeapon;
-}
-
-//Taken from STT
-stock void TF2_FlagWeaponDontDrop(int iWeapon, bool bVisibleHack = true)
-{
-	int iOffset = GetEntSendPropOffs(iWeapon, "m_Item", true);
-	if (iOffset <= 0)
-		return;
-	
-	Address weaponAddress = GetEntityAddress(iWeapon);
-	if (weaponAddress == Address_Null)
-		return;
-	
-	Address addr = view_as<Address>((view_as<int>(weaponAddress)) + iOffset + OFFSET_DONT_DROP); //Going to hijack CEconItemView::m_iInventoryPosition.
-	//Need to build later on an anti weapon drop, using OnEntityCreated or something...
-	
-	StoreToAddress(addr, FLAG_DONT_DROP_WEAPON, NumberType_Int32);
-	if (bVisibleHack) SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", 1);
 }
 
 stock bool TF2_WeaponFindAttribute(int iWeapon, int iAttrib, float &flVal)
