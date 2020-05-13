@@ -381,21 +381,14 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
 		if (iAmmoType > -1)
 		{
-			//We want to set gas passer's ammo to 0, because thats how normal gas passer works
-			int iMaxAmmo;
-			if (wep.iIndex == 1180)
-			{
-				iMaxAmmo = 0;
-				SetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", 0.0, 1);
-			}
-			else
-			{
-				iMaxAmmo = SDKCall_GetMaxAmmo(iClient, iAmmoType);
-			}
-			
-			SetEntProp(iClient, Prop_Send, "m_iAmmo", iMaxAmmo, _, iAmmoType);
+			//Reset ammo before GivePlayerAmmo gives back properly
+			SetEntProp(iClient, Prop_Send, "m_iAmmo", 0, _, iAmmoType);
+			GivePlayerAmmo(iClient, 9999, iAmmoType, true);
 		}
 	}
+	
+	//Reset meter to default value
+	SetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", SDKCall_GetDefaultItemChargeMeterValue(iWeapon), iSlot);
 	
 	//Add weapon pickup to player as cookie
 	AddToCookie(iClient, 1, g_cWeaponsPicked);

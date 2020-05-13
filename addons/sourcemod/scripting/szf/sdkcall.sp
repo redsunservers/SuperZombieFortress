@@ -1,5 +1,4 @@
 static Handle g_hSDKCallGetMaxHealth;
-static Handle g_hSDKCallGetMaxAmmo;
 static Handle g_hSDKCallEquipWearable;
 static Handle g_hSDKCallPlaySpecificSequence;
 static Handle g_hSDKCallGetEquippedWearable;
@@ -7,6 +6,7 @@ static Handle g_hSDKCallGiveNamedItem;
 static Handle g_hSDKCallGetLoadoutItem;
 static Handle g_hSDKCallTossJarThink;
 static Handle g_hSDKCallGetBaseEntity;
+static Handle g_hSDKCallGetDefaultItemChargeMeterValue;
 
 void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 {
@@ -25,15 +25,6 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	g_hSDKCallEquipWearable = EndPrepSDKCall();
 	if (!g_hSDKCallEquipWearable)
 		LogError("Failed to create call: CBasePlayer::EquipWearable");
-	
-	StartPrepSDKCall(SDKCall_Player);
-	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::GetMaxAmmo");
-	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
-	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
-	g_hSDKCallGetMaxAmmo = EndPrepSDKCall();
-	if (!g_hSDKCallGetMaxAmmo)
-		LogError("Failed to create call: CTFPlayer::GetMaxAmmo");
 	
 	StartPrepSDKCall(SDKCall_Player);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::PlaySpecificSequence");
@@ -84,6 +75,13 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	g_hSDKCallGetBaseEntity = EndPrepSDKCall();
 	if (!g_hSDKCallGetBaseEntity)
 		LogError("Failed to create call: CBaseEntity::GetBaseEntity");
+	
+	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CBaseEntity::GetDefaultItemChargeMeterValue");
+	PrepSDKCall_SetReturnInfo(SDKType_Float, SDKPass_Plain);
+	g_hSDKCallGetDefaultItemChargeMeterValue = EndPrepSDKCall();
+	if (!g_hSDKCallGetDefaultItemChargeMeterValue)
+		LogError("Failed to create SDKCall: CBaseEntity::GetDefaultItemChargeMeterValue");
 }
 
 int SDKCall_GetMaxHealth(int iClient)
@@ -94,11 +92,6 @@ int SDKCall_GetMaxHealth(int iClient)
 void SDKCall_EquipWearable(int iClient, int iWearable)
 {
 	SDKCall(g_hSDKCallEquipWearable, iClient, iWearable);
-}
-
-int SDKCall_GetMaxAmmo(int iClient, int iSlot)
-{
-	return SDKCall(g_hSDKCallGetMaxAmmo, iClient, iSlot, -1);
 }
 
 bool SDKCall_PlaySpecificSequence(int iClient, const char[] sAnimationName)
@@ -130,4 +123,9 @@ void SDKCall_TossJarThink(int iEntity)
 int SDKCall_GetBaseEntity(Address pEnt)
 {
 	return SDKCall(g_hSDKCallGetBaseEntity, pEnt);
+}
+
+float SDKCall_GetDefaultItemChargeMeterValue(int iWeapon)
+{
+	return SDKCall(g_hSDKCallGetDefaultItemChargeMeterValue, iWeapon);
 }
