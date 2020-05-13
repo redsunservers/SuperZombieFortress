@@ -254,7 +254,6 @@ Cookie g_cForceZombieStart;
 
 //Global State
 bool g_bEnabled;
-bool g_bLateLoad;
 bool g_bNewRound;
 bool g_bFirstRound = true;
 bool g_bLastSurvivor;
@@ -390,8 +389,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	Native_AskLoad();
 	
 	RegPluginLibrary("superzombiefortress");
-	
-	g_bLateLoad = late;
 }
 
 public void OnPluginStart()
@@ -413,9 +410,9 @@ public void OnPluginStart()
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
 	
-	if (!g_bLateLoad)
+	if (GameRules_GetRoundState() < RoundState_Preround)
 		g_nRoundState = SZFRoundState_Setup;
-	else
+	else	//Plugin late-load while already midgame, skip setup time
 		g_nRoundState = SZFRoundState_Grace;
 	
 	AddNormalSoundHook(SoundHook);
