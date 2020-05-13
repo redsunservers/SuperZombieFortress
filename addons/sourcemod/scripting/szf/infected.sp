@@ -286,16 +286,23 @@ void Infected_DoBoomerExplosion(int iClient, float flRadius)
 // Charger
 ////////////////
 
+static float g_flChargerEndCharge[TF_MAXPLAYERS];
+static bool g_bChargerHitSurvivor[TF_MAXPLAYERS][TF_MAXPLAYERS];
+
+public void Infected_OnChargerSpawn(int iClient)
+{
+	g_flChargerEndCharge[iClient] = 0.0;
+}
+
 public void Infected_DoChargerCharge(int iClient)
 {
-	TF2_AddCondition(iClient, TFCond_Charging, 1.65);
+	for (int i = 1; i <= MaxClients; i++)
+		g_bChargerHitSurvivor[iClient][i] = false;
 	
-	//Can sometimes charge for 0.1 sec, add push force
-	float vecVel[3], vecAngles[3];
-	GetClientEyeAngles(iClient, vecAngles);
-	vecVel[0] = 450.0 * Cosine(DegToRad(vecAngles[1]));
-	vecVel[1] = 450.0 * Sine(DegToRad(vecAngles[1]));
-	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVel);
+	TF2_AddCondition(iClient, TFCond_Charging, 1.65);
+	SetNextAttack(iClient, GetGameTime() + 1.65);
+	g_flChargerEndCharge[iClient] = GetGameTime() + 1.65;
+	
 	SDKCall_PlaySpecificSequence(iClient, "Charger_Charge");
 	
 	EmitSoundToAll(g_sVoZombieChargerCharge[GetRandomInt(0, sizeof(g_sVoZombieChargerCharge)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
@@ -303,38 +310,49 @@ public void Infected_DoChargerCharge(int iClient)
 
 public void Infected_OnChargerThink(int iClient, int &iButtons)
 {
-	if (TF2_IsPlayerInCondition(iClient, TFCond_Charging))
+	if (g_flChargerEndCharge[iClient] > GetGameTime())
 	{
-		float vecPosClient[3];
-		float vecPosCharger[3];
-		float flDistance;
-		GetClientEyePosition(iClient, vecPosCharger);
+		iButtons |= IN_FORWARD;
+		
+		if (!TF2_IsPlayerInCondition(iClient, TFCond_Charging))
+			TF2_AddCondition(iClient, TFCond_Charging, g_flChargerEndCharge[iClient] - GetGameTime());
+		
+		float vecOrigin[3], vecAngles[3], vecVel[3];
+		GetClientAbsOrigin(iClient, vecOrigin);
+		GetClientEyeAngles(iClient, vecAngles);
+		
+		//Move origin a bit further so we get a better guess who were colliding with
+		vecAngles[2] = 0.0;
+		AnglesToVelocity(vecAngles, vecVel, 75.0);
+		AddVectors(vecOrigin, vecVel, vecOrigin);
+		
+		//Force push charger at stupid amount of speed, WEEEEEEEEEEEEEEEEEE
+		AnglesToVelocity(vecAngles, vecVel, 520.0);
+		TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVel);
 		
 		for (int iVictim = 1; iVictim <= MaxClients; iVictim++)
 		{
-			if (IsClientInGame(iVictim) && IsPlayerAlive(iVictim) && IsSurvivor(iVictim))
+			if (IsValidLivingSurvivor(iVictim))
 			{
-				GetClientEyePosition(iVictim, vecPosClient);
-				flDistance = GetVectorDistance(vecPosCharger, vecPosClient);
-				if (flDistance <= 95.0)
+				float vecPosClient[3];
+				GetClientAbsOrigin(iVictim, vecPosClient);
+				if (GetVectorDistance(vecOrigin, vecPosClient) <= 75.0)
 				{
-					if (!g_bBackstabbed[iVictim])
+					if (GetEntityFlags(iVictim) & FL_ONGROUND)
+						vecVel[2] = 260.0;	//Launch survivor slightly up so we can push em more easier
+					else
+						vecVel[2] = 0.0;
+					
+					TeleportEntity(iVictim, NULL_VECTOR, NULL_VECTOR, vecVel);
+					
+					if (!TF2_IsPlayerInCondition(iVictim, TFCond_Bleeding))
+						TF2_MakeBleed(iVictim, iClient, 0.5);
+					
+					if (!g_bChargerHitSurvivor[iClient][iVictim])
 					{
-						SetBackstabState(iVictim, BACKSTABDURATION_FULL, 0.8);
-						SetNextAttack(iClient, GetGameTime() + 0.6);
-						
-						TF2_MakeBleed(iVictim, iClient, 2.0);
-						DealDamage(iClient, iVictim, 30.0);
-						
-						char sPath[PLATFORM_MAX_PATH];
-						Format(sPath, sizeof(sPath), "weapons/demo_charge_hit_flesh_range1.wav", GetRandomInt(1, 3));
-						EmitSoundToAll(sPath, iClient);
-						
+						g_bChargerHitSurvivor[iClient][iVictim] = true;
 						Forward_OnChargerHit(iClient, iVictim);
 					}
-					
-					TF2_RemoveCondition(iClient, TFCond_Charging);
-					break; //Target found, break the loop.
 				}
 			}
 		}
