@@ -2451,42 +2451,49 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 	}
 	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie)
 	{
-		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee || g_nInfected[iClient] != Infected_None)
+		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee)
 		{
 			iAction = Plugin_Handled;
 		}
 		else if (iSlot <= WeaponSlot_BuilderEngie)
 		{
-			switch (TF2_GetPlayerClass(iClient))
+			if (g_nInfected[iClient] != Infected_None)
 			{
-				case TFClass_Scout:
+				iAction = Plugin_Handled;
+			}
+			else
+			{
+				switch (TF2_GetPlayerClass(iClient))
 				{
-					//Block all secondary weapons that are not drinks
-					if (StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
+					case TFClass_Scout:
+					{
+						//Block all secondary weapons that are not drinks
+						if (StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
+							iAction = Plugin_Handled;
+					}
+					case TFClass_Soldier:
+					{
+						//Block all secondary weapons that are not banners
+						if (StrContains(sClassname, "tf_weapon_buff_item") == -1)
+							iAction = Plugin_Handled;
+					}
+					case TFClass_Heavy:
+					{
+						//Block all secondary weapons that are not food
+						if (StrContains(sClassname, "tf_weapon_lunchbox") == -1)
+							iAction = Plugin_Handled;
+					}
+					case TFClass_Engineer:
+					{
+						//Block all weapons that are not PDA and toolbox
+						if (iSlot <= WeaponSlot_Melee)
+							iAction = Plugin_Handled;
+					}
+					default:
+					{
+						//Block literally everything else
 						iAction = Plugin_Handled;
-				}
-				case TFClass_Soldier:
-				{
-					//Block all secondary weapons that are not banners
-					if (StrContains(sClassname, "tf_weapon_buff_item") == -1)
-						iAction = Plugin_Handled;
-				}
-				case TFClass_Heavy:
-				{
-					//Block all secondary weapons that are not food
-					if (StrContains(sClassname, "tf_weapon_lunchbox") == -1)
-						iAction = Plugin_Handled;
-				}
-				case TFClass_Engineer:
-				{
-					//Block all weapons that are not PDA and toolbox
-					if (iSlot <= WeaponSlot_Melee)
-						iAction = Plugin_Handled;
-				}
-				default:
-				{
-					//Block literally everything else
-					iAction = Plugin_Handled;
+					}
 				}
 			}
 		}
