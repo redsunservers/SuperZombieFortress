@@ -45,7 +45,7 @@ public void Infected_OnTankSpawn(int iClient)
 	g_iTankHealthSubtract[iClient] = iSubtract;
 	TF2_AddCondition(iClient, TFCond_Kritzkrieged, TFCondDuration_Infinite);
 	
-	CPrintToChatAll("%t", "Tank_Spawn");
+	CPrintToChatAll("%t", "Tank_Spawn", "{red}");
 	EmitSoundToAll(g_sVoZombieTankOnFire[GetRandomInt(0, sizeof(g_sVoZombieTankOnFire)-1)]);
 	
 	for (int i = 1; i <= MaxClients; i++)
@@ -146,13 +146,13 @@ public Action Infected_OnTankAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iD
 
 public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 {
-	delete g_hTimerTank[iVictim];
+	g_hTimerTank[iVictim] = null;
 	g_iDamageZombie[iVictim] = 0;
 	
 	int iWinner = 0;
 	float flHighest = 0.0;
 	
-	if (0 < iAssist <= MaxClients && IsClientInGame(iKiller))
+	if (0 < iKiller <= MaxClients && IsClientInGame(iKiller))
 	{
 		SetVariantString("TLK_MVM_TANK_DEAD");
 		AcceptEntityInput(iKiller, "SpeakResponseConcept");
