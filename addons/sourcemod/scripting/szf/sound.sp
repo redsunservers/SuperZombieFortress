@@ -213,17 +213,11 @@ void Sound_PlayMusic(int[] iClients, int iCount, const char[] sName, float flDur
 {
 	//Check if there music override
 	if (iCount <= 0 || Sound_IsMusicOverrideOn())
-	{
-		PrintToChatAll("Sound_PlayMusic no client count or music override");
 		return;
-	}
 	
 	SoundMusic music;
 	if (!g_mSoundMusic.GetArray(sName, music, sizeof(music)))
-	{
-		PrintToChatAll("Sound_PlayMusic (%s) dont exist", sName);
 		return;
-	}
 	
 	//Get random sound only once, play same sound to all clients
 	SoundFilepath filepath;
@@ -235,24 +229,15 @@ void Sound_PlayMusic(int[] iClients, int iCount, const char[] sName, float flDur
 		
 		//Client don't want to hear music
 		if (g_bNoMusicForClient[iClient])
-		{
-			PrintToChat(iClient, "Sound_PlayMusic g_bNoMusicForClient");
 			continue;
-		}
 		
 		//If current sound the same, don't play again
 		if (StrEqual(g_SoundMusic[iClient].sName, music.sName))
-		{
-			PrintToChat(iClient, "Sound_PlayMusic same sound (%s)", music.sName);
 			continue;
-		}
 		
 		//Don't play if current sound have higher priority than sound we wanted to play
 		if (g_SoundMusic[iClient].iPriority > music.iPriority)
-		{
-			PrintToChat(iClient, "Sound_PlayMusic %d > %d", g_SoundMusic[iClient].iPriority, music.iPriority);
 			continue;
-		}
 		
 		//End current sound before we start new sound
 		Sound_EndMusic(iClient);

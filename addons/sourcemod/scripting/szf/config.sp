@@ -374,6 +374,7 @@ StringMap Config_LoadMusic(KeyValues kv)
 		{
 			SoundMusic music;
 			kv.GetSectionName(music.sName, sizeof(music.sName));
+			StrToLower(music.sName, music.sName, sizeof(music.sName));
 			
 			//Check if name already exists
 			if (mMusics.GetArray(music.sName, music, sizeof(music)))
