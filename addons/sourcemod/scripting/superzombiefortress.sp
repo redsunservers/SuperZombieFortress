@@ -969,29 +969,38 @@ void Handle_SurvivorAbilities()
 			//3.1. Primary weapons
 			SetHudTextParams(0.18, 0.84, 1.0, 200, 255, 200, 255);
 			int iPrimary = GetPlayerWeaponSlot(iClient, WeaponSlot_Primary);
-			if (iPrimary > MaxClients && IsValidEdict(iPrimary))
+			if (iPrimary > MaxClients)
 			{
-				if (GetEntProp(iPrimary, Prop_Send, "m_iItemDefinitionIndex") == 752)
+				char sClassname[256];
+				GetEntityClassname(iPrimary, sClassname, sizeof(sClassname));
+				int iIndex = GetEntProp(iPrimary, Prop_Send, "m_iItemDefinitionIndex");
+				
+				if (StrEqual(sClassname, "tf_weapon_soda_popper"))
 				{
-					float flFocus = GetEntPropFloat(iClient, Prop_Send, "m_flRageMeter");
-					ShowHudText(iClient, 0, "%t", "Hud_Focus", RoundToZero(flFocus));
+					float flHype = GetEntPropFloat(iClient, Prop_Send, "m_flHypeMeter");
+					ShowHudText(iClient, 0, "%t", "Hud_Hype", RoundFloat(flHype));
 				}
-				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Primary, "tf_weapon_particle_cannon"))
+				else if (StrEqual(sClassname, "tf_weapon_particle_cannon"))
 				{
 					float flEnergy = GetEntPropFloat(iPrimary, Prop_Send, "m_flEnergy");
 					ShowHudText(iClient, 0, "%t", "Hud_Mangler", RoundFloat(flEnergy)*5);
 				}
-				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Primary, "tf_weapon_drg_pomson"))
+				else if (StrEqual(sClassname, "tf_weapon_drg_pomson"))
 				{
 					float flEnergy = GetEntPropFloat(iPrimary, Prop_Send, "m_flEnergy");
 					ShowHudText(iClient, 0, "%t", "Hud_Pomson", RoundFloat(flEnergy)*5);
 				}
-				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Primary, "tf_weapon_sniperrifle_decap"))
+				else if (StrEqual(sClassname, "tf_weapon_sniperrifle_decap"))
 				{
 					int iHeads = GetEntProp(iClient, Prop_Send, "m_iDecapitations");
 					ShowHudText(iClient, 0, "%t", "Hud_Heads", iHeads);
 				}
-				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Primary, "tf_weapon_sentry_revenge"))
+				else if (iIndex == 752)
+				{
+					float flFocus = GetEntPropFloat(iClient, Prop_Send, "m_flRageMeter");
+					ShowHudText(iClient, 0, "%t", "Hud_Focus", RoundToZero(flFocus));
+				}
+				else if (iIndex == 525 || StrEqual(sClassname, "tf_weapon_sentry_revenge"))
 				{
 					int iCrits = GetEntProp(iClient, Prop_Send, "m_iRevengeCrits");
 					ShowHudText(iClient, 0, "%t", "Hud_Crits", iCrits);
@@ -1003,22 +1012,48 @@ void Handle_SurvivorAbilities()
 			int iSecondary = GetPlayerWeaponSlot(iClient, WeaponSlot_Secondary);
 			if (iSecondary > MaxClients && IsValidEdict(iSecondary))
 			{
-				if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_raygun"))
+				char sClassname[256];
+				GetEntityClassname(iSecondary, sClassname, sizeof(sClassname));
+				
+				if (StrEqual(sClassname, "tf_weapon_lunchbox_drink"))
 				{
-					float flEnergy = GetEntPropFloat(iSecondary, Prop_Send, "m_flEnergy");
-					ShowHudText(iClient, 5, "%t", "Hud_Bison", RoundFloat(flEnergy)*5);
+					float flSec = GetEntPropFloat(iSecondary, Prop_Send, "m_flEffectBarRegenTime") - GetGameTime();
+					if (flSec > 0.0)
+						ShowHudText(iClient, 5, "%t", "Hud_Drink", RoundToZero(flSec));
 				}
-				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_buff_item"))
+				else if (StrEqual(sClassname, "tf_weapon_jar_milk"))
+				{
+					float flSec = GetEntPropFloat(iSecondary, Prop_Send, "m_flEffectBarRegenTime") - GetGameTime();
+					if (flSec > 0.0)
+						ShowHudText(iClient, 5, "%t", "Hud_Milk", RoundToZero(flSec));
+				}
+				else if (StrEqual(sClassname, "tf_weapon_cleaver"))
+				{
+					float flSec = GetEntPropFloat(iSecondary, Prop_Send, "m_flEffectBarRegenTime") - GetGameTime();
+					if (flSec > 0.0)
+						ShowHudText(iClient, 5, "%t", "Hud_Cleaver", RoundToZero(flSec));
+				}
+				else if (StrEqual(sClassname, "tf_weapon_buff_item"))
 				{
 					float flRage = GetEntPropFloat(iClient, Prop_Send, "m_flRageMeter");
 					ShowHudText(iClient, 5, "%t", "Hud_Rage", RoundToZero(flRage));
 				}
-				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_jar_gas"))
+				else if (StrEqual(sClassname, "tf_weapon_raygun"))
+				{
+					float flEnergy = GetEntPropFloat(iSecondary, Prop_Send, "m_flEnergy");
+					ShowHudText(iClient, 5, "%t", "Hud_Bison", RoundFloat(flEnergy)*5);
+				}
+				else if (StrEqual(sClassname, "tf_weapon_jar_gas"))
 				{
 					float flMeter = GetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", 1);
 					ShowHudText(iClient, 5, "%t", "Hud_Gas", RoundToZero(flMeter));
 				}
-				else if (TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_charged_smg"))
+				else if (StrEqual(sClassname, "tf_weapon_lunchbox"))
+				{
+					float flMeter = GetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", 1);
+					ShowHudText(iClient, 5, "%t", "Hud_Food", RoundToZero(flMeter));
+				}
+				else if (StrEqual(sClassname, "tf_weapon_charged_smg"))
 				{
 					float flRage = GetEntPropFloat(iSecondary, Prop_Send, "m_flMinicritCharge");
 					ShowHudText(iClient, 5, "%t", "Hud_Crikey", RoundToZero(flRage));

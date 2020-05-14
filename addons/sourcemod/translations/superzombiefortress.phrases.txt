@@ -101,10 +101,22 @@
 		"en"		"Focus: {1}/100"
 	}
 	
+	"Hud_Hype"
+	{
+		"#format"	"{1:d}"
+		"en"		"Hype: {1}%"
+	}
+	
 	"Hud_Mangler"
 	{
 		"#format"	"{1:d}"
 		"en"		"Mangler: {1}%"
+	}
+	
+	"Hud_Crits"
+	{
+		"#format"	"{1:d}"
+		"en"		"Crits: {1}"
 	}
 	
 	"Hud_Pomson"
@@ -119,10 +131,22 @@
 		"en"		"Heads: {1}"
 	}
 	
-	"Hud_Crits"
+	"Hud_Drink"
 	{
 		"#format"	"{1:d}"
-		"en"		"Crits: {1}"
+		"en"		"Drink: {1} sec"
+	}
+	
+	"Hud_Milk"
+	{
+		"#format"	"{1:d}"
+		"en"		"Milk: {1} sec"
+	}
+	
+	"Hud_Cleaver"
+	{
+		"#format"	"{1:d}"
+		"en"		"Cleaver: {1} sec"
 	}
 	
 	"Hud_Bison"
@@ -141,6 +165,12 @@
 	{
 		"#format"	"{1:d}"
 		"en"		"Gas: {1}/100"
+	}
+	
+	"Hud_Food"
+	{
+		"#format"	"{1:d}"
+		"en"		"Food: {1}%"
 	}
 	
 	"Hud_Crikey"
