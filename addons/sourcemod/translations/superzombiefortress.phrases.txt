@@ -104,13 +104,13 @@
 	"Hud_Mangler"
 	{
 		"#format"	"{1:d}"
-		"en"		"Mangler: {1}\%"
+		"en"		"Mangler: {1}%"
 	}
 	
 	"Hud_Pomson"
 	{
 		"#format"	"{1:d}"
-		"en"		"Pomson: {1}\%"
+		"en"		"Pomson: {1}%"
 	}
 	
 	"Hud_Heads"
@@ -128,7 +128,7 @@
 	"Hud_Bison"
 	{
 		"#format"	"{1:d}"
-		"en"		"Bison: {1}\%"
+		"en"		"Bison: {1}%"
 	}
 	
 	"Hud_Rage"
@@ -593,7 +593,7 @@
 	
 	"Menu_ClassesSurvivorsMedic"
 	{
-		"en"		"Medigun has a 60% heal rate penalty."
+		"en"		"Medigun has a 60%% heal rate penalty."
 	}
 	
 	"Menu_ClassesSurvivorsSniper"
