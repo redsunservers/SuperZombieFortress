@@ -447,9 +447,6 @@ public Action GasManager_Touch(int iGasManager, int iClient)
 			//Deal bleed instead of gas
 			int iOwner = GetEntPropEnt(iGasManager, Prop_Send, "m_hOwnerEntity");
 			TF2_MakeBleed(iClient, iOwner, 0.5);
-			
-			//Fade screen slightly green
-			PlaySound(iClient, SoundEvent_Drown);
 		}
 		
 		return Plugin_Handled;

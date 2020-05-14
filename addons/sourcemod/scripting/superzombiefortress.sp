@@ -2221,6 +2221,24 @@ public Action SoundHook(int iClients[64], int &iLength, char sSound[PLATFORM_MAX
 				else
 					EmitSoundToAll(g_sVoZombieSmokerDefault[GetRandomInt(0, sizeof(g_sVoZombieSmokerDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 			}
+			
+			//Spitter
+			case Infected_Spitter:
+			{
+				if (StrContains(sSound, "_pain", false) != -1)
+					EmitSoundToAll(g_sVoZombieSpitterPain[GetRandomInt(0, sizeof(g_sVoZombieSpitterPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+				else
+					EmitSoundToAll(g_sVoZombieSpitterDefault[GetRandomInt(0, sizeof(g_sVoZombieSpitterDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+			}
+			
+			//Jockey
+			case Infected_Jockey:
+			{
+				if (StrContains(sSound, "_pain", false) != -1)
+					EmitSoundToAll(g_sVoZombieJockeyPain[GetRandomInt(0, sizeof(g_sVoZombieJockeyPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+				else
+					EmitSoundToAll(g_sVoZombieJockeyDefault[GetRandomInt(0, sizeof(g_sVoZombieJockeyDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+			}
 		}
 		
 		return Plugin_Handled;
