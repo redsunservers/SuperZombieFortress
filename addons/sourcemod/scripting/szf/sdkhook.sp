@@ -132,7 +132,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			}
 			
 			//Taunt kill, backstabs and highly critical damage
-			if (flDamage >= 300.0)
+			if (flDamage >= 300.0 || iDamageCustom == TF_CUSTOM_COMBO_PUNCH)
 			{
 				if (!g_bBackstabbed[iVictim])
 				{
