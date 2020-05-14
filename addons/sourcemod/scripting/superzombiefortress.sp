@@ -157,7 +157,6 @@ enum struct ClientClasses
 	//Survivor, Zombie and Infected
 	bool bEnabled;
 	int iHealth;
-	float flSpeed;
 	int iRegen;
 	
 	//Survivor

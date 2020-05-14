@@ -452,11 +452,6 @@ stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
 // Speed
 ////////////////
 
-stock void SetClientSpeed(int iClient, float flSpeed)
-{
-	SetEntPropFloat(iClient, Prop_Data, "m_flMaxspeed", flSpeed);
-}
-
 stock float TF2_GetClassSpeed(TFClassType nClass)
 {
 	switch (nClass)

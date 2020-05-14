@@ -675,9 +675,7 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			SetEntProp(iClient, Prop_Send, "m_bDucked", true);
 			SetEntityFlags(iClient, GetEntityFlags(iClient)|FL_DUCKING);
 			
-			float flSpeed = g_ClientClasses[iTarget].flSpeed;
-			if (flSpeed == 0.0)
-				flSpeed = TF2_GetClassSpeed(TF2_GetPlayerClass(iTarget));
+			float flSpeed = TF2_GetClassSpeed(TF2_GetPlayerClass(iTarget));
 			
 			//Move target by 75% jockey and 25% themself
 			float vecJockeyEye[3], vecTargetEye[3], vecJockeyVel[3], vecTargetVel[3], vecFinalVel[3];

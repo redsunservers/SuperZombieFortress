@@ -34,6 +34,12 @@
 				"linux"		"@_ZN9CTFPlayer14GetLoadoutItemEiib"
 				"windows"	"\x55\x8B\xEC\x51\x53\x56\x8B\xF1\x8B\x0D\x2A\x2A\x2A\x2A\x57\x89\x75\xFC"
 			}
+			"CTFPlayer::TeamFortress_CalculateMaxSpeed"
+			{
+				"library"	"server"
+				"linux"		"@_ZNK9CTFPlayer30TeamFortress_CalculateMaxSpeedEb"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x18\x83\x3D\x2A\x2A\x2A\x2A\x00\x56\x8B\xF1\x75\x2A\xD9\xEE\x5E\x8B\xE5\x5D\xC2\x04\x00\x8B\x86"
+			}
 		}
 		"Offsets"
 		{
@@ -99,6 +105,20 @@
 					"pActivator"
 					{
 						"type"	"int"
+					}
+				}
+			}
+			"CTFPlayer::TeamFortress_CalculateMaxSpeed"
+			{
+				"signature"	"CTFPlayer::TeamFortress_CalculateMaxSpeed"
+				"callconv"	"thiscall"
+				"return"	"float"
+				"this"		"address"
+				"arguments"
+				{
+					"bIgnoreSpecialAbility"
+					{
+						"type"	"bool"
 					}
 				}
 			}

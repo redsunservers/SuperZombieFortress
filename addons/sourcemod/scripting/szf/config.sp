@@ -253,7 +253,6 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 {
 	//Survivor, Zombie and Infected
 	classes.bEnabled = !!kv.GetNum("enable", classes.bEnabled);
-	classes.flSpeed = kv.GetFloat("speed", classes.flSpeed);
 	classes.iRegen = kv.GetNum("regen", classes.iRegen);
 	
 	//Survivor

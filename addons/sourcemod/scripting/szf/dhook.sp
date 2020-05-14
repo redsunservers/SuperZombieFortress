@@ -2,12 +2,15 @@ static Handle g_hDHookSetWinningTeam;
 static Handle g_hDHookRoundRespawn;
 static Handle g_hDHookGiveNamedItem;
 
+static int g_iDHookCalculateMaxSpeedClient;
+
 static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
 void DHook_Init(GameData hSZF)
 {
 	DHook_CreateDetour(hSZF, "CTFPlayer::DoAnimationEvent", DHook_DoAnimationEventPre, _);
 	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
+	DHook_CreateDetour(hSZF, "CTFPlayer::TeamFortress_CalculateMaxSpeed", DHook_CalculateMaxSpeedPre, DHook_CalculateMaxSpeedPost);
 	
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
@@ -118,6 +121,94 @@ public MRESReturn DHook_DeactivatePre(int iThis, Handle hParams)
 		return MRES_ChangedHandled;
 	}
 	return MRES_Ignored;
+}
+
+public MRESReturn DHook_CalculateMaxSpeedPre(Address pAddress, Handle hReturn, Handle hParams)
+{
+	g_iDHookCalculateMaxSpeedClient = SDKCall_GetBaseEntity(pAddress);
+}
+
+public MRESReturn DHook_CalculateMaxSpeedPost(Address pAddress, Handle hReturn, Handle hParams)
+{
+	int iClient = g_iDHookCalculateMaxSpeedClient;
+	float flSpeed = DHookGetReturn(hReturn);
+	
+	if (IsPlayerAlive(iClient))
+	{
+		//Handle speed bonuses.
+		if ((!TF2_IsPlayerInCondition(iClient, TFCond_Slowed) && !TF2_IsPlayerInCondition(iClient, TFCond_Dazed)) || g_bBackstabbed[iClient])
+		{
+			if (IsZombie(iClient))
+			{
+				if (g_nInfected[iClient] == Infected_None)
+				{
+					//Movement speed increase
+					flSpeed += fMin(g_ClientClasses[iClient].flMaxSpree, g_ClientClasses[iClient].flSpree * g_iZombiesKilledSpree) + fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
+					
+					if (g_bZombieRage)
+						flSpeed += 40.0; //Map-wide zombie enrage event
+					
+					if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
+						flSpeed += 20.0; //On fire
+					
+					if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
+						flSpeed += 20.0; //Screamer effect
+					
+					if (GetClientHealth(iClient) > SDKCall_GetMaxHealth(iClient))
+						flSpeed += 20.0; //Has overheal due to normal rage
+					
+					//Movement speed decrease
+					if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
+						flSpeed -= 30.0; //Jarate'd by sniper
+					
+					if (GetClientHealth(iClient) < 50)
+						flSpeed -= 50.0 - float(GetClientHealth(iClient)); //If under 50 health, tick away one speed per hp lost
+				}
+				else
+				{
+					switch (g_nInfected[iClient])
+					{
+						//Tank: movement speed bonus based on damage taken and ignite speed bonus
+						case Infected_Tank:
+						{
+							//Reduce speed when tank deals damage to survivors 
+							flSpeed -= fMin(70.0, (float(g_iDamageDealtLife[iClient]) / 10.0));
+
+							//Reduce speed when tank takes damage from survivors 
+							flSpeed -= fMin(100.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
+
+							if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
+								flSpeed += 40.0; //On fire
+							
+							if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
+								flSpeed -= 30.0; //Jarate'd by sniper
+						}
+						
+						//Cloaked: super speed if cloaked
+						case Infected_Stalker:
+						{
+							if (TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
+								flSpeed += 80.0;
+						}
+					}
+				}
+			}
+			else if (IsSurvivor(iClient))
+			{
+				flSpeed += GetClientBonusSpeed(iClient);
+				
+				//If under 50 health, tick away one speed per hp lost
+				if (GetClientHealth(iClient) < 50)
+					flSpeed -= 50.0 - float(GetClientHealth(iClient));
+				
+				if (g_bBackstabbed[iClient])
+					flSpeed *= 0.66;
+			}
+		}
+	}
+	
+	DHookSetReturn(hReturn, flSpeed);
+	return MRES_Override;
 }
 
 public MRESReturn DHook_OnGiveNamedItemPre(int iClient, Handle hReturn, Handle hParams)
