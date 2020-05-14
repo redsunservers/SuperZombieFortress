@@ -3,6 +3,7 @@ static ConVar mp_autoteambalance;
 static ConVar mp_teams_unbalance_limit;
 static ConVar mp_scrambleteams_auto;
 static ConVar mp_waitingforplayers_time;
+static ConVar spec_freeze_time;
 static ConVar tf_weapon_criticals;
 static ConVar tf_obj_upgrade_per_hit;
 static ConVar tf_sentrygun_metal_per_shell;
@@ -29,6 +30,7 @@ void ConVar_Init()
 	mp_teams_unbalance_limit = FindConVar("mp_teams_unbalance_limit");
 	mp_scrambleteams_auto = FindConVar("mp_scrambleteams_auto");
 	mp_waitingforplayers_time = FindConVar("mp_waitingforplayers_time");
+	spec_freeze_time = FindConVar("spec_freeze_time");
 	tf_weapon_criticals = FindConVar("tf_weapon_criticals");
 	tf_obj_upgrade_per_hit = FindConVar("tf_obj_upgrade_per_hit");
 	tf_sentrygun_metal_per_shell = FindConVar("tf_sentrygun_metal_per_shell");
@@ -43,6 +45,7 @@ void ConVar_Enable()
 	mp_teams_unbalance_limit.SetBool(false);
 	mp_scrambleteams_auto.SetBool(false);
 	mp_waitingforplayers_time.SetInt(70);
+	spec_freeze_time.SetInt(-1);
 	tf_weapon_criticals.SetBool(false);
 	tf_obj_upgrade_per_hit.SetInt(0);
 	tf_sentrygun_metal_per_shell.SetInt(201);
@@ -54,6 +57,7 @@ void ConVar_Enable()
 	mp_teams_unbalance_limit.AddChangeHook(OnConvarChanged);
 	mp_scrambleteams_auto.AddChangeHook(OnConvarChanged);
 	mp_waitingforplayers_time.AddChangeHook(OnConvarChanged);
+	spec_freeze_time.AddChangeHook(OnConvarChanged);
 	tf_weapon_criticals.AddChangeHook(OnConvarChanged);
 	tf_obj_upgrade_per_hit.AddChangeHook(OnConvarChanged);
 	tf_sentrygun_metal_per_shell.AddChangeHook(OnConvarChanged);
@@ -68,6 +72,7 @@ void ConVar_Disable()
 	mp_teams_unbalance_limit.RemoveChangeHook(OnConvarChanged);
 	mp_scrambleteams_auto.RemoveChangeHook(OnConvarChanged);
 	mp_waitingforplayers_time.RemoveChangeHook(OnConvarChanged);
+	spec_freeze_time.RemoveChangeHook(OnConvarChanged);
 	tf_weapon_criticals.RemoveChangeHook(OnConvarChanged);
 	tf_obj_upgrade_per_hit.RemoveChangeHook(OnConvarChanged);
 	tf_sentrygun_metal_per_shell.RemoveChangeHook(OnConvarChanged);
@@ -79,6 +84,7 @@ void ConVar_Disable()
 	mp_teams_unbalance_limit.RestoreDefault();
 	mp_scrambleteams_auto.RestoreDefault();
 	mp_waitingforplayers_time.RestoreDefault();
+	spec_freeze_time.RestoreDefault();
 	tf_weapon_criticals.RestoreDefault();
 	tf_obj_upgrade_per_hit.RestoreDefault();
 	tf_sentrygun_metal_per_shell.RestoreDefault();
@@ -99,6 +105,8 @@ public void OnConvarChanged(ConVar convar, const char[] oldValue, const char[] n
 		mp_scrambleteams_auto.SetBool(false);
 	else if (convar == mp_waitingforplayers_time && flValue != 70.0)
 		mp_waitingforplayers_time.SetInt(70);
+	else if (convar == spec_freeze_time && flValue != -1.0)
+		spec_freeze_time.SetInt(-1);
 	else if (convar == tf_weapon_criticals && flValue != 0.0)
 		tf_weapon_criticals.SetBool(false);
 	else if (convar == tf_obj_upgrade_per_hit && flValue != 0.0)
