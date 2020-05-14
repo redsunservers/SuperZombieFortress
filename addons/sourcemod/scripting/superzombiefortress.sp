@@ -1323,12 +1323,12 @@ void PrintInfoChat(int iClient)
 void SetGlow()
 {
 	int iCount = GetSurvivorCount();
-	bool bGlow = false;
-	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		if (IsValidLivingClient(iClient))
 		{
+			bool bGlow = false;
+			
 			if (IsSurvivor(iClient))
 			{
 				if (1 <= iCount <= 3)
