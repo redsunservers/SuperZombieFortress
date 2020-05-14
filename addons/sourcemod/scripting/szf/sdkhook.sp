@@ -114,7 +114,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		
 		if (IsValidSurvivor(iVictim) && IsValidZombie(iAttacker))
 		{
-			SoundAttack(iVictim, iAttacker);
+			Sound_Attack(iVictim, iAttacker);
 			
 			if (TF2_GetPlayerClass(iVictim) == TFClass_Scout)
 			{
@@ -161,8 +161,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				}
 			}
 			
-			if (g_nInfected[iAttacker] == Infected_Tank)
-				EmitSoundToAll(g_sVoZombieTankAttack[GetRandomInt(0, sizeof(g_sVoZombieTankAttack)-1)], iAttacker, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+			Sound_PlayInfectedVo(iAttacker, g_nInfected[iAttacker], SoundVo_Attack);
 		}
 		
 		if (IsValidZombie(iVictim))

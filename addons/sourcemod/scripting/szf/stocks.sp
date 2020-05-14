@@ -197,6 +197,17 @@ stock void AddWeaponVision(int iWeapon, int iFlag)
 	TF2Attrib_SetByDefIndex(iWeapon, ATTRIB_VISION, flVal);
 }
 
+stock void PrecacheSound2(const char[] sSoundPath)
+{
+	if (!sSoundPath[0])
+		return;
+	
+	PrecacheSound(sSoundPath, true);
+	char s[PLATFORM_MAX_PATH];
+	Format(s, sizeof(s), "sound/%s", sSoundPath);
+	AddFileToDownloadsTable(s);
+}
+
 ////////////////
 // SZF Class
 ////////////////

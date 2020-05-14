@@ -491,7 +491,7 @@ public void OnPluginEnd()
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		if (IsClientInGame(iClient))
-			EndSound(iClient);
+			Sound_EndMusic(iClient);
 	}
 }
 
@@ -568,7 +568,7 @@ public void OnClientDisconnect(int iClient)
 	
 	RequestFrame(CheckZombieBypass, iClient);
 	
-	EndSound(iClient);
+	Sound_EndMusic(iClient);
 	DropCarryingItem(iClient);
 	CheckLastSurvivor(iClient);
 	
@@ -723,7 +723,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 	Handle_SurvivorAbilities();
 	Handle_ZombieAbilities();
 	UpdateZombieDamageScale();
-	SoundTimer();
+	Sound_Timer();
 	
 	if (g_bZombieRage)
 		SetTeamRespawnTime(TFTeam_Zombie, 0.0);
@@ -857,9 +857,7 @@ public Action Timer_GraceStartPost(Handle hTimer)
 	while((iEntity = FindEntityByClassname(iEntity, "mapobj_cart_dispenser")) != -1)
 		SetEntProp(iEntity, Prop_Send, "m_bDisabled", 1);
 	
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidSurvivor(iClient))
-			PlaySound(iClient, SoundMusic_Prepare, 33.0);
+	Sound_PlayMusicToTeam(TFTeam_Survivor, "start");
 }
 
 public Action Timer_GraceEnd(Handle hTimer)
@@ -1504,7 +1502,7 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	GetClientName2(iLastSurvivor, sName, sizeof(sName));
 	CPrintToChatAllEx(iLastSurvivor, "%t", "Survivor_Last", sName, "{green}");
 	
-	PlaySoundAll(SoundMusic_LastStand);
+	Sound_PlayMusicToAll("laststand");
 	
 	Forward_OnLastSurvivor(iLastSurvivor);
 }
@@ -1513,9 +1511,9 @@ public void OnMapStart()
 {
 	Config_Refresh();
 	Classes_Refresh();
+	Sound_Refresh();
 	Weapons_Refresh();
 	
-	SoundPrecache();
 	DetermineControlPoints();
 	PrecacheZombieSouls();
 	
@@ -1602,7 +1600,7 @@ int ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 	
 	if (flDuration >= 20.0)
 	{
-		PlaySoundAll(SoundEvent_Incoming, 6.0);
+		Sound_PlayMusicToAll("frenzy");
 		
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 		{
@@ -2028,7 +2026,7 @@ void CheckRemainingCP()
 	if (iCaptureCount == g_iControlPoints-1 && iCapturing > 0)
 	{
 		g_bCapturingLastPoint = true;
-		PlaySoundAll(SoundMusic_LastStand);
+		Sound_PlayMusicToAll("laststand");
 		
 		if (!g_bSurvival && g_flZombieDamageScale >= 1.6)
 			ZombieTank();
@@ -2140,106 +2138,36 @@ public Action SoundHook(int iClients[64], int &iLength, char sSound[PLATFORM_MAX
 		if (StrContains(sSound, "zombie_vo/", false) != -1)
 			return Plugin_Continue; //So rage sounds (for normal & most special infected alike) don't get blocked
 		
-		switch (g_nInfected[iClient])
+		if (StrContains(sSound, "_pain", false) != -1)
 		{
-			//Normal infected & Screamer(pitch only)
-			case Infected_None, Infected_Screamer:
-			{
-				if (StrContains(sSound, "_pain", false) != -1)
-				{
-					if (GetClientHealth(iClient) < 50 || StrContains(sSound, "crticial", false) != -1)  //The typo is intended because that's how the soundfiles are named
-						EmitSoundToAll(g_sVoZombieCommonDeath[GetRandomInt(0, sizeof(g_sVoZombieCommonDeath) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-					else
-						EmitSoundToAll(g_sVoZombieCommonPain[GetRandomInt(0, sizeof(g_sVoZombieCommonPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				}
-				else if (StrContains(sSound, "_laugh", false) != -1 || StrContains(sSound, "_no", false) != -1 || StrContains(sSound, "_yes", false) != -1)
-				{
-					EmitSoundToAll(g_sVoZombieCommonMumbling[GetRandomInt(0, sizeof(g_sVoZombieCommonMumbling) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				}
-				else if (StrContains(sSound, "_go", false) != -1 || StrContains(sSound, "_jarate", false) != -1)
-				{
-					EmitSoundToAll(g_sVoZombieCommonShoved[GetRandomInt(0, sizeof(g_sVoZombieCommonShoved) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				}
-				else
-				{
-					EmitSoundToAll(g_sVoZombieCommonDefault[GetRandomInt(0, sizeof(g_sVoZombieCommonDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				}
-				
-				if (g_nInfected[iClient] == Infected_Screamer)
-					iPitch = 80;
-			}
+			if (GetClientHealth(iClient) < 50 || StrContains(sSound, "crticial", false) != -1)  //The typo is intended because that's how the soundfiles are named
+				if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Death))
+					return Plugin_Handled;
 			
-			//Tank
-			case Infected_Tank:
-			{
-				if (StrContains(sSound, "_pain", false) != -1)
-				{
-					if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-						EmitSoundToAll(g_sVoZombieTankOnFire[GetRandomInt(0, sizeof(g_sVoZombieTankOnFire) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-					else
-						EmitSoundToAll(g_sVoZombieTankPain[GetRandomInt(0, sizeof(g_sVoZombieTankPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				}
-				else
-				{
-					EmitSoundToAll(g_sVoZombieTankDefault[GetRandomInt(0, sizeof(g_sVoZombieTankDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				}
-			}
+			if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
+				if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Fire))
+					return Plugin_Handled;
 			
-			//Charger
-			case Infected_Charger:
-			{
-				if (StrContains(sSound, "_pain", false) != -1)
-					EmitSoundToAll(g_sVoZombieChargerPain[GetRandomInt(0, sizeof(g_sVoZombieChargerPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				else
-					EmitSoundToAll(g_sVoZombieChargerDefault[GetRandomInt(0, sizeof(g_sVoZombieChargerDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-			}
-			
-			//Hunter
-			case Infected_Hunter:
-			{
-				if (StrContains(sSound, "_pain", false) != -1)
-					EmitSoundToAll(g_sVoZombieHunterPain[GetRandomInt(0, sizeof(g_sVoZombieHunterPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				else
-					EmitSoundToAll(g_sVoZombieHunterDefault[GetRandomInt(0, sizeof(g_sVoZombieHunterDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-			}
-			
-			//Boomer
-			case Infected_Boomer:
-			{
-				if (StrContains(sSound, "_pain", false) != -1)
-					EmitSoundToAll(g_sVoZombieBoomerPain[GetRandomInt(0, sizeof(g_sVoZombieBoomerPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				else
-					EmitSoundToAll(g_sVoZombieBoomerDefault[GetRandomInt(0, sizeof(g_sVoZombieBoomerPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-			}
-			
-			//Smoker
-			case Infected_Smoker:
-			{
-				if (StrContains(sSound, "_pain", false) != -1)
-					EmitSoundToAll(g_sVoZombieSmokerPain[GetRandomInt(0, sizeof(g_sVoZombieSmokerPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				else
-					EmitSoundToAll(g_sVoZombieSmokerDefault[GetRandomInt(0, sizeof(g_sVoZombieSmokerDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-			}
-			
-			//Spitter
-			case Infected_Spitter:
-			{
-				if (StrContains(sSound, "_pain", false) != -1)
-					EmitSoundToAll(g_sVoZombieSpitterPain[GetRandomInt(0, sizeof(g_sVoZombieSpitterPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				else
-					EmitSoundToAll(g_sVoZombieSpitterDefault[GetRandomInt(0, sizeof(g_sVoZombieSpitterDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-			}
-			
-			//Jockey
-			case Infected_Jockey:
-			{
-				if (StrContains(sSound, "_pain", false) != -1)
-					EmitSoundToAll(g_sVoZombieJockeyPain[GetRandomInt(0, sizeof(g_sVoZombieJockeyPain) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-				else
-					EmitSoundToAll(g_sVoZombieJockeyDefault[GetRandomInt(0, sizeof(g_sVoZombieJockeyDefault) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-			}
+			if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Pain))
+				return Plugin_Handled;
+		}
+		else if (StrContains(sSound, "_laugh", false) != -1 || StrContains(sSound, "_no", false) != -1 || StrContains(sSound, "_yes", false) != -1)
+		{
+			if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Mumbling))
+				return Plugin_Handled;
+		}
+		else if (StrContains(sSound, "_go", false) != -1 || StrContains(sSound, "_jarate", false) != -1)
+		{
+			if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Shoved))
+				return Plugin_Handled;
 		}
 		
+		//Play default vo for whatever infected
+		if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Default))
+			return Plugin_Handled;
+		
+		//If sound still not found, try normal infected
+		Sound_PlayInfectedVo(iClient, Infected_None, SoundVo_Default);
 		return Plugin_Handled;
 	}
 	
@@ -2417,7 +2345,7 @@ void SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, flo
 		TF2_StunPlayer(iClient, flDuration, flSlowdown, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, 0);
 		g_bBackstabbed[iClient] = true;
 		ClientCommand(iClient, "r_screenoverlay\"debug/yuv\"");
-		PlaySound(iClient, SoundEvent_NearDeath, flDuration);
+		Sound_PlayMusicToClient(iClient, "backstab", flDuration);
 		CreateTimer(flDuration, RemoveBackstab, iClient); //Removes overlay and backstate state
 	}
 }

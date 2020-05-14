@@ -32,9 +32,9 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	g_nRoundState = SZFRoundState_End;
 	
 	if (nTeam == TFTeam_Zombie)
-		PlaySoundAll(SoundMusic_ZombieWin);
+		Sound_PlayMusicToAll("lose");
 	else if (nTeam == TFTeam_Survivor)
-		PlaySoundAll(SoundMusic_SurvivorWin);
+		Sound_PlayMusicToAll("win");
 	
 	SetGlow();
 	UpdateZombieDamageScale();
@@ -290,6 +290,11 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			Call_Finish();
 		}
 		
+		if (g_nInfected[iVictim] == Infected_Tank)	//Tank plays death sound global
+			Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Death);
+		else
+			Sound_PlayInfectedVo(iVictim, g_nInfected[iVictim], SoundVo_Death);
+		
 		Classes_SetClient(iVictim, Infected_None);
 		
 		//10%
@@ -370,7 +375,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		//Check if he's the last
 		CheckLastSurvivor(iVictim);
 		
-		PlaySound(iVictim, SoundEvent_Dead, 3.0);
+		Sound_PlayMusicToClient(iVictim, "dead");
 	}
 	
 	//Handle zombie death logic, active round only.

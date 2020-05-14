@@ -269,14 +269,15 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 			}
 			else if (g_iRageTimer[iClient] == 0)
 			{
+				Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Rage);
+				g_iRageTimer[iClient] = g_ClientClasses[iClient].iRageCooldown;
+				
 				if (g_ClientClasses[iClient].callback_rage != INVALID_FUNCTION)
 				{
 					Call_StartFunction(null, g_ClientClasses[iClient].callback_rage);
 					Call_PushCell(iClient);
 					Call_Finish();
 				}
-				
-				g_iRageTimer[iClient] = g_ClientClasses[iClient].iRageCooldown;
 			}
 			else
 			{

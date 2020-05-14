@@ -301,7 +301,7 @@ public MRESReturn DHook_RoundRespawnPre()
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 		{
 			g_iZombiesKilledSurvivor[iClient] = 0;
-			EndSound(iClient);
+			Sound_EndMusic(iClient);
 			
 			if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
 			{

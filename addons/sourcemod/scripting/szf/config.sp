@@ -364,6 +364,115 @@ StringMap Config_LoadReskins()
 	return mReskins;
 }
 
+StringMap Config_LoadMusic(KeyValues kv)
+{
+	StringMap mMusics = new StringMap();
+	
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			SoundMusic music;
+			kv.GetSectionName(music.sName, sizeof(music.sName));
+			
+			//Check if name already exists
+			if (mMusics.GetArray(music.sName, music, sizeof(music)))
+			{
+				LogError("Duplicate config music \"%s\" found", music.sName);
+				continue;
+			}
+			
+			if (kv.JumpToKey("sound", false))
+			{
+				if (kv.GotoFirstSubKey(false))
+				{
+					music.aSounds = new ArrayList(sizeof(SoundFilepath));
+					
+					do
+					{
+						SoundFilepath filepath;
+						kv.GetString(NULL_STRING, filepath.sFilepath, sizeof(filepath.sFilepath));
+						
+						char sBuffer[32];
+						kv.GetSectionName(sBuffer, sizeof(sBuffer));
+						filepath.flDuration = StringToFloat(sBuffer);
+						
+						music.aSounds.PushArray(filepath);
+					}
+					while (kv.GotoNextKey(false));
+					kv.GoBack();
+				}
+				else
+				{
+					LogError("Config music \"%s\" must have atleast one \"sound\"", music.sName);
+					continue;
+				}
+				
+				kv.GoBack();
+			}
+			else
+			{
+				LogError("Config music \"%s\" must have \"sound\" section", music.sName);
+				continue;
+			}
+			
+			music.iPriority = kv.GetNum("priority", 0);
+			music.bMusic = !!kv.GetNum("music", false);
+			music.bLoop = !!kv.GetNum("loop", false);
+			
+			mMusics.SetArray(music.sName, music, sizeof(music));
+			
+		}
+		while (kv.GotoNextKey(false));
+		kv.GoBack();
+	}
+	
+	return mMusics;
+}
+
+void Config_LoadInfectedVo(KeyValues kv, ArrayList aSoundVo[view_as<int>(Infected)][view_as<int>(SoundVo)])
+{
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			char sInfected[64];
+			kv.GetSectionName(sInfected, sizeof(sInfected));
+			Infected nInfected = GetInfected(sInfected);
+			if (nInfected == Infected_Unknown)
+			{
+				LogError("Unknown infected name \"%s\" from sound vo config", sInfected);
+				continue;
+			}
+			
+			if (kv.GotoFirstSubKey(false))
+			{
+				do
+				{
+					char sVoType[64], sFilepath[PLATFORM_MAX_PATH];
+					kv.GetSectionName(sVoType, sizeof(sVoType));
+					kv.GetString(NULL_STRING, sFilepath, sizeof(sFilepath));
+					SoundVo nSoundVo = Sound_GetVoType(sVoType);
+					if (nSoundVo == SoundVo_Unknown)
+					{
+						LogError("Unknown sound vo type \"%s\" from infected \"%s\" in config", sVoType, sInfected);
+						continue;
+					}
+					
+					if (!aSoundVo[nInfected][nSoundVo])
+						aSoundVo[nInfected][nSoundVo] = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
+					
+					aSoundVo[nInfected][nSoundVo].PushString(sFilepath);
+				}
+				while (kv.GotoNextKey(false));
+				kv.GoBack();
+			}
+		}
+		while (kv.GotoNextKey(false));
+		kv.GoBack();
+	}
+}
+
 KeyValues Config_LoadFile(const char[] sConfigFile, const char [] sConfigSection)
 {
 	char sConfigPath[PLATFORM_MAX_PATH];

@@ -13,7 +13,7 @@ public void Infected_DoGenericRage(int iClient)
 	
 	ShowParticle("spell_cast_wheel_blue", 4.0, vecClientPos);
 	PrintHintText(iClient, "%t", "Infected_RageUsed");
-	EmitSoundToAll(g_sVoZombieCommonRage[GetRandomInt(0, sizeof(g_sVoZombieCommonRage)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+	Sound_PlayInfectedVo(iClient, Infected_None, SoundVo_Rage);
 }
 
 ////////////////
@@ -46,7 +46,7 @@ public void Infected_OnTankSpawn(int iClient)
 	TF2_AddCondition(iClient, TFCond_Kritzkrieged, TFCondDuration_Infinite);
 	
 	CPrintToChatAll("%t", "Tank_Spawn", "{red}");
-	EmitSoundToAll(g_sVoZombieTankOnFire[GetRandomInt(0, sizeof(g_sVoZombieTankOnFire)-1)]);
+	Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
 	
 	for (int i = 1; i <= MaxClients; i++)
 	{
@@ -73,14 +73,12 @@ public void Infected_OnTankSpawn(int iClient)
 			SetVariantString("TLK_MVM_TANK_CALLOUT");
 			AcceptEntityInput(i, "SpeakResponseConcept");
 			AcceptEntityInput(i, "ClearContext");
-			
-			if (GetCurrentSound(i) != SoundMusic_LastStand || !IsMusicOverrideOn()) //lms current sound check seems not to work, may need to check it later
-				PlaySound(i, SoundMusic_Tank);	
 		}
 		
 		g_flDamageDealtAgainstTank[i] = 0.0;
 	}
 	
+	Sound_PlayMusicToAll("tank");
 	Forward_OnTankSpawn(iClient);
 }
 
@@ -164,13 +162,11 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 		AcceptEntityInput(iAssist, "SpeakResponseConcept");
 	}
 	
-	EmitSoundToAll(g_sVoZombieTankDeath[GetRandomInt(0, sizeof(g_sVoZombieTankDeath)-1)]);
-	
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		//If current music is tank, end it
-		if (GetCurrentSound(i) == SoundMusic_Tank)
-			EndSound(i);
+		if (Sound_IsCurrentMusic(i, "tank"))
+			Sound_EndMusic(i);
 		
 		if (IsValidLivingSurvivor(i))
 		{
@@ -263,7 +259,7 @@ void Infected_DoBoomerExplosion(int iClient, float flRadius)
 			{
 				float flDuration = 12.0 - (flDistance * 0.01);
 				TF2_AddCondition(i, TFCond_Jarated, flDuration);
-				PlaySound(i, SoundEvent_Jarate, flDuration);
+				Sound_PlayMusicToClient(i, "jarate", flDuration);
 				
 				iClientsTemp[iCount] = i;
 				iCount++;
@@ -276,7 +272,7 @@ void Infected_DoBoomerExplosion(int iClient, float flRadius)
 		iClients[i] = iClientsTemp[i];
 	
 	Forward_OnBoomerExplode(iClient, iClients, iCount);
-	EmitSoundToAll(g_sVoZombieBoomerExplode[GetRandomInt(0, sizeof(g_sVoZombieBoomerExplode)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+	Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Rage);
 	
 	if (IsPlayerAlive(iClient))
 		FakeClientCommandEx(iClient, "explode");
@@ -304,8 +300,6 @@ public void Infected_DoChargerCharge(int iClient)
 	g_flChargerEndCharge[iClient] = GetGameTime() + 1.65;
 	
 	SDKCall_PlaySpecificSequence(iClient, "Charger_Charge");
-	
-	EmitSoundToAll(g_sVoZombieChargerCharge[GetRandomInt(0, sizeof(g_sVoZombieChargerCharge)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 }
 
 public void Infected_OnChargerThink(int iClient, int &iButtons)
@@ -456,8 +450,6 @@ public void Infected_DoHunterJump(int iClient)
 	char sPath[64];
 	Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(18, 19));
 	EmitSoundToAll(sPath, iClient, SNDLEVEL_AIRCRAFT);
-	
-	EmitSoundToAll(g_sVoZombieHunterLeap[GetRandomInt(0, sizeof(g_sVoZombieHunterLeap) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
 	
 	g_bHunterIsUsingPounce[iClient] = true;
 	
