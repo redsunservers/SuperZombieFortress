@@ -43,7 +43,6 @@ public void Infected_OnTankSpawn(int iClient)
 		iSubtract = max(RoundFloat(float(iHealth) / g_cvTankTime.FloatValue), 3);
 	
 	g_iTankHealthSubtract[iClient] = iSubtract;
-	TF2_AddCondition(iClient, TFCond_Kritzkrieged, TFCondDuration_Infinite);
 	
 	CPrintToChatAll("%t", "Tank_Spawn", "{red}");
 	Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
@@ -87,6 +86,8 @@ public Action Infected_TankTimer(Handle hTimer, int iSerial)
 	int iClient = GetClientFromSerial(iSerial);
 	if (!IsValidLivingZombie(iClient) || g_hTimerTank[iClient] != hTimer || g_nInfected[iClient] != Infected_Tank)
 		return Plugin_Stop;
+	
+	TF2_AddCondition(iClient, TFCond_Kritzkrieged, 2.0);
 	
 	//Tank super health handler
 	int iHealth = GetClientHealth(iClient);
