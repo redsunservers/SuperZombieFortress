@@ -625,8 +625,8 @@ public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
 	int iGas = CreateEntityByName("tf_projectile_jar_gas");
 	if (IsValidEntity(iGas))
 	{
-		SetEntProp(iGas, Prop_Data, "m_hOwnerEntity", iVictim);
-		SetEntProp(iGas, Prop_Data, "m_iTeamNum", GetClientTeam(iVictim));
+		SetEntPropEnt(iGas, Prop_Send, "m_hOwnerEntity", iVictim);
+		SetEntProp(iGas, Prop_Send, "m_iTeamNum", GetClientTeam(iVictim));
 		if (DispatchSpawn(iGas))
 		{
 			float vecOrigin[3], vecAngles[3];
