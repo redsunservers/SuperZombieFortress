@@ -487,6 +487,7 @@ public void OnLibraryRemoved(const char[] sName)
 public void OnPluginEnd()
 {
 	TF2_EndRound(TFTeam_Zombie);
+	SZFDisable();
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
