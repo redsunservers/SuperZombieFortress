@@ -6,6 +6,7 @@ static ConVar mp_waitingforplayers_time;
 static ConVar spec_freeze_time;
 static ConVar tf_weapon_criticals;
 static ConVar tf_obj_upgrade_per_hit;
+static ConVar tf_player_movement_restart_freeze;
 static ConVar tf_sentrygun_metal_per_shell;
 static ConVar tf_spy_invis_time;
 static ConVar tf_spy_invis_unstealth_time;
@@ -33,6 +34,7 @@ void ConVar_Init()
 	spec_freeze_time = FindConVar("spec_freeze_time");
 	tf_weapon_criticals = FindConVar("tf_weapon_criticals");
 	tf_obj_upgrade_per_hit = FindConVar("tf_obj_upgrade_per_hit");
+	tf_player_movement_restart_freeze =  FindConVar("tf_player_movement_restart_freeze");
 	tf_sentrygun_metal_per_shell = FindConVar("tf_sentrygun_metal_per_shell");
 	tf_spy_invis_time = FindConVar("tf_spy_invis_time");
 	tf_spy_invis_unstealth_time = FindConVar("tf_spy_invis_unstealth_time");
@@ -48,6 +50,7 @@ void ConVar_Enable()
 	spec_freeze_time.SetInt(-1);
 	tf_weapon_criticals.SetBool(false);
 	tf_obj_upgrade_per_hit.SetInt(0);
+	tf_player_movement_restart_freeze.SetBool(false);
 	tf_sentrygun_metal_per_shell.SetInt(201);
 	tf_spy_invis_time.SetFloat(0.5);
 	tf_spy_invis_unstealth_time.SetFloat(0.75);
@@ -60,6 +63,7 @@ void ConVar_Enable()
 	spec_freeze_time.AddChangeHook(OnConvarChanged);
 	tf_weapon_criticals.AddChangeHook(OnConvarChanged);
 	tf_obj_upgrade_per_hit.AddChangeHook(OnConvarChanged);
+	tf_player_movement_restart_freeze.AddChangeHook(OnConvarChanged);
 	tf_sentrygun_metal_per_shell.AddChangeHook(OnConvarChanged);
 	tf_spy_invis_time.AddChangeHook(OnConvarChanged);
 	tf_spy_invis_unstealth_time.AddChangeHook(OnConvarChanged);
@@ -75,6 +79,7 @@ void ConVar_Disable()
 	spec_freeze_time.RemoveChangeHook(OnConvarChanged);
 	tf_weapon_criticals.RemoveChangeHook(OnConvarChanged);
 	tf_obj_upgrade_per_hit.RemoveChangeHook(OnConvarChanged);
+	tf_player_movement_restart_freeze.RemoveChangeHook(OnConvarChanged);
 	tf_sentrygun_metal_per_shell.RemoveChangeHook(OnConvarChanged);
 	tf_spy_invis_time.RemoveChangeHook(OnConvarChanged);
 	tf_spy_invis_unstealth_time.RemoveChangeHook(OnConvarChanged);
@@ -87,6 +92,7 @@ void ConVar_Disable()
 	spec_freeze_time.RestoreDefault();
 	tf_weapon_criticals.RestoreDefault();
 	tf_obj_upgrade_per_hit.RestoreDefault();
+	tf_player_movement_restart_freeze.RestoreDefault();
 	tf_sentrygun_metal_per_shell.RestoreDefault();
 	tf_spy_invis_time.RestoreDefault();
 	tf_spy_invis_unstealth_time.RestoreDefault();
@@ -111,6 +117,8 @@ public void OnConvarChanged(ConVar convar, const char[] oldValue, const char[] n
 		tf_weapon_criticals.SetBool(false);
 	else if (convar == tf_obj_upgrade_per_hit && flValue != 0.0)
 		tf_obj_upgrade_per_hit.SetInt(0);
+	else if (convar == tf_player_movement_restart_freeze && flValue != 0.0)
+		tf_player_movement_restart_freeze.SetBool(false);
 	else if (convar == tf_sentrygun_metal_per_shell && flValue != 201.0)
 		tf_sentrygun_metal_per_shell.SetInt(201);
 	else if (convar == tf_spy_invis_time && flValue != 0.5)
