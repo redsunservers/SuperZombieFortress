@@ -620,6 +620,23 @@ public void Infected_DoSpitterGas(int iClient)
 		SDKCall_TossJarThink(iGas);
 }
 
+public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
+{
+	int iGas = CreateEntityByName("tf_projectile_jar_gas");
+	if (IsValidEntity(iGas))
+	{
+		SetEntProp(iGas, Prop_Data, "m_hOwnerEntity", iVictim);
+		SetEntProp(iGas, Prop_Data, "m_iTeamNum", GetClientTeam(iVictim));
+		if (DispatchSpawn(iGas))
+		{
+			float vecOrigin[3], vecAngles[3];
+			GetClientAbsOrigin(iVictim, vecOrigin);
+			GetClientAbsAngles(iVictim, vecAngles);
+			TeleportEntity(iGas, vecOrigin, vecAngles, NULL_VECTOR);
+		}
+	}
+}
+
 public Action Infected_SpitterTimer(Handle hTimer, int iSerial)
 {
 	int iClient = GetClientFromSerial(iSerial);
