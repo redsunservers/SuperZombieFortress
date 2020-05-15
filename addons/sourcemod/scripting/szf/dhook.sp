@@ -2,6 +2,9 @@ static Handle g_hDHookSetWinningTeam;
 static Handle g_hDHookRoundRespawn;
 static Handle g_hDHookGiveNamedItem;
 
+static int g_iOffsetItemDefinitionIndex;
+static int g_iOffsetOuter;
+
 static int g_iDHookCalculateMaxSpeedClient;
 
 static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
@@ -9,12 +12,17 @@ static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 void DHook_Init(GameData hSZF)
 {
 	DHook_CreateDetour(hSZF, "CTFPlayer::DoAnimationEvent", DHook_DoAnimationEventPre, _);
+	DHook_CreateDetour(hSZF, "CTFPlayerShared::DetermineDisguiseWeapon", DHook_DetermineDisguiseWeaponPre, _);
+	
 	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
 	DHook_CreateDetour(hSZF, "CTFPlayer::TeamFortress_CalculateMaxSpeed", DHook_CalculateMaxSpeedPre, DHook_CalculateMaxSpeedPost);
 	
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
 	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
+	
+	g_iOffsetItemDefinitionIndex = hSZF.GetOffset("CEconItemView::m_iItemDefinitionIndex");
+	g_iOffsetOuter = hSZF.GetOffset("CTFPlayerShared::m_pOuter");
 }
 
 static void DHook_CreateDetour(GameData gamedata, const char[] name, DHookCallback preCallback = INVALID_FUNCTION, DHookCallback postCallback = INVALID_FUNCTION)
@@ -104,6 +112,27 @@ public MRESReturn DHook_DoAnimationEventPre(int iClient, Handle hParams)
 	}
 	
 	return MRES_Ignored;
+}
+
+public MRESReturn DHook_DetermineDisguiseWeaponPre(Address pPlayerShared, Handle hParams)
+{
+	if (!g_bEnabled)
+		return MRES_Ignored;
+	
+	Address pAddress = view_as<Address>(LoadFromAddress(pPlayerShared + view_as<Address>(g_iOffsetOuter), NumberType_Int32));
+	int iClient = SDKCall_GetBaseEntity(pAddress);
+	
+	int iTarget = GetEntProp(iClient, Prop_Send, "m_iDisguiseTargetIndex");
+	if (0 < iTarget <= MaxClients)
+	{
+		//Set class and team to whoever target is, so voodoo souls and zombie weapons is shown
+		SetEntProp(iClient, Prop_Send, "m_nDisguiseClass", TF2_GetPlayerClass(iTarget));
+		SetEntProp(iClient, Prop_Send, "m_nDisguiseTeam", TF2_GetClientTeam(iTarget));
+	}
+	
+	//Never allow force primary
+	DHookSetParam(hParams, 1, false);
+	return MRES_ChangedOverride;
 }
 
 public MRESReturn DHook_DeactivatePre(int iThis, Handle hParams)
@@ -223,7 +252,7 @@ public MRESReturn DHook_OnGiveNamedItemPre(int iClient, Handle hReturn, Handle h
 	char sClassname[256];
 	DHookGetParamString(hParams, 1, sClassname, sizeof(sClassname));
 	
-	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
+	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, g_iOffsetItemDefinitionIndex, ObjectValueType_Int) & 0xFFFF;
 	
 	Action iAction = OnGiveNamedItem(iClient, sClassname, iIndex);
 	

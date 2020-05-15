@@ -258,7 +258,7 @@ bool g_bNewRound;
 bool g_bFirstRound = true;
 bool g_bLastSurvivor;
 bool g_bTF2Items;
-bool g_bSkipGiveNamedItemHook;
+bool g_bGiveNamedItemSkip;
 
 float g_flSurvivorsLastDeath = 0.0;
 int g_iSurvivorsKilledCounter;
@@ -619,9 +619,17 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 	if (!g_bEnabled)
 		return;
 	
-	//Dont give gas cond from spitter
-	if (nCond == TFCond_Gas && IsSurvivor(iClient))
-		TF2_RemoveCondition(iClient, TFCond_Gas);
+	if (IsSurvivor(iClient))
+	{
+		switch (nCond)
+		{
+			case TFCond_Gas:
+			{
+				//Dont give gas cond from spitter
+				TF2_RemoveCondition(iClient, TFCond_Gas);
+			}
+		}
+	}
 }
 
 public Action TF2_OnIsHolidayActive(TFHoliday nHoliday, bool &bResult)
@@ -2395,23 +2403,22 @@ public Action RemoveBackstab(Handle hTimer, int iClient)
 	ClientCommand(iClient, "r_screenoverlay\"\"");
 }
 
-Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
+Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
 {
-	if (g_bSkipGiveNamedItemHook)
-	{
-		g_bSkipGiveNamedItemHook = false;
+	if (g_bGiveNamedItemSkip || TF2_IsPlayerInCondition(iClient, TFCond_Disguised))
 		return Plugin_Continue;
-	}
 	
-	int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));
+	TFClassType iClass = TF2_GetPlayerClass(iClient);
+	TFTeam iTeam = TF2_GetClientTeam(iClient);
+	int iSlot = TF2_GetItemSlot(iIndex, iClass);
 	
 	Action iAction = Plugin_Continue;
-	if (TF2_GetClientTeam(iClient) == TFTeam_Survivor)
+	if (iTeam == TFTeam_Survivor)
 	{
 		if (iSlot < WeaponSlot_Melee)
 			iAction = Plugin_Handled;
 	}
-	else if (TF2_GetClientTeam(iClient) == TFTeam_Zombie)
+	else if (iTeam == TFTeam_Zombie)
 	{
 		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee)
 		{
@@ -2425,7 +2432,7 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 			}
 			else
 			{
-				switch (TF2_GetPlayerClass(iClient))
+				switch (iClass)
 				{
 					case TFClass_Scout:
 					{
@@ -2466,7 +2473,7 @@ Action OnGiveNamedItem(int iClient, char[] sClassname, int iIndex)
 				//Block cosmetic if have custom model
 				iAction = Plugin_Handled;
 			}
-			else if (TF2Econ_GetItemEquipRegionMask(GetClassVoodooItemDefIndex(TF2_GetPlayerClass(iClient))) & TF2Econ_GetItemEquipRegionMask(iIndex))
+			else if (TF2Econ_GetItemEquipRegionMask(GetClassVoodooItemDefIndex(iClass)) & TF2Econ_GetItemEquipRegionMask(iIndex))
 			{
 				//Cosmetic is conflicting voodoo model
 				iAction = Plugin_Handled;

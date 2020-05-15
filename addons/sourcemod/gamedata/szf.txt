@@ -22,6 +22,12 @@
 				"linux"		"@_ZN9CTFPlayer16DoAnimationEventE17PlayerAnimEvent_ti"
 				"windows"	"\x55\x8B\xEC\x51\x53\x56\x8B\x35\x2A\x2A\x2A\x2A\x8B\xD9\x8B\xCE"
 			}
+			"CTFPlayerShared::DetermineDisguiseWeapon"
+			{
+				"library"	"server"
+				"linux"		"@_ZN15CTFPlayerShared23DetermineDisguiseWeaponEb"
+				"windows"	"\x55\x8B\xEC\x51\x53\x56\x8B\xF1\x57\x8B\x8E\x2C\x01\x00\x00"
+			}
 			"CGameUI::Deactivate"
 			{
 				"library"	"server"
@@ -73,6 +79,16 @@
 				"linux"		"191"
 				"windows"	"190"
 			}
+			"CEconItemView::m_iItemDefinitionIndex"
+			{
+				"linux"		"4"
+				"windows"	"4"
+			}
+			"CTFPlayerShared::m_pOuter"
+			{
+				"linux"		"400"
+				"windows"	"400"
+			}
 		}
 		"Functions"
 		{
@@ -91,6 +107,20 @@
 					"nData"
 					{
 						"type"	"int"
+					}
+				}
+			}
+			"CTFPlayerShared::DetermineDisguiseWeapon"
+			{
+				"signature"	"CTFPlayerShared::DetermineDisguiseWeapon"
+				"callconv"	"thiscall"
+				"return"	"void"
+				"this"		"address"
+				"arguments"
+				{
+					"bForcePrimary"
+					{
+						"type"	"bool"
 					}
 				}
 			}

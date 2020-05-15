@@ -174,13 +174,13 @@ stock void ApplyVoodooCursedSoul(int iClient)
 	SetVariantString("");
 	AcceptEntityInput(iClient, "SetCustomModel");
 	
+	TFClassType iClass = TF2_GetPlayerClass(iClient);
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", true);
-	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", (TF2_GetPlayerClass(iClient) == TFClass_Spy) ? SKIN_ZOMBIE_SPY : SKIN_ZOMBIE);
+	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", (iClass == TFClass_Spy) ? SKIN_ZOMBIE_SPY : SKIN_ZOMBIE);
 	
-	TFClassType nClass = TF2_GetPlayerClass(iClient);
-	int iWearable = TF2_CreateAndEquipWeapon(iClient, g_iVoodooIndex[view_as<int>(nClass)]); //Not really a weapon, but still works
-	if (IsValidEntity(iWearable))
-		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", g_iZombieSoulIndex[view_as<int>(nClass)]);
+	int iWearable = TF2_CreateAndEquipWeapon(iClient, g_iVoodooIndex[view_as<int>(iClass)]); //Not really a weapon, but still works
+	if (iWearable > MaxClients)
+		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", g_iZombieSoulIndex[view_as<int>(iClass)]);
 }
 
 stock int GetClassVoodooItemDefIndex(TFClassType iClass)
@@ -807,7 +807,8 @@ stock void CheckClientWeapons(int iClient)
 		{
 			char sClassname[256];
 			GetEntityClassname(iWeapon, sClassname, sizeof(sClassname));
-			if (OnGiveNamedItem(iClient, sClassname, GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
+			int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
+			if (OnGiveNamedItem(iClient, sClassname, iIndex) >= Plugin_Handled)
 				TF2_RemoveItemInSlot(iClient, iSlot);
 		}
 	}
@@ -820,7 +821,8 @@ stock void CheckClientWeapons(int iClient)
 		{
 			char sClassname[256];
 			GetEntityClassname(iWearable, sClassname, sizeof(sClassname));
-			if (OnGiveNamedItem(iClient, sClassname, GetEntProp(iWearable, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
+			int iIndex = GetEntProp(iWearable, Prop_Send, "m_iItemDefinitionIndex");
+			if (OnGiveNamedItem(iClient, sClassname, iIndex) >= Plugin_Handled)
 				TF2_RemoveWearable(iClient, iWearable);
 		}
 	}

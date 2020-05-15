@@ -106,8 +106,10 @@ int SDKCall_GetEquippedWearable(int iClient, int iSlot)
 
 Address SDKCall_GiveNamedItem(int iClient, const char[] sClassname, int iSubType, Address pItem, bool bForce = false, bool bSkipHook = true)
 {
-	g_bSkipGiveNamedItemHook = bSkipHook;
-	return SDKCall(g_hSDKCallGiveNamedItem, iClient, sClassname, iSubType, pItem, bForce);
+	g_bGiveNamedItemSkip = bSkipHook;
+	Address pEntity = SDKCall(g_hSDKCallGiveNamedItem, iClient, sClassname, iSubType, pItem, bForce);
+	g_bGiveNamedItemSkip = false;
+	return pEntity;
 }
 
 Address SDKCall_GetLoadoutItem(int iClient, TFClassType iClass, int iSlot)
