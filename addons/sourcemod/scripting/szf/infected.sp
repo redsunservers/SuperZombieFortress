@@ -684,6 +684,9 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			SetEntProp(iClient, Prop_Send, "m_bDucked", true);
 			SetEntityFlags(iClient, GetEntityFlags(iClient)|FL_DUCKING);
 			
+			//Make target bleeed with jockey on their head
+			TF2_MakeBleed(iTarget, iClient, 1000.0);
+			
 			float flSpeed = TF2_GetClassSpeed(TF2_GetPlayerClass(iTarget));
 			
 			//Move target by 75% jockey and 25% themself
@@ -711,6 +714,8 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			
 			SetEntityMoveType(iClient, MOVETYPE_WALK);
 			SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 5);
+			
+			TF2_RemoveCondition(iTarget, TFCond_Bleeding);
 		}
 	}
 }
