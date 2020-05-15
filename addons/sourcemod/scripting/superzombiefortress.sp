@@ -2401,6 +2401,9 @@ public Action RemoveBackstab(Handle hTimer, int iClient)
 	
 	g_bBackstabbed[iClient] = false;
 	ClientCommand(iClient, "r_screenoverlay\"\"");
+	
+	TF2_RemoveCondition(iClient, TFCond_Dazed);
+	TF2_AddCondition(iClient, TFCond_SpeedBuffAlly, 0.0);	//Just to recalculate speed
 }
 
 Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
