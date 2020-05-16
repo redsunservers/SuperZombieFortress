@@ -116,7 +116,8 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		{
 			Sound_Attack(iVictim, iAttacker);
 			
-			if (TF2_GetPlayerClass(iVictim) == TFClass_Scout)
+			TFClassType nVictimClass = TF2_GetPlayerClass(iVictim);
+			if (nVictimClass == TFClass_Scout || nVictimClass == TFClass_Sniper || nVictimClass == TFClass_Spy)
 			{
 				flDamage *= 0.825;
 				bChanged = true;
@@ -166,25 +167,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		
 		if (IsValidZombie(iVictim))
 		{
-			// zero down physics force, disable physics force
-			switch (TF2_GetPlayerClass(iVictim))
-			{
-				case TFClass_Soldier:
-				{
-					ScaleVector(vecForce, 0.0);
-					iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
-					bChanged = true;
-				}
-				// cap damage to 150
-				case TFClass_Heavy:
-				{
-					if (flDamage > 150.0 && flDamage <= 500.0) flDamage = 150.0;
-					ScaleVector(vecForce, 0.0);
-					iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
-					bChanged = true;
-				}
-			}
-			
 			//Disable physics force
 			if (IsClassname(iInflicter, "obj_sentrygun"))
 				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
@@ -194,16 +176,11 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				if (g_nInfected[iVictim] == Infected_Tank)
 				{
 					//"SHOOT THAT TANK" voice call
-					if (g_flDamageDealtAgainstTank[iAttacker] == 0)
-					{
-						SetVariantString("randomnum:100");
-						AcceptEntityInput(iAttacker, "AddContext");
-						SetVariantString("IsMvMDefender:1");
-						AcceptEntityInput(iAttacker, "AddContext");
-						SetVariantString("TLK_MVM_ATTACK_THE_TANK");
-						AcceptEntityInput(iAttacker, "SpeakResponseConcept");
-						AcceptEntityInput(iAttacker, "ClearContext");
-					}
+					SetVariantString("IsMvMDefender:1");
+					AcceptEntityInput(iAttacker, "AddContext");
+					SetVariantString("TLK_MVM_ATTACK_THE_TANK");
+					AcceptEntityInput(iAttacker, "SpeakResponseConcept");
+					AcceptEntityInput(iAttacker, "ClearContext");
 					
 					//Don't instantly kill the tank on a backstab
 					if (iDamageCustom == TF_CUSTOM_BACKSTAB)
