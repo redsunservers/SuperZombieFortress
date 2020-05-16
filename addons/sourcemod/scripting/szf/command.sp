@@ -105,7 +105,7 @@ public Action Command_ForceInfected(int iClient, int iArgs)
 	{
 		if (IsZombie(iTargetList[i]))
 		{
-			g_nNextInfected[iClient] = nInfected;
+			g_nNextInfected[iTargetList[i]] = nInfected;
 			iCount++;
 		}
 	}
