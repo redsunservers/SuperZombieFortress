@@ -495,24 +495,14 @@
 		"en"		"{orange}The Market Gardener {green}makes you take 20%% less damage from Rocket Jumping."
 	}
 	
-	"Melee_Homewrecker"
-	{
-		"en"		"{orange}The Homewrecker & reskins {green}have their damage penalty removed."
-	}
-	
 	"Melee_KillingGlovesofBoxing"
 	{
-		"en"		"{orange}The Killing Gloves of Boxing {red}gives 3 seconds of minicrits on kill."
+		"en"		"{orange}The Killing Gloves of Boxing {red}gives 5 seconds of minicrits on kill."
 	}
 	
 	"Melee_FistsofSteel"
 	{
 		"en"		"{orange}The Fists of Steel {green}gives 10%% melee resistance while active."
-	}
-	
-	"Melee_SouthernHospitality"
-	{
-		"en"		"{orange}The Southern Hospitality {red}has a 15%% firing speed penalty."
 	}
 	
 	"Melee_EurekaEffect"
