@@ -274,27 +274,27 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	if (sBuffer[0])
 		kv.GetColor4("color", classes.iColor);
 	
-	kv.GetString("message", classes.sMessage, sizeof(classes.sMessage));
+	kv.GetString("message", classes.sMessage, sizeof(classes.sMessage), classes.sMessage);
 	kv.GetString("menu", classes.sMenu, sizeof(classes.sMenu));
-	kv.GetString("model", classes.sModel, sizeof(classes.sModel));
-	kv.GetString("sound_spawn", classes.sSoundSpawn, sizeof(classes.sSoundSpawn));
-	classes.iRageCooldown = kv.GetNum("ragecooldown", 0);
-	classes.callback_spawn = Config_GetFunction(kv, "callback_spawn");
-	classes.callback_rage = Config_GetFunction(kv, "callback_rage");
-	classes.callback_think = Config_GetFunction(kv, "callback_think");
-	classes.callback_touch = Config_GetFunction(kv, "callback_touch");
-	classes.callback_anim = Config_GetFunction(kv, "callback_anim");
-	classes.callback_death = Config_GetFunction(kv, "callback_death");
+	kv.GetString("model", classes.sModel, sizeof(classes.sModel), classes.sModel);
+	kv.GetString("sound_spawn", classes.sSoundSpawn, sizeof(classes.sSoundSpawn), classes.sSoundSpawn);
+	classes.iRageCooldown = kv.GetNum("ragecooldown", classes.iRageCooldown);
+	classes.callback_spawn = Config_GetFunction(kv, "callback_spawn", classes.callback_spawn);
+	classes.callback_rage = Config_GetFunction(kv, "callback_rage", classes.callback_rage);
+	classes.callback_think = Config_GetFunction(kv, "callback_think", classes.callback_think);
+	classes.callback_touch = Config_GetFunction(kv, "callback_touch", classes.callback_touch);
+	classes.callback_anim = Config_GetFunction(kv, "callback_anim", classes.callback_anim);
+	classes.callback_death = Config_GetFunction(kv, "callback_death", classes.callback_death);
 	
 	return true;
 }
 
-Function Config_GetFunction(KeyValues kv, const char[] sKey)
+Function Config_GetFunction(KeyValues kv, const char[] sKey, Function defaultFunction)
 {
 	char sBuffer[64];
 	kv.GetString(sKey, sBuffer, sizeof(sBuffer));
 	if (!sBuffer[0])
-		return INVALID_FUNCTION;
+		return defaultFunction;
 	
 	Function func = GetFunctionByName(null, sBuffer);
 	if (func == INVALID_FUNCTION)

@@ -8,6 +8,7 @@ static int g_iSurvivorClassCount;
 static int g_iZombieClassCount;
 static int g_iInfectedClassCount;
 
+static ClientClasses g_DefaultClasses;
 static ClientClasses g_SurvivorClasses[view_as<int>(TFClassType)];
 static ClientClasses g_ZombieClasses[view_as<int>(TFClassType)];
 static ClientClasses g_InfectedClasses[view_as<int>(Infected)];
@@ -20,31 +21,18 @@ void Classes_Refresh()
 		return;
 	
 	//Setup default values
-	ClientClasses DefaultClasses;
-	DefaultClasses.bEnabled = true;
-	DefaultClasses.iRegen = 2;
-	DefaultClasses.iDegen = 3;
-	DefaultClasses.flSpree = 1.0;
-	DefaultClasses.flHorde = 2.0;
-	DefaultClasses.flMaxSpree = 20.0;
-	DefaultClasses.flMaxHorde = 20.0;
-	DefaultClasses.iColor = {255, 255, 255, 255};
-	DefaultClasses.callback_spawn = INVALID_FUNCTION;
-	DefaultClasses.callback_rage = INVALID_FUNCTION;
-	DefaultClasses.callback_think = INVALID_FUNCTION;
-	DefaultClasses.callback_anim = INVALID_FUNCTION;
-	DefaultClasses.callback_death = INVALID_FUNCTION;
+	g_DefaultClasses.bEnabled = true;
+	g_DefaultClasses.iColor = {255, 255, 255, 255};
+	g_DefaultClasses.callback_spawn = INVALID_FUNCTION;
+	g_DefaultClasses.callback_rage = INVALID_FUNCTION;
+	g_DefaultClasses.callback_think = INVALID_FUNCTION;
+	g_DefaultClasses.callback_touch = INVALID_FUNCTION;
+	g_DefaultClasses.callback_anim = INVALID_FUNCTION;
+	g_DefaultClasses.callback_death = INVALID_FUNCTION;
 	
 	g_iSurvivorClassCount = 0;
 	g_iZombieClassCount = 0;
 	g_iInfectedClassCount = 0;
-	
-	//Set survivors default
-	for (int i; i < sizeof(g_SurvivorClasses); i++)
-	{
-		delete g_SurvivorClasses[i].aWeapons;
-		g_SurvivorClasses[i] = DefaultClasses;
-	}
 	
 	//Load survivors config
 	if (!Classes_LoadTeam(kv, "survivors", g_SurvivorClasses))
@@ -61,13 +49,6 @@ void Classes_Refresh()
 			g_nSurvivorClass[g_iSurvivorClassCount] = view_as<TFClassType>(i);
 			g_iSurvivorClassCount++;
 		}
-	}
-	
-	//Set zombies default
-	for (int i; i < sizeof(g_ZombieClasses); i++)
-	{
-		delete g_ZombieClasses[i].aWeapons;
-		g_ZombieClasses[i] = DefaultClasses;
 	}
 	
 	//Load zombies config
@@ -87,9 +68,7 @@ void Classes_Refresh()
 		}
 	}
 	
-	for (int i; i < sizeof(g_InfectedClasses); i++)
-		delete g_InfectedClasses[i].aWeapons;
-	
+	//Load infected config
 	if (!Classes_LoadInfected(kv, "infected", g_InfectedClasses))
 	{
 		delete kv;
@@ -122,16 +101,36 @@ bool Classes_LoadTeam(KeyValues kv, const char[] sKey, ClientClasses classes[vie
 		return false;
 	}
 	
+	ClientClasses class;
+	class = g_DefaultClasses;
+	
+	if (kv.JumpToKey("default", false))
+	{
+		Config_LoadClassesSection(kv, class);
+		kv.GoBack();
+	}
+	
+	//Clear classes and set default value
+	for (int i; i < sizeof(classes); i++)
+	{
+		delete classes[i].aWeapons;
+		classes[i] = class;
+	}
+	
+	//Load class specific
 	if (kv.GotoFirstSubKey(false))
 	{
 		do
 		{
 			char sBuffer[256];
 			kv.GetSectionName(sBuffer, sizeof(sBuffer));
+			if (StrEqual(sBuffer, "default"))
+				continue;	//Already loaded
+			
 			TFClassType iClass = TF2_GetClass(sBuffer);
 			if (iClass == TFClass_Unknown)
 			{
-				LogError("Invalid class '%s'.", sBuffer);
+				LogError("Invalid class \"%s\".", sBuffer);
 				continue;
 			}
 			
@@ -154,21 +153,29 @@ bool Classes_LoadInfected(KeyValues kv, const char[] sKey, ClientClasses classes
 		return false;
 	}
 	
+	for (int i; i < sizeof(classes); i++)
+		delete classes[i].aWeapons;
+	
 	if (kv.GotoFirstSubKey(false))
 	{
 		do
 		{
-			char sBuffer[256];
-			kv.GetSectionName(sBuffer, sizeof(sBuffer));
-			Infected nInfected = GetInfected(sBuffer);
-			if (nInfected == Infected_Unknown)
+			char sInfected[64], sClass[64];
+			kv.GetSectionName(sInfected, sizeof(sInfected));
+			Infected nInfected = GetInfected(sInfected);
+			if (nInfected == Infected_Unknown || nInfected == Infected_None)
 			{
-				LogError("Invalid infected '%s'.", sBuffer);
+				LogError("Invalid infected \"%s\".", sInfected);
 				continue;
 			}
 			
-			kv.GetString("class", sBuffer, sizeof(sBuffer));
-			TFClassType iInfectedClass = TF2_GetClass(sBuffer);
+			kv.GetString("class", sClass, sizeof(sClass));
+			TFClassType iInfectedClass = TF2_GetClass(sClass);
+			if (iInfectedClass == TFClass_Unknown)
+			{
+				LogError("Invalid class \"%s\" from infected \"%s\".", sClass, sInfected);
+				continue;
+			}
 			
 			//Copy zombies into infected to use as default values for infected
 			classes[nInfected] = g_ZombieClasses[iInfectedClass];
@@ -219,6 +226,11 @@ void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), 
 			g_ClientClasses[iClient] = g_ZombieClasses[iClass];
 		else
 			g_ClientClasses[iClient] = g_InfectedClasses[g_nInfected[iClient]];
+	}
+	else
+	{
+		//How
+		g_ClientClasses[iClient] = g_DefaultClasses;
 	}
 }
 
