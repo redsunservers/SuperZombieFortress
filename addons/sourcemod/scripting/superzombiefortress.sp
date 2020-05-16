@@ -1903,6 +1903,10 @@ void HandleZombieLoadout(int iClient)
 		SetVariantString(g_ClientClasses[iClient].sModel);
 		AcceptEntityInput(iClient, "SetCustomModel");
 		SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", true);
+		
+		//Clear voodoo-cursed soul skin
+		SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
+		SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
 	}
 	else
 	{
