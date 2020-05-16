@@ -2018,8 +2018,7 @@ void DetermineControlPoints()
 	int iMaster = -1;
 	int iEntity = -1;
 	while ((iEntity = FindEntityByClassname(iEntity, "team_control_point_master")) != -1)
-		if (IsClassname(iEntity, "team_control_point_master"))
-			iMaster = iEntity;
+		iMaster = iEntity;
 	
 	if (iMaster <= 0)
 		return;
@@ -2027,7 +2026,7 @@ void DetermineControlPoints()
 	iEntity = -1;
 	while ((iEntity = FindEntityByClassname(iEntity, "team_control_point")) != -1)
 	{
-		if (IsClassname(iEntity, "team_control_point") && g_iControlPoints < sizeof(g_iControlPointsInfo))
+		if (g_iControlPoints < sizeof(g_iControlPointsInfo))
 		{
 			int iIndex = GetEntProp(iEntity, Prop_Data, "m_iPointIndex");
 			g_iControlPointsInfo[g_iControlPoints][0] = iIndex;
