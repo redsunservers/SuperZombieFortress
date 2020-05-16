@@ -2412,7 +2412,14 @@ Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
 	if (iTeam == TFTeam_Survivor)
 	{
 		if (iSlot < WeaponSlot_Melee)
+		{
 			iAction = Plugin_Handled;
+		}
+		else if (GetClassVoodooItemDefIndex(iClass) == iIndex)
+		{
+			//Survivors are not zombies
+			iAction = Plugin_Handled;
+		}
 	}
 	else if (iTeam == TFTeam_Zombie)
 	{
