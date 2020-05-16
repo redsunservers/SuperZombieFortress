@@ -1816,13 +1816,6 @@ void HandleSurvivorLoadout(int iClient)
 		int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
 		if (iEntity > MaxClients)
 		{
-			//Get default attrib from config to apply all melee weapons
-			char sAttribs[32][32];
-			int iCount = ExplodeString(g_ConfigMeleeDefault.sAttrib, " ; ", sAttribs, 32, 32);
-			if (iCount > 1)
-				for (int i = 0; i < iCount; i+= 2)
-					TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[i]), StringToFloat(sAttribs[i+1]));
-			
 			//Get attrib from index to apply
 			int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
 			
@@ -1852,10 +1845,6 @@ void HandleSurvivorLoadout(int iClient)
 						iIndex = Melee.iIndexReplace;
 						TF2_RemoveWeaponSlot(iClient, iSlot);
 						iEntity = TF2_CreateAndEquipWeapon(iClient, iIndex);
-						
-						//Re-apply global attrib
-						for (int j = 0; j < iCount; j+= 2)
-							TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[j]), StringToFloat(sAttribs[j+1]));
 					}
 					
 					//Print text with cooldown to prevent spam
@@ -1866,7 +1855,8 @@ void HandleSurvivorLoadout(int iClient)
 					}
 					
 					//Apply attribute
-					iCount = ExplodeString(Melee.sAttrib, " ; ", sAttribs, 32, 32);
+					char sAttribs[32][32];
+					int iCount = ExplodeString(Melee.sAttrib, " ; ", sAttribs, sizeof(sAttribs), sizeof(sAttribs));
 					if (iCount > 1)
 						for (int j = 0; j < iCount; j+= 2)
 							TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[j]), StringToFloat(sAttribs[j+1]));

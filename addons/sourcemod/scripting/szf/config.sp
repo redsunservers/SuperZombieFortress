@@ -10,7 +10,6 @@ enum struct ConfigMelee
 	char sAttrib[256];
 }
 
-ConfigMelee g_ConfigMeleeDefault;
 ArrayList g_aConfigMelee;
 StringMap g_mConfigReskins;
 
@@ -38,14 +37,7 @@ void Config_Refresh()
 				kv.GetSectionName(sBuffer, sizeof(sBuffer));
 				int iIndex = -1;
 				
-				//If default, store in global default varable instead of ArrayList
-				if (StrEqual(sBuffer, "_global_"))
-				{
-					//We only care about attrib for default
-					kv.GetString("attrib", sBuffer, sizeof(sBuffer));
-					Format(g_ConfigMeleeDefault.sAttrib, sizeof(g_ConfigMeleeDefault.sAttrib), sBuffer);
-				}
-				else if (StringToIntEx(sBuffer, iIndex) == 0)
+				if (StringToIntEx(sBuffer, iIndex) == 0)
 				{
 					LogError("Invalid index \"%s\" at Weapons config melee secton", sBuffer);
 				}
