@@ -185,7 +185,7 @@ stock void ApplyVoodooCursedSoul(int iClient)
 
 stock int GetClassVoodooItemDefIndex(TFClassType iClass)
 {
-	return g_iZombieSoulIndex[iClass];
+	return g_iVoodooIndex[iClass];
 }
 
 stock void AddWeaponVision(int iWeapon, int iFlag)
