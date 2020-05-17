@@ -507,12 +507,17 @@
 	
 	"Melee_EurekaEffect"
 	{
-		"en"		"{orange}The Eureka Effect {red}is disabled."
+		"en"		"{orange}The Eureka Effect {green}increases your buildings' health by 33%%. {red}Teleportation is disabled."
 	}
 	
 	"Melee_Ubersaw"
 	{
 		"en"		"{orange}The Ubersaw {red}gives 10%% uber on hit."
+	}
+
+	"Melee_VitaSaw"
+	{
+		"en"		"{orange}The Vita-Saw {green}increases uber rate by 15%%"
 	}
 	
 	"Melee_Amputator"
