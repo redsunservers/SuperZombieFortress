@@ -492,7 +492,7 @@
 	
 	"Melee_MarketGardener"
 	{
-		"en"		"{orange}The Market Gardener {green}makes you take 20%% less damage from Rocket Jumping."
+		"en"		"{orange}The Market Gardener {green}makes you rocket jump 25%% higher."
 	}
 	
 	"Melee_KillingGlovesofBoxing"
