@@ -694,7 +694,7 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			if (!TF2_IsPlayerInCondition(iTarget, TFCond_Bleeding))
 				TF2_MakeBleed(iTarget, iClient, 0.5);
 			
-			float flSpeed = TF2_GetClassSpeed(TF2_GetPlayerClass(iTarget));
+			float flSpeed = GetEntPropFloat(iTarget, Prop_Send, "m_flMaxspeed");
 			
 			//Move target by 75% jockey and 25% themself
 			float vecJockeyEye[3], vecTargetEye[3], vecJockeyVel[3], vecTargetVel[3], vecFinalVel[3];

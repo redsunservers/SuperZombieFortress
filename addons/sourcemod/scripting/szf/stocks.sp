@@ -460,27 +460,6 @@ stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
 }
 
 ////////////////
-// Speed
-////////////////
-
-stock float TF2_GetClassSpeed(TFClassType nClass)
-{
-	switch (nClass)
-	{
-		case TFClass_Scout: return 400.0;
-		case TFClass_Soldier: return 240.0;
-		case TFClass_Pyro: return 300.0;
-		case TFClass_DemoMan: return 280.0;
-		case TFClass_Heavy: return 230.0;
-		case TFClass_Engineer: return 300.0;
-		case TFClass_Medic: return 320.0;
-		case TFClass_Sniper: return 300.0;
-		case TFClass_Spy: return 320.0;
-		default: return 0.0;
-	}
-}
-
-////////////////
 // Entity Name
 ////////////////
 
