@@ -387,6 +387,11 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	//Reset meter to default value
 	SetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", SDKCall_GetDefaultItemChargeMeterValue(iWeapon), iSlot);
 	
+	//Call client to reset HUD meter
+	Event event = CreateEvent("localplayer_pickup_weapon", true);
+	event.FireToClient(iClient);
+	event.Cancel();
+	
 	//Add weapon pickup to player as cookie
 	AddToCookie(iClient, 1, g_cWeaponsPicked);
 	if (GetCookie(iClient, g_cWeaponsPicked) <= 1)
