@@ -263,10 +263,10 @@ public Action Pickup_Touch(int iEntity, int iClient)
 public Action Sandvich_TouchBlock(int iEntity, int iClient)
 {
 	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
-	if (IsValidZombie(iOwner))
-		return Plugin_Handled;
-	else
+	if (IsValidSurvivor(iOwner))
 		OnSandvichTouch(iEntity, iClient);
+	else
+		return Plugin_Handled;
 		
 	return Plugin_Continue;
 }
