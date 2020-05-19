@@ -307,9 +307,9 @@ public Action Banana_Touch(int iEntity, int iClient)
 	int iToucher = iClient;
 	
 	//Candy Cane case Exception
-	if(!StrEqual(sModelName, "models/items/banana/plate_banana.mdl"))
+	if (!StrEqual(sModelName, "models/items/banana/plate_banana.mdl"))
 	{
-		if(IsValidZombie(iToucher))
+		if (IsValidZombie(iToucher))
 			return Plugin_Handled;
 		else
 			iOwner = iToucher;
