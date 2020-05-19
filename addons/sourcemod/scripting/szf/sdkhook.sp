@@ -272,7 +272,7 @@ public Action Sandvich_TouchBlock(int iEntity, int iClient)
 }
 
 public Action OnSandvichTouch(int iEntity, int iClient)
-{	
+{
 	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
 	int iToucher = iClient;
 	
