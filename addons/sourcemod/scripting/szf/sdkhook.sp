@@ -167,7 +167,15 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		
 		if (IsValidZombie(iVictim))
 		{
-			//Disable physics force
+			//Tank is immune to knockback
+			if (g_nInfected[iVictim] == Infected_Tank)
+			{
+				ScaleVector(vecForce, 0.0);
+				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
+				bChanged = true;
+			}
+			
+			//Disable physics force from sentry damage
 			if (IsClassname(iInflicter, "obj_sentrygun"))
 				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
 			
