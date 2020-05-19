@@ -224,8 +224,6 @@ public MRESReturn DHook_CalculateMaxSpeedPost(Address pAddress, Handle hReturn, 
 			}
 			else if (IsSurvivor(iClient))
 			{
-				flSpeed += GetClientBonusSpeed(iClient);
-				
 				//If under 50 health, tick away one speed per hp lost
 				if (GetClientHealth(iClient) < 50)
 					flSpeed -= 50.0 - float(GetClientHealth(iClient));
