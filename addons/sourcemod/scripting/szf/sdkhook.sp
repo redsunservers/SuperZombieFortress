@@ -300,16 +300,6 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 
 public Action Banana_Touch(int iEntity, int iClient)
 {
-	//Check if it's the banana model otherwise just end the action
-	char sModelName[256];
-	GetEntPropString(iEntity, Prop_Data, "m_ModelName", sModelName, sizeof(sModelName));
-	
-	if(strcmp(sModelName, "models/items/banana/plate_banana.mdl"))
-	{
-		SetEntPropEnt(iEntity, Prop_Data, "m_iTeamNum", view_as<int>(TFTeam_Survivor));
-		return Plugin_Handled;
-	}
-		
 	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
 	int iToucher = iClient;
 	

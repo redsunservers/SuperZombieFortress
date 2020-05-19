@@ -586,9 +586,12 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	if (StrContains(sClassname, "item_healthkit") == 0 || StrContains(sClassname, "item_ammopack") == 0 || StrEqual(sClassname, "tf_ammo_pack"))
 		SDKHook_HookPickup(iEntity);
 	
+	char sModelName[256];
+	GetEntPropString(iEntity, Prop_Data, "m_ModelName", sModelName, sizeof(sModelName));
+	
 	if (StrEqual(sClassname, "item_healthkit_medium"))
 		SDKHook_HookSandvich(iEntity);
-	else if (StrEqual(sClassname, "item_healthkit_small"))
+	else if (StrEqual(sClassname, "item_healthkit_small") && StrEqual(sModelName, "models/items/banana/plate_banana.mdl"))
 		SDKHook_HookBanana(iEntity);
 	else if (StrEqual(sClassname, "tf_gas_manager"))
 		SDKHook_HookGasManager(iEntity);
