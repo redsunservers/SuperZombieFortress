@@ -300,10 +300,11 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 
 public Action Banana_Touch(int iEntity, int iClient)
 {
-	char sModelName[128];
-	GetEntPropString(iEntity, Prop_Data, "m_ModelName", name, sizeof(name));
+	//Check if it's the banana model otherwise just end the action
+	char sModelName[256];
+	GetEntPropString(iEntity, Prop_Data, "m_ModelName", sModelName, sizeof(sModelName));
 	
-	if(sModelName != "models/items/banana/plate_banana.mdl")
+	if(strcmp(sModelName, "models/items/banana/plate_banana.mdl"))
 		return Plugin_Handled;
 		
 	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
