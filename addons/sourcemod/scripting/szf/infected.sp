@@ -16,6 +16,11 @@ public void Infected_DoGenericRage(int iClient)
 	Sound_PlayInfectedVo(iClient, Infected_None, SoundVo_Rage);
 }
 
+public void Infected_DoNoRage(int iClient)
+{
+	PrintHintText(iClient, "%t", "Infected_CantUseRage");
+}
+
 ////////////////
 // Tank
 ////////////////
