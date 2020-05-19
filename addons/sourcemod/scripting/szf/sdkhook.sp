@@ -262,7 +262,13 @@ public Action Pickup_Touch(int iEntity, int iClient)
 
 public Action Sandvich_TouchBlock(int iEntity, int iClient)
 {
-	return Plugin_Handled;
+	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
+	if(GetClientTeam(iOwner) == view_as<int>(TFTeam_Zombie))
+		return Plugin_Handled;
+	else
+		OnSandvichTouch(iEntity, iClient);
+		
+	return Plugin_Continue;
 }
 
 public Action OnSandvichTouch(int iEntity, int iClient)
@@ -294,6 +300,12 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 
 public Action Banana_Touch(int iEntity, int iClient)
 {
+	char sModelName[128];
+	GetEntPropString(iEntity, Prop_Data, "m_ModelName", name, sizeof(name));
+	
+	if(sModelName != "models/items/banana/plate_banana.mdl")
+		return Plugin_Handled;
+		
 	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
 	int iToucher = iClient;
 	
