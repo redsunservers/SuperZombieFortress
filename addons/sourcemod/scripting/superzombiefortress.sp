@@ -585,11 +585,6 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 {
 	if (StrContains(sClassname, "item_healthkit") == 0 || StrContains(sClassname, "item_ammopack") == 0 || StrEqual(sClassname, "tf_ammo_pack"))
 		SDKHook_HookPickup(iEntity);
-	
-	if (StrEqual(sClassname, "item_healthkit_medium"))
-		SDKHook_HookSandvich(iEntity);
-	else if (StrEqual(sClassname, "item_healthkit_small"))
-		SDKHook_HookBanana(iEntity);
 	else if (StrEqual(sClassname, "tf_gas_manager"))
 		SDKHook_HookGasManager(iEntity);
 	else if (StrEqual(sClassname, "trigger_capture_area"))

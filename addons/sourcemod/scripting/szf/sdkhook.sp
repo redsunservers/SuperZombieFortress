@@ -8,19 +8,7 @@ void SDKHook_HookClient(int iClient)
 
 void SDKHook_HookPickup(int iEntity)
 {
-	SDKHook(iEntity, SDKHook_StartTouch, Pickup_Touch);
-	SDKHook(iEntity, SDKHook_Touch, Pickup_Touch);
-}
-
-void SDKHook_HookSandvich(int iEntity)
-{
-	SDKHook(iEntity, SDKHook_Touch, Sandvich_TouchBlock);
-	CreateTimer(3.0, Timer_EnableSandvichTouch, EntIndexToEntRef(iEntity));
-}
-
-void SDKHook_HookBanana(int iEntity)
-{
-	SDKHook(iEntity, SDKHook_Touch, Banana_Touch);
+	SDKHook(iEntity, SDKHook_SpawnPost, Pickup_SpawnPost);
 }
 
 void SDKHook_HookGasManager(int iEntity)
@@ -32,16 +20,6 @@ void SDKHook_HookCaptureArea(int iEntity)
 {
 	SDKHook(iEntity, SDKHook_StartTouch, CaptureArea_StartTouch);
 	SDKHook(iEntity, SDKHook_EndTouch, CaptureArea_EndTouch);
-}
-
-public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
-{
-	int iEntity = EntRefToEntIndex(iRef);
-	if (!IsValidEntity(iEntity))
-		return;
-	
-	SDKUnhook(iEntity, SDKHook_Touch, Sandvich_TouchBlock);
-	SDKHook(iEntity, SDKHook_Touch, OnSandvichTouch);
 }
 
 public void Client_PreThinkPost(int iClient)
@@ -250,54 +228,67 @@ public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
 	return Plugin_Continue;
 }
 
-public Action Pickup_Touch(int iEntity, int iClient)
+public void Pickup_SpawnPost(int iEntity)
 {
-	//If picker is a zombie and entity has no owner (sandvich)
-	if (IsValidZombie(iClient) && GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity") == -1)
+	int iOwner = GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity");
+	if (iOwner == -1 || IsValidSurvivor(iOwner) || (IsValidClient(iOwner) && GetClientHealth(iOwner) <= 0))
 	{
-		char sClassname[32];
-		GetEntityClassname(iEntity, sClassname, sizeof(sClassname));
-		if (StrContains(sClassname, "item_ammopack") != -1
-		|| StrContains(sClassname, "item_healthkit") != -1
-		|| StrEqual(sClassname, "tf_ammo_pack"))
+		//Pickup came from map, or created by survivor (sandvich), or owner just died (candy cane). Disallow zombie able to pickup
+		SDKHook(iEntity, SDKHook_Touch, Pickup_BlockZombieTouch);
+	}
+	else if (IsValidZombie(iOwner))
+	{
+		if (IsClassname(iEntity, "item_healthkit_medium"))	//Lunchbox sandvich
 		{
-			return Plugin_Handled;
+			//Dont allow anyone touch sandvich for first 3 seconds
+			SDKHook(iEntity, SDKHook_Touch, Pickup_BlockTouch);
+			CreateTimer(3.0, Timer_EnableSandvichTouch, EntIndexToEntRef(iEntity));
+		}
+		else if (IsClassname(iEntity, "item_healthkit_small"))	//Lunchbox non-sandvich
+		{
+			SDKHook(iEntity, SDKHook_Touch, Pickup_BananaTouch);
 		}
 	}
-	
-	return Plugin_Continue;
 }
 
-public Action Sandvich_TouchBlock(int iEntity, int iClient)
+public Action Pickup_BlockZombieTouch(int iEntity, int iToucher)
 {
-	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
-	if (IsValidSurvivor(iOwner))
-		OnSandvichTouch(iEntity, iClient);
-	else
+	if (IsValidZombie(iToucher))
 		return Plugin_Handled;
-		
+	
 	return Plugin_Continue;
 }
 
-public Action OnSandvichTouch(int iEntity, int iClient)
+public Action Pickup_BlockTouch(int iEntity, int iToucher)
 {
-	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
-	int iToucher = iClient;
+	return Plugin_Handled;
+}
+
+public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
+{
+	int iEntity = EntRefToEntIndex(iRef);
+	if (!IsValidEntity(iEntity))
+		return;
 	
-	//Check if both owner and toucher is valid
-	if (!IsValidClient(iOwner) || !IsValidClient(iToucher))
+	SDKUnhook(iEntity, SDKHook_Touch, Pickup_BlockTouch);
+	SDKHook(iEntity, SDKHook_Touch, Pickup_SandvichTouch);
+}
+
+public Action Pickup_SandvichTouch(int iEntity, int iToucher)
+{
+	//Check if toucher is valid client
+	if (!IsValidClient(iToucher))
 		return Plugin_Continue;
 	
 	//Dont allow owner and tank collect sandvich
+	int iOwner = GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity");
 	if (iOwner == iToucher || g_nInfected[iToucher] == Infected_Tank)
 		return Plugin_Handled;
 	
-	if (GetClientTeam(iToucher) != GetClientTeam(iOwner))
+	if (IsSurvivor(iToucher))
 	{
-		//Disable Sandvich and kill it
-		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
+		//Kill it and deal damage
 		RemoveEntity(iEntity);
-		
 		DealDamage(iOwner, iToucher, 55.0);
 		
 		return Plugin_Handled;
@@ -306,37 +297,22 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 	return Plugin_Continue;
 }
 
-public Action Banana_Touch(int iEntity, int iClient)
+public Action Pickup_BananaTouch(int iEntity, int iToucher)
 {
-	char sModelName[256];
-	GetEntPropString(iEntity, Prop_Data, "m_ModelName", sModelName, sizeof(sModelName));
-	
-	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
-	int iToucher = iClient;
-	
-	//Candy Cane case Exception
-	if (!StrEqual(sModelName, "models/items/banana/plate_banana.mdl"))
-	{
-		if (IsValidZombie(iToucher))
-			return Plugin_Handled;
-		else
-			iOwner = iToucher;
-	}
-	
-	//Check if both owner and toucher is valid
-	if (!IsValidClient(iOwner) || !IsValidClient(iToucher))
+	//Check if toucher is valid client
+	if (!IsValidClient(iToucher))
 		return Plugin_Continue;
 	
-	//Dont allow tank to collect health
+	//Dont allow tank collect health
 	if (g_nInfected[iToucher] == Infected_Tank)
 		return Plugin_Handled;
 	
-	if (GetClientTeam(iToucher) != GetClientTeam(iOwner))
+	if (IsSurvivor(iToucher))
 	{
-		//Disable Sandvich and kill it
-		SetEntProp(iEntity, Prop_Data, "m_bDisabled", 1);
-		RemoveEntity(iEntity);
+		int iOwner = GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity");
 		
+		//Kill it and deal damage
+		RemoveEntity(iEntity);
 		DealDamage(iOwner, iToucher, 30.0);
 		
 		return Plugin_Handled;
