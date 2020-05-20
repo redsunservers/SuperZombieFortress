@@ -614,6 +614,8 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 	if (!g_bEnabled)
 		return;
 	
+	SDKCall_SetSpeed(iClient);
+	
 	if (IsSurvivor(iClient))
 	{
 		switch (nCond)
@@ -625,6 +627,11 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 			}
 		}
 	}
+}
+
+public void TF2_OnConditionRemoved(int iClient, TFCond nCond)
+{
+	SDKCall_SetSpeed(iClient);
 }
 
 public Action TF2_OnIsHolidayActive(TFHoliday nHoliday, bool &bResult)
@@ -1534,6 +1541,10 @@ int ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 	
 	g_bZombieRage = true;
 	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidZombie(iClient))
+			SDKCall_SetSpeed(iClient);
+	
 	g_flRageRespawnStress = GetGameTime();	//Set initial respawn stress
 	g_bZombieRageAllowRespawn = true;
 	
@@ -2296,7 +2307,6 @@ public Action RemoveBackstab(Handle hTimer, int iClient)
 	ClientCommand(iClient, "r_screenoverlay\"\"");
 	
 	TF2_RemoveCondition(iClient, TFCond_Dazed);
-	TF2_AddCondition(iClient, TFCond_SpeedBuffAlly, 0.0);	//Just to recalculate speed
 }
 
 Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)

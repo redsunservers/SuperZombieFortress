@@ -4,6 +4,7 @@ static Handle g_hSDKCallPlaySpecificSequence;
 static Handle g_hSDKCallGetEquippedWearable;
 static Handle g_hSDKCallGiveNamedItem;
 static Handle g_hSDKCallGetLoadoutItem;
+static Handle g_hSDKCallSetSpeed;
 static Handle g_hSDKCallTossJarThink;
 static Handle g_hSDKCallGetBaseEntity;
 static Handle g_hSDKCallGetDefaultItemChargeMeterValue;
@@ -64,11 +65,17 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 		LogError("Failed to create call: CTFPlayer::GetLoadoutItem");
 	
 	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::TeamFortress_SetSpeed");
+	g_hSDKCallSetSpeed = EndPrepSDKCall();
+	if (!g_hSDKCallSetSpeed)
+		LogError("Failed to create call: CTFPlayer::TeamFortress_SetSpeed");
+	
+	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CTFJar::TossJarThink");
 	g_hSDKCallTossJarThink = EndPrepSDKCall();
 	if (!g_hSDKCallTossJarThink)
 		LogError("Failed to create call: CTFJar::TossJarThink");
-		
+	
 	StartPrepSDKCall(SDKCall_Raw);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CBaseEntity::GetBaseEntity");
 	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
@@ -81,7 +88,7 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	PrepSDKCall_SetReturnInfo(SDKType_Float, SDKPass_Plain);
 	g_hSDKCallGetDefaultItemChargeMeterValue = EndPrepSDKCall();
 	if (!g_hSDKCallGetDefaultItemChargeMeterValue)
-		LogError("Failed to create SDKCall: CBaseEntity::GetDefaultItemChargeMeterValue");
+		LogError("Failed to create call: CBaseEntity::GetDefaultItemChargeMeterValue");
 }
 
 int SDKCall_GetMaxHealth(int iClient)
@@ -115,6 +122,11 @@ Address SDKCall_GiveNamedItem(int iClient, const char[] sClassname, int iSubType
 Address SDKCall_GetLoadoutItem(int iClient, TFClassType iClass, int iSlot)
 {
 	return SDKCall(g_hSDKCallGetLoadoutItem, iClient, iClass, iSlot, false);
+}
+
+void SDKCall_SetSpeed(int iClient)
+{
+	SDKCall(g_hSDKCallSetSpeed, iClient);
 }
 
 void SDKCall_TossJarThink(int iEntity)

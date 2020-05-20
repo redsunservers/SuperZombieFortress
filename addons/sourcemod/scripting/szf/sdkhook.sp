@@ -202,6 +202,8 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		}
 	}
 	
+	SDKCall_SetSpeed(iVictim);
+	
 	if (bChanged)
 		return Plugin_Changed;
 	
