@@ -627,6 +627,18 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 			}
 		}
 	}
+	else if (IsZombie(iClient))
+	{
+		switch (nCond)
+		{
+			case TFCond_Taunting:
+			{
+				//Prevents tank from getting stunned by Holiday Punch and disallows taunt kills
+				if (g_nInfected[iClient] == Infected_Tank && g_nRoundState == SZFRoundState_Active)
+					TF2_RemoveCondition(iClient, nCond);
+			}
+		}
+	}
 }
 
 public void TF2_OnConditionRemoved(int iClient, TFCond nCond)
