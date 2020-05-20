@@ -270,7 +270,13 @@ public Action Pickup_Touch(int iEntity, int iClient)
 
 public Action Sandvich_TouchBlock(int iEntity, int iClient)
 {
-	return Plugin_Handled;
+	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
+	if (IsValidSurvivor(iOwner))
+		OnSandvichTouch(iEntity, iClient);
+	else
+		return Plugin_Handled;
+		
+	return Plugin_Continue;
 }
 
 public Action OnSandvichTouch(int iEntity, int iClient)
@@ -302,8 +308,20 @@ public Action OnSandvichTouch(int iEntity, int iClient)
 
 public Action Banana_Touch(int iEntity, int iClient)
 {
+	char sModelName[256];
+	GetEntPropString(iEntity, Prop_Data, "m_ModelName", sModelName, sizeof(sModelName));
+	
 	int iOwner = GetEntPropEnt(iEntity, Prop_Data, "m_hOwnerEntity");
 	int iToucher = iClient;
+	
+	//Candy Cane case Exception
+	if (!StrEqual(sModelName, "models/items/banana/plate_banana.mdl"))
+	{
+		if (IsValidZombie(iToucher))
+			return Plugin_Handled;
+		else
+			iOwner = iToucher;
+	}
 	
 	//Check if both owner and toucher is valid
 	if (!IsValidClient(iOwner) || !IsValidClient(iToucher))
