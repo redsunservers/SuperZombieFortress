@@ -268,7 +268,10 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	
 	kv.GetString("message", classes.sMessage, sizeof(classes.sMessage), classes.sMessage);
 	kv.GetString("menu", classes.sMenu, sizeof(classes.sMenu));
-	kv.GetString("model", classes.sModel, sizeof(classes.sModel), classes.sModel);
+	kv.GetString("worldmodel", classes.sWorldModel, sizeof(classes.sWorldModel), classes.sWorldModel);
+	kv.GetString("viewmodel", classes.sViewModel, sizeof(classes.sViewModel), classes.sViewModel);
+	kv.GetVector("viewmodel_angles", classes.vecViewModelAngles, classes.vecViewModelAngles);
+	classes.flViewModelHeight = kv.GetFloat("viewmodel_height", classes.flViewModelHeight);
 	kv.GetString("sound_spawn", classes.sSoundSpawn, sizeof(classes.sSoundSpawn), classes.sSoundSpawn);
 	classes.iRageCooldown = kv.GetNum("ragecooldown", classes.iRageCooldown);
 	classes.callback_spawn = Config_GetFunction(kv, "callback_spawn", classes.callback_spawn);

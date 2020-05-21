@@ -54,6 +54,21 @@ enum
 	EF_MAX_BITS = 10
 };
 
+// Spectator Movement modes
+enum
+{
+	OBS_MODE_NONE = 0,	// not in spectator mode
+	OBS_MODE_DEATHCAM,	// special mode for death cam animation
+	OBS_MODE_FREEZECAM,	// zooms to a target, and freeze-frames on them
+	OBS_MODE_FIXED,		// view from a fixed camera position
+	OBS_MODE_IN_EYE,	// follow a player in first person view
+	OBS_MODE_CHASE,		// follow a player in third person view
+	OBS_MODE_POI,		// PASSTIME point of interest - game objective, big fight, anything interesting; added in the middle of the enum due to tons of hard-coded "<ROAMING" enum compares
+	OBS_MODE_ROAMING,	// free roaming
+
+	NUM_OBSERVER_MODES,
+};
+
 enum PlayerAnimEvent_t
 {
 	PLAYERANIMEVENT_ATTACK_PRIMARY,
@@ -173,7 +188,10 @@ enum struct ClientClasses
 	int iColor[4];
 	char sMessage[64];
 	char sMenu[64];
-	char sModel[PLATFORM_MAX_PATH];
+	char sWorldModel[PLATFORM_MAX_PATH];
+	char sViewModel[PLATFORM_MAX_PATH];
+	float vecViewModelAngles[3];
+	float flViewModelHeight;
 	char sSoundSpawn[PLATFORM_MAX_PATH];
 	int iRageCooldown;
 	Function callback_spawn;
@@ -367,6 +385,7 @@ Cookie g_cWeaponsCalled;
 #include "szf/sdkcall.sp"
 #include "szf/sdkhook.sp"
 #include "szf/stocks.sp"
+#include "szf/viewmodel.sp"
 
 public Plugin myinfo =
 {
@@ -1821,9 +1840,9 @@ void HandleZombieLoadout(int iClient)
 	while (g_ClientClasses[iClient].GetWeapon(iPos, weapon))
 		TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sClassname, weapon.sAttribs);
 	
-	if (g_ClientClasses[iClient].sModel[0])
+	if (g_ClientClasses[iClient].sWorldModel[0])
 	{
-		SetVariantString(g_ClientClasses[iClient].sModel);
+		SetVariantString(g_ClientClasses[iClient].sWorldModel);
 		AcceptEntityInput(iClient, "SetCustomModel");
 		SetEntProp(iClient, Prop_Send, "m_bUseClassAnimations", true);
 		
@@ -1834,6 +1853,14 @@ void HandleZombieLoadout(int iClient)
 	else
 	{
 		ApplyVoodooCursedSoul(iClient);
+	}
+	
+	ViewModel_Destroy(iClient);
+	
+	if (g_ClientClasses[iClient].sViewModel[0])
+	{
+		ViewModel_Create(iClient, g_ClientClasses[iClient].sViewModel, g_ClientClasses[iClient].vecViewModelAngles, g_ClientClasses[iClient].flViewModelHeight);
+		ViewModel_SetAnimation(iClient, "b_draw");
 	}
 	
 	//Reset metal for TF2 to give back correct amount from attribs
@@ -2393,7 +2420,7 @@ Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
 		}
 		else if (iSlot > WeaponSlot_BuilderEngie)
 		{
-			if (g_ClientClasses[iClient].sModel[0])
+			if (g_ClientClasses[iClient].sWorldModel[0])
 			{
 				//Block cosmetic if have custom model
 				iAction = Plugin_Handled;

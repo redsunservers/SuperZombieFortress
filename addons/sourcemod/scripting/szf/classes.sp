@@ -195,10 +195,16 @@ void Classes_Precache()
 {
 	for (Infected nInfected; nInfected < Infected; nInfected++)
 	{
-		if (g_InfectedClasses[nInfected].sModel[0])
+		if (g_InfectedClasses[nInfected].sWorldModel[0])
 		{
-			PrecacheModel(g_InfectedClasses[nInfected].sModel);
-			AddModelToDownloadsTable(g_InfectedClasses[nInfected].sModel);
+			PrecacheModel(g_InfectedClasses[nInfected].sWorldModel);
+			AddModelToDownloadsTable(g_InfectedClasses[nInfected].sWorldModel);
+		}
+		
+		if (g_InfectedClasses[nInfected].sViewModel[0])
+		{
+			PrecacheModel(g_InfectedClasses[nInfected].sViewModel);
+			AddModelToDownloadsTable(g_InfectedClasses[nInfected].sViewModel);
 		}
 		
 		if (g_InfectedClasses[nInfected].sSoundSpawn[0])

@@ -230,6 +230,9 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	
 	DropCarryingItem(iVictim);
 	
+	if (!bDeadRinger)
+		ViewModel_Destroy(iVictim);
+	
 	//Handle bonuses
 	if (!bDeadRinger && IsValidZombie(iKillers[0]) && iKillers[0] != iVictim)
 	{
