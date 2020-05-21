@@ -471,6 +471,22 @@ public void Infected_DoHunterJump(int iClient)
 	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 	SDKCall_PlaySpecificSequence(iClient, "Jump_Float_melee");
+	ViewModel_SetAnimation(iClient, "claw_lunge_layer");
+}
+
+public Action Infected_OnHunterAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
+{
+	if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
+	{
+		switch (GetRandomInt(1, 3))
+		{
+			case 1: ViewModel_SetAnimation(iClient, "b_swing_a");
+			case 2: ViewModel_SetAnimation(iClient, "b_swing_b");
+			case 3: ViewModel_SetAnimation(iClient, "b_swing_c");
+		}
+	}
+	
+	return Plugin_Continue;
 }
 
 public void Infected_OnHunterTouch(int iClient, int iToucher)
