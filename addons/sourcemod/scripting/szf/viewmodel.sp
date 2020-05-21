@@ -14,7 +14,7 @@ void ViewModel_Create(int iClient, const char[] sModel, const float vecAnglesOff
 	DispatchKeyValue(iViewModel, "disablereceiveshadows", "0");
 	DispatchKeyValue(iViewModel, "disableshadows", "1");
 	
-	float vecOrigin[3], vecAngles[3], vecDistance[3];
+	float vecOrigin[3], vecAngles[3];
 	GetClientAbsOrigin(iClient, vecOrigin);
 	GetClientAbsAngles(iClient, vecAngles);
 	

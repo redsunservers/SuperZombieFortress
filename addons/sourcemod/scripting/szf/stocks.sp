@@ -727,6 +727,17 @@ stock void CheckClientWeapons(int iClient)
 				TF2_RemoveWearable(iClient, iWearable);
 		}
 	}
+	
+	//MvM Canteen
+	int iPowerupBottle = MaxClients+1;
+	while ((iPowerupBottle = FindEntityByClassname(iPowerupBottle, "tf_powerup_bottle*")) > MaxClients)
+	{
+		if (GetEntPropEnt(iPowerupBottle, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iPowerupBottle, Prop_Send, "moveparent") == iClient)
+		{
+			if (OnGiveNamedItem(iClient, "tf_powerup_bottle", GetEntProp(iPowerupBottle, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
+				TF2_RemoveWearable(iClient, iPowerupBottle);
+		}
+	}
 }
 
 stock int GetOriginalItemDefIndex(int iIndex)
