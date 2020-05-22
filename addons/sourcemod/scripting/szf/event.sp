@@ -279,8 +279,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	g_bShouldBacteriaPlay[iVictim] = true;
 	g_bReplaceRageWithSpecialInfectedSpawn[iVictim] = false;
 	
-	Infected g_nInfectedIndex = g_nInfected[iVictim];
-	
 	//Handle zombie death logic, all round states.
 	if (IsValidZombie(iVictim))
 	{
@@ -418,17 +416,11 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				//Roll to get starting morale adds
 				if (i == 0)	//Main killer
 				{
-					if (g_nInfectedIndex == Infected_None)
-						iBase = GetRandomInt(6, 9);
-					else
-						iBase = GetRandomInt(10, 13);
+					iBase = g_ClientClasses[iVictim].iMoraleValue;
 				}
 				else	//Assist kill
 				{
-					if (g_nInfectedIndex == Infected_None)
-						iBase = GetRandomInt(2, 5);
-					else
-						iBase = GetRandomInt(6, 9);
+					iBase = RoundToNearest(float(g_ClientClasses[iVictim].iMoraleValue)*0.66);
 				}
 				
 				//  0 morale   0% zombies -> 1.0
