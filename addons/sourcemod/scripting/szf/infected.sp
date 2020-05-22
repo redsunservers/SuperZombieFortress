@@ -128,7 +128,12 @@ public Action Infected_TankTimer(Handle hTimer, int iSerial)
 
 public Action Infected_OnTankAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
 {
-	if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
+	if (nAnim == PLAYERANIMEVENT_SPAWN)
+	{
+		ViewModel_SetDefaultAnimation(iClient, "f_idle");
+		ViewModel_SetAnimation(iClient, "f_draw");
+	}
+	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
 	{
 		//One of those anim always get played because of force crit, pick one of those at random
 		//TODO check if all 3 anim exists
@@ -140,6 +145,7 @@ public Action Infected_OnTankAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iD
 			case 3: nAnim = PLAYERANIMEVENT_ATTACK_GRENADE;
 		}
 		
+		ViewModel_SetAnimation(iClient, "f_swing_crit");
 		return Plugin_Changed;
 	}
 	
@@ -216,16 +222,33 @@ public void Infected_DoBoomerRage(int iClient)
 
 public Action Infected_OnBoomerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
 {
-	if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
+	if (nAnim == PLAYERANIMEVENT_SPAWN)
+	{
+		ViewModel_SetDefaultAnimation(iClient, "f_idle");
+		ViewModel_SetAnimation(iClient, "f_draw");
+	}
+	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
 	{
 		//One of those anim always get played because of no random crit, pick one of those at random
-		//TODO check if all 3 anim exists
+		//TODO check if all 3 anim exists, and swings with correct anim
 		
 		switch (GetRandomInt(1, 3))
 		{
-			case 1: nAnim = PLAYERANIMEVENT_ATTACK_PRIMARY;
-			case 2: nAnim = PLAYERANIMEVENT_ATTACK_SECONDARY;
-			case 3: nAnim = PLAYERANIMEVENT_ATTACK_GRENADE;
+			case 1:
+			{
+				nAnim = PLAYERANIMEVENT_ATTACK_PRIMARY;
+				ViewModel_SetAnimation(iClient, "f_swing_left");
+			}
+			case 2:
+			{
+				nAnim = PLAYERANIMEVENT_ATTACK_SECONDARY;
+				ViewModel_SetAnimation(iClient, "f_swing_right");
+			}
+			case 3:
+			{
+				nAnim = PLAYERANIMEVENT_ATTACK_GRENADE;
+				ViewModel_SetAnimation(iClient, "f_swing_crit");
+			}
 		}
 		
 		return Plugin_Changed;
@@ -476,7 +499,12 @@ public void Infected_DoHunterJump(int iClient)
 
 public Action Infected_OnHunterAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
 {
-	if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
+	if (nAnim == PLAYERANIMEVENT_SPAWN)
+	{
+		ViewModel_SetDefaultAnimation(iClient, "b_idle");
+		ViewModel_SetAnimation(iClient, "b_draw");
+	}
+	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
 	{
 		switch (GetRandomInt(1, 3))
 		{
@@ -543,6 +571,8 @@ public void Infected_OnSmokerThink(int iClient, int &iButtons)
 	}
 	else if (GetEntityMoveType(iClient) == MOVETYPE_NONE)
 	{
+		ViewModel_SetAnimation(iClient, "cough");
+		
 		g_iSmokerBeamHits[iClient] = 0;
 		g_iSmokerBeamHitVictim[iClient] = 0;
 		SetEntityMoveType(iClient, MOVETYPE_WALK);
@@ -604,6 +634,7 @@ void Infected_DoSmokerBeam(int iClient)
 			g_iSmokerBeamHits[iClient] = 0;
 			
 			SDKCall_PlaySpecificSequence(iClient, "tongue_attack_drag_survivor_idle");
+			ViewModel_SetAnimation(iClient, "tongue");
 		}
 		
 		//Increase count and if it reaches a threshold, apply damage
@@ -625,6 +656,24 @@ void Infected_DoSmokerBeam(int iClient)
 	}
 	
 	delete hTrace;
+}
+
+public Action Infected_OnSmokerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
+{
+	if (nAnim == PLAYERANIMEVENT_SPAWN)
+	{
+		ViewModel_SetDefaultAnimation(iClient, "m_idle");
+	}
+	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
+	{
+		switch (GetRandomInt(1, 2))
+		{
+			case 1: ViewModel_SetAnimation(iClient, "m_swing_a");
+			case 2: ViewModel_SetAnimation(iClient, "m_swing_b");
+		}
+	}
+	
+	return Plugin_Continue;
 }
 
 ////////////////

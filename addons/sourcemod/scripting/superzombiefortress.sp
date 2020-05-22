@@ -1858,10 +1858,7 @@ void HandleZombieLoadout(int iClient)
 	ViewModel_Destroy(iClient);
 	
 	if (g_ClientClasses[iClient].sViewModel[0])
-	{
 		ViewModel_Create(iClient, g_ClientClasses[iClient].sViewModel, g_ClientClasses[iClient].vecViewModelAngles, g_ClientClasses[iClient].flViewModelHeight);
-		ViewModel_SetAnimation(iClient, "b_draw");
-	}
 	
 	//Reset metal for TF2 to give back correct amount from attribs
 	TF2_SetMetal(iClient, 0);

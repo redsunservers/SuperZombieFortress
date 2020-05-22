@@ -10,7 +10,6 @@ void ViewModel_Create(int iClient, const char[] sModel, const float vecAnglesOff
 	SetEntProp(iViewModel, Prop_Send, "m_nSkin", GetClientTeam(iClient) - 2);
 	
 	DispatchKeyValue(iViewModel, "model", sModel);
-	DispatchKeyValue(iViewModel, "DefaultAnim", "b_idle");
 	DispatchKeyValue(iViewModel, "disablereceiveshadows", "0");
 	DispatchKeyValue(iViewModel, "disableshadows", "1");
 	
@@ -41,6 +40,15 @@ void ViewModel_SetAnimation(int iClient, const char[] sAnimation)
 	{
 		SetVariantString(sAnimation);
 		AcceptEntityInput(g_iViewModelRef[iClient], "SetAnimation");
+	}
+}
+
+void ViewModel_SetDefaultAnimation(int iClient, const char[] sAnimation)
+{
+	if (IsValidEntity(g_iViewModelRef[iClient]))
+	{
+		SetVariantString(sAnimation);
+		AcceptEntityInput(g_iViewModelRef[iClient], "SetDefaultAnimation");
 	}
 }
 
