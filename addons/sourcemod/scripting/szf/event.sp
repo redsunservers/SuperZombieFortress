@@ -410,17 +410,17 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 					iMorale = 100;
 				
 				float flPercentage = (float(GetZombieCount()) / (float(GetZombieCount()) + float(GetSurvivorCount())));
-				int iBase;
+				float iBase;
 				float flMultiplier;
 				
 				//Roll to get starting morale adds
 				if (i == 0)	//Main killer
 				{
-					iBase = g_ClientClasses[iVictim].iMoraleValue;
+					iBase = float(g_ClientClasses[iVictim].iMoraleValue);
 				}
 				else	//Assist kill
 				{
-					iBase = RoundToNearest(float(g_ClientClasses[iVictim].iMoraleValue)*0.66);
+					iBase = float(g_ClientClasses[iVictim].iMoraleValue)*0.66;
 				}
 				
 				//  0 morale   0% zombies -> 1.0
@@ -434,8 +434,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				flMultiplier = (1.0 - (float(iMorale) / 100.0)) * (flPercentage * 2.0);
 				
 				//Multiply base roll by multiplier
-				iBase = RoundToNearest(float(iBase) * flMultiplier);
-				AddMorale(iKillers[i], iBase);
+				iBase = iBase * flMultiplier;
+				AddMorale(iKillers[i], RoundToNearest(iBase));
 				
 				//+ Each kill grants a small health bonus and increases current crit bonus.
 				int iHealth = GetClientHealth(iKillers[i]);
