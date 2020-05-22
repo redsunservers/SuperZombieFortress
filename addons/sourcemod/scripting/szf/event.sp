@@ -413,14 +413,17 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				float iBase;
 				float flMultiplier;
 				
-				//Roll to get starting morale adds
-				if (i == 0)	//Main killer
+				//Get the starting morale adds (Tank is calculated in a different way)
+				if(g_nInfected[iVictim] != Infected_Tank)
 				{
-					iBase = float(g_ClientClasses[iVictim].iMoraleValue);
-				}
-				else	//Assist kill
-				{
-					iBase = float(g_ClientClasses[iVictim].iMoraleValue)*0.66;
+					if (i == 0)	//Main killer
+					{
+						iBase = float(g_ClientClasses[iVictim].iMoraleValue);
+					}
+					else	//Assist kill
+					{
+						iBase = float(g_ClientClasses[iVictim].iMoraleValue) * 0.66;
+					}
 				}
 				
 				//  0 morale   0% zombies -> 1.0
@@ -433,7 +436,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				//100 morale 100% zombies -> 0.0
 				flMultiplier = (1.0 - (float(iMorale) / 100.0)) * (flPercentage * 2.0);
 				
-				//Multiply base roll by multiplier
+				//Multiply base morale by multiplier
 				iBase = iBase * flMultiplier;
 				AddMorale(iKillers[i], RoundToNearest(iBase));
 				
