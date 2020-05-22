@@ -45,7 +45,7 @@ public void Infected_OnTankSpawn(int iClient)
 	SetEntityHealth(iClient, iHealth);
 	
 	//Set the Morale reward pool for killing the tank
-	g_iTankMoralePool[iClient] = g_ClientClasses[iClient].iMoraleValue * (iSurvivors + 3);
+	g_iTankMoralePool[iClient] = g_ClientClasses[iClient].iMoraleValue * (iSurvivors + 2);
 	
 	int iSubtract = 0;
 	if (g_cvTankTime.FloatValue > 0.0)
