@@ -185,6 +185,7 @@ enum struct ClientClasses
 	float flMaxSpree;
 	float flMaxHorde;
 	bool bGlow;
+	bool bThirdperson;
 	int iColor[4];
 	char sMessage[64];
 	char sMenu[64];
@@ -1860,6 +1861,12 @@ void HandleZombieLoadout(int iClient)
 	if (g_ClientClasses[iClient].sViewModel[0])
 		ViewModel_Create(iClient, g_ClientClasses[iClient].sViewModel, g_ClientClasses[iClient].vecViewModelAngles, g_ClientClasses[iClient].flViewModelHeight);
 	
+	if (g_ClientClasses[iClient].bThirdperson)
+	{
+		SetEntProp(GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"), Prop_Send, "m_fEffects", EF_NODRAW);
+		RequestFrame(SetThirdperson, GetClientSerial(iClient));
+	}
+	
 	//Reset metal for TF2 to give back correct amount from attribs
 	TF2_SetMetal(iClient, 0);
 	
@@ -1869,6 +1876,16 @@ void HandleZombieLoadout(int iClient)
 	{
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
 		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);
+	}
+}
+
+public void SetThirdperson(int iSerial)
+{
+	int iClient = GetClientFromSerial(iSerial);
+	if (IsValidLivingClient(iClient))
+	{
+		SetVariantInt(1);
+		AcceptEntityInput(iClient, "SetForcedTauntCam");
 	}
 }
 

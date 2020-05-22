@@ -259,6 +259,7 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	classes.flMaxSpree = kv.GetFloat("maxspree", classes.flMaxSpree);
 	classes.flMaxHorde = kv.GetFloat("maxhorde", classes.flMaxHorde);
 	classes.bGlow = !!kv.GetNum("glow", classes.bGlow);
+	classes.bThirdperson = !!kv.GetNum("thirdperson", classes.bThirdperson);
 	
 	//GetColor4 dont have default buffer to set
 	char sBuffer[1];
