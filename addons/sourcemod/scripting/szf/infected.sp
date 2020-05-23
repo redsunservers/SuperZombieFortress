@@ -835,10 +835,6 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 	if (0 < g_iJockeyTarget[iClient] <= MaxClients || GetEntityFlags(iClient) & FL_ONGROUND || !IsValidLivingSurvivor(iToucher))
 		return;
 	
-	//Jockey must be looking at toucher
-	if (GetClientPointVisible(iClient, 200.0) != iToucher)
-		return;
-	
 	//Jockey must be higher enough than survivor to pounce it
 	float vecJockeyEye[3], vecTargetEye[3];
 	GetClientEyePosition(iClient, vecJockeyEye);
