@@ -382,6 +382,27 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 	}
 }
 
+public Action Infected_OnChargerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
+{
+	if (nAnim == PLAYERANIMEVENT_SPAWN)
+	{
+		ViewModel_SetDefaultAnimation(iClient, "b_idle");
+		ViewModel_SetAnimation(iClient, "b_draw");
+	}
+	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
+	{
+		switch (GetRandomInt(1, 2))
+		{
+			case 1: ViewModel_SetAnimation(iClient, "b_swing_a");
+			case 2: ViewModel_SetAnimation(iClient, "b_swing_b");
+		}
+		
+		return Plugin_Changed;
+	}
+	
+	return Plugin_Continue;
+}
+
 ////////////////
 // Screamer
 ////////////////
@@ -683,12 +704,29 @@ public Action Infected_OnSmokerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &
 public void Infected_DoSpitterGas(int iClient)
 {
 	SDKCall_PlaySpecificSequence(iClient, "spitter_spitting");
+	ViewModel_SetAnimation(iClient, "spit");
+	
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
 	CreateTimer(2.0, Infected_SpitterTimer, GetClientSerial(iClient));
 	
 	int iGas = TF2_GetItemInSlot(iClient, WeaponSlot_Secondary);
 	if (iGas > MaxClients)
 		SDKCall_TossJarThink(iGas);
+}
+
+public Action Infected_OnSpitterAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
+{
+	if (nAnim == PLAYERANIMEVENT_SPAWN)
+	{
+		ViewModel_SetDefaultAnimation(iClient, "fa_idle");
+		ViewModel_SetAnimation(iClient, "fa_draw");
+	}
+	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
+	{
+		ViewModel_SetAnimation(iClient, "fa_swing_a");
+	}
+	
+	return Plugin_Continue;
 }
 
 public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
@@ -741,6 +779,7 @@ public void Infected_DoJockeyJump(int iClient)
 	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 	SDKCall_PlaySpecificSequence(iClient, "Pounce");
+	ViewModel_SetAnimation(iClient, "lunge");
 }
 
 public void Infected_OnJockeyThink(int iClient, int &iButtons)
@@ -814,4 +853,19 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
 	SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 2);
 	SDKCall_PlaySpecificSequence(iClient, "jockey_ride");
+}
+
+public Action Infected_OnJockeyAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
+{
+	if (nAnim == PLAYERANIMEVENT_SPAWN)
+	{
+		ViewModel_SetDefaultAnimation(iClient, "s_idle");
+		ViewModel_SetAnimation(iClient, "s_draw");
+	}
+	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
+	{
+		ViewModel_SetAnimation(iClient, "s_swing_a");
+	}
+	
+	return Plugin_Continue;
 }
