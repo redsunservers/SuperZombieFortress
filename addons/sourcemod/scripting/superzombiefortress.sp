@@ -261,7 +261,7 @@ char g_strSoundCritHit[][128] =
 
 public Plugin myinfo =
 {
-	name = "Super Zombie Fortress",
+	name = "Left 4 Dead",
 	author = "42, Sasch, Benoist3012, Haxton Sale, Frosty Scales, MekuCube (original)",
 	description = "Originally based off MekuCube's 1.05 version.",
 	version = PLUGIN_VERSION ... "." ... PLUGIN_VERSION_REVISION,
@@ -304,7 +304,7 @@ public void OnPluginStart()
 {
 	//Add server tag.
 	AddServerTag("zf");
-	AddServerTag("szf");
+	AddServerTag("l4d");
 	
 	//Initialize global state
 	g_bFirstRound = true;
@@ -332,16 +332,16 @@ public void OnPluginStart()
 	//Register cvars
 	char sBuffer[32];
 	Format(sBuffer, sizeof(sBuffer), "%s.%s", PLUGIN_VERSION, PLUGIN_VERSION_REVISION);
-	CreateConVar("sm_szf_version", sBuffer, "Current Super Zombie Fortress Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
+	CreateConVar("sm_l4d_version", sBuffer, "Current Left 4 Dead Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 	
-	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Activate SZF for non-SZF maps.", _, true, 0.0, true, 1.0);
-	g_cvRatio = CreateConVar("sm_szf_ratio", "0.78", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
-	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "400", "Amount of health the Tank gets per alive survivor", _, true, 10.0);
-	g_cvTankHealthMin = CreateConVar("sm_szf_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with", _, true, 0.0);
-	g_cvTankHealthMax = CreateConVar("sm_szf_tank_health_max", "6000", "Maximum amount of health the Tank can spawn with", _, true, 0.0);
-	g_cvTankTime = CreateConVar("sm_szf_tank_time", "30.0", "Adjusts the damage the Tank takes per second. If the value is 70.0, the Tank will take damage that will make him die (if unhurt by survivors) after 70 seconds. 0 to disable.", _, true, 0.0);
-	g_cvFrenzyChance = CreateConVar("sm_szf_frenzy_chance", "0.0", "% Chance of a random frenzy", _, true, 0.0);
-	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy", _, true, 0.0);
+	g_cvForceOn = CreateConVar("sm_l4d_force_on", "1", "<0/1> Activate L4D for non-L4D maps.", _, true, 0.0, true, 1.0);
+	g_cvRatio = CreateConVar("sm_l4d_ratio", "0.78", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
+	g_cvTankHealth = CreateConVar("sm_l4d_tank_health", "400", "Amount of health the Tank gets per alive survivor", _, true, 10.0);
+	g_cvTankHealthMin = CreateConVar("sm_l4d_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with", _, true, 0.0);
+	g_cvTankHealthMax = CreateConVar("sm_l4d_tank_health_max", "6000", "Maximum amount of health the Tank can spawn with", _, true, 0.0);
+	g_cvTankTime = CreateConVar("sm_l4d_tank_time", "30.0", "Adjusts the damage the Tank takes per second. If the value is 70.0, the Tank will take damage that will make him die (if unhurt by survivors) after 70 seconds. 0 to disable.", _, true, 0.0);
+	g_cvFrenzyChance = CreateConVar("sm_l4d_frenzy_chance", "0.0", "% Chance of a random frenzy", _, true, 0.0);
+	g_cvFrenzyTankChance = CreateConVar("sm_l4d_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy", _, true, 0.0);
 	
 	//Hook events
 	HookEvent("teamplay_setup_finished", Event_SetupEnd);
@@ -370,7 +370,7 @@ public void OnPluginStart()
 
 	//Hook Client Chat / Console Commands
 	RegConsoleCmd("sm_zf", Command_MainMenu);
-	RegConsoleCmd("sm_szf", Command_MainMenu);
+	RegConsoleCmd("sm_l4d", Command_MainMenu);
 	RegConsoleCmd("sm_music", Command_MusicToggle);
 
 	RegAdminCmd("sm_tank", Admin_ZombieTank, ADMFLAG_CHANGEMAP, "(Try to) call a tank.");
@@ -381,7 +381,7 @@ public void OnPluginStart()
 	RegAdminCmd("sm_stalker", Admin_ForcePredator, ADMFLAG_CHANGEMAP, "Become a predator on next respawn.");
 	RegAdminCmd("sm_hunter", Admin_ForceHopper, ADMFLAG_CHANGEMAP, "Become a hunter on next respawn.");
 	RegAdminCmd("sm_smoker", Admin_ForceSmoker, ADMFLAG_CHANGEMAP, "Become a smoker on next respawn.");
-	RegAdminCmd("sm_szfreload", Admin_ReloadConfigs, ADMFLAG_RCON, "Reload SZF configs.");
+	RegAdminCmd("sm_l4dreload", Admin_ReloadConfigs, ADMFLAG_RCON, "Reload L4D configs.");
 	
 	AddNormalSoundHook(SoundHook);
 	
@@ -3038,7 +3038,7 @@ void ResetClientState(int iClient)
 public void PrintInfoChat(int iClient)
 {
 	char sMessage[256];
-	Format(sMessage, sizeof(sMessage), "{lightsalmon}Welcome to Super Zombie Fortress.\nYou can open the instruction menu using {limegreen}/szf{lightsalmon}.");
+	Format(sMessage, sizeof(sMessage), "{lightsalmon}Welcome to Left 4 Dead.\nYou can open the instruction menu using {limegreen}/szf{lightsalmon}.");
 	
 	if (iClient == 0)
 		CPrintToChatAll(sMessage);
@@ -3050,7 +3050,7 @@ public void PrintInfoChat(int iClient)
 public void Panel_PrintMain(int iClient)
 {
 	char sBuffer[64];
-	Format(sBuffer, sizeof(sBuffer), "Super Zombie Fortress - %s.%s", PLUGIN_VERSION, PLUGIN_VERSION_REVISION);
+	Format(sBuffer, sizeof(sBuffer), "Left 4 Dead - %s.%s", PLUGIN_VERSION, PLUGIN_VERSION_REVISION);
 	
 	Panel panel = new Panel();
 	panel.SetTitle(sBuffer);
@@ -5150,7 +5150,7 @@ stock void InitiateSurvivorTutorial(int iClient)
 	CreateDataTimer(1.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("Welcome to Super Zombie Fortress!");
+	data.WriteString("Welcome to Left 4 Dead!");
 	
 	CreateDataTimer(6.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
@@ -5196,7 +5196,7 @@ stock void InitiateZombieTutorial(int iClient)
 	CreateDataTimer(1.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
 	data.WriteFloat(5.0);
-	data.WriteString("Welcome to Super Zombie Fortress!");
+	data.WriteString("Welcome to Left 4 Dead!");
 	
 	CreateDataTimer(6.0, Timer_DisplayTutorialMessage, data);
 	data.WriteCell(iClient);
