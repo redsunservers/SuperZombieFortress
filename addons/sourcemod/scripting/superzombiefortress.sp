@@ -609,7 +609,7 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 		SDKHook_HookGasManager(iEntity);
 	else if (StrEqual(sClassname, "trigger_capture_area"))
 		SDKHook_HookCaptureArea(iEntity);
-	else if (StrEqual(sClassname, "tf_dropped_weapon"))
+	else if (StrEqual(sClassname, "tf_dropped_weapon") || StrEqual(sClassname, "item_powerup_rune"))	//Never allow dropped weapon and rune dropped from survivors
 		RemoveEntity(iEntity);
 }
 
