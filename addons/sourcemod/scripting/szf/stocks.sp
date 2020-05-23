@@ -680,21 +680,26 @@ stock bool TF2_WeaponFindAttribute(int iWeapon, int iAttrib, float &flVal)
 	if (addAttrib == Address_Null)
 	{
 		int iItemDefIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
-		int iAttributes[16];
-		float flAttribValues[16];
-
-		int iMaxAttrib = TF2Attrib_GetStaticAttribs(iItemDefIndex, iAttributes, flAttribValues);
-		for (int i = 0; i < iMaxAttrib; i++)
+		ArrayList attribs = TF2Econ_GetItemStaticAttributes(iItemDefIndex);
+		
+		int iLen = attribs.Length;
+		for (int i = 0; i < iLen; i++)
 		{
-			if (iAttributes[i] == iAttrib)
+			if (attribs.Get(i, 0) == iAttrib)
 			{
-				flVal = flAttribValues[i];
+				flVal = attribs.Get(i, 1);
+				
+				delete attribs;
 				return true;
 			}
 		}
+		
+		delete attribs;
 		return false;
 	}
+	
 	flVal = TF2Attrib_GetValue(addAttrib);
+	
 	return true;
 }
 
