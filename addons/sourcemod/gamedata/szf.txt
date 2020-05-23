@@ -50,7 +50,7 @@
 			{
 				"library"	"server"
 				"linux"		"@_ZN9CTFPlayer21TeamFortress_SetSpeedEv"
-				"windows"	"TODO"
+				"windows"	"\x55\x8B\xEC\xA1\x2A\x2A\x2A\x2A\x83\xEC\x1C\x53"
 			}
 		}
 		"Offsets"
