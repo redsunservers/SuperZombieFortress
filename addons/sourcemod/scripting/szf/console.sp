@@ -63,7 +63,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 			//...as survivor, don't let them.
 			if (nTeam == TFTeam_Survivor)
 			{
-				CPrintToChat(iClient, "{red}You can not switch to the opposing team during grace period.");
+				CPrintToChat(iClient, "%t", "JoinTeam_CantSwitchGrace", "{red}");
 				return Plugin_Handled;
 			}
 			
@@ -75,7 +75,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 					if (nTeam == TFTeam_Unassigned) //If they're unassigned, let them spectate for now.
 						TF2_ChangeClientTeam(iClient, TFTeam_Spectator);
 					
-					CPrintToChat(iClient, "{red}You will join the Infected team when grace period ends.");
+					CPrintToChat(iClient, "%t", "JoinTeam_WillJoinInfectedGrace", "{red}");
 					g_bWaitingForTeamSwitch[iClient] = true;
 				}
 				
@@ -89,7 +89,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 		{
 			if (nTeam <= TFTeam_Spectator && g_bWaitingForTeamSwitch[iClient])
 			{
-				CPrintToChat(iClient, "{green}You will no longer automatically join the Infected team when grace period ends.");
+				CPrintToChat(iClient, "%t", "JoinTeam_CancelGraceEnd", "{green}");
 				g_bWaitingForTeamSwitch[iClient] = false;
 			}
 			
@@ -113,7 +113,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 					if (nTeam == TFTeam_Unassigned) //If they're unassigned, let them spectate for now.
 						TF2_ChangeClientTeam(iClient, TFTeam_Spectator);
 					
-					CPrintToChat(iClient, "{red}Can not join the Survivor team at this time. You will join the Infected team when grace period ends.");
+					CPrintToChat(iClient, "%t", "JoinTeam_CantJoinSurvivorGrace", "{red}");
 					g_bWaitingForTeamSwitch[iClient] = true;
 				}
 			}
@@ -163,7 +163,10 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 	{
 		//Check if the player selected a valid zombie class
 		if (IsValidZombieClass(TF2_GetClass(sArg)))
+		{
+			Classes_SetClient(iClient, _, TF2_GetClass(sArg));
 			return Plugin_Continue;
+		}
 		
 		//It's invalid, then display which classes the player can choose
 		for (int i = 1; i < view_as<int>(TFClassType); i++)
@@ -179,21 +182,24 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 			}
 		}
 		
-		CPrintToChat(iClient, "{red}Valid zombies:%s.", sMsg);
+		CPrintToChat(iClient, "%t", "JoinClass_ValidZombies", "{red}", sMsg);
 		return Plugin_Continue;
 	}
 	else if (IsSurvivor(iClient))
 	{
 		//Prevent survivors from switching classes during the round.
-		if (g_nRoundState == SZFRoundState_Active)
+		if (g_nRoundState == SZFRoundState_Active && IsPlayerAlive(iClient))
 		{
-			CPrintToChat(iClient, "{red}Survivors can't change classes during a round.");
+			CPrintToChat(iClient, "%t", "JoinClass_SurvivorsCantChange", "{red}");
 			return Plugin_Handled;
 		}
 		
 		//Check if the player selected a valid survivor class
 		if (IsValidSurvivorClass(TF2_GetClass(sArg)))
+		{
+			Classes_SetClient(iClient, _, TF2_GetClass(sArg));
 			return Plugin_Continue;
+		}
 		
 		//It's invalid, then display which classes the player can choose
 		for (int i = 1; i < view_as<int>(TFClassType); i++)
@@ -209,7 +215,7 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 			}
 		}
 		
-		CPrintToChat(iClient, "{red}Valid survivors:%s.", sMsg);
+		CPrintToChat(iClient, "%t", "JoinClass_ValidSurvivors", "{red}", sMsg);
 		return Plugin_Continue;
 	}
 	
@@ -255,67 +261,28 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 				
 				//Broadcast to team
 				char sName[255];
-				char sMessage[255];
 				GetClientName2(iClient, sName, sizeof(sName));
 				
-				Format(sMessage, sizeof(sMessage), "(TEAM) %s\x01 : I have used my {limegreen}quick respawn into special infected\x01!", sName);
 				for (int i = 1; i <= MaxClients; i++)
 					if (IsValidClient(i) && GetClientTeam(i) == GetClientTeam(iClient))
-						CPrintToChatEx(i, iClient, sMessage);
+						CPrintToChatEx(i, iClient, "%t", "Infected_UsedQuickRespawn", sName, "\x01", "{limegreen}", "\x01");
 			}
 			else if (g_iRageTimer[iClient] == 0)
 			{
-				switch (g_nInfected[iClient])
+				Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Rage);
+				g_iRageTimer[iClient] = g_ClientClasses[iClient].iRageCooldown;
+				
+				if (g_ClientClasses[iClient].callback_rage != INVALID_FUNCTION)
 				{
-					case Infected_None:
-					{
-						g_iRageTimer[iClient] = 31;
-						DoGenericRage(iClient);
-						EmitSoundToAll(g_sVoZombieCommonRage[GetRandomInt(0, sizeof(g_sVoZombieCommonRage)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-					}
-					case Infected_Boomer:
-					{
-						if (g_nRoundState == SZFRoundState_Active)
-						{
-							DoBoomerExplosion(iClient, 600.0);
-							EmitSoundToAll(g_sVoZombieBoomerExplode[GetRandomInt(0, sizeof(g_sVoZombieBoomerExplode)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-						}
-					}
-					case Infected_Charger:
-					{
-						g_iRageTimer[iClient] = 16;
-						TF2_AddCondition(iClient, TFCond_Charging, 1.65);
-						
-						//Can sometimes charge for 0.1 sec, add push force
-						float vecVel[3], vecAngles[3];
-						GetClientEyeAngles(iClient, vecAngles);
-						vecVel[0] = 450.0 * Cosine(DegToRad(vecAngles[1]));
-						vecVel[1] = 450.0 * Sine(DegToRad(vecAngles[1]));
-						TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVel);
-						
-						EmitSoundToAll(g_sVoZombieChargerCharge[GetRandomInt(0, sizeof(g_sVoZombieChargerCharge)-1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-					}
-					case Infected_Kingpin:
-					{
-						g_iRageTimer[iClient] = 21;
-						DoKingpinRage(iClient, 600.0);
-						
-						char sPath[64];
-						Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(15, 16));
-						EmitSoundToAll(sPath, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-					}
-					case Infected_Hunter:
-					{
-						g_iRageTimer[iClient] = 3;
-						DoHunterJump(iClient);
-						EmitSoundToAll(g_sVoZombieHunterLeap[GetRandomInt(0, sizeof(g_sVoZombieHunterLeap) - 1)], iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
-					}
+					Call_StartFunction(null, g_ClientClasses[iClient].callback_rage);
+					Call_PushCell(iClient);
+					Call_Finish();
 				}
 			}
 			else
 			{
 				ClientCommand(iClient, "voicemenu 2 5");
-				PrintHintText(iClient, "Can't Activate Rage!");
+				PrintHintText(iClient, "%t", "Infected_CantUseRage");
 			}
 			
 			return Plugin_Handled;
@@ -334,10 +301,6 @@ public Action Console_Build(int iClient, const char[] sCommand, int iArgs)
 	char sObjectType[32];
 	GetCmdArg(1, sObjectType, sizeof(sObjectType));
 	TFObjectType nObjectType = view_as<TFObjectType>(StringToInt(sObjectType));
-	
-	//if not a sentry and is a zombie, then block building
-	if (IsZombie(iClient) && nObjectType != TFObject_Sentry)
-		return Plugin_Handled;
 	
 	//if not sentry or dispenser, then block building
 	if (nObjectType != TFObject_Dispenser && nObjectType != TFObject_Sentry)

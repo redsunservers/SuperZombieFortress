@@ -4,12 +4,6 @@
 	{
 		"Signatures"
 		{
-			"CTFPlayer::GetMaxAmmo"
-			{
-				"library"	"server"
-				"linux"		"@_ZN9CTFPlayer10GetMaxAmmoEii"
-				"windows"	"\x55\x8B\xEC\x8B\x45\x0C\x56\x57\x8B\xF9\x83\xF8\xFF\x75\x2A\xFF\xB7\x2A\x2A\x2A\x2A\xEB\x01\x50\xE8"
-			}
 			"CTFPlayer::GetEquippedWearableForLoadoutSlot"
 			{
 				"library"	"server"
@@ -22,11 +16,41 @@
 				"linux"		"@_ZN9CTFPlayer20PlaySpecificSequenceEPKc"
 				"windows"	"\x55\x8B\xEC\x83\xEC\x30\x53\x56\x8B\x75\x08\x57\x56\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x8B\xD8\x83\xFB\xFF\x74\x2A\x8B\x35\x2A\x2A\x2A\x2A\x8B\xCE\x8B\x16\xFF\x52\x2A\x8B\x8F\x2A\x2A\x2A\x2A\x53\x6A\x13\x8B\x01\xFF\x50"
 			}
+			"CTFPlayer::DoAnimationEvent"
+			{
+				"library"	"server"
+				"linux"		"@_ZN9CTFPlayer16DoAnimationEventE17PlayerAnimEvent_ti"
+				"windows"	"\x55\x8B\xEC\x51\x53\x56\x8B\x35\x2A\x2A\x2A\x2A\x8B\xD9\x8B\xCE"
+			}
+			"CTFPlayerShared::DetermineDisguiseWeapon"
+			{
+				"library"	"server"
+				"linux"		"@_ZN15CTFPlayerShared23DetermineDisguiseWeaponEb"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x1C\x53\x8B\xD9\x56\x33\xF6"
+			}
 			"CGameUI::Deactivate"
 			{
 				"library"	"server"
 				"linux"		"@_ZN7CGameUI10DeactivateEP11CBaseEntity"
 				"windows"	"\x55\x8B\xEC\x51\x53\x56\x57\x8B\x2A\x8B\x97"
+			}
+			"CTFPlayer::GetLoadoutItem"
+			{
+				"library"	"server"
+				"linux"		"@_ZN9CTFPlayer14GetLoadoutItemEiib"
+				"windows"	"\x55\x8B\xEC\x51\x53\x56\x8B\xF1\x8B\x0D\x2A\x2A\x2A\x2A\x57\x89\x75\xFC"
+			}
+			"CTFPlayer::TeamFortress_CalculateMaxSpeed"
+			{
+				"library"	"server"
+				"linux"		"@_ZNK9CTFPlayer30TeamFortress_CalculateMaxSpeedEb"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x18\x83\x3D\x2A\x2A\x2A\x2A\x00\x56\x8B\xF1\x75\x2A\xD9\xEE\x5E\x8B\xE5\x5D\xC2\x04\x00\x8B\x86"
+			}
+			"CTFPlayer::TeamFortress_SetSpeed"
+			{
+				"library"	"server"
+				"linux"		"@_ZN9CTFPlayer21TeamFortress_SetSpeedEv"
+				"windows"	"TODO"
 			}
 		}
 		"Offsets"
@@ -46,9 +70,66 @@
 				"linux"		"482"
 				"windows"	"475"
 			}
+			"CTFJar::TossJarThink"
+			{
+				"linux"		"490"
+				"windows"	"483"
+			}
+			"CBaseEntity::GetBaseEntity"
+			{
+				"windows" 	"5"
+				"linux" 	"6"
+			}
+			"CBaseEntity::GetDefaultItemChargeMeterValue"
+			{
+				"linux"		"191"
+				"windows"	"190"
+			}
+			"CEconItemView::m_iItemDefinitionIndex"
+			{
+				"linux"		"4"
+				"windows"	"4"
+			}
+			"CTFPlayerShared::m_pOuter"
+			{
+				"linux"		"400"
+				"windows"	"400"
+			}
 		}
 		"Functions"
 		{
+			"CTFPlayer::DoAnimationEvent"
+			{
+				"signature"	"CTFPlayer::DoAnimationEvent"
+				"callconv"	"thiscall"
+				"return"	"void"
+				"this"		"entity"
+				"arguments"
+				{
+					"event"
+					{
+						"type"	"int"
+					}
+					"nData"
+					{
+						"type"	"int"
+					}
+				}
+			}
+			"CTFPlayerShared::DetermineDisguiseWeapon"
+			{
+				"signature"	"CTFPlayerShared::DetermineDisguiseWeapon"
+				"callconv"	"thiscall"
+				"return"	"void"
+				"this"		"address"
+				"arguments"
+				{
+					"bForcePrimary"
+					{
+						"type"	"bool"
+					}
+				}
+			}
 			"CGameUI::Deactivate"
 			{
 				"signature"	"CGameUI::Deactivate"
@@ -59,7 +140,21 @@
 				{
 					"pActivator"
 					{
-						"type"	"cbaseentity"
+						"type"	"int"
+					}
+				}
+			}
+			"CTFPlayer::TeamFortress_CalculateMaxSpeed"
+			{
+				"signature"	"CTFPlayer::TeamFortress_CalculateMaxSpeed"
+				"callconv"	"thiscall"
+				"return"	"float"
+				"this"		"address"
+				"arguments"
+				{
+					"bIgnoreSpecialAbility"
+					{
+						"type"	"bool"
 					}
 				}
 			}
