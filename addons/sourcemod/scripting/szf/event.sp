@@ -410,7 +410,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 					iMorale = 100;
 				
 				float flPercentage = (float(GetZombieCount()) / (float(GetZombieCount()) + float(GetSurvivorCount())));
-				float iBase;
+				float flBase;
 				float flMultiplier;
 				
 				//Get the starting morale adds (Tank is calculated in a different way)
@@ -418,11 +418,11 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				{
 					if (i == 0)	//Main killer
 					{
-						iBase = float(g_ClientClasses[iVictim].iMoraleValue);
+						flBase = g_ClientClasses[iVictim].flMoraleValue;
 					}
 					else	//Assist kill
 					{
-						iBase = float(g_ClientClasses[iVictim].iMoraleValue) * 0.66;
+						flBase = g_ClientClasses[iVictim].flMoraleValue * 0.66;
 					}
 				}
 				
@@ -437,8 +437,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				flMultiplier = (1.0 - (float(iMorale) / 100.0)) * (flPercentage * 2.0);
 				
 				//Multiply base morale by multiplier
-				iBase = iBase * flMultiplier;
-				AddMorale(iKillers[i], RoundToNearest(iBase));
+				flBase = flBase * flMultiplier;
+				AddMorale(iKillers[i], RoundToNearest(flBase));
 				
 				//+ Each kill grants a small health bonus and increases current crit bonus.
 				int iHealth = GetClientHealth(iKillers[i]);
