@@ -258,6 +258,7 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	classes.flHorde = kv.GetFloat("horde", classes.flHorde);
 	classes.flMaxSpree = kv.GetFloat("maxspree", classes.flMaxSpree);
 	classes.flMaxHorde = kv.GetFloat("maxhorde", classes.flMaxHorde);
+	classes.flMoraleValue = kv.GetFloat("moralevalue", classes.flMoraleValue);
 	classes.bGlow = !!kv.GetNum("glow", classes.bGlow);
 	classes.bThirdperson = !!kv.GetNum("thirdperson", classes.bThirdperson);
 	

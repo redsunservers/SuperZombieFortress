@@ -28,6 +28,7 @@ public void Infected_DoNoRage(int iClient)
 static Handle g_hTimerTank[TF_MAXPLAYERS];
 static float g_flTankLifetime[TF_MAXPLAYERS];
 static int g_iTankHealthSubtract[TF_MAXPLAYERS];
+static float g_flTankMoralePool[TF_MAXPLAYERS];
 
 public void Infected_OnTankSpawn(int iClient)
 {
@@ -42,6 +43,9 @@ public void Infected_OnTankSpawn(int iClient)
 	
 	g_iMaxHealth[iClient] = iHealth;
 	SetEntityHealth(iClient, iHealth);
+	
+	//Set the Morale reward pool for killing the tank
+	g_flTankMoralePool[iClient] = g_ClientClasses[iClient].flMoraleValue * float(iSurvivors + 2);
 	
 	int iSubtract = 0;
 	if (g_cvTankTime.FloatValue > 0.0)
@@ -188,7 +192,9 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 				iWinner = i;
 			}
 			
-			AddMorale(i, 20);
+			//Give Morale from the pool according to the percentage of damage dealth
+			float ratio = g_flDamageDealtAgainstTank[i] / float(g_iMaxHealth[i]);
+			AddMorale(i, 10 + RoundToNearest(ratio * g_flTankMoralePool[iVictim]));
 		}
 	}
 	

@@ -184,6 +184,7 @@ enum struct ClientClasses
 	float flHorde;
 	float flMaxSpree;
 	float flMaxHorde;
+	float flMoraleValue;
 	bool bGlow;
 	bool bThirdperson;
 	int iColor[4];

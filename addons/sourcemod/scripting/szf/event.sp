@@ -279,8 +279,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	g_bShouldBacteriaPlay[iVictim] = true;
 	g_bReplaceRageWithSpecialInfectedSpawn[iVictim] = false;
 	
-	Infected g_nInfectedIndex = g_nInfected[iVictim];
-	
 	//Handle zombie death logic, all round states.
 	if (IsValidZombie(iVictim))
 	{
@@ -412,23 +410,20 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 					iMorale = 100;
 				
 				float flPercentage = (float(GetZombieCount()) / (float(GetZombieCount()) + float(GetSurvivorCount())));
-				int iBase;
+				float flBase;
 				float flMultiplier;
 				
-				//Roll to get starting morale adds
-				if (i == 0)	//Main killer
+				//Get the starting morale adds (Tank is calculated in a different way)
+				if(g_nInfected[iVictim] != Infected_Tank)
 				{
-					if (g_nInfectedIndex == Infected_None)
-						iBase = GetRandomInt(6, 9);
-					else
-						iBase = GetRandomInt(10, 13);
-				}
-				else	//Assist kill
-				{
-					if (g_nInfectedIndex == Infected_None)
-						iBase = GetRandomInt(2, 5);
-					else
-						iBase = GetRandomInt(6, 9);
+					if (i == 0)	//Main killer
+					{
+						flBase = g_ClientClasses[iVictim].flMoraleValue;
+					}
+					else	//Assist kill
+					{
+						flBase = g_ClientClasses[iVictim].flMoraleValue * 0.66;
+					}
 				}
 				
 				//  0 morale   0% zombies -> 1.0
@@ -441,9 +436,9 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 				//100 morale 100% zombies -> 0.0
 				flMultiplier = (1.0 - (float(iMorale) / 100.0)) * (flPercentage * 2.0);
 				
-				//Multiply base roll by multiplier
-				iBase = RoundToNearest(float(iBase) * flMultiplier);
-				AddMorale(iKillers[i], iBase);
+				//Multiply base morale by multiplier
+				flBase = flBase * flMultiplier;
+				AddMorale(iKillers[i], RoundToNearest(flBase));
 				
 				//+ Each kill grants a small health bonus and increases current crit bonus.
 				int iHealth = GetClientHealth(iKillers[i]);
