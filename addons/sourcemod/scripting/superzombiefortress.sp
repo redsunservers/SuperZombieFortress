@@ -431,11 +431,6 @@ public void OnPluginStart()
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
 	
-	if (GameRules_GetRoundState() < RoundState_Preround)
-		g_nRoundState = SZFRoundState_Setup;
-	else	//Plugin late-load while already midgame, skip setup time
-		g_nRoundState = SZFRoundState_Grace;
-	
 	AddNormalSoundHook(SoundHook);
 	
 	HookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
@@ -1527,6 +1522,11 @@ public void OnMapStart()
 	g_iSprite = PrecacheModel("materials/sprites/laser.vmt");
 	
 	DHook_HookGamerules();
+	
+	if (GameRules_GetRoundState() < RoundState_Preround)
+		g_nRoundState = SZFRoundState_Setup;
+	else	//Plugin late-load while already midgame, skip setup time
+		g_nRoundState = SZFRoundState_Grace;
 }
 
 public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, float flDelay)
