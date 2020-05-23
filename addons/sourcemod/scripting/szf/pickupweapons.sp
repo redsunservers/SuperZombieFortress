@@ -129,6 +129,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			}
 		}
 		
+		SetEntProp(iEntity, Prop_Send, "m_CollisionGroup", 2);
 		AcceptEntityInput(iEntity, "DisableShadow");
 		AcceptEntityInput(iEntity, "EnableCollision");
 		
