@@ -2427,6 +2427,12 @@ Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
 						if (iSlot <= WeaponSlot_Melee)
 							iAction = Plugin_Handled;
 					}
+					case TFClass_Sniper:
+					{
+						//Block all secondary weapons that are not wearables
+						if (StrContains(sClassname, "tf_wearable") == -1)
+							iAction = Plugin_Handled;
+					}
 					default:
 					{
 						//Block literally everything else
