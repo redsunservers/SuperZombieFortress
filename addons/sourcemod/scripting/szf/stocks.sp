@@ -25,8 +25,6 @@
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
 
-#define ATTRIB_VISION		406
-
 static char g_sClassFiles[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
 static int g_iVoodooIndex[view_as<int>(TFClassType)] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
 static int g_iZombieSoulIndex[view_as<int>(TFClassType)];
@@ -678,29 +676,31 @@ stock bool TF2_WeaponFindAttribute(int iWeapon, int iAttrib, float &flVal)
 {
 	Address addAttrib = TF2Attrib_GetByDefIndex(iWeapon, iAttrib);
 	if (addAttrib == Address_Null)
-	{
-		int iItemDefIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
-		ArrayList attribs = TF2Econ_GetItemStaticAttributes(iItemDefIndex);
-		
-		int iLen = attribs.Length;
-		for (int i = 0; i < iLen; i++)
-		{
-			if (attribs.Get(i, 0) == iAttrib)
-			{
-				flVal = attribs.Get(i, 1);
-				
-				delete attribs;
-				return true;
-			}
-		}
-		
-		delete attribs;
-		return false;
-	}
+		return TF2_DefIndexFindAttribute(GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex"), iAttrib, flVal);
 	
 	flVal = TF2Attrib_GetValue(addAttrib);
 	
 	return true;
+}
+
+stock bool TF2_DefIndexFindAttribute(int iDefIndex, int iAttrib, float &flVal)
+{
+	ArrayList attribs = TF2Econ_GetItemStaticAttributes(iDefIndex);
+	
+	int iLength = attribs.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		if (attribs.Get(i, 0) == iAttrib)
+		{
+			flVal = attribs.Get(i, 1);
+			
+			delete attribs;
+			return true;
+		}
+	}
+	
+	delete attribs;
+	return false;
 }
 
 stock void CheckClientWeapons(int iClient)

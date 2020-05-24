@@ -28,11 +28,23 @@
 #define BACKSTABDURATION_REDUCED	3.5
 #define STUNNED_DAMAGE_CAP			10.0
 
+#define ATTRIB_VISION		406
+
 // Also used in the item schema to define vision filter or vision mode opt in
 #define TF_VISION_FILTER_NONE		0
 #define TF_VISION_FILTER_PYRO		(1<<0)	// 1
 #define TF_VISION_FILTER_HALLOWEEN	(1<<1)	// 2
 #define TF_VISION_FILTER_ROME		(1<<2)	// 4
+
+enum
+{
+	VISION_MODE_NONE = 0,
+	VISION_MODE_PYRO,
+	VISION_MODE_HALLOWEEN,
+	VISION_MODE_ROME,
+
+	MAX_VISION_MODES
+};
 
 // entity effects
 enum
@@ -1878,7 +1890,8 @@ void HandleZombieLoadout(int iClient)
 	if (iMelee > MaxClients)
 	{
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
-		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);
+		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);	//Allow see Voodoo souls
+		AddWeaponVision(iMelee, TF_VISION_FILTER_ROME);			//Allow see spy's custom model disguise detour fix
 	}
 }
 
@@ -2377,6 +2390,8 @@ Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
 	Action iAction = Plugin_Continue;
 	if (iTeam == TFTeam_Survivor)
 	{
+		float flVal;
+		
 		if (iSlot < WeaponSlot_Melee)
 		{
 			iAction = Plugin_Handled;
@@ -2384,6 +2399,11 @@ Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
 		else if (GetClassVoodooItemDefIndex(iClass) == iIndex)
 		{
 			//Survivors are not zombies
+			iAction = Plugin_Handled;
+		}
+		else if (TF2_DefIndexFindAttribute(iIndex, ATTRIB_VISION, flVal) && RoundToNearest(flVal) & TF_VISION_FILTER_ROME)
+		{
+			//Rome vision is used for zombie custom model disguise detour fix, dont give vision to survivor
 			iAction = Plugin_Handled;
 		}
 	}
