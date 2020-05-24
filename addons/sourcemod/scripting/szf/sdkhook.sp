@@ -226,12 +226,22 @@ public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
 public void Pickup_SpawnPost(int iEntity)
 {
 	int iOwner = GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity");
-	if (iOwner == -1 || IsValidSurvivor(iOwner) || (IsValidClient(iOwner) && GetClientHealth(iOwner) <= 0))
+	
+	TFTeam nTeam = TFTeam_Unassigned;
+	if (iOwner != -1)
+		nTeam = view_as<TFTeam>(GetEntProp(iOwner, Prop_Send, "m_iTeamNum"));
+	
+	if (nTeam == TFTeam_Zombie && IsClassname(iEntity, "tf_ammo_pack"))
+	{
+		//Remove ammo pack from zombie death and zombie's building destroyed
+		RemoveEntity(iEntity);
+	}
+	else if (iOwner == -1 || nTeam == TFTeam_Survivor || (IsValidClient(iOwner) && GetClientHealth(iOwner) <= 0))
 	{
 		//Pickup came from map, or created by survivor (sandvich), or owner just died (candy cane). Disallow zombie able to pickup
 		SDKHook(iEntity, SDKHook_Touch, Pickup_BlockZombieTouch);
 	}
-	else if (IsValidZombie(iOwner))
+	else if (nTeam == TFTeam_Zombie)
 	{
 		if (IsClassname(iEntity, "item_healthkit_medium"))	//Lunchbox sandvich
 		{

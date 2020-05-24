@@ -311,12 +311,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_nNextInfected[iVictim] = Infected_None;
 		}
 		
-		//Remove dropped ammopacks from zombies.
-		int iEntity = -1;
-		while ((iEntity = FindEntityByClassname(iEntity, "tf_ammo_pack")) != -1)
-			if (GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iVictim)
-				RemoveEntity(iEntity);
-		
 		//Destroy buildings from zombies
 		int iBuilding = -1;
 		while ((iBuilding = FindEntityByClassname(iBuilding, "obj_*")) != -1)
