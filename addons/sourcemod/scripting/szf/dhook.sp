@@ -125,6 +125,7 @@ public MRESReturn DHook_DetermineDisguiseWeaponPre(Address pPlayerShared, Handle
 	int iTarget = GetEntProp(iClient, Prop_Send, "m_iDisguiseTargetIndex");
 	if (0 < iTarget <= MaxClients && IsSurvivor(iClient))
 	{
+		//Set class and team to whoever target is, so voodoo souls and zombie weapons is shown
 		SetEntProp(iClient, Prop_Send, "m_nDisguiseClass", TF2_GetPlayerClass(iTarget));
 		SetEntProp(iClient, Prop_Send, "m_nDisguiseTeam", TF2_GetClientTeam(iTarget));
 		
