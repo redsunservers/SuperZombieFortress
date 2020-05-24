@@ -197,13 +197,15 @@ stock void AddWeaponVision(int iWeapon, int iFlag)
 
 stock void PrecacheSound2(const char[] sSoundPath)
 {
-	if (!sSoundPath[0])
-		return;
+	char sBuffer[PLATFORM_MAX_PATH];
+	strcopy(sBuffer, sizeof(sBuffer), sSoundPath);
+	PrecacheSound(sBuffer, true);
 	
-	PrecacheSound(sSoundPath, true);
-	char s[PLATFORM_MAX_PATH];
-	Format(s, sizeof(s), "sound/%s", sSoundPath);
-	AddFileToDownloadsTable(s);
+	if (sBuffer[0] == '#')
+		strcopy(sBuffer, sizeof(sBuffer), sBuffer[1]);	//Remove '#' from start of string
+	
+	Format(sBuffer, sizeof(sBuffer), "sound/%s", sBuffer);
+	AddFileToDownloadsTable(sBuffer);
 }
 
 ////////////////

@@ -241,7 +241,7 @@ void Sound_PlayMusic(int[] iClients, int iCount, const char[] sName, float flDur
 		Sound_EndMusic(iClient);
 		
 		//Play sound to client
-		EmitSoundToClient(iClient, filepath.sFilepath);
+		EmitSoundToClient(iClient, filepath.sFilepath, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
 		
 		//Set sound global variables as that sound
 		g_SoundFilepath[iClient] = filepath;
@@ -274,7 +274,7 @@ void Sound_EndMusic(int iClient)
 	
 	//End whatever current music from g_sSound to all clients
 	if (IsClientInGame(iClient))
-		StopSound(iClient, SNDCHAN_AUTO, g_SoundFilepath[iClient].sFilepath);
+		StopSound(iClient, SNDCHAN_STATIC, g_SoundFilepath[iClient].sFilepath);
 	
 	//Reset global variables
 	SoundFilepath filepath;
