@@ -66,7 +66,7 @@ public Action ViewModel_SetTransmit(int iViewModel, int iClient)
 	if (!IsValidClient(iOwner) || !IsPlayerAlive(iClient) || iViewModel != EntRefToEntIndex(g_iViewModelRef[iOwner]))
 	{
 		//Viewmodel entity no longer valid
-		ViewModel_Destroy(iViewModel);
+		ViewModel_Destroy(iOwner);
 		return Plugin_Handled;
 	}
 	
