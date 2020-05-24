@@ -10,8 +10,6 @@ enum struct SoundMusic
 {
 	char sName[64];
 	int iPriority;
-	bool bMusic;
-	bool bLoop;
 	ArrayList aSounds;
 	
 	void PushSound(const char[] sFilepath, float flDuration)

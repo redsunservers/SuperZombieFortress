@@ -415,9 +415,6 @@ StringMap Config_LoadMusic(KeyValues kv)
 			}
 			
 			music.iPriority = kv.GetNum("priority", 0);
-			music.bMusic = !!kv.GetNum("music", false);
-			music.bLoop = !!kv.GetNum("loop", false);
-			
 			mMusics.SetArray(music.sName, music, sizeof(music));
 			
 		}
