@@ -94,13 +94,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		{
 			Sound_Attack(iVictim, iAttacker);
 			
-			TFClassType nVictimClass = TF2_GetPlayerClass(iVictim);
-			if (nVictimClass == TFClass_Scout || nVictimClass == TFClass_Sniper || nVictimClass == TFClass_Spy)
-			{
-				flDamage *= 0.825;
-				bChanged = true;
-			}
-			
 			if (TF2_IsPlayerInCondition(iAttacker, TFCond_CritCola)
 				|| TF2_IsPlayerInCondition(iAttacker, TFCond_Buffed)
 				|| TF2_IsPlayerInCondition(iAttacker, TFCond_CritHype))
@@ -221,9 +214,9 @@ public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
 		return Plugin_Changed;
 	}
 	
-	if (g_ClientClasses[iClient].iHealth > 0)
+	if (g_ClientClasses[iClient].iHealth != 0)
 	{
-		iMaxHealth = g_ClientClasses[iClient].iHealth;
+		iMaxHealth += g_ClientClasses[iClient].iHealth;
 		return Plugin_Changed;
 	}
 	
