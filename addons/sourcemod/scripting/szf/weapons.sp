@@ -1,33 +1,54 @@
 typedef Weapon_OnPickup = function bool (int client); //Return false to prevent client from picking up the item.
 
 static ArrayList g_Weapons;
-static ArrayList g_WepIndexesByRarity[view_as<int>(eWeaponsRarity)]; //Array indexes of g_Weapons array
+static ArrayList g_WepIndexesByRarity[view_as<int>(WeaponRarity)]; //Array indexes of g_Weapons array
 static StringMap g_WeaponsReskin;
 
 enum struct Weapon
 {
 	int iIndex;
-	eWeaponsRarity nRarity;
+	WeaponRarity nRarity;
 	char sModel[PLATFORM_MAX_PATH];
+	int iSkin;
 	char sSound[PLATFORM_MAX_PATH];
 	char sText[256];
 	char sAttribs[256];
+	ArrayList aClassSpecific[view_as<int>(TFClassType)];
 	int iColor[3];
-	float vecOrigin[3];
-	float vecAngles[3];
+	float flHeightOffset;
+	float vecAnglesOffset[3];
+	float vecAnglesConst[3];
+	bool bAnglesConst[3];
 	Weapon_OnPickup callback;
 }
 
 void Weapons_Refresh()
 {
-	delete g_Weapons;
+	if (g_Weapons)
+	{
+		int iLength = g_Weapons.Length;
+		for (int i = 0; i < iLength; i++)
+		{
+			Weapon wep;
+			g_Weapons.GetArray(i, wep);
+			
+			for (TFClassType iClass; iClass < TFClassType; iClass++)
+				delete wep.aClassSpecific[iClass];
+		}
+		
+		delete g_Weapons;
+	}
+	
 	delete g_WeaponsReskin;
+	
+	for (int i = 0; i < sizeof(g_WepIndexesByRarity); i++)
+		delete g_WepIndexesByRarity[i];
 	
 	g_Weapons = Config_LoadWeaponData();
 	g_WeaponsReskin = Config_LoadWeaponReskinData();
 	
 	int iLength = g_Weapons.Length;
-	for (int i = 0; i < view_as<int>(eWeaponsRarity); i++)
+	for (int i = 0; i < view_as<int>(WeaponRarity); i++)
 	{
 		g_WepIndexesByRarity[i] = new ArrayList();
 		
@@ -36,7 +57,7 @@ void Weapons_Refresh()
 			Weapon wep;
 			g_Weapons.GetArray(j, wep);
 			
-			if (wep.nRarity == view_as<eWeaponsRarity>(i))
+			if (wep.nRarity == view_as<WeaponRarity>(i))
 				g_WepIndexesByRarity[i].Push(j);
 		}
 	}
@@ -62,15 +83,19 @@ void Weapons_Precache()
 	PrecacheSound("ui/item_heavy_gun_drop.wav");
 }
 
-bool GetWeaponFromModel(Weapon buffer, char[] sModel)
+bool GetWeaponFromEntity(Weapon buffer, int iEntity)
 {
+	char sModel[PLATFORM_MAX_PATH];
+	GetEntityModel(iEntity, sModel, sizeof(sModel));
+	int iSkin = GetEntProp(iEntity, Prop_Send, "m_nSkin");
+	
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++) 
 	{
 		Weapon wep;
 		g_Weapons.GetArray(i, wep);
 		
-		if (StrEqual(sModel, wep.sModel))
+		if (StrEqual(sModel, wep.sModel) && iSkin == wep.iSkin)
 		{
 			buffer = wep;
 			return true;
@@ -96,7 +121,7 @@ void GetWeaponFromIndex(Weapon buffer, int iIndex)
 	}
 }
 
-ArrayList GetAllWeaponsWithRarity(eWeaponsRarity iRarity)
+ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity)
 {
 	ArrayList aList = new ArrayList(sizeof(Weapon));
 	
@@ -112,7 +137,7 @@ ArrayList GetAllWeaponsWithRarity(eWeaponsRarity iRarity)
 	return aList;
 }
 
-int GetRarityWeaponCount(eWeaponsRarity iRarity)
+int GetRarityWeaponCount(WeaponRarity iRarity)
 {
 	return g_WepIndexesByRarity[iRarity].Length;
 }
@@ -120,10 +145,10 @@ int GetRarityWeaponCount(eWeaponsRarity iRarity)
 int GetReskinIndex(char[] sModel)
 {
 	int iIndex = -1;
-	if (g_WeaponsReskin.GetValue(sModel, iIndex))
-		return iIndex;
 	
-	return -1;
+	g_WeaponsReskin.GetValue(sModel, iIndex);
+	
+	return iIndex;
 }
 
 void Weapons_ReplaceEntityModel(int iEnt, int iIndex)

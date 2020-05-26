@@ -3,12 +3,12 @@
 #endif
 #define _superzombiefortress_included
 
-enum eWeaponsRarity
+enum WeaponRarity
 {
-	eWeaponsRarity_Common,
-	eWeaponsRarity_Uncommon,
-	eWeaponsRarity_Rare,
-	eWeaponsRarity_Pickup,
+	WeaponRarity_Common,
+	WeaponRarity_Uncommon,
+	WeaponRarity_Rare,
+	WeaponRarity_Pickup,
 };
 
 /**
@@ -90,7 +90,7 @@ forward void SZF_OnBoomerExplode(int iBoomer, int iClients[MAXPLAYERS], int iLen
  * @param	rarity		Rarity of the weapon
  * @noreturn
  */
-forward void SZF_OnWeaponPickup(int iClient, int iWeapon, eWeaponsRarity rarity);
+forward void SZF_OnWeaponPickup(int iClient, int iWeapon, WeaponRarity rarity);
 
 /**
  * Forward called when survivor called a rare weapon

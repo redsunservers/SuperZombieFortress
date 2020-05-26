@@ -1,22 +1,28 @@
-static Handle g_hDHookGetMaxHealth;
 static Handle g_hDHookSetWinningTeam;
 static Handle g_hDHookRoundRespawn;
 static Handle g_hDHookGiveNamedItem;
 
+static int g_iOffsetItemDefinitionIndex;
+static int g_iOffsetOuter;
+
+static int g_iDHookCalculateMaxSpeedClient;
+
 static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
-void DHook_Init(GameData hSDKHooks, GameData hSZF)
+void DHook_Init(GameData hSZF)
 {
-	int iOffset = hSDKHooks.GetOffset("GetMaxHealth");
-	g_hDHookGetMaxHealth = DHookCreate(iOffset, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity);
-	if (g_hDHookGetMaxHealth == null)
-		LogMessage("Failed to create hook: CTFPlayer::GetMaxHealth");
+	DHook_CreateDetour(hSZF, "CTFPlayer::DoAnimationEvent", DHook_DoAnimationEventPre, _);
+	DHook_CreateDetour(hSZF, "CTFPlayerShared::DetermineDisguiseWeapon", DHook_DetermineDisguiseWeaponPre, _);
 	
 	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
+	DHook_CreateDetour(hSZF, "CTFPlayer::TeamFortress_CalculateMaxSpeed", DHook_CalculateMaxSpeedPre, DHook_CalculateMaxSpeedPost);
 	
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
 	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
+	
+	g_iOffsetItemDefinitionIndex = hSZF.GetOffset("CEconItemView::m_iItemDefinitionIndex");
+	g_iOffsetOuter = hSZF.GetOffset("CTFPlayerShared::m_pOuter");
 }
 
 static void DHook_CreateDetour(GameData gamedata, const char[] name, DHookCallback preCallback = INVALID_FUNCTION, DHookCallback postCallback = INVALID_FUNCTION)
@@ -73,18 +79,66 @@ bool DHook_IsGiveNamedItemActive()
 	return false;
 }
 
-void DHook_HookClient(int iClient)
-{
-	DHookEntity(g_hDHookGetMaxHealth, false, iClient, _, DHook_GetMaxHealthPre);
-}
-
 void DHook_HookGamerules()
 {
 	DHookGamerules(g_hDHookSetWinningTeam, false, _, DHook_SetWinningTeamPre);
 	DHookGamerules(g_hDHookRoundRespawn, false, _, DHook_RoundRespawnPre);
 }
 
-public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
+public MRESReturn DHook_DoAnimationEventPre(int iClient, Handle hParams)
+{
+	if (g_ClientClasses[iClient].callback_anim != INVALID_FUNCTION)
+	{
+		PlayerAnimEvent_t nAnim = DHookGetParam(hParams, 1);
+		int iData = DHookGetParam(hParams, 2);
+		
+		Call_StartFunction(null, g_ClientClasses[iClient].callback_anim);
+		Call_PushCell(iClient);
+		Call_PushCellRef(nAnim);
+		Call_PushCellRef(iData);
+		
+		Action action;
+		Call_Finish(action);
+		
+		if (action >= Plugin_Handled)
+			return MRES_Supercede;
+		
+		if (action == Plugin_Changed)
+		{
+			DHookSetParam(hParams, 1, nAnim);
+			DHookSetParam(hParams, 2, iData);
+			return MRES_ChangedOverride;
+		}
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHook_DetermineDisguiseWeaponPre(Address pPlayerShared, Handle hParams)
+{
+	if (!g_bEnabled)
+		return MRES_Ignored;
+	
+	Address pAddress = view_as<Address>(LoadFromAddress(pPlayerShared + view_as<Address>(g_iOffsetOuter), NumberType_Int32));
+	int iClient = SDKCall_GetBaseEntity(pAddress);
+	
+	int iTarget = GetEntProp(iClient, Prop_Send, "m_iDisguiseTargetIndex");
+	if (0 < iTarget <= MaxClients && IsSurvivor(iClient))
+	{
+		//Set class and team to whoever target is, so voodoo souls and zombie weapons is shown
+		SetEntProp(iClient, Prop_Send, "m_nDisguiseClass", TF2_GetPlayerClass(iTarget));
+		SetEntProp(iClient, Prop_Send, "m_nDisguiseTeam", TF2_GetClientTeam(iTarget));
+		
+		//Zombies have rome vision, set rome model override to whatever custom model
+		SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", GetEntProp(iTarget, Prop_Send, "m_nModelIndex"), _, VISION_MODE_ROME);
+	}
+	
+	//Never allow force primary
+	DHookSetParam(hParams, 1, false);
+	return MRES_ChangedOverride;
+}
+
+public MRESReturn DHook_DeactivatePre(int iThis, Handle hParams)
 {
 	if (!g_bEnabled)
 		return MRES_Ignored;
@@ -101,16 +155,90 @@ public MRESReturn Detour_CGameUI_Deactivate(int iThis, Handle hParams)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHook_DeactivatePre(int iClient, Handle hParams)
+public MRESReturn DHook_CalculateMaxSpeedPre(Address pAddress, Handle hReturn, Handle hParams)
 {
-	if (!g_bEnabled)
-		return MRES_Ignored;
+	g_iDHookCalculateMaxSpeedClient = SDKCall_GetBaseEntity(pAddress);
+}
+
+public MRESReturn DHook_CalculateMaxSpeedPost(Address pAddress, Handle hReturn, Handle hParams)
+{
+	int iClient = g_iDHookCalculateMaxSpeedClient;
+	float flSpeed = DHookGetReturn(hReturn);
 	
-	//Don't allow zombies drop ammo and dropped weapon
-	if (IsZombie(iClient))
-		return MRES_Supercede;
+	if (IsPlayerAlive(iClient))
+	{
+		//Handle speed bonuses.
+		if ((!TF2_IsPlayerInCondition(iClient, TFCond_Slowed) && !TF2_IsPlayerInCondition(iClient, TFCond_Dazed)) || g_bBackstabbed[iClient])
+		{
+			if (IsZombie(iClient))
+			{
+				if (g_nInfected[iClient] == Infected_None)
+				{
+					//Movement speed increase
+					flSpeed += fMin(g_ClientClasses[iClient].flMaxSpree, g_ClientClasses[iClient].flSpree * g_iZombiesKilledSpree) + fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
+					
+					if (g_bZombieRage)
+						flSpeed += 40.0; //Map-wide zombie enrage event
+					
+					if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
+						flSpeed += 20.0; //On fire
+					
+					if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
+						flSpeed += 20.0; //Screamer effect
+					
+					if (GetClientHealth(iClient) > SDKCall_GetMaxHealth(iClient))
+						flSpeed += 20.0; //Has overheal due to normal rage
+					
+					//Movement speed decrease
+					if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
+						flSpeed -= 30.0; //Jarate'd by sniper
+					
+					if (GetClientHealth(iClient) < 50)
+						flSpeed -= 50.0 - float(GetClientHealth(iClient)); //If under 50 health, tick away one speed per hp lost
+				}
+				else
+				{
+					switch (g_nInfected[iClient])
+					{
+						//Tank: movement speed bonus based on damage taken and ignite speed bonus
+						case Infected_Tank:
+						{
+							//Reduce speed when tank deals damage to survivors 
+							flSpeed -= fMin(70.0, (float(g_iDamageDealtLife[iClient]) / 10.0));
+							
+							//Reduce speed when tank takes damage from survivors 
+							flSpeed -= fMin(100.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
+							
+							if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
+								flSpeed += 40.0; //On fire
+							
+							if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
+								flSpeed -= 30.0; //Jarate'd by sniper
+						}
+						
+						//Cloaked: super speed if cloaked
+						case Infected_Stalker:
+						{
+							if (TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
+								flSpeed += 80.0;
+						}
+					}
+				}
+			}
+			else if (IsSurvivor(iClient))
+			{
+				//If under 50 health, tick away one speed per hp lost
+				if (GetClientHealth(iClient) < 50)
+					flSpeed -= 50.0 - float(GetClientHealth(iClient));
+				
+				if (g_bBackstabbed[iClient])
+					flSpeed *= 0.66;
+			}
+		}
+	}
 	
-	return MRES_Ignored;
+	DHookSetReturn(hReturn, flSpeed);
+	return MRES_Override;
 }
 
 public MRESReturn DHook_OnGiveNamedItemPre(int iClient, Handle hReturn, Handle hParams)
@@ -125,7 +253,7 @@ public MRESReturn DHook_OnGiveNamedItemPre(int iClient, Handle hReturn, Handle h
 	char sClassname[256];
 	DHookGetParamString(hParams, 1, sClassname, sizeof(sClassname));
 	
-	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, 4, ObjectValueType_Int) & 0xFFFF;
+	int iIndex = DHookGetParamObjectPtrVar(hParams, 3, g_iOffsetItemDefinitionIndex, ObjectValueType_Int) & 0xFFFF;
 	
 	Action iAction = OnGiveNamedItem(iClient, sClassname, iIndex);
 	
@@ -148,17 +276,6 @@ public void DHook_OnGiveNamedItemRemoved(int iHookId)
 			return;
 		}
 	}
-}
-
-public MRESReturn DHook_GetMaxHealthPre(int iClient, Handle hReturn)
-{
-	if (g_iMaxHealth[iClient] > 0)
-	{
-		DHookSetReturn(hReturn, g_iMaxHealth[iClient]);
-		return MRES_Supercede;
-	}
-	
-	return MRES_Ignored;
 }
 
 public MRESReturn DHook_SetWinningTeamPre(Handle hParams)
@@ -187,9 +304,7 @@ public MRESReturn DHook_RoundRespawnPre()
 		g_nInfected[iClient] = Infected_None;
 		g_nNextInfected[iClient] = Infected_None;
 		g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
-		g_iEyelanderHead[iClient] = 0;
 		g_iMaxHealth[iClient] = -1;
-		g_iSuperHealthSubtract[iClient] = 0;
 		g_flTimeStartAsZombie[iClient] = 0.0;
 	}
 	
@@ -199,11 +314,9 @@ public MRESReturn DHook_RoundRespawnPre()
 		g_iInfectedCooldown[i] = 0;
 	}
 	
-	g_iZombieTank = 0;
-	
 	g_nRoundState = SZFRoundState_Grace;
 	
-	CPrintToChatAll("{green}Grace period begun. Survivors can change classes.");
+	CPrintToChatAll("%t", "Grace_Start", "{green}");
 	
 	//Assign players to zombie and survivor teams.
 	if (g_bNewRound)
@@ -216,7 +329,7 @@ public MRESReturn DHook_RoundRespawnPre()
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 		{
 			g_iZombiesKilledSurvivor[iClient] = 0;
-			EndSound(iClient);
+			Sound_EndMusic(iClient);
 			
 			if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
 			{
@@ -256,7 +369,7 @@ public MRESReturn DHook_RoundRespawnPre()
 				else if (g_bForceZombieStart[iClient] && !g_bFirstRound)
 				{
 					//If they attempted to skip playing as zombie last time, force him to be in zombie team
-					CPrintToChat(iClient, "{red}You have been forcibly set to infected team due to attempting to skip playing as a infected.");
+					CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}");
 					g_bForceZombieStart[iClient] = false;
 					SetClientCookie(iClient, g_cForceZombieStart, "0");
 					
