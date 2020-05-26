@@ -56,6 +56,8 @@ public void Infected_OnTankSpawn(int iClient)
 	CPrintToChatAll("%t", "Tank_Spawn", "{red}");
 	Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
 	
+	g_iTanksSpawned++;
+	
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i))
@@ -85,7 +87,7 @@ public void Infected_OnTankSpawn(int iClient)
 	}
 	
 	Sound_PlayMusicToAll("tank");
-	FireRelay("FireUser1", "szf_zombietank", "szf_tank");
+	FireRelay("FireUser1", "szf_zombietank", "szf_tank", iClient);
 	Forward_OnTankSpawn(iClient);
 }
 
@@ -204,10 +206,21 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 		{
 			SetHudTextParams(-1.0, 0.3, 8.0, 200, 255, 200, 128, 1);
 			
-			for (int i = 1; i <= MaxClients; i++)
-				if (IsValidClient(i))
-					ShowHudText(i, 5, "%t", "Tank_Died", iVictim, iWinner, RoundFloat(flHighest));
+			if (g_iTanksSpawned > 1)
+			{
+				for (int i = 1; i <= MaxClients; i++)
+					if (IsValidClient(i))
+						ShowHudText(i, 5, "%t", "Tank_Multi_Died", g_iTanksSpawned, iWinner, RoundFloat(flHighest));
+			}
+			else
+			{
+				for (int i = 1; i <= MaxClients; i++)
+					if (IsValidClient(i))
+						ShowHudText(i, 5, "%t", "Tank_Died", iVictim, iWinner, RoundFloat(flHighest));
+			}
 		}
+		
+		g_iTanksSpawned = 0;
 		
 		if (g_iDamageDealtLife[iVictim] <= 50 && g_iDamageTakenLife[iVictim] <= 150 && !g_bTankRefreshed)
 		{
@@ -223,7 +236,7 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 		Forward_OnTankDeath(iVictim, 0, 0);
 	}
 	
-	FireRelay("FireUser2", "szf_zombietank", "szf_tank");
+	FireRelay("FireUser2", "szf_zombietank", "szf_tank", iVictim);
 }
 
 ////////////////

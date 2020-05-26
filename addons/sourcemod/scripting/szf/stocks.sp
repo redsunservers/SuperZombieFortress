@@ -320,7 +320,7 @@ stock bool IsMapSZF()
 	return false;
 }
 
-stock void FireRelay(const char[] sInput, const char[] sTargetName1, const char[] sTargetName2 = "")
+stock void FireRelay(const char[] sInput, const char[] sTargetName1, const char[] sTargetName2 = "", int iActivator = -1)
 {
 	char sTargetName[255];
 	int iEntity;
@@ -328,7 +328,7 @@ stock void FireRelay(const char[] sInput, const char[] sTargetName1, const char[
 	{
 		GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
 		if (StrEqual(sTargetName1, sTargetName) || (sTargetName2[0] && StrEqual(sTargetName2, sTargetName)))
-			AcceptEntityInput(iEntity, sInput);
+			AcceptEntityInput(iEntity, sInput, iActivator, iActivator);
 	}
 }
 

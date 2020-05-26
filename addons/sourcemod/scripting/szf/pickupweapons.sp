@@ -42,7 +42,7 @@ void Weapons_ClientDisconnect(int iClient)
 public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	int iEntity = -1;
-	int iRare = g_iRareCap;
+	int iRare = g_iMaxRareWeapons;
 	
 	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
 	
@@ -92,11 +92,11 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			}
 			case WeaponType_Common:
 			{
-				SetRandomWeapon(iEntity, eWeaponsRarity_Common);
+				SetRandomWeapon(iEntity, WeaponRarity_Common);
 			}
 			case WeaponType_Uncommon:
 			{
-				SetRandomWeapon(iEntity, eWeaponsRarity_Uncommon);
+				SetRandomWeapon(iEntity, WeaponRarity_Uncommon);
 			}
 			case WeaponType_Default, WeaponType_DefaultNoPickup:
 			{

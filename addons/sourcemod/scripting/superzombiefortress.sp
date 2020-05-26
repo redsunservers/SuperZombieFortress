@@ -356,6 +356,7 @@ int g_iInfectedCooldown[view_as<int>(Infected)];	//Client who started the cooldo
 float g_flSelectSpecialCooldown;
 int g_iStartSurvivors;
 
+int g_iTanksSpawned;
 bool g_bZombieRage;
 bool g_bZombieRageAllowRespawn;
 
@@ -368,7 +369,7 @@ float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
 
 //Map overwrites
-int g_iRareCap;
+int g_iMaxRareWeapons;
 float g_flCapScale = -1.0;
 bool g_bSurvival;
 bool g_bNoMusic;
@@ -439,7 +440,7 @@ public void OnPluginStart()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
-	g_iRareCap = 15;
+	g_iMaxRareWeapons = MAX_RARE;
 	g_bEnabled = false;
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
@@ -589,9 +590,8 @@ void GetMapSettings()
 		else if (StrContains(sTargetName, "szf_rarecap_", false) == 0)
 		{
 			ReplaceString(sTargetName, sizeof(sTargetName), "szf_rarecap_", "", false);
-			g_iRareCap = StringToInt(sTargetName);
-			if(g_iRareCap < 1)
-				g_iRareCap = 15;
+			if(StringToIntEx(sTargetName, g_iMaxRareWeapons) == 0)
+				g_iMaxRareWeapons = MAX_RARE;
 		}
 	}
 }
@@ -1210,7 +1210,7 @@ void SZFEnable()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
-	g_iRareCap = 15;
+	g_iMaxRareWeapons = MAX_RARE;
 	g_bEnabled = true;
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
@@ -1247,7 +1247,7 @@ void SZFDisable()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
-	g_iRareCap = 15;
+	g_iMaxRareWeapons = MAX_RARE;
 	g_bEnabled = false;
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
@@ -1513,7 +1513,7 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	
 	Sound_PlayMusicToAll("laststand");
 	
-	FireRelay("FireUser1", "szf_laststand");
+	FireRelay("FireUser1", "szf_laststand", _, iLastSurvivor);
 	
 	Forward_OnLastSurvivor(iLastSurvivor);
 }
@@ -1568,7 +1568,7 @@ public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, 
 	{
 		ZombieRage(_, true);
 	}
-	else if (!StrContains("szf_zombierage", sTargetName))
+	else if (StrContains("szf_zombierage", sTargetName) == 0)
 	{
 		ReplaceString(sTargetName, sizeof(sTargetName), "szf_zombierage_", "");
 		float time = StringToFloat(sTargetName);
