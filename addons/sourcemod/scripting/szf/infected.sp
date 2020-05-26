@@ -85,6 +85,7 @@ public void Infected_OnTankSpawn(int iClient)
 	}
 	
 	Sound_PlayMusicToAll("tank");
+	FireRelay("FireUser1", "szf_zombietank", "szf_tank");
 	Forward_OnTankSpawn(iClient);
 }
 
@@ -221,6 +222,8 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 	{
 		Forward_OnTankDeath(iVictim, 0, 0);
 	}
+	
+	FireRelay("FireUser2", "szf_zombietank", "szf_tank");
 }
 
 ////////////////

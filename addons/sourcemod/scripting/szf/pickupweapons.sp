@@ -42,7 +42,7 @@ void Weapons_ClientDisconnect(int iClient)
 public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	int iEntity = -1;
-	int iRare;
+	int iRare = g_iRareCap;
 	
 	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
 	
@@ -75,10 +75,10 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			case WeaponType_Rare:
 			{
 				//If rare weapon cap is unreached, make it a "rare" weapon
-				if (iRare < MAX_RARE)
+				if (iRare > 0)
 				{
 					SetRandomWeapon(iEntity, WeaponRarity_Rare);
-					iRare++;
+					iRare--;
 				}
 				//Else make it a uncommon weapon
 				else
@@ -101,10 +101,10 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			case WeaponType_Default, WeaponType_DefaultNoPickup:
 			{
 				//If rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
-				if (iRare < MAX_RARE && !GetRandomInt(0, 5))
+				if (iRare > 0 && !GetRandomInt(0, 5))
 				{
 					SetRandomWeapon(iEntity, WeaponRarity_Rare);
-					iRare++;
+					iRare--;
 				}
 				//Pick-ups
 				else if (!GetRandomInt(0, 9) && nWeaponType != WeaponType_DefaultNoPickup)

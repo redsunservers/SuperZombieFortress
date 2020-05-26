@@ -368,6 +368,7 @@ float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
 
 //Map overwrites
+int g_iRareCap;
 float g_flCapScale = -1.0;
 bool g_bSurvival;
 bool g_bNoMusic;
@@ -438,6 +439,7 @@ public void OnPluginStart()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
+	g_iRareCap = 15;
 	g_bEnabled = false;
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
@@ -565,15 +567,32 @@ void GetMapSettings()
 		GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
 		
 		if (StrContains(sTargetName, "szf_survivalmode", false) == 0)
+		{
 			g_bSurvival = true;
+		}
 		else if (StrContains(sTargetName, "szf_nomusic", false) == 0)
+		{
 			g_bNoMusic = true;
+		}
 		else if (StrContains(sTargetName, "szf_director_notank", false) == 0)
+		{
 			g_bNoDirectorTanks = true;
+		}
 		else if (StrContains(sTargetName, "szf_director_norage", false) == 0)
+		{
 			g_bNoDirectorRages = true;
+		}
 		else if (StrContains(sTargetName, "szf_director_spawnteleport", false) == 0)
+		{
 			g_bDirectorSpawnTeleport = true;
+		}
+		else if (StrContains(sTargetName, "szf_rarecap_", false) == 0)
+		{
+			ReplaceString(sTargetName, sizeof(sTargetName), "szf_rarecap_", "", false);
+			g_iRareCap = StringToInt(sTargetName);
+			if(g_iRareCap < 1)
+				g_iRareCap = 15;
+		}
 	}
 }
 
@@ -1191,6 +1210,7 @@ void SZFEnable()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
+	g_iRareCap = 15;
 	g_bEnabled = true;
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
@@ -1227,6 +1247,7 @@ void SZFDisable()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
+	g_iRareCap = 15;
 	g_bEnabled = false;
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
@@ -1492,6 +1513,8 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	
 	Sound_PlayMusicToAll("laststand");
 	
+	FireRelay("FireUser1", "szf_laststand");
+	
 	Forward_OnLastSurvivor(iLastSurvivor);
 }
 
@@ -1550,7 +1573,7 @@ public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, 
 	else if (StrEqual("szf_tank", sTargetName))
 		ZombieTank(iCaller);
 	else if (StrEqual("szf_laststand", sTargetName))
-		PlaySoundAll(SoundMusic_LastStand);
+		Sound_PlayMusicToAll("laststand");
 }
 
 public Action OnCounterValue(const char[] sOutput, int iCaller, int iActivator, float flDelay)
@@ -1630,14 +1653,7 @@ int ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 	
 	g_flRageCooldown = GetGameTime() + flDuration + 40.0;
 	
-	char sTargetName[255];
-	int iEntity = MaxClients+1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "logic_relay")) != -1)
-	{
-		GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
-		if (StrEqual("szf_zombierage", sTargetName) || StrEqual("szf_panic_event", sTargetName))
-			AcceptEntityInput(iEntity, "FireUser1");
-	}
+	FireRelay("FireUser1", "szf_zombierage", "szf_panic_event");
 }
 
 public Action Timer_StopZombieRage(Handle hTimer)
@@ -1650,14 +1666,7 @@ public Action Timer_StopZombieRage(Handle hTimer)
 			if (IsClientInGame(iClient))
 				CPrintToChat(iClient, "%t", "Frenzy_End", (IsZombie(iClient)) ? "{red}" : "{green}");
 	
-	char sTargetName[255];
-	int iEntity = MaxClients+1;
-	while ((iEntity = FindEntityByClassname2(iEntity, "logic_relay")) != -1)
-	{
-		GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
-		if (StrEqual("szf_zombierage", sTargetName) || StrEqual("szf_panic_event", sTargetName))
-			AcceptEntityInput(iEntity, "FireUser2");
-	}
+	FireRelay("FireUser2", "szf_zombierage", "szf_panic_event");
 }
 
 int FastRespawnNearby(int iClient, float flDistance, bool bMustBeInvisible = true)
@@ -2052,14 +2061,7 @@ void CheckRemainingCP()
 		g_bCapturingLastPoint = true;
 		Sound_PlayMusicToAll("laststand");
 		
-		char sTargetName[255];
-		int iEntity = MaxClients+1;
-		while ((iEntity = FindEntityByClassname2(iEntity, "logic_relay")) != -1)
-		{
-			GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
-			if (StrEqual("szf_laststand", sTargetName))
-				AcceptEntityInput(iEntity, "FireUser2");
-		}
+		FireRelay("FireUser2", "szf_laststand");
 		
 		if (!g_bSurvival && g_flZombieDamageScale >= 1.6)
 			ZombieTank();
