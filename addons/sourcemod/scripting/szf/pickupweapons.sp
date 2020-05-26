@@ -14,6 +14,8 @@ enum WeaponType
 	WeaponType_RareSpawn,
 	WeaponType_StaticSpawn,
 	WeaponType_DefaultNoPickup,
+	WeaponType_Common,
+	WeaponType_Uncommon,
 };
 
 static bool g_bCanPickup[TF_MAXPLAYERS] = false;
@@ -40,7 +42,7 @@ void Weapons_ClientDisconnect(int iClient)
 public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	int iEntity = -1;
-	int iRare;
+	int iRare = g_iMaxRareWeapons;
 	
 	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
 	
@@ -54,7 +56,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			{
 				if (aWeaponsCommon.Length > 0)
 				{
-					//Make sure every spawn weapons is different
+					//Make sure every spawn weapon is different
 					int iRandom = GetRandomInt(0, aWeaponsCommon.Length - 1);
 					
 					Weapon wep;
@@ -73,10 +75,10 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			case WeaponType_Rare:
 			{
 				//If rare weapon cap is unreached, make it a "rare" weapon
-				if (iRare < MAX_RARE)
+				if (iRare > 0)
 				{
 					SetRandomWeapon(iEntity, WeaponRarity_Rare);
-					iRare++;
+					iRare--;
 				}
 				//Else make it a uncommon weapon
 				else
@@ -88,13 +90,21 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			{
 				SetRandomWeapon(iEntity, WeaponRarity_Rare);
 			}
+			case WeaponType_Common:
+			{
+				SetRandomWeapon(iEntity, WeaponRarity_Common);
+			}
+			case WeaponType_Uncommon:
+			{
+				SetRandomWeapon(iEntity, WeaponRarity_Uncommon);
+			}
 			case WeaponType_Default, WeaponType_DefaultNoPickup:
 			{
 				//If rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
-				if (iRare < MAX_RARE && !GetRandomInt(0, 5))
+				if (iRare > 0 && !GetRandomInt(0, 5))
 				{
 					SetRandomWeapon(iEntity, WeaponRarity_Rare);
-					iRare++;
+					iRare--;
 				}
 				//Pick-ups
 				else if (!GetRandomInt(0, 9) && nWeaponType != WeaponType_DefaultNoPickup)
@@ -443,6 +453,10 @@ WeaponType GetWeaponType(int iEntity)
 		return WeaponType_Static; //Static: don't change model
 	else if (StrContains(sName, "szf_weapon_nopickup", false) == 0)
 		return WeaponType_DefaultNoPickup; //No pickup: this weapon can never become a pickup
+	else if (StrContains(sName, "szf_weapon_common", false) == 0)
+		return WeaponType_Common; //Guaranteed common
+	else if (StrContains(sName, "szf_weapon_uncommon", false) == 0)
+		return WeaponType_Uncommon; //Guaranteed uncommon
 	else if (StrContains(sName, "szf_weapon", false) != -1)
 		return WeaponType_Default; //Normal
 	

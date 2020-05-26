@@ -36,24 +36,6 @@
 		"en"		"{1}Zombies are resting..."
 	}
 	
-	"Tank_AlreadyHaveOne"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}Zombies already have a tank."
-	}
-	
-	"Tank_AlreadyOnWay"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}A zombie tank is already on the way."
-	}
-	
-	"Tank_FrenzyOn"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}Zombies are frenzied, tanks cannot spawn during frenzy."
-	}
-	
 	"Tank_Chosen"
 	{
 		"#format"	"{1:s},{2:s}"
@@ -74,8 +56,14 @@
 	
 	"Tank_Died"
 	{
-		"#format"	"{1:N}{2:N}{3:d}"
+		"#format"	"{1:N},{2:N},{3:d}"
 		"en"		"The Tank '{1}' has died\nMost damage: {2} ({3})"
+	}
+	
+	"Tank_Multi_Died"
+	{
+		"#format"	"{1:d},{2:N},{3:d}"
+		"en"		"{1} tanks has died\nMost damage: {2} ({3})"
 	}
 	
 	"Carry_Pickup"
@@ -97,7 +85,7 @@
 	
 	"Survivor_Last"
 	{
-		"#format"	"{1:s}{2:s}"
+		"#format"	"{1:s},{2:s}"
 		"en"		"{1}{2} is the last survivor!"
 	}
 	

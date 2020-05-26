@@ -71,7 +71,7 @@ public Action Command_ForceInfected(int iClient, int iArgs)
 	GetCmdArg(2, sInfected, sizeof(sInfected));
 	
 	Infected nInfected = Infected_None;
-	for (int i = 2; i < view_as<int>(Infected); i++)
+	for (int i = 1; i < view_as<int>(Infected); i++)
 	{
 		char sBuffer[32];
 		GetInfectedName(sBuffer, sizeof(sBuffer), i);
@@ -103,7 +103,7 @@ public Action Command_ForceInfected(int iClient, int iArgs)
 	int iCount = 0;
 	for (int i = 0; i < iTargetCount; i++)
 	{
-		if (IsZombie(iTargetList[i]))
+		if (IsValidZombie(iTargetList[i]))
 		{
 			g_nNextInfected[iTargetList[i]] = nInfected;
 			iCount++;

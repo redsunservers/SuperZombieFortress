@@ -56,6 +56,8 @@ public void Infected_OnTankSpawn(int iClient)
 	CPrintToChatAll("%t", "Tank_Spawn", "{red}");
 	Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
 	
+	g_iTanksSpawned++;
+	
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsValidClient(i))
@@ -82,11 +84,10 @@ public void Infected_OnTankSpawn(int iClient)
 			AcceptEntityInput(i, "SpeakResponseConcept");
 			AcceptEntityInput(i, "ClearContext");
 		}
-		
-		g_flDamageDealtAgainstTank[i] = 0.0;
 	}
 	
 	Sound_PlayMusicToAll("tank");
+	FireRelay("FireUser1", "szf_zombietank", "szf_tank", iClient);
 	Forward_OnTankSpawn(iClient);
 }
 
@@ -163,9 +164,6 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 	g_hTimerTank[iVictim] = null;
 	g_iDamageZombie[iVictim] = 0;
 	
-	int iWinner = 0;
-	float flHighest = 0.0;
-	
 	if (0 < iKiller <= MaxClients && IsClientInGame(iKiller))
 	{
 		SetVariantString("TLK_MVM_TANK_DEAD");
@@ -178,43 +176,67 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 		AcceptEntityInput(iAssist, "SpeakResponseConcept");
 	}
 	
-	for (int i = 1; i <= MaxClients; i++)
+	if(!ZombiesHaveTank(iVictim))
 	{
-		//If current music is tank, end it
-		if (Sound_IsCurrentMusic(i, "tank"))
-			Sound_EndMusic(i);
-		
-		if (IsValidLivingSurvivor(i))
-		{
-			if (flHighest < g_flDamageDealtAgainstTank[i])
-			{
-				flHighest = g_flDamageDealtAgainstTank[i];
-				iWinner = i;
-			}
-			
-			//Give Morale from the pool according to the percentage of damage dealth
-			float ratio = g_flDamageDealtAgainstTank[i] / float(g_iMaxHealth[i]);
-			AddMorale(i, 10 + RoundToNearest(ratio * g_flTankMoralePool[iVictim]));
-		}
-	}
-	
-	if (flHighest > 0.0)
-	{
-		SetHudTextParams(-1.0, 0.3, 8.0, 200, 255, 200, 128, 1);
+		int iWinner = 0;
+		float flHighest = 0.0;
 		
 		for (int i = 1; i <= MaxClients; i++)
-			if (IsValidClient(i))
-				ShowHudText(i, 5, "%t", "Tank_Died", iVictim, iWinner, RoundFloat(flHighest));
+		{
+			//If current music is tank, end it
+			if (Sound_IsCurrentMusic(i, "tank"))
+				Sound_EndMusic(i);
+			
+			if (IsValidLivingSurvivor(i))
+			{
+				if (flHighest < g_flDamageDealtAgainstTank[i])
+				{
+					flHighest = g_flDamageDealtAgainstTank[i];
+					iWinner = i;
+				}
+				
+				//Give Morale from the pool according to the percentage of damage dealth
+				float ratio = g_flDamageDealtAgainstTank[i] / float(g_iMaxHealth[i]);
+				AddMorale(i, 10 + RoundToNearest(ratio * g_flTankMoralePool[iVictim]));
+				g_flDamageDealtAgainstTank[i] = 0.0;
+			}
+		}
+		
+		if (flHighest > 0.0)
+		{
+			SetHudTextParams(-1.0, 0.3, 8.0, 200, 255, 200, 128, 1);
+			
+			if (g_iTanksSpawned > 1)
+			{
+				for (int i = 1; i <= MaxClients; i++)
+					if (IsValidClient(i))
+						ShowHudText(i, 5, "%t", "Tank_Multi_Died", g_iTanksSpawned, iWinner, RoundFloat(flHighest));
+			}
+			else
+			{
+				for (int i = 1; i <= MaxClients; i++)
+					if (IsValidClient(i))
+						ShowHudText(i, 5, "%t", "Tank_Died", iVictim, iWinner, RoundFloat(flHighest));
+			}
+		}
+		
+		g_iTanksSpawned = 0;
+		
+		if (g_iDamageDealtLife[iVictim] <= 50 && g_iDamageTakenLife[iVictim] <= 150 && !g_bTankRefreshed)
+		{
+			g_bTankRefreshed = true;
+			Classes_SetClient(iVictim, Infected_None);
+			ZombieTank();
+		}
+		
+		Forward_OnTankDeath(iVictim, iWinner, RoundFloat(flHighest));
 	}
-	
-	if (g_iDamageDealtLife[iVictim] <= 50 && g_iDamageTakenLife[iVictim] <= 150 && !g_bTankRefreshed)
+	else
 	{
-		g_bTankRefreshed = true;
-		Classes_SetClient(iVictim, Infected_None);
-		ZombieTank();
+		Forward_OnTankDeath(iVictim, 0, 0);
 	}
 	
-	Forward_OnTankDeath(iVictim, iWinner, RoundFloat(flHighest));
+	FireRelay("FireUser2", "szf_zombietank", "szf_tank", iVictim);
 }
 
 ////////////////

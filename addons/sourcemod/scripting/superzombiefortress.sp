@@ -356,8 +356,8 @@ int g_iInfectedCooldown[view_as<int>(Infected)];	//Client who started the cooldo
 float g_flSelectSpecialCooldown;
 int g_iStartSurvivors;
 
+int g_iTanksSpawned;
 bool g_bZombieRage;
-int g_iZombieTank;
 bool g_bZombieRageAllowRespawn;
 
 bool g_bSpawnAsSpecialInfected[TF_MAXPLAYERS];
@@ -369,6 +369,7 @@ float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
 
 //Map overwrites
+int g_iMaxRareWeapons;
 float g_flCapScale = -1.0;
 bool g_bSurvival;
 bool g_bNoMusic;
@@ -439,6 +440,7 @@ public void OnPluginStart()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
+	g_iMaxRareWeapons = MAX_RARE;
 	g_bEnabled = false;
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
@@ -566,15 +568,31 @@ void GetMapSettings()
 		GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
 		
 		if (StrContains(sTargetName, "szf_survivalmode", false) == 0)
+		{
 			g_bSurvival = true;
+		}
 		else if (StrContains(sTargetName, "szf_nomusic", false) == 0)
+		{
 			g_bNoMusic = true;
+		}
 		else if (StrContains(sTargetName, "szf_director_notank", false) == 0)
+		{
 			g_bNoDirectorTanks = true;
+		}
 		else if (StrContains(sTargetName, "szf_director_norage", false) == 0)
+		{
 			g_bNoDirectorRages = true;
+		}
 		else if (StrContains(sTargetName, "szf_director_spawnteleport", false) == 0)
+		{
 			g_bDirectorSpawnTeleport = true;
+		}
+		else if (StrContains(sTargetName, "szf_rarecap_", false) == 0)
+		{
+			ReplaceString(sTargetName, sizeof(sTargetName), "szf_rarecap_", "", false);
+			if(StringToIntEx(sTargetName, g_iMaxRareWeapons) == 0)
+				g_iMaxRareWeapons = MAX_RARE;
+		}
 	}
 }
 
@@ -600,9 +618,6 @@ public void OnClientDisconnect(int iClient)
 	Sound_EndMusic(iClient);
 	DropCarryingItem(iClient);
 	CheckLastSurvivor(iClient);
-	
-	if (iClient == g_iZombieTank)
-		g_iZombieTank = 0;
 	
 	g_bWaitingForTeamSwitch[iClient] = false;
 	
@@ -796,7 +811,6 @@ public Action Timer_Main(Handle hTimer) //1 second
 				if ( g_nRoundState == SZFRoundState_Active 
 					&& g_flSelectSpecialCooldown <= GetGameTime() 
 					&& GetReplaceRageWithSpecialInfectedSpawnCount() <= 2 
-					&& g_iZombieTank != iClient
 					&& g_nInfected[iClient] == Infected_None 
 					&& g_nNextInfected[iClient] == Infected_None 
 					&& g_bSpawnAsSpecialInfected[iClient] == false
@@ -1196,6 +1210,7 @@ void SZFEnable()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
+	g_iMaxRareWeapons = MAX_RARE;
 	g_bEnabled = true;
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
@@ -1232,6 +1247,7 @@ void SZFDisable()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
+	g_iMaxRareWeapons = MAX_RARE;
 	g_bEnabled = false;
 	g_bNewRound = true;
 	g_bLastSurvivor = false;
@@ -1420,7 +1436,7 @@ void UpdateZombieDamageScale()
 		g_flZombieDamageScale = 3.0;
 	
 	//Not survival, no rage and no active tank
-	if (!g_bSurvival && !g_bZombieRage && g_iZombieTank <= 0 && !ZombiesHaveTank())
+	if (!g_bSurvival && !g_bZombieRage && !ZombiesTankComing() && !ZombiesHaveTank())
 	{
 		//Tank cooldown is active
 		if (GetGameTime() > g_flTankCooldown)
@@ -1497,6 +1513,8 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	
 	Sound_PlayMusicToAll("laststand");
 	
+	FireRelay("FireUser1", "szf_laststand", _, iLastSurvivor);
+	
 	Forward_OnLastSurvivor(iLastSurvivor);
 }
 
@@ -1547,13 +1565,30 @@ public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, 
 	GetEntPropString(iCaller, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
 	
 	if(StrEqual("szf_panic_event", sTargetName))
+	{
 		ZombieRage(_, true);
-	else if (StrEqual("szf_zombierage", sTargetName))
-		ZombieRage(_, true);
-	else if (StrEqual("szf_zombietank", sTargetName))
-		ZombieTank();
-	else if (StrEqual("szf_tank", sTargetName))
-		ZombieTank();
+	}
+	else if (StrContains("szf_zombierage", sTargetName) == 0)
+	{
+		ReplaceString(sTargetName, sizeof(sTargetName), "szf_zombierage_", "");
+		float time = StringToFloat(sTargetName);
+		if(time > 0)
+		{
+			ZombieRage(time, true);
+		}
+		else
+		{
+			ZombieRage(_, true);
+		}
+	}
+	else if (StrEqual("szf_zombietank", sTargetName) || StrEqual("szf_tank", sTargetName))
+	{
+		ZombieTank(iCaller);
+	}
+	else if (StrEqual("szf_laststand", sTargetName))
+	{
+		Sound_PlayMusicToAll("laststand");
+	}
 }
 
 public Action OnCounterValue(const char[] sOutput, int iCaller, int iActivator, float flDelay)
@@ -1632,6 +1667,8 @@ int ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 	}
 	
 	g_flRageCooldown = GetGameTime() + flDuration + 40.0;
+	
+	FireRelay("FireUser1", "szf_zombierage", "szf_panic_event");
 }
 
 public Action Timer_StopZombieRage(Handle hTimer)
@@ -1643,6 +1680,8 @@ public Action Timer_StopZombieRage(Handle hTimer)
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 			if (IsClientInGame(iClient))
 				CPrintToChat(iClient, "%t", "Frenzy_End", (IsZombie(iClient)) ? "{red}" : "{green}");
+	
+	FireRelay("FireUser2", "szf_zombierage", "szf_panic_event");
 }
 
 int FastRespawnNearby(int iClient, float flDistance, bool bMustBeInvisible = true)
@@ -1911,11 +1950,11 @@ int GetMostDamageZom()
 	int iHighest = 0;
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && g_iDamageZombie[iClient] > iHighest)
+		if (IsValidZombie(iClient) && g_nNextInfected[iClient] != Infected_Tank && g_nInfected[iClient] != Infected_Tank && g_iDamageZombie[iClient] > iHighest)
 			iHighest = g_iDamageZombie[iClient];
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && g_iDamageZombie[iClient] >= iHighest)
+		if (IsValidZombie(iClient) && g_nNextInfected[iClient] != Infected_Tank && g_nInfected[iClient] != Infected_Tank && g_iDamageZombie[iClient] >= iHighest)
 			aClients.Push(iClient);
 	
 	if (aClients.Length <= 0)
@@ -1929,16 +1968,25 @@ int GetMostDamageZom()
 	return iClient;
 }
 
-bool ZombiesHaveTank()
+bool ZombiesHaveTank(int iIgnore = 0)
 {
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidLivingZombie(iClient) && g_nInfected[iClient] == Infected_Tank)
+		if (iClient != iIgnore && IsValidLivingZombie(iClient) && g_nInfected[iClient] == Infected_Tank)
 			return true;
 	
 	return false;
 }
 
-void ZombieTank(int iCaller = 0)
+bool ZombiesTankComing()
+{
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidZombie(iClient) && g_nNextInfected[iClient] == Infected_Tank)
+			return true;
+	
+	return false;
+}
+
+void ZombieTank(int iCaller = -1)
 {
 	if (!g_bEnabled)
 		return;
@@ -1946,47 +1994,30 @@ void ZombieTank(int iCaller = 0)
 	if (g_nRoundState != SZFRoundState_Active)
 		return;
 	
-	if (iCaller <= 0 && g_bNoDirectorTanks)
+	if (iCaller != -1 && g_bNoDirectorTanks)
 		return;
 	
-	if (ZombiesHaveTank())
-	{
-		if (IsValidClient(iCaller))
-			CPrintToChat(iCaller, "%t", "Tank_AlreadyHaveOne", "{red}");
-		return;
-	}
-	else if (g_iZombieTank > 0)
-	{
-		if (IsValidClient(iCaller))
-			CPrintToChat(iCaller, "%t", "Tank_AlreadyOnWay", "{red}");
-		return;
-	}
-	else if (g_bZombieRage)
-	{
-		if (IsValidClient(iCaller))
-			CPrintToChat(iCaller, "%t", "Tank_FrenzyOn", "{red}");
-		return;
-	}
-	
+	int iClient;
 	if (IsValidZombie(iCaller))
-		g_iZombieTank = iCaller;
+		iClient = iCaller;
 	else
-		g_iZombieTank = GetMostDamageZom();
+		iClient = GetMostDamageZom();
 	
-	if (g_iZombieTank <= 0)
+	if (iClient <= 0)
 		return;
 	
 	char sName[255];
-	GetClientName2(g_iZombieTank, sName, sizeof(sName));
+	GetClientName2(iClient, sName, sizeof(sName));
 	
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient))
-			CPrintToChatEx(iClient, g_iZombieTank, "%t", "Tank_Chosen", sName, "{green}");
+	for (int iTarget = 1; iTarget <= MaxClients; iTarget++)
+		if (IsValidZombie(iTarget))
+			CPrintToChatEx(iTarget, iClient, "%t", "Tank_Chosen", sName, "{green}");
 	
 	if (IsValidClient(iCaller))
 		CPrintToChat(iCaller, "%t", "Tank_Called", "{green}");
 	
-	g_bReplaceRageWithSpecialInfectedSpawn[g_iZombieTank] = false;
+	g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
+	g_nNextInfected[iClient] = Infected_Tank;
 	g_flTankCooldown = GetGameTime() + 120.0; //Set new cooldown
 	SetMoraleAll(0); //Tank spawn, reset morale
 }
@@ -2044,6 +2075,8 @@ void CheckRemainingCP()
 	{
 		g_bCapturingLastPoint = true;
 		Sound_PlayMusicToAll("laststand");
+		
+		FireRelay("FireUser2", "szf_laststand");
 		
 		if (!g_bSurvival && g_flZombieDamageScale >= 1.6)
 			ZombieTank();

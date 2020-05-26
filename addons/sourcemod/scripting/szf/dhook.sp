@@ -306,6 +306,7 @@ public MRESReturn DHook_RoundRespawnPre()
 		g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
 		g_iMaxHealth[iClient] = -1;
 		g_flTimeStartAsZombie[iClient] = 0.0;
+		g_flDamageDealtAgainstTank[iClient] = 0.0;
 	}
 	
 	for (int i = 0; i < view_as<int>(Infected); i++)
@@ -313,8 +314,6 @@ public MRESReturn DHook_RoundRespawnPre()
 		g_flInfectedCooldown[i] = 0.0;
 		g_iInfectedCooldown[i] = 0;
 	}
-	
-	g_iZombieTank = 0;
 	
 	g_nRoundState = SZFRoundState_Grace;
 	
@@ -430,6 +429,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	g_iSurvivorsKilledCounter = 0;
 	g_iZombiesKilledCounter = 0;
 	g_iZombiesKilledSpree = 0;
+	g_iTanksSpawned = 0;
 	
 	g_flTimeProgress = 0.0;
 	g_hTimerProgress = null;

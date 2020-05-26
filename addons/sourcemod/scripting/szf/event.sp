@@ -80,55 +80,49 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 	//Figure out what special infected client is
 	if (g_nRoundState == SZFRoundState_Active)
 	{
-		if (g_iZombieTank > 0 && g_iZombieTank == iClient)
+		//If client got a force set as specific special infected, set as that infected
+		if (g_nNextInfected[iClient] != Infected_None)
 		{
-			g_iZombieTank = 0;
-			nInfected = Infected_Tank;
+			nInfected  = g_nNextInfected[iClient];
 		}
-		else
+		else if (g_bSpawnAsSpecialInfected[iClient])
 		{
-			//If client got a force set as specific special infected, set as that infected
-			if (g_nNextInfected[iClient] != Infected_None)
+			g_bSpawnAsSpecialInfected[iClient] = false;
+			
+			//Create list of all special infected to randomize, apart from tank and non-special infected
+			int iLength = view_as<int>(Infected) - 2;
+			Infected[] nSpecialInfected = new Infected[iLength];
+			for (int i = 0; i < iLength; i++)
+				nSpecialInfected[i] = view_as<Infected>(i + 2);
+			
+			//Randomize, sort list of special infected
+			SortIntegers(view_as<int>(nSpecialInfected), iLength, Sort_Random);
+			
+			//Go through each special infected in the list and find the first one thats not in cooldown
+			int i = 0;
+			while (nInfected  == Infected_None && i < iLength)
 			{
-				nInfected = g_nNextInfected[iClient];
-			}
-			else if (g_bSpawnAsSpecialInfected[iClient] == true)
-			{
-				g_bSpawnAsSpecialInfected[iClient] = false;
-				
-				//Create list of all special infected to randomize, apart from tank and non-special infected
-				int iLength = view_as<int>(Infected) - 2;
-				Infected[] nSpecialInfected = new Infected[iLength];
-				for (int i = 0; i < iLength; i++)
-					nSpecialInfected[i] = view_as<Infected>(i + 2);
-				
-				//Randomize, sort list of special infected
-				SortIntegers(view_as<int>(nSpecialInfected), iLength, Sort_Random);
-				
-				//Go through each special infected in the list and find the first one thats not in cooldown
-				int i = 0;
-				while (nInfected == Infected_None && i < iLength)
+				if (IsValidInfected(nSpecialInfected[i]) && g_flInfectedCooldown[nSpecialInfected[i]] <= GetGameTime() - 12.0 && g_iInfectedCooldown[nSpecialInfected[i]] != iClient)
 				{
-					if (IsValidInfected(nSpecialInfected[i]) && g_flInfectedCooldown[nSpecialInfected[i]] <= GetGameTime() - 12.0 && g_iInfectedCooldown[nSpecialInfected[i]] != iClient)
-					{
-						//We found it, set as that special infected
-						nInfected = nSpecialInfected[i];
-					}
-					
-					i++;
+					//We found it, set as that special infected
+					nInfected  = nSpecialInfected[i];
 				}
 				
-				//Check if player spawned using fast respawn
-				if (g_bReplaceRageWithSpecialInfectedSpawn[iClient])
-				{
-					//Check if they did not become special infected because all is in cooldown
-					if (g_nInfected[iClient] == Infected_None)
-						CPrintToChat(iClient, "%t", "Infected_AllInCooldown", "{red}");
-					
-					g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
-				}
+				i++;
+			}
+			
+			//Check if player spawned using fast respawn
+			if (g_bReplaceRageWithSpecialInfectedSpawn[iClient])
+			{
+				//Check if they did not become special infected because all is in cooldown
+				if (nInfected == Infected_None)
+					CPrintToChat(iClient, "%t", "Infected_AllInCooldown", "{red}");
+				
+				g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
 			}
 		}
+		
+		g_nNextInfected[iClient] = Infected_None;
 	}
 	
 	Classes_SetClient(iClient, nInfected);
@@ -303,13 +297,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_bSpawnAsSpecialInfected[iVictim] = true;
 		
 		//Set special infected state
-		if (g_nNextInfected[iVictim] != Infected_None)
-		{
-			if (iVictim != g_iZombieTank)
-				Classes_SetClient(iVictim, g_nNextInfected[iVictim]);
-			
-			g_nNextInfected[iVictim] = Infected_None;
-		}
+		g_nInfected[iVictim] = Infected_None;
 		
 		//Destroy buildings from zombies
 		int iBuilding = -1;
