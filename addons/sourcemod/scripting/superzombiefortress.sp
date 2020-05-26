@@ -1565,15 +1565,30 @@ public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, 
 	GetEntPropString(iCaller, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
 	
 	if(StrEqual("szf_panic_event", sTargetName))
+	{
 		ZombieRage(_, true);
-	else if (StrEqual("szf_zombierage", sTargetName))
-		ZombieRage(_, true);
-	else if (StrEqual("szf_zombietank", sTargetName))
+	}
+	else if (!StrContains("szf_zombierage", sTargetName))
+	{
+		ReplaceString(sTargetName, sizeof(sTargetName), "szf_zombierage_", "");
+		float time = StringToFloat(sTargetName);
+		if(time > 0)
+		{
+			ZombieRage(time, true);
+		}
+		else
+		{
+			ZombieRage(_, true);
+		}
+	}
+	else if (StrEqual("szf_zombietank", sTargetName) || StrEqual("szf_tank", sTargetName))
+	{
 		ZombieTank(iCaller);
-	else if (StrEqual("szf_tank", sTargetName))
-		ZombieTank(iCaller);
+	}
 	else if (StrEqual("szf_laststand", sTargetName))
+	{
 		Sound_PlayMusicToAll("laststand");
+	}
 }
 
 public Action OnCounterValue(const char[] sOutput, int iCaller, int iActivator, float flDelay)
