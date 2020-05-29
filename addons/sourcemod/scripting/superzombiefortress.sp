@@ -172,9 +172,7 @@ enum Infected
 enum struct WeaponClasses
 {
 	int iIndex;
-	char sClassname[256];
 	char sAttribs[256];
-	int iWeaponId;
 	char sLogName[64];
 	char sIconName[64];
 }
@@ -1848,7 +1846,7 @@ void HandleSurvivorLoadout(int iClient)
 					}
 					
 					//Print text with cooldown to prevent spam
-					if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(Melee.sText, ""))
+					if (g_flStopChatSpam[iClient] < GetGameTime() && Melee.sText[0])
 					{
 						CPrintToChat(iClient, "%t", Melee.sText);
 						g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
@@ -1896,7 +1894,7 @@ void HandleZombieLoadout(int iClient)
 	int iPos;
 	WeaponClasses weapon;
 	while (g_ClientClasses[iClient].GetWeapon(iPos, weapon))
-		TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sClassname, weapon.sAttribs);
+		TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sAttribs);
 	
 	if (g_ClientClasses[iClient].sWorldModel[0])
 	{

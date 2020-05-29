@@ -49,12 +49,8 @@ void Config_Refresh()
 					Melee.iIndex = iIndex;
 					Melee.iIndexPrefab = kv.GetNum("prefab", -1);
 					Melee.iIndexReplace = kv.GetNum("weapon", -1);
-					
-					kv.GetString("text", sBuffer, sizeof(sBuffer));
-					Format(Melee.sText, sizeof(Melee.sText), sBuffer);
-					
-					kv.GetString("attrib", sBuffer, sizeof(sBuffer));
-					Format(Melee.sAttrib, sizeof(Melee.sAttrib), sBuffer);
+					kv.GetString("text", Melee.sText, sizeof(Melee.sText));
+					kv.GetString("attrib", Melee.sAttrib, sizeof(Melee.sAttrib));
 					
 					//Push all into arraylist
 					g_aConfigMelee.PushArray(Melee);
@@ -147,7 +143,6 @@ ArrayList Config_LoadWeaponData()
 					}
 				}
 				
-				kv.GetString("text", wep.sText, sizeof(wep.sText));
 				kv.GetString("attrib", wep.sAttribs, sizeof(wep.sAttribs));
 				kv.GetString("sound", wep.sSound, sizeof(wep.sSound));
 				
@@ -314,9 +309,7 @@ ArrayList Config_GetWeaponClasses(KeyValues kv)
 			{
 				WeaponClasses weapon;
 				weapon.iIndex = kv.GetNum("index", 5);
-				kv.GetString("classname", weapon.sClassname, sizeof(weapon.sClassname));
 				kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
-				weapon.iWeaponId = kv.GetNum("index");
 				kv.GetString("logname", weapon.sLogName, sizeof(weapon.sLogName));
 				kv.GetString("iconname", weapon.sIconName, sizeof(weapon.sIconName));
 				

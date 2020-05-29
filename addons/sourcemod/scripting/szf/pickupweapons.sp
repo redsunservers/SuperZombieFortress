@@ -368,7 +368,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		wep.aClassSpecific[iClass].GetString(0, sAttribs, sizeof(sAttribs));
 	
 	//Generate and equip weapon
-	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, _, sAttribs, wep.sText);
+	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, sAttribs);
 	
 	char sClassname[256];
 	TF2Econ_GetItemClassName(wep.iIndex, sClassname, sizeof(sClassname));

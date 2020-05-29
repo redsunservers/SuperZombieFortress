@@ -257,9 +257,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			{
 				//TODO fix buildings kill, those dont have 'weapon_def_index'
 				
-				if (weapon.iWeaponId != TF_WEAPON_NONE)
-					event.SetInt("weaponid", weapon.iWeaponId);
-				
 				if (weapon.sLogName[0])
 					event.SetString("weapon_logclassname", weapon.sLogName);
 				

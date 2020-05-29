@@ -11,7 +11,6 @@ enum struct Weapon
 	char sModel[PLATFORM_MAX_PATH];
 	int iSkin;
 	char sSound[PLATFORM_MAX_PATH];
-	char sText[256];
 	char sAttribs[256];
 	ArrayList aClassSpecific[view_as<int>(TFClassType)];
 	int iColor[3];
