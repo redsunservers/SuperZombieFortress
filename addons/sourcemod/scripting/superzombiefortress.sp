@@ -2420,6 +2420,7 @@ public Action RemoveBackstab(Handle hTimer, int iClient)
 	ClientCommand(iClient, "r_screenoverlay\"\"");
 	
 	TF2_RemoveCondition(iClient, TFCond_Dazed);
+	SDKCall_SetSpeed(iClient);
 }
 
 Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
