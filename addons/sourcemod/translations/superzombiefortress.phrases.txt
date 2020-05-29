@@ -495,9 +495,14 @@
 		"en"		"Infected gain bonuses when sticking together as a hoarde and can enrage which boost health or activate special abilities as special infected.\nEnrage is used by calling for a 'medic' and has a cooldown after use.\nYou may be given the option to respawn as a special infected using 'medic'."
 	}
 	
+	"Menu_ClassesSurvivorsScout"
+	{
+		"en"		"Has 25 extra max health.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon"
+	}
+	
 	"Menu_ClassesSurvivorsSoldier"
 	{
-		"en"		"Gains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon"
+		"en"		"Gains 1 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon"
 	}
 	
 	"Menu_ClassesSurvivorsPyro"
@@ -527,12 +532,12 @@
 	
 	"Menu_ClassesSurvivorsSniper"
 	{
-		"en"		"SMG doesn't have to reload.\nJarate slows down Infected.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon"
+		"en"		"SMG doesn't have to reload.\nJarate slows down Infected.\nHas 25 extra max health.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon"
 	}
 	
 	"Menu_ClassesSurvivorsSpy"
 	{
-		"en"		"Starts with cloak watches and disguise kit.\nGains 1 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon"
+		"en"		"Starts with cloak watches and disguise kit.\nHas 25 extra max health.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon"
 	}
 	
 	"Menu_ClassesInfectedScout"
@@ -542,12 +547,12 @@
 	
 	"Menu_ClassesInfectedSoldier"
 	{
-		"en"		"Suffers less knockback from attackers.\nBenefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep banners in secondary slot to use"
+		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep banners in secondary slot to use"
 	}
 	
 	"Menu_ClassesInfectedPyro"
 	{
-		"en"		"Has Sharpened Volcano Fragment to ignite survivors.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
+		"en"		"Has Sharpened Volcano Fragment to ignite survivors.\nAfterburn damage is reduced.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
 	}
 	
 	"Menu_ClassesInfectedDemoman"
@@ -557,12 +562,12 @@
 	
 	"Menu_ClassesInfectedHeavy"
 	{
-		"en"		"Blocks fatal attacks, reducing damage to 150.\nSuffers less knockback from attacks.\nBenefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep foods in secondary slot to use, and damage survivors"
+		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep foods in secondary slot to use, and damage survivors"
 	}
 	
 	"Menu_ClassesInfectedEngineer"
 	{
-		"en"		"Can only build mini-sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished."
+		"en"		"Gunslinger third critical punch stuns survivor and reduces damage\n.Can only build mini-sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished."
 	}
 	
 	"Menu_ClassesInfectedMedic"
@@ -572,7 +577,7 @@
 	
 	"Menu_ClassesInfectedSniper"
 	{
-		"en"		"Has Bushwacka to crit damage survivors who are under mini-crit effect."
+		"en"		"Has Bushwacka to crit damage survivors who are under mini-crit effect.\nAble to keep wearables in secondary slot to use"
 	}
 	
 	"Menu_ClassesInfectedSpy"
@@ -582,7 +587,7 @@
 	
 	"Menu_ClassesInfectedSpecialTank"
 	{
-		"en"		"As one of the strongest and brutal infected he has the ability to quickly take down an unsuspecting team of survivors.\n- The Tank has a lot of health which he eventually loses after a while.\n- The Tank starts of fast but is slowed down if damaged by the survivors.\n- The Tank spawns if certain conditions are met."
+		"en"		"As one of the strongest and brutal infected he has the ability to quickly take down an unsuspecting team of survivors.\n- The Tank has a lot of health which he eventually loses after a while.\n- The Tank has full knockback resistance.\n- The Tank starts of fast but is slowed down if damaged by the survivors.\n- The Tank spawns if certain conditions are met."
 	}
 	
 	"Menu_ClassesInfectedSpecialBoomer"
@@ -592,7 +597,7 @@
 	
 	"Menu_ClassesInfectedSpecialCharger"
 	{
-		"en"		"His inner rage and insanity has caused him to lose any care for how he uses his body, as long as he can take somebody with it.\n- Using rage to charge the Charger is able to disable and damage survivor for a short period."
+		"en"		"His inner rage and insanity has caused him to lose any care for how he uses his body, as long as he can take somebody with it.\n- Using rage to charge the Charger is able to lock survivor movement and keeps pushing across the area."
 	}
 	
 	"Menu_ClassesInfectedSpecialScreamer"
@@ -617,7 +622,7 @@
 	
 	"Menu_ClassesInfectedSpecialSpitter"
 	{
-		"en"		"The Spitter has a long neck filled with nasty gas survivors couldn't take it.\n- Using rage froze the spitter, spewing out to ground damaging nearby survivors\n- This gives a bigger threat to horde of survivors in small room"
+		"en"		"The Spitter has a long neck filled with nasty gas survivors couldn't take it.\n- Using rage froze the spitter, spewing out to ground damaging nearby survivors.\n- Also releases gas on death.\n- This gives a bigger threat to horde of survivors in small room."
 	}
 	
 	"Menu_ClassesInfectedSpecialJockey"
