@@ -65,6 +65,11 @@
 				"linux"		"226"
 				"windows"	"224"
 			}
+			"CTFGameRules::GetCaptureValueForPlayer"
+			{
+				"linux"		"154"
+				"windows"	"153"
+			}
 			"CTFPlayer::GiveNamedItem"
 			{
 				"linux"		"482"
@@ -198,6 +203,20 @@
 				"hooktype"	"gamerules"
 				"return"	"void"
 				"this"		"ignore"
+			}
+			"CTFGameRules::GetCaptureValueForPlayer"
+			{
+				"offset"	"CTFGameRules::GetCaptureValueForPlayer"
+				"hooktype"	"gamerules"
+				"return"	"int"
+				"this"		"ignore"
+				"arguments"
+				{
+					"pPlayer"
+					{
+						"type"	"cbaseentity"
+					}
+				}
 			}
 			"CTFPlayer::GiveNamedItem"
 			{

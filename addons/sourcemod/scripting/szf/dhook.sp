@@ -1,6 +1,7 @@
 static Handle g_hDHookSetWinningTeam;
 static Handle g_hDHookRoundRespawn;
 static Handle g_hDHookGiveNamedItem;
+static Handle g_hDHookGetCaptureValueForPlayer;
 
 static int g_iDHookCalculateMaxSpeedClient;
 
@@ -15,6 +16,7 @@ void DHook_Init(GameData hSZF)
 	
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
+	g_hDHookGetCaptureValueForPlayer = DHook_CreateVirtual(hSZF, "CTFGameRules::GetCaptureValueForPlayer");
 	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
 }
 
@@ -76,6 +78,7 @@ void DHook_HookGamerules()
 {
 	DHookGamerules(g_hDHookSetWinningTeam, false, _, DHook_SetWinningTeamPre);
 	DHookGamerules(g_hDHookRoundRespawn, false, _, DHook_RoundRespawnPre);
+	DHookGamerules(g_hDHookGetCaptureValueForPlayer, true, _, DHook_GetCaptureValueForPlayerPre);
 }
 
 public MRESReturn DHook_DoAnimationEventPre(int iClient, Handle hParams)
@@ -433,4 +436,16 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	SetGlow();
 	UpdateZombieDamageScale();
+}
+
+public MRESReturn DHook_GetCaptureValueForPlayerPre(Handle hReturn, Handle hParams)
+{
+	int iClient = DHookGetParam(hParams, 1);
+	if (TF2_GetPlayerClass(iClient) == TFClass_Scout) //Reduce capture rate for scout
+	{
+		DHookSetReturn(hReturn, DHookGetReturn(hReturn) - 1);
+		return MRES_Supercede;
+	}
+	
+	return MRES_Ignored;
 }
