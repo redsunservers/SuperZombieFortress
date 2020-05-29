@@ -613,44 +613,43 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttrib
 	TF2Econ_GetItemClassName(iIndex, sClassname, sizeof(sClassname));
 	TF2Econ_TranslateWeaponEntForClass(sClassname, sizeof(sClassname), iClass);
 	
-	bool bSapper;
+	int iSubType;
 	if ((StrEqual(sClassname, "tf_weapon_builder") || StrEqual(sClassname, "tf_weapon_sapper")) && iClass == TFClass_Spy)
 	{
-		bSapper = true;
+		iSubType = view_as<int>(TFObject_Sapper);
 		
 		//Apparently tf_weapon_sapper causes client crashes
 		sClassname = "tf_weapon_builder";
 	}
 	
-	int iSlot = TF2_GetItemSlot(iIndex, iClass);
+	int iWeapon = -1;
+	
+	int iSlot = TF2Econ_GetItemSlot(iIndex, iClass);	//Uses econ slot
 	Address pItem = SDKCall_GetLoadoutItem(iClient, iClass, iSlot);
 	
-	int iWeapon;
-	if (pItem && GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(4), NumberType_Int16)) == iIndex)
-	{
-		iWeapon = SDKCall_GetBaseEntity(SDKCall_GiveNamedItem(iClient, sClassname, 0, pItem));
-	}
-	else
+	if (pItem && GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(g_iOffsetItemDefinitionIndex), NumberType_Int16)) == iIndex)
+		iWeapon = SDKCall_GetBaseEntity(SDKCall_GiveNamedItem(iClient, sClassname, iSubType, pItem));
+	
+	if (iWeapon == -1)
 	{
 		iWeapon = CreateEntityByName(sClassname);
-		
 		if (IsValidEntity(iWeapon))
 		{
 			SetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex", iIndex);
-			SetEntProp(iWeapon, Prop_Send, "m_bInitialized", 1);
+			SetEntProp(iWeapon, Prop_Send, "m_bInitialized", true);
 			SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 0);
 			SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
+			
+			if (iSubType)
+			{
+				SetEntProp(iWeapon, Prop_Send, "m_iObjectType", iSubType);
+				SetEntProp(iWeapon, Prop_Data, "m_iSubType", iSubType);
+			}
 		}
 	}
 	
 	if (IsValidEntity(iWeapon))
 	{
-		if (bSapper)
-		{
-			SetEntProp(iWeapon, Prop_Send, "m_iObjectType", TFObject_Sapper);
-			SetEntProp(iWeapon, Prop_Data, "m_iSubType", TFObject_Sapper);
-		}
-		
 		//Attribute shittery inbound
 		if (sAttribs[0])
 		{

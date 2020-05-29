@@ -380,6 +380,10 @@ Cookie g_cWeaponsPicked;
 Cookie g_cWeaponsRarePicked;
 Cookie g_cWeaponsCalled;
 
+//SDK offsets
+int g_iOffsetItemDefinitionIndex;
+int g_iOffsetOuter;
+
 #include "szf/weapons.sp"
 #include "szf/sound.sp"
 
@@ -469,6 +473,9 @@ public void OnPluginStart()
 	
 	DHook_Init(hSZF);
 	SDKCall_Init(hSDKHooks, hTF2, hSZF);
+	
+	g_iOffsetItemDefinitionIndex = hSZF.GetOffset("CEconItemView::m_iItemDefinitionIndex");
+	g_iOffsetOuter = hSZF.GetOffset("CTFPlayerShared::m_pOuter");
 	
 	delete hSDKHooks;
 	delete hTF2;
