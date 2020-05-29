@@ -23,15 +23,18 @@ void ViewModel_Create(int iClient, const char[] sModel, const float vecAnglesOff
 	TeleportEntity(iViewModel, vecOrigin, vecAngles, NULL_VECTOR);
 	DispatchSpawn(iViewModel);
 	
-	int iOldViewModel = GetEntPropEnt(iClient, Prop_Send, "m_hViewModel");
-	SetEntProp(iOldViewModel, Prop_Send, "m_fEffects", EF_NODRAW);
-	
 	SetVariantString("!activator");
-	AcceptEntityInput(iViewModel, "SetParent", iOldViewModel);
+	AcceptEntityInput(iViewModel, "SetParent", GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"));
 	
 	SDKHook(iViewModel, SDKHook_SetTransmit, ViewModel_SetTransmit);
 	
 	g_iViewModelRef[iClient] = EntIndexToEntRef(iViewModel);
+}
+
+void ViewModel_Hide(int iClient)
+{
+	if (IsValidEntity(g_iViewModelRef[iClient]))
+		SetEntProp(GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"), Prop_Send, "m_fEffects", EF_NODRAW);
 }
 
 void ViewModel_SetAnimation(int iClient, const char[] sAnimation)

@@ -687,6 +687,9 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 public void TF2_OnConditionRemoved(int iClient, TFCond nCond)
 {
 	SDKCall_SetSpeed(iClient);
+	
+	if (nCond == TFCond_Taunting)
+		ViewModel_Hide(iClient);
 }
 
 public Action TF2_OnIsHolidayActive(TFHoliday nHoliday, bool &bResult)
@@ -1913,7 +1916,10 @@ void HandleZombieLoadout(int iClient)
 	ViewModel_Destroy(iClient);
 	
 	if (g_ClientClasses[iClient].sViewModel[0])
+	{
 		ViewModel_Create(iClient, g_ClientClasses[iClient].sViewModel, g_ClientClasses[iClient].vecViewModelAngles, g_ClientClasses[iClient].flViewModelHeight);
+		ViewModel_Hide(iClient);
+	}
 	
 	if (g_ClientClasses[iClient].bThirdperson)
 	{
