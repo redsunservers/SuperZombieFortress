@@ -606,7 +606,7 @@ stock void SetTeamRespawnTime(TFTeam nTeam, float flTime)
 // Weapon
 ////////////////
 
-stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttribs = NULL_STRING)
+stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttribs = NULL_STRING, bool bAllowReskin = false)
 {
 	TFClassType iClass = TF2_GetPlayerClass(iClient);
 	char sClassname[256];
@@ -624,11 +624,14 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttrib
 	
 	int iWeapon = -1;
 	
-	int iSlot = TF2Econ_GetItemSlot(iIndex, iClass);	//Uses econ slot
-	Address pItem = SDKCall_GetLoadoutItem(iClient, iClass, iSlot);
-	
-	if (pItem && GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(g_iOffsetItemDefinitionIndex), NumberType_Int16)) == iIndex)
-		iWeapon = SDKCall_GetBaseEntity(SDKCall_GiveNamedItem(iClient, sClassname, iSubType, pItem));
+	if (bAllowReskin)
+	{
+		int iSlot = TF2Econ_GetItemSlot(iIndex, iClass);	//Uses econ slot
+		Address pItem = SDKCall_GetLoadoutItem(iClient, iClass, iSlot);
+		
+		if (pItem && GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(g_iOffsetItemDefinitionIndex), NumberType_Int16)) == iIndex)
+			iWeapon = SDKCall_GetBaseEntity(SDKCall_GiveNamedItem(iClient, sClassname, iSubType, pItem));
+	}
 	
 	if (iWeapon == -1)
 	{
