@@ -66,7 +66,7 @@ void ViewModel_Destroy(int iClient)
 public Action ViewModel_SetTransmit(int iViewModel, int iClient)
 {
 	int iOwner = GetEntPropEnt(iViewModel, Prop_Send, "m_hOwnerEntity");
-	if (!IsValidClient(iOwner) || !IsPlayerAlive(iClient) || iViewModel != EntRefToEntIndex(g_iViewModelRef[iOwner]))
+	if (!IsValidLivingClient(iOwner) || iViewModel != EntRefToEntIndex(g_iViewModelRef[iOwner]))
 	{
 		//Viewmodel entity no longer valid
 		ViewModel_Destroy(iOwner);
