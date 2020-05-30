@@ -103,8 +103,10 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				bChanged = true;
 			}
 			
-			//Taunt kill, backstabs and highly critical damage
-			if (flDamage >= 300.0 || iDamageCustom == TF_CUSTOM_BACKSTAB || iDamageCustom == TF_CUSTOM_COMBO_PUNCH)
+			//Taunt kill, backstabs and gunslinger combo punch
+			if (flDamage >= 300.0
+				|| iDamageCustom == TF_CUSTOM_BACKSTAB
+				|| (TF2_GetPlayerClass(iAttacker) == TFClass_Engineer && GetEntProp(iAttacker, Prop_Send, "m_iNextMeleeCrit") == MELEE_CRIT))
 			{
 				if (!g_bBackstabbed[iVictim])
 				{

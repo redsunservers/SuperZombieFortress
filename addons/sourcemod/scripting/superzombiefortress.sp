@@ -46,6 +46,13 @@ enum
 	MAX_VISION_MODES
 };
 
+enum
+{
+	MELEE_NOCRIT = 0,
+	MELEE_MINICRIT = 1,
+	MELEE_CRIT = 2,
+};
+
 // entity effects
 enum
 {
