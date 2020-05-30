@@ -119,7 +119,7 @@ public MRESReturn DHook_DetermineDisguiseWeaponPre(Address pPlayerShared, Handle
 	int iClient = SDKCall_GetBaseEntity(pAddress);
 	
 	int iTarget = GetEntProp(iClient, Prop_Send, "m_iDisguiseTargetIndex");
-	if (0 < iTarget <= MaxClients && IsSurvivor(iClient))
+	if (0 < iTarget <= MaxClients && IsSurvivor(iClient) && view_as<TFTeam>(GetEntProp(iClient, Prop_Send, "m_nDisguiseTeam")) == TFTeam_Zombie)
 	{
 		//Set class and team to whoever target is, so voodoo souls and zombie weapons is shown
 		SetEntProp(iClient, Prop_Send, "m_nDisguiseClass", TF2_GetPlayerClass(iTarget));
@@ -129,7 +129,7 @@ public MRESReturn DHook_DetermineDisguiseWeaponPre(Address pPlayerShared, Handle
 		SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", GetEntProp(iTarget, Prop_Send, "m_nModelIndex"), _, VISION_MODE_ROME);
 	}
 	
-	//Never allow force primary
+	//Never allow force primary, for both survivor and zombie disguise team
 	DHookSetParam(hParams, 1, false);
 	return MRES_ChangedOverride;
 }
