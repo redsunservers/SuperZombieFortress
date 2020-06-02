@@ -1025,12 +1025,18 @@ void Handle_SurvivorAbilities()
 			int iMaxHealth = SDKCall_GetMaxHealth(iClient);
 			if (iHealth < iMaxHealth)
 			{
-				iHealth += g_ClientClasses[iClient].iRegen;
+				int iRegen = g_ClientClasses[iClient].iRegen;
 				
-				if (TF2_GetPlayerClass(iClient) == TFClass_Medic && TF2_IsEquipped(iClient, 36)) iHealth--;
-				iHealth += (!g_bSurvival) ? RoundToFloor(fMin(GetMorale(iClient) * 0.166, 4.0)) : 1;
-				iHealth = min(iHealth, iMaxHealth);
-				SetEntityHealth(iClient, iHealth);
+				if (TF2_GetPlayerClass(iClient) == TFClass_Medic && TF2_IsEquipped(iClient, 36)) iRegen--;
+				iRegen += (!g_bSurvival) ? RoundToFloor(fMin(GetMorale(iClient) * 0.166, 4.0)) : 1;
+				iRegen = min(iRegen, iMaxHealth - iHealth);
+				SetEntityHealth(iClient, iHealth + iRegen);
+				
+				Event event = CreateEvent("player_healonhit", true);
+				event.SetInt("amount", iRegen);
+				event.SetInt("entindex", iClient);
+				event.FireToClient(iClient);
+				event.Cancel();
 			}
 			
 			//2. Handle survivor morale.
@@ -1101,25 +1107,31 @@ void Handle_ZombieAbilities()
 			//       zombies (hoarde bonus). Zombies decay health when overhealed.
 			if (iHealth < iMaxHealth)
 			{
-				iHealth += g_ClientClasses[iClient].iRegen;
+				int iRegen = g_ClientClasses[iClient].iRegen;
 				
 				//Handle additional regeneration
-				iHealth += 1 * g_iHorde[iClient]; //Horde bonus
+				iRegen += g_iHorde[iClient]; //Horde bonus
 				
 				if (g_bZombieRage)
-					iHealth += 3; //Zombie rage
+					iRegen += 3; //Zombie rage
 				
 				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
-					iHealth += 2; //Screamer
+					iRegen += 2; //Screamer
 				
-				iHealth = min(iHealth, iMaxHealth);
-				SetEntityHealth(iClient, iHealth);
+				iRegen = min(iRegen, iMaxHealth - iHealth);
+				SetEntityHealth(iClient, iHealth + iRegen);
+				
+				Event event = CreateEvent("player_healonhit", true);
+				event.SetInt("amount", iRegen);
+				event.SetInt("entindex", iClient);
+				event.FireToClient(iClient);
+				event.Cancel();
 			}
 			else if (iHealth > iMaxHealth)
 			{
-				iHealth -= g_ClientClasses[iClient].iDegen;
-				iHealth = max(iHealth, iMaxHealth);
-				SetEntityHealth(iClient, iHealth);
+				int iDegen = g_ClientClasses[iClient].iDegen;
+				iDegen = max(iDegen, iMaxHealth - iHealth);
+				SetEntityHealth(iClient, iHealth - iDegen);
 			}
 			
 			//2.1. Handle fast respawn into special infected HUD message
