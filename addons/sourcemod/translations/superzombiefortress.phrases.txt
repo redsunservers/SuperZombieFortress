@@ -378,6 +378,11 @@
 	{
 		"en"		"{green}YOU ARE A JOCKEY:\n{orange}- Call 'MEDIC!' to LEAP into SURVIVORS and control movements! {yellow}(6 second cooldown)"
 	}
+
+	"Melee_Atomizer"
+	{
+		"en"		"{orange}The Atomizer {green}pushes enemies back. {red}Triple jump and airborne minicrits are disabled."
+	}
 	
 	"Melee_CandyCane"
 	{
@@ -411,7 +416,7 @@
 	
 	"Melee_EurekaEffect"
 	{
-		"en"		"{orange}The Eureka Effect {green}increases your buildings' health by 33%%. {red}Teleportation is disabled."
+		"en"		"{orange}The Eureka Effect {green}periodically regenerates metal. {red}Teleportation is disabled."
 	}
 	
 	"Melee_Ubersaw"
