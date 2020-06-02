@@ -45,6 +45,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	int iRare = g_iMaxRareWeapons;
 	
 	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
+	ArrayList aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
 	
 	while ((iEntity = FindEntityByClassname(iEntity, "prop_dynamic")) != -1)
 	{
@@ -77,7 +78,22 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 				//If rare weapon cap is unreached, make it a "rare" weapon
 				if (iRare > 0)
 				{
-					SetRandomWeapon(iEntity, WeaponRarity_Rare);
+					Weapon wep;
+					
+					//If array is empty, fill it again with the weapon list
+					if (aWeaponsRares.Length == 0)
+					{
+						delete aWeaponsRares;
+						aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
+					}
+					
+					int iRandom = GetRandomInt(0, aWeaponsRares.Length - 1);
+					
+					aWeaponsRares.GetArray(iRandom, wep);
+					SetWeaponModel(iEntity, wep);
+					//This weapon is no longer in the pool
+					aWeaponsRares.Erase(iRandom);
+					
 					iRare--;
 				}
 				//Else make it a uncommon weapon
@@ -153,6 +169,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	}
 	
 	delete aWeaponsCommon;
+	delete aWeaponsRares;
 }
 
 public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadcast)
