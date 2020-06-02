@@ -21,7 +21,6 @@ enum WeaponType
 static bool g_bCanPickup[TF_MAXPLAYERS] = false;
 static bool g_bTriggerEntity[2048] = true;
 static float g_flLastCallout[TF_MAXPLAYERS] = 0.0;
-static ArrayList g_aRareWeapons;
 
 void Weapons_Init()
 {
@@ -46,6 +45,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	int iRare = g_iMaxRareWeapons;
 	
 	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
+	ArrayList aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
 	
 	while ((iEntity = FindEntityByClassname(iEntity, "prop_dynamic")) != -1)
 	{
@@ -80,15 +80,18 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 				{
 					Weapon wep;
 					
-					//If array is null or empty, fill it with the weapon list
-					if (g_aRareWeapons == null || g_aRareWeapons.Length == 0)
-					g_aRareWeapons = GetAllWeaponsWithRarity(WeaponRarity_Rare);
+					//If array is empty, fill it again with the weapon list
+					if (aWeaponsRares.Length == 0)
+					{
+						delete aWeaponsRares;
+						aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
+					}
 					
-					int iRandom = GetRandomInt(0, g_aRareWeapons.Length - 1);
+					int iRandom = GetRandomInt(0, aWeaponsRares.Length - 1);
 					
-					g_aRareWeapons.GetArray(iRandom, wep);
+					aWeaponsRares.GetArray(iRandom, wep);
 					//This weapon is no longer in the pool
-					g_aRareWeapons.Erase(iRandom);
+					aWeaponsRares.Erase(iRandom);
 					
 					iRare--;
 				}
@@ -165,7 +168,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	}
 	
 	delete aWeaponsCommon;
-	delete g_aRareWeapons;
+	delete aWeaponsRares;
 }
 
 public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadcast)
@@ -487,30 +490,11 @@ void SetRandomPickup(int iEntity)
 
 void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 {
-	Weapon wep;
+	ArrayList aList = GetAllWeaponsWithRarity(nRarity);
+	int iRandom = GetRandomInt(0, aList.Length - 1);
 	
-	//To make the RNG better, each rare weapon can spawn once
-	if (nRarity == WeaponRarity_Rare)
-	{
-		//If array is null or empty, fill it with the weapon list
-		if (g_aRareWeapons == null || g_aRareWeapons.Length == 0)
-		g_aRareWeapons = GetAllWeaponsWithRarity(nRarity);
-		
-		int iRandom = GetRandomInt(0, g_aRareWeapons.Length - 1);
-		
-		g_aRareWeapons.GetArray(iRandom, wep);
-		//This weapon is no longer in the pool
-		g_aRareWeapons.Erase(iRandom);
-	}
-	else
-	{
-		ArrayList aList = GetAllWeaponsWithRarity(nRarity);
-		int iRandom = GetRandomInt(0, aList.Length - 1);
-		
-		aList.GetArray(iRandom, wep);
-		
-		delete aList;
-	}
+	Weapon wep;
+	aList.GetArray(iRandom, wep);
 	
 	SetWeaponModel(iEntity, wep);
 	
@@ -519,6 +503,8 @@ void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 		SetEntityRenderMode(iEntity, RENDER_TRANSCOLOR);
 		SetEntityRenderColor(iEntity, wep.iColor[0], wep.iColor[1], wep.iColor[2], 255);
 	}
+	
+	delete aList;
 }
 
 void SetWeaponModel(int iEntity, Weapon wep)
