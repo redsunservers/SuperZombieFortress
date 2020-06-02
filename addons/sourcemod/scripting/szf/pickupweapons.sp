@@ -488,7 +488,7 @@ void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 		int iRandom = GetRandomInt(0, g_aRareWeapons.Length - 1);
 		
 		g_aRareWeapons.GetArray(iRandom, wep);
-		//This weapon can no longer in the pool
+		//This weapon is no longer in the pool
 		g_aRareWeapons.Erase(iRandom);
 	}
 	else
