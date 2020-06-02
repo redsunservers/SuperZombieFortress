@@ -78,7 +78,18 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 				//If rare weapon cap is unreached, make it a "rare" weapon
 				if (iRare > 0)
 				{
-					SetRandomWeapon(iEntity, WeaponRarity_Rare);
+					Weapon wep;
+					
+					//If array is null or empty, fill it with the weapon list
+					if (g_aRareWeapons == null || g_aRareWeapons.Length == 0)
+					g_aRareWeapons = GetAllWeaponsWithRarity(WeaponRarity_Rare);
+					
+					int iRandom = GetRandomInt(0, g_aRareWeapons.Length - 1);
+					
+					g_aRareWeapons.GetArray(iRandom, wep);
+					//This weapon is no longer in the pool
+					g_aRareWeapons.Erase(iRandom);
+					
 					iRare--;
 				}
 				//Else make it a uncommon weapon
