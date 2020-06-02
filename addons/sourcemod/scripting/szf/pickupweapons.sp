@@ -90,6 +90,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 					int iRandom = GetRandomInt(0, aWeaponsRares.Length - 1);
 					
 					aWeaponsRares.GetArray(iRandom, wep);
+					SetWeaponModel(iEntity, wep);
 					//This weapon is no longer in the pool
 					aWeaponsRares.Erase(iRandom);
 					
