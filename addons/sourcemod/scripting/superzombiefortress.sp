@@ -2024,7 +2024,7 @@ void ZombieTank(int iCaller = -1)
 	if (g_nRoundState != SZFRoundState_Active)
 		return;
 	
-	if (iCaller != -1 && g_bNoDirectorTanks)
+	if (iCaller == -1 && g_bNoDirectorTanks)
 		return;
 	
 	int iClient;
