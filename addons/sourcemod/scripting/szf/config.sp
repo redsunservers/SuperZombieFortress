@@ -1,5 +1,5 @@
-#define CONFIG_WEAPONS "configs/szf/weapons.cfg"
-#define CONFIG_CLASSES "configs/szf/classes.cfg"
+#define CONFIG_WEAPONS       "configs/szf/weapons.cfg"
+#define CONFIG_RESKINS       "configs/szf/reskins.cfg"
 
 enum struct ConfigMelee
 {
@@ -10,8 +10,8 @@ enum struct ConfigMelee
 	char sAttrib[256];
 }
 
-ConfigMelee g_ConfigMeleeDefault;
 ArrayList g_aConfigMelee;
+StringMap g_mConfigReskins;
 
 void Config_Init()
 {
@@ -20,8 +20,9 @@ void Config_Init()
 
 void Config_Refresh()
 {
-	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	if (kv == null) return;
+	KeyValues kv = Config_LoadFile(CONFIG_WEAPONS, "Weapons");
+	if (kv == null)
+		return;
 	
 	g_aConfigMelee.Clear();
 	
@@ -36,16 +37,9 @@ void Config_Refresh()
 				kv.GetSectionName(sBuffer, sizeof(sBuffer));
 				int iIndex = -1;
 				
-				//If default, store in global default varable instead of ArrayList
-				if (StrEqual(sBuffer, "_global_"))
+				if (StringToIntEx(sBuffer, iIndex) == 0)
 				{
-					//We only care about attrib for default
-					kv.GetString("attrib", sBuffer, sizeof(sBuffer));
-					Format(g_ConfigMeleeDefault.sAttrib, sizeof(g_ConfigMeleeDefault.sAttrib), sBuffer);
-				}
-				else if (StringToIntEx(sBuffer, iIndex) == 0)
-				{
-					LogMessage("Invalid index \"%s\" at Weapons config melee secton", sBuffer);
+					LogError("Invalid index \"%s\" at Weapons config melee secton", sBuffer);
 				}
 				else
 				{
@@ -55,12 +49,8 @@ void Config_Refresh()
 					Melee.iIndex = iIndex;
 					Melee.iIndexPrefab = kv.GetNum("prefab", -1);
 					Melee.iIndexReplace = kv.GetNum("weapon", -1);
-					
-					kv.GetString("text", sBuffer, sizeof(sBuffer));
-					Format(Melee.sText, sizeof(Melee.sText), sBuffer);
-					
-					kv.GetString("attrib", sBuffer, sizeof(sBuffer));
-					Format(Melee.sAttrib, sizeof(Melee.sAttrib), sBuffer);
+					kv.GetString("text", Melee.sText, sizeof(Melee.sText));
+					kv.GetString("attrib", Melee.sAttrib, sizeof(Melee.sAttrib));
 					
 					//Push all into arraylist
 					g_aConfigMelee.PushArray(Melee);
@@ -73,21 +63,24 @@ void Config_Refresh()
 	}
 	
 	delete kv;
+	
+	g_mConfigReskins = Config_LoadReskins();
 }
 
 ArrayList Config_LoadWeaponData()
 {
-	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	if (kv == null) return null;
+	KeyValues kv = Config_LoadFile(CONFIG_WEAPONS, "Weapons");
+	if (kv == null)
+		return null;
 	
 	static StringMap mRarity;
 	if (mRarity == null)
 	{
 		mRarity = new StringMap();
-		mRarity.SetValue("common", eWeaponsRarity_Common);
-		mRarity.SetValue("uncommon", eWeaponsRarity_Uncommon);
-		mRarity.SetValue("rare", eWeaponsRarity_Rare);
-		mRarity.SetValue("pickup", eWeaponsRarity_Pickup);
+		mRarity.SetValue("common", WeaponRarity_Common);
+		mRarity.SetValue("uncommon", WeaponRarity_Uncommon);
+		mRarity.SetValue("rare", WeaponRarity_Rare);
+		mRarity.SetValue("pickup", WeaponRarity_Pickup);
 	}
 	
 	ArrayList aWeapons = new ArrayList(sizeof(Weapon));
@@ -101,7 +94,7 @@ ArrayList Config_LoadWeaponData()
 			{
 				Weapon wep;
 				
-				char sBuffer[256], sBuffer2[10][32];
+				char sBuffer[256];
 				kv.GetSectionName(sBuffer, sizeof(sBuffer));
 				
 				wep.iIndex = StringToInt(sBuffer);
@@ -118,19 +111,24 @@ ArrayList Config_LoadWeaponData()
 					continue;
 				}
 
-				//Skip weapon if their class isn't enabled
-				int iExclude;
-				kv.GetString("class", sBuffer, sizeof(sBuffer));
-				int iCount = ExplodeString(sBuffer, ";", sBuffer2, 10, 32);
-				for (int i = 0; i < iCount; i++)
+				if (wep.iIndex > -1)
 				{
-					TFClassType nClass = TF2_GetClass(sBuffer2[i]);
-					if (nClass != TFClass_Unknown && !IsValidSurvivorClass(nClass))
-						iExclude++;
+					//Skip weapon if weapon is not for any class enabled
+					bool bFound = false;
+					for (TFClassType iClass = TFClass_Scout; iClass <= TFClass_Engineer; iClass++)
+					{
+						if (IsValidSurvivorClass(iClass) && TF2Econ_GetItemSlot(wep.iIndex, iClass) >= 0)
+						{
+							bFound = true;
+							break;
+						}
+					}
+					
+					if (!bFound)
+						continue;
 				}
 				
-				if (iExclude == iCount)
-					continue;
+				wep.iSkin = kv.GetNum("skin");
 				
 				//Check if the model is already taken by another weapon
 				Weapon duplicate;
@@ -138,16 +136,37 @@ ArrayList Config_LoadWeaponData()
 				{
 					aWeapons.GetArray(i, duplicate);
 					
-					if (StrEqual(wep.sModel, duplicate.sModel))
+					if (StrEqual(wep.sModel, duplicate.sModel) && wep.iSkin == duplicate.iSkin)
 					{
-						LogError("%i: Model \"%s\" is already taken by weapon %i.", wep.iIndex, wep.sModel, duplicate.iIndex);
+						LogError("%i: Model \"%s\" with skin \"%d\" is already taken by weapon %i.", wep.iIndex, wep.sModel, wep.iSkin, duplicate.iIndex);
 						continue;
 					}
 				}
 				
-				kv.GetString("text", wep.sText, sizeof(wep.sText));
 				kv.GetString("attrib", wep.sAttribs, sizeof(wep.sAttribs));
 				kv.GetString("sound", wep.sSound, sizeof(wep.sSound));
+				
+				//Exceptions for specific classes
+				char sClassName[16];
+				if (kv.GotoFirstSubKey(false))
+				{
+					do
+					{
+						kv.GetSectionName(sClassName, sizeof(sClassName));
+						
+						TFClassType iClass = TF2_GetClass(sClassName);
+						
+						char sClassAttribs[256];
+						kv.GetString("attrib", sClassAttribs, sizeof(sClassAttribs));
+						
+						wep.aClassSpecific[iClass] = new ArrayList(256);
+						wep.aClassSpecific[iClass].PushString(sClassAttribs);
+						
+					}
+					while(kv.GotoNextKey(false));
+					kv.GoBack();
+				}
+				
 				
 				kv.GetString("callback", sBuffer, sizeof(sBuffer));
 				wep.callback = view_as<Weapon_OnPickup>(GetFunctionByName(null, sBuffer));
@@ -159,8 +178,23 @@ ArrayList Config_LoadWeaponData()
 				wep.iColor[1] = iColor[1];
 				wep.iColor[2] = iColor[2];
 				
-				kv.GetVector("offset_origin", wep.vecOrigin);
-				kv.GetVector("offset_angles", wep.vecAngles);
+				wep.flHeightOffset = kv.GetFloat("height_offset");
+				kv.GetVector("angles_offset", wep.vecAnglesOffset);
+				
+				char sAnglesOffset[3][12];
+				kv.GetString("angles_const", sBuffer, sizeof(sBuffer));
+				int iCount = ExplodeString(sBuffer, " ", sAnglesOffset, sizeof(sAnglesOffset), sizeof(sAnglesOffset[]));
+				if (iCount == 3)
+				{
+					for (int i = 0; i < 3; i++)
+					{
+						if (sAnglesOffset[i][0] != '~')
+						{
+							wep.vecAnglesConst[i] = StringToFloat(sAnglesOffset[i]);
+							wep.bAnglesConst[i] = true;
+						}
+					}
+				}
 				
 				aWeapons.PushArray(wep);
 				iLength++;
@@ -175,8 +209,9 @@ ArrayList Config_LoadWeaponData()
 
 StringMap Config_LoadWeaponReskinData()
 {
-	KeyValues kv = LoadFile(CONFIG_WEAPONS, "Weapons");
-	if (kv == null) return null;
+	KeyValues kv = Config_LoadFile(CONFIG_WEAPONS, "Weapons");
+	if (kv == null)
+		return null;
 	
 	StringMap mReskin = new StringMap();
 	
@@ -201,232 +236,236 @@ StringMap Config_LoadWeaponReskinData()
 	return mReskin;
 }
 
-ArrayList Config_LoadSurvivorClasses()
+bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 {
-	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
-	if (kv == null) return null;
+	//Survivor, Zombie and Infected
+	classes.bEnabled = !!kv.GetNum("enable", classes.bEnabled);
+	classes.iRegen = kv.GetNum("regen", classes.iRegen);
 	
-	ArrayList aClasses = new ArrayList(sizeof(SurvivorClasses));
-	int iLength = 0;
+	//Survivor
+	classes.iAmmo = kv.GetNum("ammo", classes.iAmmo);
 	
-	if (kv.JumpToKey("survivors", false))
+	//Zombie and Infected
+	classes.iHealth = kv.GetNum("health", classes.iHealth);
+	classes.iDegen = kv.GetNum("degen", classes.iDegen);
+	classes.aWeapons = Config_GetWeaponClasses(kv);
+	classes.flSpree = kv.GetFloat("spree", classes.flSpree);
+	classes.flHorde = kv.GetFloat("horde", classes.flHorde);
+	classes.flMaxSpree = kv.GetFloat("maxspree", classes.flMaxSpree);
+	classes.flMaxHorde = kv.GetFloat("maxhorde", classes.flMaxHorde);
+	classes.flMoraleValue = kv.GetFloat("moralevalue", classes.flMoraleValue);
+	classes.bGlow = !!kv.GetNum("glow", classes.bGlow);
+	classes.bThirdperson = !!kv.GetNum("thirdperson", classes.bThirdperson);
+	
+	//GetColor4 dont have default buffer to set
+	char sBuffer[1];
+	kv.GetString("color", sBuffer, sizeof(sBuffer));
+	if (sBuffer[0])
+		kv.GetColor4("color", classes.iColor);
+	
+	kv.GetString("message", classes.sMessage, sizeof(classes.sMessage), classes.sMessage);
+	kv.GetString("menu", classes.sMenu, sizeof(classes.sMenu));
+	kv.GetString("worldmodel", classes.sWorldModel, sizeof(classes.sWorldModel), classes.sWorldModel);
+	kv.GetString("viewmodel", classes.sViewModel, sizeof(classes.sViewModel), classes.sViewModel);
+	kv.GetVector("viewmodel_angles", classes.vecViewModelAngles, classes.vecViewModelAngles);
+	classes.flViewModelHeight = kv.GetFloat("viewmodel_height", classes.flViewModelHeight);
+	kv.GetString("sound_spawn", classes.sSoundSpawn, sizeof(classes.sSoundSpawn), classes.sSoundSpawn);
+	classes.iRageCooldown = kv.GetNum("ragecooldown", classes.iRageCooldown);
+	classes.callback_spawn = Config_GetFunction(kv, "callback_spawn", classes.callback_spawn);
+	classes.callback_rage = Config_GetFunction(kv, "callback_rage", classes.callback_rage);
+	classes.callback_think = Config_GetFunction(kv, "callback_think", classes.callback_think);
+	classes.callback_touch = Config_GetFunction(kv, "callback_touch", classes.callback_touch);
+	classes.callback_anim = Config_GetFunction(kv, "callback_anim", classes.callback_anim);
+	classes.callback_death = Config_GetFunction(kv, "callback_death", classes.callback_death);
+	
+	return true;
+}
+
+Function Config_GetFunction(KeyValues kv, const char[] sKey, Function defaultFunction)
+{
+	char sBuffer[64];
+	kv.GetString(sKey, sBuffer, sizeof(sBuffer));
+	if (!sBuffer[0])
+		return defaultFunction;
+	
+	Function func = GetFunctionByName(null, sBuffer);
+	if (func == INVALID_FUNCTION)
+		LogError("Unable to find function '%s' in config", sBuffer);
+	
+	return func;
+}
+
+ArrayList Config_GetWeaponClasses(KeyValues kv)
+{
+	ArrayList aWeapons = new ArrayList(sizeof(WeaponClasses));
+	
+	if (kv.GotoFirstSubKey(false))	//Find weapons
 	{
-		if (kv.GotoFirstSubKey(false))
+		do
 		{
-			do
+			char sSubkey[256];
+			kv.GetSectionName(sSubkey, sizeof(sSubkey));
+			if (StrEqual(sSubkey, "weapon"))
 			{
-				SurvivorClasses sur;
+				WeaponClasses weapon;
+				weapon.iIndex = kv.GetNum("index", 5);
+				kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
+				kv.GetString("logname", weapon.sLogName, sizeof(weapon.sLogName));
+				kv.GetString("iconname", weapon.sIconName, sizeof(weapon.sIconName));
 				
-				char sBuffer[256];
-				kv.GetSectionName(sBuffer, sizeof(sBuffer));
-				
-				sur.nClass = TF2_GetClass(sBuffer);
-				if (sur.nClass == TFClass_Unknown)
-					LogError("Invalid survivor class '%s'.", sBuffer);
-				
-				//Check if the class is already defined
-				SurvivorClasses duplicate;
-				for (int i = 0; i < iLength; i++) 
-				{
-					aClasses.GetArray(i, duplicate);
-					
-					if (sur.nClass == duplicate.nClass)
-					{
-						LogError("Survivor class '%s' is already defined.", sur.nClass);
-						break;
-					}
-				}
-				
-				sur.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
-				sur.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(sur.nClass));
-				sur.iRegen = kv.GetNum("regen", 2);
-				sur.iAmmo = kv.GetNum("ammo");
-				
-				aClasses.PushArray(sur);
-				iLength++;
-			} 
-			while (kv.GotoNextKey(false));
+				aWeapons.PushArray(weapon);
+			}
 		}
+		while(kv.GotoNextKey(false));
+		kv.GoBack();
+	}
+	
+	return aWeapons;
+}
+
+StringMap Config_LoadReskins()
+{
+	KeyValues kv = Config_LoadFile(CONFIG_RESKINS, "Reskins");
+	if (kv == null)
+		return null;
+	
+	StringMap mReskins = new StringMap();
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			char sName[256];
+			kv.GetSectionName(sName, sizeof(sName));
+			int iOrigIndex = StringToInt(sName);
+			
+			char sValue[512];
+			kv.GetString(NULL_STRING, sValue, sizeof(sValue));
+			
+			char sValueExploded[64][8];
+			int iCount = ExplodeString(sValue, " ", sValueExploded, sizeof(sValueExploded), sizeof(sValueExploded[]));
+			
+			for (int i = 0; i < iCount; i++)
+				mReskins.SetValue(sValueExploded[i], iOrigIndex);
+		}
+		while (kv.GotoNextKey(false));
 	}
 	
 	delete kv;
-	return aClasses;
+	return mReskins;
 }
 
-ArrayList Config_LoadZombieClasses()
+StringMap Config_LoadMusic(KeyValues kv)
 {
-	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
-	if (kv == null) return null;
+	StringMap mMusics = new StringMap();
 	
-	ArrayList aClasses = new ArrayList(sizeof(ZombieClasses));
-	int iLength = 0;
-	
-	if (kv.JumpToKey("zombies", false))
+	if (kv.GotoFirstSubKey(false))
 	{
-		if (kv.GotoFirstSubKey(false))
+		do
 		{
-			do
+			SoundMusic music;
+			kv.GetSectionName(music.sName, sizeof(music.sName));
+			StrToLower(music.sName, music.sName, sizeof(music.sName));
+			
+			//Check if name already exists
+			if (mMusics.GetArray(music.sName, music, sizeof(music)))
 			{
-				ZombieClasses zom;
-				
-				char sBuffer[256];
-				kv.GetSectionName(sBuffer, sizeof(sBuffer));
-				
-				zom.nClass = TF2_GetClass(sBuffer);
-				if (zom.nClass == TFClass_Unknown)
-					LogError("Invalid zombie class '%s'.", sBuffer);
-				
-				//Check if the class is already defined
-				ZombieClasses duplicate;
-				for (int i = 0; i < iLength; i++) 
+				LogError("Duplicate config music \"%s\" found", music.sName);
+				continue;
+			}
+			
+			if (kv.JumpToKey("sound", false))
+			{
+				if (kv.GotoFirstSubKey(false))
 				{
-					aClasses.GetArray(i, duplicate);
+					music.aSounds = new ArrayList(sizeof(SoundFilepath));
 					
-					if (zom.nClass == duplicate.nClass)
-					{
-						LogError("Zombie class '%s' is already defined.", zom.nClass);
-						break;
-					}
-				}
-				
-				zom.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
-				zom.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(zom.nClass));
-				zom.iRegen = kv.GetNum("regen", 2);
-				zom.iDegen = kv.GetNum("degen", 3);
-				zom.flSpree = kv.GetFloat("spree", 1.0);
-				zom.flHorde = kv.GetFloat("horde", 2.0);
-				zom.flMaxSpree = kv.GetFloat("maxspree", 20.0);
-				zom.flMaxHorde = kv.GetFloat("maxhorde", 20.0);
-				zom.aWeapons = new ArrayList(sizeof(WeaponClasses));
-				
-				if (kv.GotoFirstSubKey(false))	//Find weapons
-				{
 					do
 					{
-						char sSubkey[256];
-						kv.GetSectionName(sSubkey, sizeof(sSubkey));
-						if (StrEqual(sSubkey, "weapon"))
-						{
-							WeaponClasses weapon;
-							weapon.iIndex = kv.GetNum("index", 5);
-							kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
-							
-							zom.aWeapons.PushArray(weapon);
-						}
+						SoundFilepath filepath;
+						kv.GetString(NULL_STRING, filepath.sFilepath, sizeof(filepath.sFilepath));
+						
+						char sBuffer[32];
+						kv.GetSectionName(sBuffer, sizeof(sBuffer));
+						filepath.flDuration = StringToFloat(sBuffer);
+						
+						music.aSounds.PushArray(filepath);
 					}
-					while(kv.GotoNextKey(false));
+					while (kv.GotoNextKey(false));
 					kv.GoBack();
 				}
+				else
+				{
+					LogError("Config music \"%s\" must have atleast one \"sound\"", music.sName);
+					continue;
+				}
 				
-				aClasses.PushArray(zom);
-				iLength++;
-			} 
-			while (kv.GotoNextKey(false));
-		}
-	}
-	
-	delete kv;
-	return aClasses;
-}
-
-ArrayList Config_LoadInfectedClasses()
-{
-	KeyValues kv = LoadFile(CONFIG_CLASSES, "Classes");
-	if (kv == null) return null;
-	
-	ArrayList aClasses = new ArrayList(sizeof(InfectedClasses));
-	int iLength = 0;
-	
-	if (kv.JumpToKey("infected", false))
-	{
-		if (kv.GotoFirstSubKey(false))
-		{
-			do
+				kv.GoBack();
+			}
+			else
 			{
-				InfectedClasses inf;
-				
-				char sBuffer[256], sBuffer2[32];
-				kv.GetSectionName(sBuffer, sizeof(sBuffer));
-				
-				for (int i = 0; i < view_as<int>(Infected); i++)
-				{
-					GetInfectedName(sBuffer2, sizeof(sBuffer2), i);
-					if (StrEqual(sBuffer2, sBuffer, false))
-					{
-						inf.nInfected = view_as<Infected>(i);
-						break;
-					}
-					else if (i == view_as<int>(Infected)-1)
-					{
-						inf.nInfected = Infected_None;
-						LogError("Invalid special infected '%s'.", sBuffer);
-					}
-				}
-				
-				//Check if special infected is already defined
-				InfectedClasses duplicate;
-				for (int i = 0; i < iLength; i++) 
-				{
-					aClasses.GetArray(i, duplicate);
-					
-					if (inf.nInfected == duplicate.nInfected)
-					{
-						LogError("Special infected '%s' is already defined.", inf.nInfected);
-						break;
-					}
-				}
-				
-				kv.GetString("class", sBuffer2, sizeof(sBuffer2));
-				inf.nClass = TF2_GetClass(sBuffer2);
-				if (inf.nClass == TFClass_Unknown)
-				{
-					LogError("Invalid special infected class '%s'.", sBuffer);
-					inf.nClass = TFClass_Heavy;
-				}
-				
-				inf.bEnabled = view_as<bool>(kv.GetNum("enable", 1));
-				inf.flSpeed = kv.GetFloat("speed", TF2_GetClassSpeed(inf.nClass));
-				inf.iRegen = kv.GetNum("regen", 2);
-				inf.iDegen = kv.GetNum("degen", 3);
-				kv.GetColor4("color", inf.iColor);
-				kv.GetString("message", inf.sMsg, sizeof(inf.sMsg));
-				inf.aWeapons = new ArrayList(sizeof(WeaponClasses));
-				
-				if (kv.GotoFirstSubKey(false))	//Find weapons
-				{
-					do
-					{
-						char sSubkey[256];
-						kv.GetSectionName(sSubkey, sizeof(sSubkey));
-						if (StrEqual(sSubkey, "weapon"))
-						{
-							WeaponClasses weapon;
-							weapon.iIndex = kv.GetNum("index", 5);
-							kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
-							
-							inf.aWeapons.PushArray(weapon);
-						}
-					}
-					while(kv.GotoNextKey(false));
-					kv.GoBack();
-				}
-				
-				aClasses.PushArray(inf);
-				iLength++;
-			} 
-			while (kv.GotoNextKey(false));
+				LogError("Config music \"%s\" must have \"sound\" section", music.sName);
+				continue;
+			}
+			
+			music.iPriority = kv.GetNum("priority", 0);
+			mMusics.SetArray(music.sName, music, sizeof(music));
+			
 		}
+		while (kv.GotoNextKey(false));
+		kv.GoBack();
 	}
 	
-	delete kv;
-	return aClasses;
+	return mMusics;
 }
 
-KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)
+void Config_LoadInfectedVo(KeyValues kv, ArrayList aSoundVo[view_as<int>(Infected)][view_as<int>(SoundVo)])
+{
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			char sInfected[64];
+			kv.GetSectionName(sInfected, sizeof(sInfected));
+			Infected nInfected = GetInfected(sInfected);
+			if (nInfected == Infected_Unknown)
+			{
+				LogError("Unknown infected name \"%s\" from sound vo config", sInfected);
+				continue;
+			}
+			
+			if (kv.GotoFirstSubKey(false))
+			{
+				do
+				{
+					char sVoType[64], sFilepath[PLATFORM_MAX_PATH];
+					kv.GetSectionName(sVoType, sizeof(sVoType));
+					kv.GetString(NULL_STRING, sFilepath, sizeof(sFilepath));
+					SoundVo nSoundVo = Sound_GetVoType(sVoType);
+					if (nSoundVo == SoundVo_Unknown)
+					{
+						LogError("Unknown sound vo type \"%s\" from infected \"%s\" in config", sVoType, sInfected);
+						continue;
+					}
+					
+					if (!aSoundVo[nInfected][nSoundVo])
+						aSoundVo[nInfected][nSoundVo] = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH));
+					
+					aSoundVo[nInfected][nSoundVo].PushString(sFilepath);
+				}
+				while (kv.GotoNextKey(false));
+				kv.GoBack();
+			}
+		}
+		while (kv.GotoNextKey(false));
+		kv.GoBack();
+	}
+}
+
+KeyValues Config_LoadFile(const char[] sConfigFile, const char [] sConfigSection)
 {
 	char sConfigPath[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, sConfigPath, sizeof(sConfigPath), sConfigFile);
-	if(!FileExists(sConfigPath))
+	if (!FileExists(sConfigPath))
 	{
 		LogMessage("Failed to load SZF config file (file missing): %s!", sConfigPath);
 		return null;
@@ -435,7 +474,7 @@ KeyValues LoadFile(const char[] sConfigFile, const char [] sConfigSection)
 	KeyValues kv = new KeyValues(sConfigSection);
 	kv.SetEscapeSequences(true);
 	
-	if(!kv.ImportFromFile(sConfigPath))
+	if (!kv.ImportFromFile(sConfigPath))
 	{
 		LogMessage("Failed to parse SZF config file: %s!", sConfigPath);
 		delete kv;

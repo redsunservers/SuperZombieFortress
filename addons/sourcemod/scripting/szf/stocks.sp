@@ -21,25 +21,17 @@
 //Medic
 #define WEAPON_OVERDOSE 412
 
-//Required for TF2_FlagWeaponNoDrop
-#define FLAG_DONT_DROP_WEAPON 				0x23E173A2
-#define OFFSET_DONT_DROP					36
-
 //Zombie Soul related indexes
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
 
-char g_sClassNames[view_as<int>(TFClassType)][16] = { "", "Scout", "Sniper", "Soldier", "Demoman", "Medic", "Heavy", "Pyro", "Spy", "Engineer" };
-char g_sInfectedNames[view_as<int>(Infected)][16] = { "", "Tank", "Boomer", "Charger", "Kingpin", "Stalker", "Hunter", "Smoker" };
-char g_sClassFiles[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
-int g_iVoodooIndex[view_as<int>(TFClassType)] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
-int g_iZombieSoulIndex[view_as<int>(TFClassType)];
+static char g_sClassFiles[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
+static int g_iVoodooIndex[view_as<int>(TFClassType)] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
+static int g_iZombieSoulIndex[view_as<int>(TFClassType)];
 
-////////////////////////////////////////////////////////////
-//
-// Math Utils
-//
-////////////////////////////////////////////////////////////
+////////////////
+// Math
+////////////////
 
 stock int max(int a, int b)
 {
@@ -61,11 +53,27 @@ stock float fMin(float a, float b)
 	return (a < b) ? a : b;
 }
 
-////////////////////////////////////////////////////////////
-//
-// SZF Team Utils
-//
-////////////////////////////////////////////////////////////
+stock void VectorTowards(const float vecOrigin[3], const float vecTarget[3], float vecAngle[3])
+{
+	float vecResults[3];
+	MakeVectorFromPoints(vecOrigin, vecTarget, vecResults);
+	GetVectorAngles(vecResults, vecAngle);
+}
+
+stock void AnglesToVelocity(const float vecAngle[3], float vecVelocity[3], float flSpeed = 1.0)
+{
+	vecVelocity[0] = Cosine(DegToRad(vecAngle[1]));
+	vecVelocity[1] = Sine(DegToRad(vecAngle[1]));
+	vecVelocity[2] = Sine(DegToRad(vecAngle[0])) * -1.0;
+	
+	NormalizeVector(vecVelocity, vecVelocity);
+	
+	ScaleVector(vecVelocity, flSpeed);
+}
+
+////////////////
+// SZF Team
+////////////////
 
 stock int IsZombie(int iClient)
 {
@@ -77,11 +85,155 @@ stock int IsSurvivor(int iClient)
 	return TF2_GetClientTeam(iClient) == TFTeam_Survivor;
 }
 
-////////////////////////////////////////////////////////////
-//
-// Client Validity Utils
-//
-////////////////////////////////////////////////////////////
+stock int GetZombieCount()
+{
+	int iCount = 0;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidZombie(iClient))
+			iCount++;
+	
+	return iCount;
+}
+
+stock int GetSurvivorCount()
+{
+	int iCount = 0;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidLivingSurvivor(iClient))
+			iCount++;
+	
+	return iCount;
+}
+
+stock int GetActivePlayerCount()
+{
+	int i = 0;
+	for (int j = 1; j <= MaxClients; j++)
+		if (IsValidLivingClient(j)) i++;
+	
+	return i;
+}
+
+stock int GetReplaceRageWithSpecialInfectedSpawnCount()
+{
+	int iCount = 0;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidZombie(iClient) && g_bReplaceRageWithSpecialInfectedSpawn[iClient])
+			iCount++;
+	
+	return iCount;
+}
+
+////////////////
+// Models
+////////////////
+
+stock void AddModelToDownloadsTable(const char[] sModel)
+{
+	static const char sFileType[][] = {
+		"dx80.vtx",
+		"dx90.vtx",
+		"mdl",
+		"phy",
+		"sw.vtx",
+		"vvd",
+	};
+	
+	char sRoot[PLATFORM_MAX_PATH];
+	strcopy(sRoot, sizeof(sRoot), sModel);
+	ReplaceString(sRoot, sizeof(sRoot), ".mdl", "");
+	
+	for (int i = 0; i < sizeof(sFileType); i++)
+	{
+		char sBuffer[PLATFORM_MAX_PATH];
+		Format(sBuffer, sizeof(sBuffer), "%s.%s", sRoot, sFileType[i]);
+		if (FileExists(sBuffer))
+			AddFileToDownloadsTable(sBuffer);
+	}
+}
+
+stock int PrecacheZombieSouls()
+{
+	char sPath[64];
+	//Loops through all class types available
+	for (int iClass = 1; iClass < view_as<int>(TFClassType); iClass++)
+	{
+		Format(sPath, sizeof(sPath), "models/player/items/%s/%s_zombie.mdl", g_sClassFiles[iClass], g_sClassFiles[iClass]);
+		g_iZombieSoulIndex[iClass] = PrecacheModel(sPath);
+	}
+}
+
+stock void ApplyVoodooCursedSoul(int iClient)
+{
+	if (TF2_IsPlayerInCondition(iClient, TFCond_HalloweenGhostMode))
+		return;
+	
+	//Reset custom models
+	SetVariantString("");
+	AcceptEntityInput(iClient, "SetCustomModel");
+	
+	TFClassType iClass = TF2_GetPlayerClass(iClient);
+	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", true);
+	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", (iClass == TFClass_Spy) ? SKIN_ZOMBIE_SPY : SKIN_ZOMBIE);
+	
+	int iWearable = TF2_CreateAndEquipWeapon(iClient, g_iVoodooIndex[view_as<int>(iClass)]); //Not really a weapon, but still works
+	if (iWearable > MaxClients)
+		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", g_iZombieSoulIndex[view_as<int>(iClass)]);
+}
+
+stock int GetClassVoodooItemDefIndex(TFClassType iClass)
+{
+	return g_iVoodooIndex[iClass];
+}
+
+stock void AddWeaponVision(int iWeapon, int iFlag)
+{
+	//Get current flag and add into it
+	float flVal = float(TF_VISION_FILTER_NONE);
+	TF2_WeaponFindAttribute(iWeapon, ATTRIB_VISION, flVal);
+	flVal = float(RoundToNearest(flVal)|iFlag);
+	TF2Attrib_SetByDefIndex(iWeapon, ATTRIB_VISION, flVal);
+}
+
+stock void PrecacheSound2(const char[] sSoundPath)
+{
+	char sBuffer[PLATFORM_MAX_PATH];
+	strcopy(sBuffer, sizeof(sBuffer), sSoundPath);
+	PrecacheSound(sBuffer, true);
+	
+	if (sBuffer[0] == '#')
+		strcopy(sBuffer, sizeof(sBuffer), sBuffer[1]);	//Remove '#' from start of string
+	
+	Format(sBuffer, sizeof(sBuffer), "sound/%s", sBuffer);
+	AddFileToDownloadsTable(sBuffer);
+}
+
+////////////////
+// SZF Class
+////////////////
+
+stock void TF2_GetClassName(char[] sBuffer, int iLength, int iClass)
+{
+	strcopy(sBuffer, iLength, g_sClassNames[iClass]);
+}
+
+stock void GetInfectedName(char[] sBuffer, int iLength, int iInfected)
+{
+	strcopy(sBuffer, iLength, g_sInfectedNames[iInfected]);
+}
+
+stock Infected GetInfected(const char[] sBuffer)
+{
+	for (int i; i < sizeof(g_sInfectedNames); i++)
+		if (StrEqual(sBuffer, g_sInfectedNames[i], false))
+			return view_as<Infected>(i);
+	
+	return Infected_Unknown;
+}
+
+////////////////
+// Client Validity
+////////////////
 
 stock bool IsValidClient(int iClient)
 {
@@ -113,60 +265,76 @@ stock bool IsValidLivingZombie(int iClient)
 	return IsValidZombie(iClient) && IsPlayerAlive(iClient);
 }
 
-////////////////////////////////////////////////////////////
-//
-// SZF Class Utils
-//
-////////////////////////////////////////////////////////////
+////////////////
+// Morale
+////////////////
 
-stock void TF2_GetClassName(char[] sBuffer, int iLength, int iClass)
+stock void AddMorale(int iClient, int iAmount)
 {
-	strcopy(sBuffer, iLength, g_sClassNames[iClass]);
+	g_iMorale[iClient] = g_iMorale[iClient] + iAmount;
+	
+	if (g_iMorale[iClient] > 100)
+		g_iMorale[iClient] = 100;
+	
+	if (g_iMorale[iClient] < 0)
+		g_iMorale[iClient] = 0;
 }
 
-stock void GetInfectedName(char[] sBuffer, int iLength, int iInfected)
+stock void AddMoraleAll(int iAmount)
 {
-	strcopy(sBuffer, iLength, g_sInfectedNames[iInfected]);
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidLivingSurvivor(iClient))
+			AddMorale(iClient, iAmount);
 }
 
-stock float TF2_GetClassSpeed(TFClassType nClass)
+stock void SetMorale(int iClient, int iAmount)
 {
-	switch (nClass)
-	{
-		case TFClass_Scout: return 400.0;
-		case TFClass_Soldier: return 240.0;
-		case TFClass_Pyro: return 300.0;
-		case TFClass_DemoMan: return 280.0;
-		case TFClass_Heavy: return 230.0;
-		case TFClass_Engineer: return 300.0;
-		case TFClass_Medic: return 320.0;
-		case TFClass_Sniper: return 300.0;
-		case TFClass_Spy: return 320.0;
-		default: return 0.0;
-	}
+	g_iMorale[iClient] = iAmount;
 }
 
-////////////////////////////////////////////////////////////
-//
-// Map Utils
-//
-////////////////////////////////////////////////////////////
+stock void SetMoraleAll(int iAmount)
+{
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidLivingSurvivor(iClient))
+			SetMorale(iClient, iAmount);
+}
+
+stock int GetMorale(int iClient)
+{
+	return g_iMorale[iClient];
+}
+
+////////////////
+// Map
+////////////////
 
 stock bool IsMapSZF()
 {
 	char sMap[8];
 	GetCurrentMap(sMap, sizeof(sMap));
 	GetMapDisplayName(sMap, sMap, sizeof(sMap));
-	if (StrContains(sMap, "zf_") == 0) return true;
-	if (StrContains(sMap, "szf_") == 0) return true;
+	
+	if (StrContains(sMap, "zf_") == 0 || StrContains(sMap, "szf_") == 0)
+		return true;
+	
 	return false;
 }
 
-////////////////////////////////////////////////////////////
-//
-// Round Utils
-//
-////////////////////////////////////////////////////////////
+stock void FireRelay(const char[] sInput, const char[] sTargetName1, const char[] sTargetName2 = "", int iActivator = -1)
+{
+	char sTargetName[255];
+	int iEntity;
+	while ((iEntity = FindEntityByClassname(iEntity, "logic_relay")) != -1)
+	{
+		GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
+		if (StrEqual(sTargetName1, sTargetName) || (sTargetName2[0] && StrEqual(sTargetName2, sTargetName)))
+			AcceptEntityInput(iEntity, sInput, iActivator, iActivator);
+	}
+}
+
+////////////////
+// Round
+////////////////
 
 stock void TF2_EndRound(TFTeam nTeam)
 {
@@ -189,58 +357,36 @@ stock void TF2_EndRound(TFTeam nTeam)
 	}
 }
 
-////////////////////////////////////////////////////////////
-//
-// Weapon State Utils
-//
-////////////////////////////////////////////////////////////
-
-stock int TF2_GetActiveWeapon(int iClient)
-{
-	return GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon");
-}
-
-stock int TF2_GetActiveWeaponIndex(int iClient)
-{
-	int iWeapon = TF2_GetActiveWeapon(iClient);
-	if (iWeapon > MaxClients)
-		return GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
-	
-	return -1;
-}
-
-stock int TF2_GetSlotIndex(int iClient, int iSlot)
-{
-	int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
-	if (iWeapon > MaxClients)
-		return GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
-	
-	return -1;
-}
-
-stock int TF2_GetActiveSlot(int iClient)
-{
-	int iWeapon = TF2_GetActiveWeapon(iClient);
-	
-	for (int iSlot = 0; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
-		if (GetPlayerWeaponSlot(iClient, iSlot) == iWeapon)
-			return iSlot;
-	
-	return -1;
-}
+////////////////
+// Weapon State
+////////////////
 
 stock bool TF2_IsEquipped(int iClient, int iIndex)
 {
 	for (int iSlot = 0; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
-		if (TF2_GetSlotIndex(iClient, iSlot) == iIndex)
+	{
+		int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
+		if (iWeapon > MaxClients && GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex") == iIndex)
 			return true;
+	}
 	
 	return false;
 }
 
 stock bool TF2_IsWielding(int iClient, int iIndex)
 {
-	return TF2_GetActiveWeaponIndex(iClient) == iIndex;
+	int iWeapon = GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon");
+	if (iWeapon > MaxClients)
+		return GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex") == iIndex;
+	
+	return false;
+}
+
+stock void TF2_SwitchActiveWeapon(int iClient, int iWeapon)
+{
+	char sClassname[256];
+	GetEntityClassname(iWeapon, sClassname, sizeof(sClassname));
+	FakeClientCommand(iClient, "use %s", sClassname);
 }
 
 stock bool TF2_IsSlotClassname(int iClient, int iSlot, char[] sClassname)
@@ -257,673 +403,16 @@ stock bool TF2_IsSlotClassname(int iClient, int iSlot, char[] sClassname)
 	return false;
 }
 
-stock int TF2_GetSlotInItem(int iIndex, TFClassType nClass)
+stock bool IsRazorbackActive(int iClient)
 {
-	int iSlot = TF2Econ_GetItemSlot(iIndex, nClass);
-	if (iSlot >= 0)
-	{
-		//Spy slots is a bit messy
-		if (nClass == TFClass_Spy)
-		{
-			if (iSlot == 1) iSlot = WeaponSlot_Primary;	//Revolver
-			if (iSlot == 4) iSlot = WeaponSlot_Secondary;	//Sapper
-			if (iSlot == 6) iSlot = WeaponSlot_InvisWatch;	//Invis Watch
-		}
-	}
-	
-	return iSlot;
-}
-
-////////////////////////////////////////////////////////////
-//
-// Speed Utils
-//
-////////////////////////////////////////////////////////////
-
-stock void SetClientSpeed(int iClient, float flSpeed)
-{
-	// m_flMaxSpeed appears to be reset/recalculated when:
-	// + after switching weapons and before next prethinkpost
-	// + (soldier holding equalizer) every 17-19 frames
-	SetEntPropFloat(iClient, Prop_Data, "m_flMaxspeed", flSpeed);
-}
-
-stock float GetClientBonusSpeed(int iClient)
-{
-	switch (TF2_GetPlayerClass(iClient))
-	{
-		case TFClass_Scout:
-		{
-			if (TF2_IsEquipped(iClient, WEAPON_BFB))
-			{
-				return 4.5*GetEntPropFloat(iClient, Prop_Send, "m_flHypeMeter");
-			}
-			
-			if (TF2_IsPlayerInCondition(iClient, TFCond_CritCola))
-			{
-				return 20.0;
-			}
-		}
-		case TFClass_Soldier:
-		{
-			if (TF2_IsWielding(iClient, WEAPON_ESCAPEPLAN))
-			{
-				int iHealth = GetClientHealth(iClient);
-				if (iHealth > 160) return 0.0;
-				if (iHealth > 120) return 24.0;
-				if (iHealth > 80) return 48.0;
-				if (iHealth > 40) return 96.0;
-				if (iHealth > 0) return 144.0;
-			}
-		}
-		case TFClass_Pyro:
-		{
-			if (TF2_IsWielding(iClient, WEAPON_POWERJACK))
-			{
-				return 36.0;
-			}
-		}
-		case TFClass_DemoMan:
-		{
-			//Eyelander
-			if (TF2_IsSlotClassname(iClient, 2, "tf_weapon_sword")
-				&& !TF2_IsEquipped(iClient, WEAPON_SKULLCUTTER)
-				&& !TF2_IsEquipped(iClient, WEAPON_CLAIDHEAMHMOR)
-				&& !TF2_IsEquipped(iClient, WEAPON_PERSIAN))
-			{
-				int iHeads = GetEntProp(iClient, Prop_Send, "m_iDecapitations");
-				return -40.0 + min(iHeads, 4) * 10.0;
-			}
-			else if (TF2_IsEquipped(iClient, WEAPON_SKULLCUTTER))
-			{
-				return -42.0;
-			}
-		}
-		case TFClass_Heavy:
-		{
-			if (TF2_IsWielding(iClient, WEAPON_GRU)
-				|| TF2_IsWielding(iClient, WEAPON_FGRU)
-				|| TF2_IsWielding(iClient, WEAPON_BREADBITE))
-			{
-				return 70.0;
-			}
-			
-			if (TF2_IsWielding(iClient, WEAPON_EVICTIONNOTICE))
-			{
-				return 35.0;
-			}
-		}
-		case TFClass_Medic:
-		{
-			//Overdose
-			if (TF2_IsWielding(iClient, WEAPON_OVERDOSE))
-			{
-				int iMedigun = GetPlayerWeaponSlot(iClient, TFWeaponSlot_Secondary);
-				if (iMedigun > MaxClients && IsValidEdict(iMedigun))
-					return GetEntPropFloat(iMedigun, Prop_Send, "m_flChargeLevel") * 36;
-			}
-		}
-	}
-	
-	return 0.0;
-}
-
-////////////////////////////////////////////////////////////
-//
-// Entity Name Utils
-//
-////////////////////////////////////////////////////////////
-
-stock bool IsClassnameContains(int iEntity, const char[] sClassname)
-{
-	if (IsValidEdict(iEntity) && IsValidEntity(iEntity))
-	{
-		char sClassname2[32];
-		GetEdictClassname(iEntity, sClassname2, sizeof(sClassname2));
-		return (StrContains(sClassname2, sClassname, false) != -1);
-	}
+	int iEntity = -1;
+	while ((iEntity = FindEntityByClassname(iEntity, "tf_wearable_razorback")) != -1)
+		if (IsClassname(iEntity, "tf_wearable_razorback") && GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity") == iClient && GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex") == 57)
+			return GetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", TFWeaponSlot_Secondary) >= 100.0;
 	
 	return false;
 }
 
-stock bool TF2_IsSentry(int ent)
-{
-	return IsClassnameContains(ent, "obj_sentrygun");
-}
-
-////////////////////////////////////////////////////////////
-//
-// Glow Utils
-//
-////////////////////////////////////////////////////////////
-
-stock void TF2_SetGlow(int iClient, bool bEnable)
-{
-	SetEntProp(iClient, Prop_Send, "m_bGlowEnabled", bEnable);
-}
-
-////////////////////////////////////////////////////////////
-//
-// Cloak Utils
-// + Range 0.0 to 100.0
-//
-////////////////////////////////////////////////////////////
-
-stock float TF2_GetCloakMeter(int iClient)
-{
-	if (TF2_GetPlayerClass(iClient) == TFClass_Spy)
-		return GetEntPropFloat(iClient, Prop_Send, "m_flCloakMeter");
-	
-	return 0.0;
-}
-
-stock void TF2_SetCloakMeter(int iClient, float flCloak)
-{
-	if (TF2_GetPlayerClass(iClient) == TFClass_Spy)
-		SetEntPropFloat(iClient, Prop_Send, "m_flCloakMeter", flCloak);
-}
-
-////////////////////////////////////////////////////////////
-//
-// Uber Utils
-// + Range 0.0 to 1.0
-//
-////////////////////////////////////////////////////////////
-
-stock void TF2_AddUber(int iClient, float flCharge)
-{
-	int iWeapon = GetPlayerWeaponSlot(iClient, WeaponSlot_Secondary);
-	if(iWeapon > MaxClients && TF2_GetPlayerClass(iClient) == TFClass_Medic)
-	{
-		flCharge += GetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel");
-		SetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel", fMin(flCharge, 1.0));
-	}
-}
-
-stock void TF2_RemoveUber(int iClient, float flCharge)
-{
-	int iWeapon = GetPlayerWeaponSlot(iClient, WeaponSlot_Secondary);
-	if(iWeapon > MaxClients && TF2_GetPlayerClass(iClient) == TFClass_Medic)
-	{
-		flCharge -= GetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel");
-		SetEntPropFloat(iWeapon, Prop_Send, "m_flChargeLevel", fMax(flCharge , 0.0));
-	}
-}
-
-////////////////////////////////////////////////////////////
-//
-// Metal Utils
-//
-////////////////////////////////////////////////////////////
-
-stock void TF2_AddMetal(int iClient, int iMetal)
-{
-	if (TF2_GetPlayerClass(iClient) == TFClass_Engineer)
-	{
-		iMetal += TF2_GetMetal(iClient);
-		TF2_SetMetal(iClient, min(iMetal, 200));
-	}
-}
-
-stock void TF2_RemoveMetal(int iClient, int iMetal)
-{
-	if (TF2_GetPlayerClass(iClient) == TFClass_Engineer)
-	{
-		iMetal -= TF2_GetMetal(iClient);
-		TF2_SetMetal(iClient, max(iMetal, 0));
-	}
-}
-
-stock int TF2_GetMetal(int iClient)
-{
-	return GetEntProp(iClient, Prop_Send, "m_iAmmo", _, 3);
-}
-
-stock void TF2_SetMetal(int iClient, int iMetal)
-{
-	SetEntProp(iClient, Prop_Send, "m_iAmmo", iMetal, _, 3);
-}
-
-////////////////////////////////////////////////////////////
-//
-// Ammo Add/Sub Utils
-//
-////////////////////////////////////////////////////////////
-
-stock int TF2_GetClip(int iClient, int iSlot)
-{
-	int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
-	if (iWeapon > MaxClients)
-		return GetEntProp(iWeapon, Prop_Send, "m_iClip1");
-	
-	return 0;
-}
-
-stock void TF2_SetClip(int iClient, int iSlot, int iClip)
-{
-	int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
-	if (iWeapon > MaxClients)
-		SetEntProp(iWeapon, Prop_Send, "m_iClip1", iClip);
-}
-
-stock void TF2_AddClip(int iClient, int iSlot, int iClip)
-{
-	iClip += TF2_GetClip(iClient, iSlot);
-	TF2_SetClip(iClient, iSlot, iClip);
-}
-
-stock void TF2_RemoveClip(int iClient, int iSlot, int iClip)
-{
-	iClip -= TF2_GetClip(iClient, iSlot);
-	TF2_SetClip(iClient, iSlot, max(iClip, 0));
-}
-
-stock int TF2_GetAmmo(int iClient, int iSlot)
-{
-	int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
-	if (iWeapon > MaxClients)
-	{
-		int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
-		if (iAmmoType > -1)
-			return GetEntProp(iClient, Prop_Send, "m_iAmmo", _, iAmmoType);
-	}
-	
-	return 0;
-}
-
-stock void TF2_SetAmmo(int iClient, int iSlot, int iAmmo)
-{
-	int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
-	if (iWeapon > 0)
-	{
-		int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
-		if (iAmmoType > -1)
-			SetEntProp(iClient, Prop_Send, "m_iAmmo", iAmmo, _, iAmmoType);
-	}
-}
-
-stock void TF2_AddAmmo(int iClient, int iSlot, int iAmmo)
-{
-	iAmmo += TF2_GetAmmo(iClient, iSlot);
-	TF2_SetAmmo(iClient, iSlot, iAmmo);
-}
-
-stock void TF2_RemoveAmmo(int iClient, int iSlot, int iAmmo)
-{
-	iAmmo -= TF2_GetAmmo(iClient, iSlot);
-	TF2_SetAmmo(iClient, iSlot, max(iAmmo, 0));
-}
-
-////////////////////////////////////////////////////////////
-//
-// Spawn Utils
-//
-////////////////////////////////////////////////////////////
-
-stock void SpawnClient(int iClient, TFTeam nTeam, bool bRespawn = true)
-{
-	//1. Prevent players from spawning if they're on an invalid team.
-	//        Prevent players from spawning as an invalid class.
-	if (IsClientInGame(iClient) && (IsSurvivor(iClient) || IsZombie(iClient)))
-	{
-		TFClassType nClass = TF2_GetPlayerClass(iClient);
-		if (nTeam == TFTeam_Zombie && !IsValidZombieClass(nClass))
-			nClass = GetRandomZombieClass();
-		
-		if (nTeam == TFTeam_Survivor && !IsValidSurvivorClass(nClass))
-			nClass = GetRandomSurvivorClass();
-		
-		//Use of m_lifeState here prevents:
-		//1. "[Player] Suicided" messages.
-		//2. Adding a death to player stats.
-		SetEntProp(iClient, Prop_Send, "m_lifeState", 2);
-		TF2_SetPlayerClass(iClient, nClass);
-		TF2_ChangeClientTeam(iClient, nTeam);
-		SetEntProp(iClient, Prop_Send, "m_lifeState", 0);
-		
-		if (bRespawn)
-			TF2_RespawnPlayer(iClient);
-	}
-}
-
-stock void TF2_RespawnPlayer2(int iClient)
-{
-	TFClassType nClass = TF2_GetPlayerClass(iClient);
-	TFTeam nTeam = TF2_GetClientTeam(iClient);
-	
-	if (nTeam == TFTeam_Zombie && !IsValidZombieClass(nClass))
-		TF2_SetPlayerClass(iClient, GetRandomZombieClass());
-		
-	if (nTeam == TFTeam_Survivor && !IsValidSurvivorClass(nClass))
-		TF2_SetPlayerClass(iClient, GetRandomSurvivorClass());
-	
-	TF2_RespawnPlayer(iClient);
-}
-
-stock void SetTeamRespawnTime(TFTeam nTeam, float flTime)
-{
-	int iEntity = FindEntityByClassname(-1, "tf_gamerules");
-	if (iEntity != -1)
-	{
-		SetVariantFloat(flTime/2.0);
-		switch (nTeam)
-		{
-			case TFTeam_Blue: AcceptEntityInput(iEntity, "SetBlueTeamRespawnWaveTime", -1, -1, 0);
-			case TFTeam_Red: AcceptEntityInput(iEntity, "SetRedTeamRespawnWaveTime", -1, -1, 0);
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////
-//
-// Weapon Utils
-//
-////////////////////////////////////////////////////////////
-
-stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, char[] sAttribs = "", char[] sText = "")
-{
-	char sClassname[256];
-	TF2Econ_GetItemClassName(iIndex, sClassname, sizeof(sClassname));
-	TF2Econ_TranslateWeaponEntForClass(sClassname, sizeof(sClassname), TF2_GetPlayerClass(iClient));
-	
-	int iWeapon = CreateEntityByName(sClassname);
-	if (IsValidEntity(iWeapon))
-	{
-		SetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex", iIndex);
-		SetEntProp(iWeapon, Prop_Send, "m_bInitialized", 1);
-		
-		//Allow quality / level override by updating through the offset.
-		char netClass[64];
-		GetEntityNetClass(iWeapon, netClass, sizeof(netClass));
-		SetEntData(iWeapon, FindSendPropInfo(netClass, "m_iEntityQuality"), 6);
-		SetEntData(iWeapon, FindSendPropInfo(netClass, "m_iEntityLevel"), 1);
-		
-		SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 6);
-		SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
-		
-		//Attribute shittery inbound
-		if (!StrEqual(sAttribs, ""))
-		{
-			char atts[32][32];
-			int iCount = ExplodeString(sAttribs, " ; ", atts, 32, 32);
-			if (iCount > 1)
-				for (int i = 0; i < iCount; i+= 2)
-					TF2Attrib_SetByDefIndex(iWeapon, StringToInt(atts[i]), StringToFloat(atts[i+1]));
-		}
-		
-		if (g_flStopChatSpam[iClient] < GetGameTime() && !StrEqual(sText, ""))
-		{
-			CPrintToChat(iClient, sText);
-			g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
-		}
-		
-		DispatchSpawn(iWeapon);
-		SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", true);
-		
-		if (StrContains(sClassname, "tf_wearable") == 0)
-			SDK_EquipWearable(iClient, iWeapon);
-		else
-			EquipPlayerWeapon(iClient, iWeapon);
-	}
-	
-	return iWeapon;
-}
-
-//Taken from STT
-stock void TF2_FlagWeaponDontDrop(int iWeapon, bool bVisibleHack = true)
-{
-	int iOffset = GetEntSendPropOffs(iWeapon, "m_Item", true);
-	if (iOffset <= 0)
-		return;
-	
-	Address weaponAddress = GetEntityAddress(iWeapon);
-	if (weaponAddress == Address_Null)
-		return;
-	
-	Address addr = view_as<Address>((view_as<int>(weaponAddress)) + iOffset + OFFSET_DONT_DROP); //Going to hijack CEconItemView::m_iInventoryPosition.
-	//Need to build later on an anti weapon drop, using OnEntityCreated or something...
-	
-	StoreToAddress(addr, FLAG_DONT_DROP_WEAPON, NumberType_Int32);
-	if (bVisibleHack) SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", 1);
-}
-
-stock int TF2_GetItemInSlot(int iClient, int iSlot)
-{
-	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
-	if (iEntity > MaxClients)
-		return iEntity;
-	
-	iEntity = SDK_GetEquippedWearable(iClient, iSlot);
-	if (iEntity > MaxClients)
-		return iEntity;
-	
-	return -1;
-}
-
-stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
-{
-	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
-	if (iEntity > MaxClients)
-		TF2_RemoveWeaponSlot(iClient, iSlot);
-	
-	int iWearable = SDK_GetEquippedWearable(iClient, iSlot);
-	if (iWearable > MaxClients)
-		TF2_RemoveWearable(iClient, iWearable);
-}
-
-stock void CheckClientWeapons(int iClient)
-{
-	for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
-	{
-		int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
-		if (iWeapon > MaxClients)
-		{
-			char sClassname[256];
-			GetEntityClassname(iWeapon, sClassname, sizeof(sClassname));
-			if (OnGiveNamedItem(iClient, sClassname, GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
-				TF2_RemoveItemInSlot(iClient, iSlot);
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////
-//
-// Cookie Utils
-//
-////////////////////////////////////////////////////////////
-
-stock int GetCookie(int iClient, Cookie cookie)
-{
-	if (!IsClientConnected(iClient) || !AreClientCookiesCached(iClient))
-		return 0;
-	
-	char sValue[8];
-	cookie.Get(iClient, sValue, sizeof(sValue));
-	return StringToInt(sValue);
-}
-
-stock void AddToCookie(int iClient, int iAmount, Cookie cookie)
-{
-	if (!IsClientConnected(iClient) || !AreClientCookiesCached(iClient))
-		return;
-	
-	char sValue[8];
-	cookie.Get(iClient, sValue, sizeof(sValue));
-	iAmount += StringToInt(sValue);
-	IntToString(iAmount, sValue, sizeof(sValue));
-	cookie.Set(iClient, sValue);
-}
-
-stock void SetCookie(int iClient, int iAmount, Cookie cookie)
-{
-	if (!IsClientConnected(iClient) || !AreClientCookiesCached(iClient))
-		return;
-	
-	char sValue[8];
-	IntToString(iAmount, sValue, sizeof(sValue));
-	cookie.Set(iClient, sValue);
-}
-
-/******************************************************************************************************/
-
-stock void GetClientName2(int iClient, char[] sName, int iLength)
-{
-	Call_StartForward(g_hForwardClientName);
-	Call_PushCell(iClient);
-	Call_PushStringEx(sName, iLength, SM_PARAM_STRING_UTF8|SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
-	Call_PushCell(iLength);
-	Call_Finish();
-	
-	//If name still empty or could not be found, use default name and team color instead
-	if (sName[0] == '\0')
-	{
-		GetClientName(iClient, sName, iLength);
-		Format(sName, iLength, "{teamcolor}%s", sName);
-	}
-}
-
-stock void AddModelToDownload(char[] sModel)
-{
-	char sPath[256];
-	const char sModelExtensions[][] = {
-		".mdl",
-		".dx80.vtx",
-		".dx90.vtx",
-		".sw.vtx",
-		".vvd",
-		".phy"
-	};
-	
-	for (int iExt = 0; iExt < sizeof(sModelExtensions); iExt++)
-	{
-		Format(sPath, sizeof(sPath), "models/%s%s", sModel, sModelExtensions[iExt]);
-		AddFileToDownloadsTable(sPath);
-	}
-}
-
-stock int FindEntityByTargetname(const char[] sTargetName, const char[] sClassname)
-{
-	char sBuffer[32];
-	int iEntity = -1;
-	
-	while(strcmp(sClassname, sTargetName) != 0 && (iEntity = FindEntityByClassname(iEntity, classname)) != -1)
-		GetEntPropString(iEntity, Prop_Data, "m_iName", sBuffer, sizeof(sBuffer));
-	
-	return iEntity;
-}
-
-stock void Shake(int iClient, float flAmplitude, float flDuration)
-{
-	BfWrite bf = UserMessageToBfWrite(StartMessageOne("Shake", iClient));
-	bf.WriteByte(0); //0x0000 = start shake
-	bf.WriteFloat(flAmplitude);
-	bf.WriteFloat(1.0);
-	bf.WriteFloat(flDuration);
-	EndMessage();
-}
-
-stock void SpawnPickup(int iClient, const char[] sClassname)
-{
-	float vecOrigin[3];
-	GetClientAbsOrigin(iClient, vecOrigin);
-	vecOrigin[2] += 16.0;
-	
-	int iEntity = CreateEntityByName(sClassname);
-	DispatchKeyValue(iEntity, "OnPlayerTouch", "!self,Kill,,0,-1");
-	if (DispatchSpawn(iEntity))
-	{
-		SetEntProp(iEntity, Prop_Send, "m_iTeamNum", 0, 4);
-		TeleportEntity(iEntity, vecOrigin, NULL_VECTOR, NULL_VECTOR);
-		CreateTimer(0.15, Timer_KillEntity, EntIndexToEntRef(iEntity));
-	}
-}
-
-public Action Timer_KillEntity(Handle hTimer, int iRef)
-{
-	int iEntity = EntRefToEntIndex(iRef);
-	if (IsValidEntity(iEntity))
-		AcceptEntityInput(iEntity, "Kill");
-}
-
-//Yoinked from https://github.com/DFS-Servers/Super-Zombie-Fortress/blob/master/addons/sourcemod/scripting/include/szf_util_base.inc
-stock void SZF_CPrintToChatAll(int iClient, char[] sText, bool bTeam = false, const char[] sParam1="", const char[] sParam2="", const char[] sParam3="", const char[] sParam4="")
-{
-	if (bTeam && !IsValidClient(iClient))
-		return;
-	
-	char sName[80], sMessage[255];
-	if (0 < iClient <= MaxClients)
-	{
-		GetClientName2(iClient, sName, sizeof(sName));
-		if (bTeam)
-			Format(sMessage, sizeof(sMessage), "\x01(TEAM) %s\x01 : %s", sName, sText);
-		else
-			Format(sMessage, sizeof(sMessage), "\x01%s\x01 : %s\x01", sName, sText);
-	}
-	
-	ReplaceString(sMessage, sizeof(sMessage), "{param1}", "%s1");
-	ReplaceString(sMessage, sizeof(sMessage), "{param2}", "%s2");
-	ReplaceString(sMessage, sizeof(sMessage), "{param3}", "%s3");
-	ReplaceString(sMessage, sizeof(sMessage), "{param4}", "%s4");
-	CReplaceColorCodes(sMessage, iClient, _, sizeof(sMessage));
-	
-	int iClients[MAXPLAYERS+1], iLength;
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (!IsValidClient(i) || (bTeam &&  GetClientTeam(i) != GetClientTeam(iClient)))
-			continue;
-		
-		iClients[iLength++] = i;
-	}
-	
-	SayText2(iClients, iLength, iClient, true, sMessage, sParam1, sParam2, sParam3, sParam4);
-}
-
-stock void SayText2(int[] iClients, int iLength, int iEntity, bool bChat, const char[] sMessage, const char[] sParam1="", const char[] sParam2="", const char[] sParam3="", const char[] sParam4="")
-{
-	BfWrite bf = UserMessageToBfWrite(StartMessage("SayText2", iClients, iLength, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS)); 
-	
-	bf.WriteByte(iEntity);
-	bf.WriteByte(true);
-	
-	bf.WriteString(sMessage); 
-	
-	bf.WriteString(sParam1); 
-	bf.WriteString(sParam2); 
-	bf.WriteString(sParam3);
-	bf.WriteString(sParam4);
-	
-	EndMessage();
-}
-
-/******************************************************************************************************/
-
-stock int PrecacheZombieSouls()
-{
-	char sPath[64];
-	//Loops through all class types available
-	for (int iClass = 1; iClass < view_as<int>(TFClassType); iClass++)
-	{
-		Format(sPath, sizeof(sPath), "models/player/items/%s/%s_zombie.mdl", g_sClassFiles[iClass], g_sClassFiles[iClass]);
-		g_iZombieSoulIndex[iClass] = PrecacheModel(sPath);
-	}
-}
-
-stock void ApplyVoodooCursedSoul(int iClient)
-{
-	if (TF2_IsPlayerInCondition(iClient, TFCond_HalloweenGhostMode))
-		return;
-	
-	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", true);
-	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", (TF2_GetPlayerClass(iClient) == TFClass_Spy) ? SKIN_ZOMBIE_SPY : SKIN_ZOMBIE);
-	
-	TFClassType nClass = TF2_GetPlayerClass(iClient);
-	int iWearable = TF2_CreateAndEquipWeapon(iClient, g_iVoodooIndex[view_as<int>(nClass)]);	//Not really a weapon, but still works
-	if (IsValidEntity(iWearable))
-		SetEntProp(iWearable, Prop_Send, "m_nModelIndexOverrides", g_iZombieSoulIndex[view_as<int>(nClass)]);
-}
-
-//https://github.com/Mikusch/tfgo/blob/c6109ad9a2f04ac0267e0916145a8274c9f6662e/addons/sourcemod/scripting/tfgo/stocks.sp#L205-L237 :)
 stock int TF2_GetItemSlot(int iIndex, TFClassType iClass)
 {
 	int iSlot = TF2Econ_GetItemSlot(iIndex, iClass);
@@ -958,6 +447,609 @@ stock int TF2_GetItemSlot(int iIndex, TFClassType iClass)
 	return iSlot;
 }
 
+stock int TF2_GetItemInSlot(int iClient, int iSlot)
+{
+	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
+	if (iEntity > MaxClients)
+		return iEntity;
+	
+	iEntity = SDKCall_GetEquippedWearable(iClient, iSlot);
+	if (iEntity > MaxClients)
+		return iEntity;
+	
+	return -1;
+}
+
+stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
+{
+	int iEntity = GetPlayerWeaponSlot(iClient, iSlot);
+	if (iEntity > MaxClients)
+		TF2_RemoveWeaponSlot(iClient, iSlot);
+	
+	int iWearable = SDKCall_GetEquippedWearable(iClient, iSlot);
+	if (iWearable > MaxClients)
+		TF2_RemoveWearable(iClient, iWearable);
+}
+
+////////////////
+// Entity Name
+////////////////
+
+stock bool IsClassname(int iEntity, const char[] sClassname)
+{
+	if (iEntity > MaxClients)
+	{
+		char sClassname2[256];
+		GetEntityClassname(iEntity, sClassname2, sizeof(sClassname2));
+		return (StrEqual(sClassname2, sClassname));
+	}
+	
+	return false;
+}
+
+////////////////
+// Cloak
+////////////////
+
+stock float TF2_GetCloakMeter(int iClient)
+{
+	return GetEntPropFloat(iClient, Prop_Send, "m_flCloakMeter");
+}
+
+stock void TF2_SetCloakMeter(int iClient, float flCloak)
+{
+	SetEntPropFloat(iClient, Prop_Send, "m_flCloakMeter", flCloak);
+}
+
+////////////////
+// Ammo
+////////////////
+
+stock int TF2_GetAmmo(int iClient, int iSlot)
+{
+	int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
+	if (iWeapon > MaxClients)
+	{
+		int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
+		if (iAmmoType > -1)
+			return GetEntProp(iClient, Prop_Send, "m_iAmmo", _, iAmmoType);
+	}
+	
+	return 0;
+}
+
+stock void TF2_SetAmmo(int iClient, int iSlot, int iAmmo)
+{
+	int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
+	if (iWeapon > 0)
+	{
+		int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
+		if (iAmmoType > -1)
+			SetEntProp(iClient, Prop_Send, "m_iAmmo", iAmmo, _, iAmmoType);
+	}
+}
+
+stock void TF2_AddAmmo(int iClient, int iSlot, int iAmmo)
+{
+	iAmmo += TF2_GetAmmo(iClient, iSlot);
+	TF2_SetAmmo(iClient, iSlot, iAmmo);
+}
+
+stock void TF2_SetMetal(int iClient, int iMetal)
+{
+	SetEntProp(iClient, Prop_Send, "m_iAmmo", iMetal, _, 3);
+}
+
+////////////////
+// Spawn
+////////////////
+
+stock void SpawnClient(int iClient, TFTeam nTeam, bool bRespawn = true)
+{
+	//1. Prevent players from spawning if they're on an invalid team.
+	//        Prevent players from spawning as an invalid class.
+	if (IsClientInGame(iClient) && (IsSurvivor(iClient) || IsZombie(iClient)))
+	{
+		TFClassType nClass = TF2_GetPlayerClass(iClient);
+		if (nTeam == TFTeam_Zombie && !IsValidZombieClass(nClass))
+			nClass = GetRandomZombieClass();
+		
+		if (nTeam == TFTeam_Survivor && !IsValidSurvivorClass(nClass))
+			nClass = GetRandomSurvivorClass();
+		
+		//Use of m_lifeState here prevents:
+		//1. "[Player] Suicided" messages.
+		//2. Adding a death to player stats.
+		SetEntProp(iClient, Prop_Send, "m_lifeState", 2);
+		TF2_SetPlayerClass(iClient, nClass);
+		TF2_ChangeClientTeam(iClient, nTeam);
+		SetEntProp(iClient, Prop_Send, "m_lifeState", 0);
+		
+		Classes_SetClient(iClient);
+		
+		if (bRespawn)
+			TF2_RespawnPlayer(iClient);
+	}
+}
+
+stock void TF2_RespawnPlayer2(int iClient)
+{
+	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	TFTeam nTeam = TF2_GetClientTeam(iClient);
+	
+	if (nTeam == TFTeam_Zombie && !IsValidZombieClass(nClass))
+		TF2_SetPlayerClass(iClient, GetRandomZombieClass());
+		
+	if (nTeam == TFTeam_Survivor && !IsValidSurvivorClass(nClass))
+		TF2_SetPlayerClass(iClient, GetRandomSurvivorClass());
+	
+	Classes_SetClient(iClient);
+	
+	TF2_RespawnPlayer(iClient);
+}
+
+stock void SetTeamRespawnTime(TFTeam nTeam, float flTime)
+{
+	int iEntity = FindEntityByClassname(-1, "tf_gamerules");
+	if (iEntity != -1)
+	{
+		SetVariantFloat(flTime/2.0);
+		switch (nTeam)
+		{
+			case TFTeam_Blue: AcceptEntityInput(iEntity, "SetBlueTeamRespawnWaveTime", -1, -1, 0);
+			case TFTeam_Red: AcceptEntityInput(iEntity, "SetRedTeamRespawnWaveTime", -1, -1, 0);
+		}
+	}
+}
+
+////////////////
+// Weapon
+////////////////
+
+stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttribs = NULL_STRING, bool bAllowReskin = false)
+{
+	TFClassType iClass = TF2_GetPlayerClass(iClient);
+	char sClassname[256];
+	TF2Econ_GetItemClassName(iIndex, sClassname, sizeof(sClassname));
+	TF2Econ_TranslateWeaponEntForClass(sClassname, sizeof(sClassname), iClass);
+	
+	int iSubType;
+	if ((StrEqual(sClassname, "tf_weapon_builder") || StrEqual(sClassname, "tf_weapon_sapper")) && iClass == TFClass_Spy)
+	{
+		iSubType = view_as<int>(TFObject_Sapper);
+		
+		//Apparently tf_weapon_sapper causes client crashes
+		sClassname = "tf_weapon_builder";
+	}
+	
+	int iWeapon = -1;
+	
+	if (bAllowReskin)
+	{
+		int iSlot = TF2Econ_GetItemSlot(iIndex, iClass);	//Uses econ slot
+		Address pItem = SDKCall_GetLoadoutItem(iClient, iClass, iSlot);
+		
+		if (pItem && GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(g_iOffsetItemDefinitionIndex), NumberType_Int16)) == iIndex)
+			iWeapon = SDKCall_GetBaseEntity(SDKCall_GiveNamedItem(iClient, sClassname, iSubType, pItem));
+	}
+	
+	if (iWeapon == -1)
+	{
+		iWeapon = CreateEntityByName(sClassname);
+		if (IsValidEntity(iWeapon))
+		{
+			SetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex", iIndex);
+			SetEntProp(iWeapon, Prop_Send, "m_bInitialized", true);
+			SetEntProp(iWeapon, Prop_Send, "m_iEntityQuality", 0);
+			SetEntProp(iWeapon, Prop_Send, "m_iEntityLevel", 1);
+			
+			if (iSubType)
+			{
+				SetEntProp(iWeapon, Prop_Send, "m_iObjectType", iSubType);
+				SetEntProp(iWeapon, Prop_Data, "m_iSubType", iSubType);
+			}
+		}
+	}
+	
+	if (IsValidEntity(iWeapon))
+	{
+		//Attribute shittery inbound
+		if (sAttribs[0])
+		{
+			char sAttribs2[32][32];
+			int iCount = ExplodeString(sAttribs, " ; ", sAttribs2, 32, 32);
+			if (iCount > 1)
+				for (int i = 0; i < iCount; i+= 2)
+					TF2Attrib_SetByDefIndex(iWeapon, StringToInt(sAttribs2[i]), StringToFloat(sAttribs2[i+1]));
+		}
+		
+		DispatchSpawn(iWeapon);
+		SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", true);
+		
+		if (StrContains(sClassname, "tf_wearable") == 0)
+			SDKCall_EquipWearable(iClient, iWeapon);
+		else
+			EquipPlayerWeapon(iClient, iWeapon);
+	}
+	
+	return iWeapon;
+}
+
+stock bool TF2_WeaponFindAttribute(int iWeapon, int iAttrib, float &flVal)
+{
+	Address addAttrib = TF2Attrib_GetByDefIndex(iWeapon, iAttrib);
+	if (addAttrib == Address_Null)
+		return TF2_DefIndexFindAttribute(GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex"), iAttrib, flVal);
+	
+	flVal = TF2Attrib_GetValue(addAttrib);
+	
+	return true;
+}
+
+stock bool TF2_DefIndexFindAttribute(int iDefIndex, int iAttrib, float &flVal)
+{
+	ArrayList attribs = TF2Econ_GetItemStaticAttributes(iDefIndex);
+	
+	int iLength = attribs.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		if (attribs.Get(i, 0) == iAttrib)
+		{
+			flVal = attribs.Get(i, 1);
+			
+			delete attribs;
+			return true;
+		}
+	}
+	
+	delete attribs;
+	return false;
+}
+
+stock void CheckClientWeapons(int iClient)
+{
+	//Weapons
+	for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
+	{
+		int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
+		if (iWeapon > MaxClients)
+		{
+			char sClassname[256];
+			GetEntityClassname(iWeapon, sClassname, sizeof(sClassname));
+			int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
+			if (OnGiveNamedItem(iClient, sClassname, iIndex) >= Plugin_Handled)
+				TF2_RemoveItemInSlot(iClient, iSlot);
+		}
+	}
+	
+	//Cosmetics
+	int iWearable = MaxClients+1;
+	while ((iWearable = FindEntityByClassname(iWearable, "tf_wearable*")) > MaxClients)
+	{
+		if (GetEntPropEnt(iWearable, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iWearable, Prop_Send, "moveparent") == iClient)
+		{
+			char sClassname[256];
+			GetEntityClassname(iWearable, sClassname, sizeof(sClassname));
+			int iIndex = GetEntProp(iWearable, Prop_Send, "m_iItemDefinitionIndex");
+			if (OnGiveNamedItem(iClient, sClassname, iIndex) >= Plugin_Handled)
+				TF2_RemoveWearable(iClient, iWearable);
+		}
+	}
+	
+	//MvM Canteen
+	int iPowerupBottle = MaxClients+1;
+	while ((iPowerupBottle = FindEntityByClassname(iPowerupBottle, "tf_powerup_bottle*")) > MaxClients)
+	{
+		if (GetEntPropEnt(iPowerupBottle, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iPowerupBottle, Prop_Send, "moveparent") == iClient)
+		{
+			if (OnGiveNamedItem(iClient, "tf_powerup_bottle", GetEntProp(iPowerupBottle, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
+				TF2_RemoveWearable(iClient, iPowerupBottle);
+		}
+	}
+}
+
+stock int GetOriginalItemDefIndex(int iIndex)
+{
+	int iOrigIndex;
+	
+	char sIndex[8];
+	IntToString(iIndex, sIndex, sizeof(sIndex));
+	
+	if (g_mConfigReskins.GetValue(sIndex, iOrigIndex))
+		return iOrigIndex;
+	else
+		return iIndex;
+}
+
+////////////////
+// Cookie
+////////////////
+
+stock int GetCookie(int iClient, Cookie cookie)
+{
+	if (!IsClientConnected(iClient) || !AreClientCookiesCached(iClient))
+		return 0;
+	
+	char sValue[8];
+	cookie.Get(iClient, sValue, sizeof(sValue));
+	return StringToInt(sValue);
+}
+
+stock void AddToCookie(int iClient, int iAmount, Cookie cookie)
+{
+	if (!IsClientConnected(iClient) || !AreClientCookiesCached(iClient))
+		return;
+	
+	char sValue[8];
+	cookie.Get(iClient, sValue, sizeof(sValue));
+	iAmount += StringToInt(sValue);
+	IntToString(iAmount, sValue, sizeof(sValue));
+	cookie.Set(iClient, sValue);
+}
+
+stock void SetCookie(int iClient, int iAmount, Cookie cookie)
+{
+	if (!IsClientConnected(iClient) || !AreClientCookiesCached(iClient))
+		return;
+	
+	char sValue[8];
+	IntToString(iAmount, sValue, sizeof(sValue));
+	cookie.Set(iClient, sValue);
+}
+
+////////////////
+// Trace
+////////////////
+
+stock bool PointsAtTarget(float vecPos[3], any iTarget)
+{
+	float vecTargetPos[3];
+	GetClientEyePosition(iTarget, vecTargetPos);
+	
+	Handle hTrace = TR_TraceRayFilterEx(vecPos, vecTargetPos, MASK_VISIBLE, RayType_EndPoint, Trace_DontHitOtherEntities, iTarget);
+	
+	int iHit = -1;
+	if (TR_DidHit(hTrace))
+		iHit = TR_GetEntityIndex(hTrace);
+	
+	delete hTrace;
+	return (iHit == iTarget);
+}
+
+stock int GetClientPointVisible(int iClient, float flDistance = 100.0)
+{
+	float vecOrigin[3], vecAngles[3], vecEndOrigin[3];
+	GetClientEyePosition(iClient, vecOrigin);
+	GetClientEyeAngles(iClient, vecAngles);
+	
+	Handle hTrace = TR_TraceRayFilterEx(vecOrigin, vecAngles, MASK_ALL, RayType_Infinite, Trace_DontHitEntity, iClient);
+	TR_GetEndPosition(vecEndOrigin, hTrace);
+	
+	int iReturn = -1;
+	int iHit = TR_GetEntityIndex(hTrace);
+	
+	if (TR_DidHit(hTrace) && iHit != iClient && GetVectorDistance(vecOrigin, vecEndOrigin) < flDistance)
+		iReturn = iHit;
+	
+	delete hTrace;
+	return iReturn;
+}
+
+stock bool ObstactleBetweenEntities(int iEntity1, int iEntity2)
+{
+	float vecOrigin1[3];
+	float vecOrigin2[3];
+	
+	if (IsValidClient(iEntity1))
+		GetClientEyePosition(iEntity1, vecOrigin1);
+	else
+		GetEntPropVector(iEntity1, Prop_Send, "m_vecOrigin", vecOrigin1);
+	
+	GetEntPropVector(iEntity2, Prop_Send, "m_vecOrigin", vecOrigin2);
+	
+	Handle hTrace = TR_TraceRayFilterEx(vecOrigin1, vecOrigin2, MASK_ALL, RayType_EndPoint, Trace_DontHitEntity, iEntity1);
+	
+	bool bHit = TR_DidHit(hTrace);
+	int iHit = TR_GetEntityIndex(hTrace);
+	delete hTrace;
+	
+	if (!bHit || iHit != iEntity2)
+		return true;
+	
+	return false;
+}
+
+stock bool IsEntityStuck(int iEntity)
+{
+	float vecMin[3];
+	float vecMax[3];
+	float vecOrigin[3];
+	
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMins", vecMin);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMaxs", vecMax);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
+	
+	TR_TraceHullFilter(vecOrigin, vecOrigin, vecMin, vecMax, MASK_SOLID, Trace_DontHitEntity, iEntity);
+	return (TR_DidHit());
+}
+
+public bool Trace_DontHitOtherEntities(int iEntity, int iMask, any iData)
+{
+	if (iEntity == iData)
+		return true;
+	
+	if (iEntity > 0)
+		return false;
+	
+	return true;
+}
+
+public bool Trace_DontHitEntity(int iEntity, int iMask, any iData)
+{
+	if (iEntity == iData)
+		return false;
+	
+	return true;
+}
+
+////////////////
+// Particles
+////////////////
+
+stock int ShowParticle(char[] sParticle, float flDuration, float vecPos[3], float vecAngles[3] = NULL_VECTOR)
+{
+	int iParticle = CreateEntityByName("info_particle_system");
+	if (IsValidEdict(iParticle))
+	{
+		TeleportEntity(iParticle, vecPos, vecAngles, NULL_VECTOR);
+		DispatchKeyValue(iParticle, "effect_name", sParticle);
+		ActivateEntity(iParticle);
+		AcceptEntityInput(iParticle, "start");
+		CreateTimer(flDuration, Timer_RemoveParticle, iParticle);
+	}
+	else
+	{
+		LogError("ShowParticle: could not create info_particle_system");
+		return -1;
+	}
+	
+	return iParticle;
+}
+
+stock void PrecacheParticle(char[] sParticleName)
+{
+	if (IsValidEntity(0))
+	{
+		int iParticle = CreateEntityByName("info_particle_system");
+		if (IsValidEdict(iParticle))
+		{
+			char sName[32];
+			GetEntPropString(0, Prop_Data, "m_iName", sName, sizeof(sName));
+			DispatchKeyValue(iParticle, "targetname", "tf2particle");
+			DispatchKeyValue(iParticle, "parentname", sName);
+			DispatchKeyValue(iParticle, "effect_name", sParticleName);
+			DispatchSpawn(iParticle);
+			SetVariantString(sName);
+			AcceptEntityInput(iParticle, "SetParent", 0, iParticle, 0);
+			ActivateEntity(iParticle);
+			AcceptEntityInput(iParticle, "start");
+			CreateTimer(0.01, Timer_RemoveParticle, iParticle);
+		}
+	}
+}
+
+public Action Timer_RemoveParticle(Handle hTimer, int iParticle)
+{
+	if (iParticle >= 0 && IsValidEntity(iParticle))
+	{
+		char sClassname[32];
+		GetEdictClassname(iParticle, sClassname, sizeof(sClassname));
+		if (StrEqual(sClassname, "info_particle_system", false))
+		{
+			AcceptEntityInput(iParticle, "stop");
+			RemoveEntity(iParticle);
+			iParticle = -1;
+		}
+	}
+}
+
+/******************************************************************************************************/
+
+stock void StrToLower(const char[] sInput, char[] sOutput, int iLength)
+{
+	iLength = strlen(sInput) > iLength ? iLength : strlen(sInput);
+	for (int i = 0; i < iLength; i++)
+		sOutput[i] = CharToLower(sInput[i]);
+}
+
+stock void GetClientName2(int iClient, char[] sName, int iLength)
+{
+	Forward_GetClientName(iClient, sName, iLength);
+	
+	//If name still empty or could not be found, use default name and team color instead
+	if (sName[0] == '\0')
+	{
+		GetClientName(iClient, sName, iLength);
+		Format(sName, iLength, "{teamcolor}%s", sName);
+	}
+}
+
+stock void Shake(int iClient, float flAmplitude, float flDuration)
+{
+	BfWrite bf = UserMessageToBfWrite(StartMessageOne("Shake", iClient));
+	bf.WriteByte(0); //0x0000 = start shake
+	bf.WriteFloat(flAmplitude);
+	bf.WriteFloat(1.0);
+	bf.WriteFloat(flDuration);
+	EndMessage();
+}
+
+stock void SpawnPickup(int iClient, const char[] sClassname)
+{
+	float vecOrigin[3];
+	GetClientAbsOrigin(iClient, vecOrigin);
+	vecOrigin[2] += 16.0;
+	
+	int iEntity = CreateEntityByName(sClassname);
+	DispatchKeyValue(iEntity, "OnPlayerTouch", "!self,Kill,,0,-1");
+	if (DispatchSpawn(iEntity))
+	{
+		SetEntProp(iEntity, Prop_Send, "m_iTeamNum", 0, 4);
+		TeleportEntity(iEntity, vecOrigin, NULL_VECTOR, NULL_VECTOR);
+		CreateTimer(0.15, Timer_KillEntity, EntIndexToEntRef(iEntity));
+	}
+}
+
+public Action Timer_KillEntity(Handle hTimer, int iRef)
+{
+	int iEntity = EntRefToEntIndex(iRef);
+	if (IsValidEntity(iEntity))
+		RemoveEntity(iEntity);
+}
+
+//Yoinked from https://github.com/DFS-Servers/Super-Zombie-Fortress/blob/master/addons/sourcemod/scripting/include/szf_util_base.inc
+stock void CPrintToChatTranslation(int iClient, int iCaller, char[] sText, bool bTeam = false, const char[] sParam1="", const char[] sParam2="", const char[] sParam3="", const char[] sParam4="")
+{
+	if (bTeam && !IsValidClient(iCaller))
+		return;
+	
+	char sName[80], sMessage[255];
+	if (0 < iCaller <= MaxClients)
+	{
+		GetClientName2(iCaller, sName, sizeof(sName));
+		if (bTeam)
+			Format(sMessage, sizeof(sMessage), "\x01(TEAM) %s\x01 : %s", sName, sText);
+		else
+			Format(sMessage, sizeof(sMessage), "\x01%s\x01 : %s\x01", sName, sText);
+	}
+	
+	ReplaceString(sMessage, sizeof(sMessage), "{param1}", "%s1");
+	ReplaceString(sMessage, sizeof(sMessage), "{param2}", "%s2");
+	ReplaceString(sMessage, sizeof(sMessage), "{param3}", "%s3");
+	ReplaceString(sMessage, sizeof(sMessage), "{param4}", "%s4");
+	CReplaceColorCodes(sMessage, iCaller, _, sizeof(sMessage));
+	
+	int iClients[1];
+	iClients[0] = iClient;
+	SayText2(iClients, 1, iClient, true, sMessage, sParam1, sParam2, sParam3, sParam4);
+}
+
+stock void SayText2(int[] iClients, int iLength, int iEntity, bool bChat, const char[] sMessage, const char[] sParam1="", const char[] sParam2="", const char[] sParam3="", const char[] sParam4="")
+{
+	BfWrite bf = UserMessageToBfWrite(StartMessage("SayText2", iClients, iLength, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS)); 
+	
+	bf.WriteByte(iEntity);
+	bf.WriteByte(true);
+	
+	bf.WriteString(sMessage); 
+	
+	bf.WriteString(sParam1); 
+	bf.WriteString(sParam2); 
+	bf.WriteString(sParam3);
+	bf.WriteString(sParam4);
+	
+	EndMessage();
+}
 
 /******************************************************************************************************/
 
@@ -971,4 +1063,18 @@ stock void DealDamage(int iAttacker, int iVictim, float flDamage)
 		flDamage = STUNNED_DAMAGE_CAP;
 	
 	SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, flDamage, DMG_PREVENT_PHYSICS_FORCE);
+}
+
+stock bool CanRecieveDamage(int iClient)
+{
+	if (iClient <= 0 || !IsClientInGame(iClient))
+		return true;
+	
+	if (TF2_IsPlayerInCondition(iClient, TFCond_Ubercharged))
+		return false;
+	
+	if (TF2_IsPlayerInCondition(iClient, TFCond_Bonked))
+		return false;
+	
+	return true;
 }

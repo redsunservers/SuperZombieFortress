@@ -1,173 +1,257 @@
-enum struct WeaponClasses
-{
-	int iIndex;
-	char sAttribs[256];
-}
+#define CONFIG_CLASSES       "configs/szf/classes.cfg"
 
-enum struct SurvivorClasses
-{
-	TFClassType nClass;
-	bool bEnabled;
-	float flSpeed;
-	int iRegen;
-	int iAmmo;
-}
+static TFClassType g_nSurvivorClass[view_as<int>(TFClassType)];
+static TFClassType g_nZombieClass[view_as<int>(TFClassType)];
+static Infected g_nInfectedClass[view_as<int>(Infected)];
 
-enum struct ZombieClasses
-{
-	TFClassType nClass;
-	bool bEnabled;
-	float flSpeed;
-	int iRegen;
-	int iDegen;
-	float flSpree;
-	float flHorde;
-	float flMaxSpree;
-	float flMaxHorde;
-	ArrayList aWeapons;
-}
+static int g_iSurvivorClassCount;
+static int g_iZombieClassCount;
+static int g_iInfectedClassCount;
 
-enum struct InfectedClasses
-{
-	Infected nInfected;
-	TFClassType nClass;
-	bool bEnabled;
-	float flSpeed;
-	int iRegen;
-	int iDegen;
-	int iColor[4];
-	char sMsg[256];
-	ArrayList aWeapons;
-}
-
-TFClassType[view_as<int>(TFClassType)] g_nSurvivorClass;
-TFClassType[view_as<int>(TFClassType)] g_nZombieClass;
-Infected[view_as<int>(Infected)] g_nInfectedClass;
-
-int g_iSurvivorClassCount;
-int g_iZombieClassCount;
-int g_iInfectedClassCount;
-
-static SurvivorClasses g_SurvivorClasses[view_as<int>(TFClassType)];
-static ZombieClasses g_ZombieClasses[view_as<int>(TFClassType)];
-static InfectedClasses g_InfectedClasses[view_as<int>(Infected)];
-
-static ArrayList g_aSurvivorClasses;
-static ArrayList g_aZombieClasses;
-static ArrayList g_aInfectedClasses;
+static ClientClasses g_DefaultClasses;
+static ClientClasses g_SurvivorClasses[view_as<int>(TFClassType)];
+static ClientClasses g_ZombieClasses[view_as<int>(TFClassType)];
+static ClientClasses g_InfectedClasses[view_as<int>(Infected)];
 
 void Classes_Refresh()
 {
-	delete g_aSurvivorClasses;
 	
-	//Load survivor config
-	g_aSurvivorClasses = Config_LoadSurvivorClasses();
+	KeyValues kv = Config_LoadFile(CONFIG_CLASSES, "Classes");
+	if (!kv)
+		return;
+	
+	//Setup default values
+	g_DefaultClasses.bEnabled = true;
+	g_DefaultClasses.iColor = {255, 255, 255, 255};
+	g_DefaultClasses.callback_spawn = INVALID_FUNCTION;
+	g_DefaultClasses.callback_rage = INVALID_FUNCTION;
+	g_DefaultClasses.callback_think = INVALID_FUNCTION;
+	g_DefaultClasses.callback_touch = INVALID_FUNCTION;
+	g_DefaultClasses.callback_anim = INVALID_FUNCTION;
+	g_DefaultClasses.callback_death = INVALID_FUNCTION;
 	
 	g_iSurvivorClassCount = 0;
-	int iLength = g_aSurvivorClasses.Length;
-	for (int i = 0; i < iLength; i++)
+	g_iZombieClassCount = 0;
+	g_iInfectedClassCount = 0;
+	
+	//Load survivors config
+	if (!Classes_LoadTeam(kv, "survivors", g_SurvivorClasses))
 	{
-		SurvivorClasses sur;
-		g_aSurvivorClasses.GetArray(i, sur);
-		
-		if (sur.bEnabled)
+		delete kv;
+		return;
+	}
+	
+	//Setup survivors enabled
+	for (int i; i < sizeof(g_SurvivorClasses); i++)
+	{
+		if (g_SurvivorClasses[i].bEnabled)
 		{
-			g_nSurvivorClass[g_iSurvivorClassCount] = sur.nClass;
+			g_nSurvivorClass[g_iSurvivorClassCount] = view_as<TFClassType>(i);
 			g_iSurvivorClassCount++;
 		}
-		
-		g_SurvivorClasses[sur.nClass] = sur;
 	}
 	
-	//Delete zombie handles
-	if (g_aZombieClasses)
+	//Load zombies config
+	if (!Classes_LoadTeam(kv, "zombies", g_ZombieClasses))
 	{
-		iLength = g_aZombieClasses.Length;
-		for (int i = 0; i < iLength; i++)
-		{
-			ZombieClasses zom;
-			g_aZombieClasses.GetArray(i, zom);
-			delete zom.aWeapons;
-		}
-		
-		delete g_aZombieClasses;
+		delete kv;
+		return;
 	}
 	
-	//Load zombie config
-	g_aZombieClasses = Config_LoadZombieClasses();
-	
-	iLength = g_aZombieClasses.Length;
-	g_iZombieClassCount = 0;
-	for (int i = 0; i < iLength; i++)
+	//Setup zombies enabled
+	for (int i; i < sizeof(g_ZombieClasses); i++)
 	{
-		ZombieClasses zom;
-		g_aZombieClasses.GetArray(i, zom);
-		
-		if (zom.bEnabled)
+		if (g_ZombieClasses[i].bEnabled)
 		{
-			g_nZombieClass[g_iZombieClassCount] = zom.nClass;
+			g_nZombieClass[g_iZombieClassCount] = view_as<TFClassType>(i);
 			g_iZombieClassCount++;
 		}
-		
-		g_ZombieClasses[zom.nClass] = zom;
-	}
-	
-	//Delete infected handles
-	if (g_aInfectedClasses)
-	{
-		iLength = g_aInfectedClasses.Length;
-		for (int i = 0; i < iLength; i++)
-		{
-			InfectedClasses inf;
-			g_aInfectedClasses.GetArray(i, inf);
-			delete inf.aWeapons;
-		}
-		
-		delete g_aInfectedClasses;
 	}
 	
 	//Load infected config
-	g_aInfectedClasses = Config_LoadInfectedClasses();
-	
-	iLength = g_aInfectedClasses.Length;
-	g_iInfectedClassCount = 0;
-	for (int i = 0; i < iLength; i++)
+	if (!Classes_LoadInfected(kv, "infected", g_InfectedClasses))
 	{
-		InfectedClasses inf;
-		g_aInfectedClasses.GetArray(i, inf);
-		
-		if (inf.bEnabled)
+		delete kv;
+		return;
+	}
+	
+	for (int i; i < sizeof(g_InfectedClasses); i++)
+	{
+		if (g_InfectedClasses[i].bEnabled)
 		{
-			g_nInfectedClass[g_iInfectedClassCount] = inf.nInfected;
+			g_nInfectedClass[g_iInfectedClassCount] = view_as<Infected>(i);
 			g_iInfectedClassCount++;
 		}
-		
-		g_InfectedClasses[inf.nInfected] = inf;
 	}
+	
+	Classes_Precache();
+	
+	//Set new config to clients
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsClientInGame(iClient))
+			Classes_SetClient(iClient);
 }
 
-stock float GetClientBaseSpeed(int iClient)
+bool Classes_LoadTeam(KeyValues kv, const char[] sKey, ClientClasses classes[view_as<int>(TFClassType)])
 {
-	if (IsValidZombie(iClient))
+	if (!kv.JumpToKey(sKey, false))
 	{
-		if (g_nInfected[iClient] != Infected_None)
-			return g_InfectedClasses[g_nInfected[iClient]].flSpeed;
-
-		return g_ZombieClasses[TF2_GetPlayerClass(iClient)].flSpeed;
+		LogError("Unable to find key \"%s\" in config file: %s", sKey, CONFIG_CLASSES);
+		delete kv;
+		return false;
 	}
-
-	return g_SurvivorClasses[TF2_GetPlayerClass(iClient)].flSpeed;
+	
+	ClientClasses class;
+	class = g_DefaultClasses;
+	
+	if (kv.JumpToKey("default", false))
+	{
+		Config_LoadClassesSection(kv, class);
+		kv.GoBack();
+	}
+	
+	//Clear classes and set default value
+	for (int i; i < sizeof(classes); i++)
+	{
+		delete classes[i].aWeapons;
+		classes[i] = class;
+	}
+	
+	//Load class specific
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			char sBuffer[256];
+			kv.GetSectionName(sBuffer, sizeof(sBuffer));
+			if (StrEqual(sBuffer, "default"))
+				continue;	//Already loaded
+			
+			TFClassType iClass = TF2_GetClass(sBuffer);
+			if (iClass == TFClass_Unknown)
+			{
+				LogError("Invalid class \"%s\".", sBuffer);
+				continue;
+			}
+			
+			Config_LoadClassesSection(kv, classes[iClass]);
+		}
+		while (kv.GotoNextKey(false));
+		kv.GoBack();
+	}
+	kv.GoBack();
+	
+	return true;
 }
 
-////////////////////////////////////////////////////////////
-//
-// Survivor Variables
-//
-////////////////////////////////////////////////////////////
-
-stock bool IsValidSurvivorClass(TFClassType nClass)
+bool Classes_LoadInfected(KeyValues kv, const char[] sKey, ClientClasses classes[view_as<int>(Infected)])
 {
-	return g_SurvivorClasses[nClass].bEnabled;
+	if (!kv.JumpToKey(sKey, false))
+	{
+		LogError("Unable to find key \"%s\" in config file: %s", sKey, CONFIG_CLASSES);
+		delete kv;
+		return false;
+	}
+	
+	for (int i; i < sizeof(classes); i++)
+		delete classes[i].aWeapons;
+	
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			char sInfected[64], sClass[64];
+			kv.GetSectionName(sInfected, sizeof(sInfected));
+			Infected nInfected = GetInfected(sInfected);
+			if (nInfected == Infected_Unknown || nInfected == Infected_None)
+			{
+				LogError("Invalid infected \"%s\".", sInfected);
+				continue;
+			}
+			
+			kv.GetString("class", sClass, sizeof(sClass));
+			TFClassType iInfectedClass = TF2_GetClass(sClass);
+			if (iInfectedClass == TFClass_Unknown)
+			{
+				LogError("Invalid class \"%s\" from infected \"%s\".", sClass, sInfected);
+				continue;
+			}
+			
+			//Copy zombies into infected to use as default values for infected
+			classes[nInfected] = g_ZombieClasses[iInfectedClass];
+			classes[nInfected].iInfectedClass = iInfectedClass;
+			
+			Config_LoadClassesSection(kv, classes[nInfected]);
+		}
+		while (kv.GotoNextKey(false));
+		kv.GoBack();
+	}
+	kv.GoBack();
+	
+	return true;
+}
+
+void Classes_Precache()
+{
+	for (Infected nInfected; nInfected < Infected; nInfected++)
+	{
+		if (g_InfectedClasses[nInfected].sWorldModel[0])
+		{
+			PrecacheModel(g_InfectedClasses[nInfected].sWorldModel);
+			AddModelToDownloadsTable(g_InfectedClasses[nInfected].sWorldModel);
+		}
+		
+		if (g_InfectedClasses[nInfected].sViewModel[0])
+		{
+			PrecacheModel(g_InfectedClasses[nInfected].sViewModel);
+			AddModelToDownloadsTable(g_InfectedClasses[nInfected].sViewModel);
+		}
+		
+		if (g_InfectedClasses[nInfected].sSoundSpawn[0])
+			PrecacheSound2(g_InfectedClasses[nInfected].sSoundSpawn);
+	}
+}
+
+void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), TFClassType iClass = TFClass_Unknown)
+{
+	if (nInfected != view_as<Infected>(-1))
+		g_nInfected[iClient] = nInfected;
+	
+	if (g_nInfected[iClient] != Infected_None)
+		iClass = GetInfectedClass(g_nInfected[iClient]);
+	else if (iClass == TFClass_Unknown)
+		iClass = TF2_GetPlayerClass(iClient);
+	
+	if (IsSurvivor(iClient))
+	{
+		g_ClientClasses[iClient] = g_SurvivorClasses[iClass];
+	}
+	else if (IsZombie(iClient))
+	{
+		if (g_nInfected[iClient] == Infected_None)
+			g_ClientClasses[iClient] = g_ZombieClasses[iClass];
+		else
+			g_ClientClasses[iClient] = g_InfectedClasses[g_nInfected[iClient]];
+	}
+	else
+	{
+		//How
+		g_ClientClasses[iClient] = g_DefaultClasses;
+	}
+}
+
+stock bool IsValidSurvivorClass(TFClassType iClass)
+{
+	return g_SurvivorClasses[iClass].bEnabled;
+}
+
+stock bool GetSurvivorMenu(TFClassType iClass, char[] sBuffer, int iLength)
+{
+	if (!g_SurvivorClasses[iClass].sMenu[0])
+		return false;
+	
+	strcopy(sBuffer, iLength, g_SurvivorClasses[iClass].sMenu);
+	return true;
 }
 
 stock TFClassType GetRandomSurvivorClass()
@@ -180,30 +264,18 @@ stock int GetSurvivorClassCount()
 	return g_iSurvivorClassCount;
 }
 
-stock float GetSurvivorSpeed(TFClassType nClass)
+stock bool IsValidZombieClass(TFClassType iClass)
 {
-	return g_SurvivorClasses[nClass].flSpeed;
+	return g_ZombieClasses[iClass].bEnabled;
 }
 
-stock int GetSurvivorRegen(TFClassType nClass)
+stock bool GetZombieMenu(TFClassType iClass, char[] sBuffer, int iLength)
 {
-	return g_SurvivorClasses[nClass].iRegen;
-}
-
-stock int GetSurvivorAmmo(TFClassType nClass)
-{
-	return g_SurvivorClasses[nClass].iAmmo;
-}
-
-////////////////////////////////////////////////////////////
-//
-// Zombie Variables
-//
-////////////////////////////////////////////////////////////
-
-stock bool IsValidZombieClass(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].bEnabled;
+	if (!g_ZombieClasses[iClass].sMenu[0])
+		return false;
+	
+	strcopy(sBuffer, iLength, g_ZombieClasses[iClass].sMenu);
+	return true;
 }
 
 stock TFClassType GetRandomZombieClass()
@@ -216,65 +288,18 @@ stock int GetZombieClassCount()
 	return g_iZombieClassCount;
 }
 
-stock float GetZombieSpeed(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].flSpeed;
-}
-
-stock int GetZombieRegen(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].iRegen;
-}
-
-stock int GetZombieDegen(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].iDegen;
-}
-
-stock float GetZombieSpree(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].flSpree;
-}
-
-stock float GetZombieHorde(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].flHorde;
-}
-
-stock float GetZombieMaxSpree(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].flMaxSpree;
-}
-
-stock float GetZombieMaxHorde(TFClassType nClass)
-{
-	return g_ZombieClasses[nClass].flMaxHorde;
-}
-
-stock bool GetZombieWeapon(TFClassType nClass, int &iPos, int &iIndex, char[] sAttribs, int iLength)
-{
-	if (!g_ZombieClasses[nClass].aWeapons || iPos < 0 || iPos >= g_ZombieClasses[nClass].aWeapons.Length)
-		return false;
-	
-	WeaponClasses weapon;
-	g_ZombieClasses[nClass].aWeapons.GetArray(iPos, weapon);
-	
-	iIndex = weapon.iIndex;
-	strcopy(sAttribs, iLength, weapon.sAttribs);
-	
-	iPos++;
-	return true;
-}
-
-////////////////////////////////////////////////////////////
-//
-// Special Infected Variables
-//
-////////////////////////////////////////////////////////////
-
 stock bool IsValidInfected(Infected nInfected)
 {
 	return g_InfectedClasses[nInfected].bEnabled;
+}
+
+stock bool GetInfectedMenu(Infected nInfected, char[] sBuffer, int iLength)
+{
+	if (!g_InfectedClasses[nInfected].sMenu[0])
+		return false;
+	
+	strcopy(sBuffer, iLength, g_InfectedClasses[nInfected].sMenu);
+	return true;
 }
 
 stock Infected GetRandomInfected()
@@ -289,49 +314,5 @@ stock int GetInfectedCount()
 
 stock TFClassType GetInfectedClass(Infected nInfected)
 {
-	return g_InfectedClasses[nInfected].nClass;
-}
-
-stock float GetInfectedSpeed(Infected nInfected)
-{
-	return g_InfectedClasses[nInfected].flSpeed;
-}
-
-stock int GetInfectedRegen(Infected nInfected)
-{
-	return g_InfectedClasses[nInfected].iRegen;
-}
-
-stock int GetInfectedDegen(Infected nInfected)
-{
-	return g_InfectedClasses[nInfected].iDegen;
-}
-
-stock int GetInfectedColor(int iValue, Infected nInfected)
-{
-	return g_InfectedClasses[nInfected].iColor[iValue];
-}
-
-stock bool GetInfectedMessage(char[] sBuffer, int iLength, Infected nInfected)
-{
-	if (g_InfectedClasses[nInfected].sMsg[0] == '\0')
-		return false;
-	
-	strcopy(sBuffer, iLength, g_InfectedClasses[nInfected].sMsg);
-	return true;
-}
-
-stock bool GetInfectedWeapon(Infected nInfected, int &iPos, int &iIndex, char[] sAttribs, int iLength)
-{
-	if (!g_InfectedClasses[nInfected].aWeapons || iPos < 0 || iPos >= g_InfectedClasses[nInfected].aWeapons.Length)
-		return false;
-	
-	WeaponClasses weapon;
-	g_InfectedClasses[nInfected].aWeapons.GetArray(iPos, weapon);
-	
-	iIndex = weapon.iIndex;
-	strcopy(sAttribs, iLength, weapon.sAttribs);
-	
-	iPos++;
-	return true;
+	return g_InfectedClasses[nInfected].iInfectedClass;
 }
