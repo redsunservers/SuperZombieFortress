@@ -159,13 +159,14 @@ public MRESReturn DHook_CalculateMaxSpeedPre(Address pAddress, Handle hReturn, H
 public MRESReturn DHook_CalculateMaxSpeedPost(Address pAddress, Handle hReturn, Handle hParams)
 {
 	int iClient = g_iDHookCalculateMaxSpeedClient;
-	float flSpeed = DHookGetReturn(hReturn);
 	
-	if (IsPlayerAlive(iClient))
+	if (IsClientInGame(iClient) && IsPlayerAlive(iClient))
 	{
 		//Handle speed bonuses.
 		if ((!TF2_IsPlayerInCondition(iClient, TFCond_Slowed) && !TF2_IsPlayerInCondition(iClient, TFCond_Dazed)) || g_bBackstabbed[iClient])
 		{
+			float flSpeed = DHookGetReturn(hReturn);
+			
 			if (IsZombie(iClient))
 			{
 				if (g_nInfected[iClient] == Infected_None)
@@ -230,11 +231,13 @@ public MRESReturn DHook_CalculateMaxSpeedPost(Address pAddress, Handle hReturn, 
 				if (g_bBackstabbed[iClient])
 					flSpeed *= 0.66;
 			}
+			
+			DHookSetReturn(hReturn, flSpeed);
+			return MRES_Override;
 		}
 	}
 	
-	DHookSetReturn(hReturn, flSpeed);
-	return MRES_Override;
+	return MRES_Ignored;
 }
 
 public MRESReturn DHook_OnGiveNamedItemPre(int iClient, Handle hReturn, Handle hParams)

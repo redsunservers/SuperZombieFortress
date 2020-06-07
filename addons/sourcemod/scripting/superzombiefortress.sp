@@ -349,7 +349,7 @@ bool g_bTankRefreshed;
 int g_iControlPointsInfo[20][2];
 int g_iControlPoints;
 bool g_bCapturingLastPoint;
-int g_iCarryingItem[TF_MAXPLAYERS] = -1;
+int g_iCarryingItem[TF_MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
 
 float g_flTimeProgress;
 
@@ -2127,7 +2127,7 @@ bool AttemptCarryItem(int iClient)
 	if (!(StrContains(sName, "szf_carry", false) != -1 || StrEqual(sName, "gascan", false) || StrContains(sName, "szf_pick", false) != -1))
 		return false;
 	
-	g_iCarryingItem[iClient] = iTarget;
+	g_iCarryingItem[iClient] = EntIndexToEntRef(iTarget);
 	SetEntProp(iClient, Prop_Send, "m_bDrawViewmodel", 0);
 	AcceptEntityInput(iTarget, "DisableMotion");
 	SetEntProp(iTarget, Prop_Send, "m_nSolidType", 0);
@@ -2144,19 +2144,7 @@ bool AttemptCarryItem(int iClient)
 
 void UpdateClientCarrying(int iClient)
 {
-	int iTarget = g_iCarryingItem[iClient];
-	if (iTarget <= 0)
-		return;
-	
-	if (!(IsClassname(iTarget, "prop_physics") || IsClassname(iTarget, "prop_physics_override")))
-	{
-		DropCarryingItem(iClient);
-		return;
-	}
-	
-	char sName[255];
-	GetEntPropString(iTarget, Prop_Data, "m_iName", sName, sizeof(sName));
-	if (!(StrContains(sName, "szf_carry", false) != -1 || StrEqual(sName, "gascan", false) || StrContains(sName, "szf_pick", false) != -1))
+	if (!IsValidEntity(g_iCarryingItem[iClient]))
 		return;
 	
 	float vecOrigin[3];
@@ -2172,39 +2160,35 @@ void UpdateClientCarrying(int iClient)
 	
 	AnglesToVelocity(vecAngles, vecDistance, 60.0);
 	AddVectors(vecOrigin, vecDistance, vecOrigin);
-	TeleportEntity(iTarget, vecOrigin, vecAngles, NULL_VECTOR);
+	TeleportEntity(g_iCarryingItem[iClient], vecOrigin, vecAngles, NULL_VECTOR);
 }
 
 bool DropCarryingItem(int iClient, bool bDrop = true)
 {
-	int iTarget = g_iCarryingItem[iClient];
-	if (iTarget <= 0)
+	if (!IsValidEntity(g_iCarryingItem[iClient]))
 		return false;
 	
-	g_iCarryingItem[iClient] = -1;
 	SetEntProp(iClient, Prop_Send, "m_bDrawViewmodel", 1);
 	
-	if (!(IsClassname(iTarget, "prop_physics") || IsClassname(iTarget, "prop_physics_override")))
-		return true;
-	
-	SetEntProp(iTarget, Prop_Send, "m_nSolidType", 6);
-	AcceptEntityInput(iTarget, "EnableMotion");
-	AcceptEntityInput(iTarget, "FireUser2", iClient, iClient);
+	SetEntProp(g_iCarryingItem[iClient], Prop_Send, "m_nSolidType", 6);
+	AcceptEntityInput(g_iCarryingItem[iClient], "EnableMotion");
+	AcceptEntityInput(g_iCarryingItem[iClient], "FireUser2", iClient, iClient);
 	
 	if (bDrop)
 	{
 		float vecOrigin[3];
 		GetClientEyePosition(iClient, vecOrigin);
 		
-		if (!IsEntityStuck(iTarget) && !ObstactleBetweenEntities(iClient, iTarget))
+		if (!IsEntityStuck(g_iCarryingItem[iClient]) && !ObstactleBetweenEntities(iClient, g_iCarryingItem[iClient]))
 		{
 			vecOrigin[0] += 20.0;
 			vecOrigin[2] -= 30.0;
 		}
 		
-		TeleportEntity(iTarget, vecOrigin, NULL_VECTOR, NULL_VECTOR);
+		TeleportEntity(g_iCarryingItem[iClient], vecOrigin, NULL_VECTOR, NULL_VECTOR);
 	}
 	
+	g_iCarryingItem[iClient] = INVALID_ENT_REFERENCE;
 	return true;
 }
 
