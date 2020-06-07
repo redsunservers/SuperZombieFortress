@@ -185,7 +185,7 @@ public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadca
 
 bool AttemptGrabItem(int iClient)
 {	
-	if (!IsSurvivor(iClient) || !g_bCanPickup[iClient])
+	if (!IsSurvivor(iClient) || !g_bCanPickup[iClient] || TF2_IsPlayerInCondition(iClient, TFCond_Taunting))
 		return false;
 	
 	int iTarget = GetClientPointVisible(iClient);
