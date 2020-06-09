@@ -542,7 +542,7 @@ public void Infected_DoHunterJump(int iClient)
 	
 	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
-	SDKCall_PlaySpecificSequence(iClient, "Jump_Float_melee");
+	SDKCall_PlaySpecificSequence(iClient, "pounce_idle_low");
 	ViewModel_SetAnimation(iClient, "claw_lunge_layer");
 }
 
