@@ -439,7 +439,11 @@
 		"en"		"{orange}The Tribalman's Shiv {green}has its damage penalty reduced to 20%%."
 	}
 	
-	"Melee_CloakandDagger"
+	"PDA_DeadRinger"
+	{
+		"en"		"{orange}The Dead Ringer {red}has no increased cloak duration."
+	}
+	"PDA_CloakAndDagger"
 	{
 		"en"		"{orange}The Cloak and Dagger {red}is disabled."
 	}
