@@ -528,14 +528,18 @@ public void OnLibraryRemoved(const char[] sName)
 
 public void OnPluginEnd()
 {
-	TF2_EndRound(TFTeam_Zombie);
-	SZFDisable();
-	
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	if (g_bEnabled)
 	{
-		if (IsClientInGame(iClient))
-			Sound_EndMusic(iClient);
+		TF2_EndRound(TFTeam_Zombie);
+		
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
+		{
+			if (IsClientInGame(iClient))
+				Sound_EndMusic(iClient);
+		}
 	}
+	
+	SZFDisable();
 }
 
 public void OnClientCookiesCached(int iClient)
