@@ -4,638 +4,759 @@
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
 		"en"		"{1}Welcome to Super Zombie Fortress.\nYou can open the instruction menu using {2}/szf{3}."
+		"chi"		"{1}欢迎来到超级感染者要塞。\n想打开指导菜单，使用{2}/szf{3}。"
 	}
 	
 	"Grace_Start"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Grace period begun. Survivors can change classes."
+		"chi"		"{1}准备阶段开始。幸存者可以改变兵种。"
 	}
 	
 	"Grace_End"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Grace period complete. Survivors can no longer change classes."
+		"chi"		"{1}准备阶段完成。幸存者不能在更换兵种。"
 	}
 	
 	"Grace_InfectedBoost"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Infected have received extra health and other benefits to ensure game balance at the start of the round."
+		"chi"		"{1}感染者获得额外生命值和其他增益来确保开局游戏的平衡。"
 	}
 	
 	"Frenzy_Start"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Zombies are frenzied: they respawn faster and are more powerful!"
+		"chi"		"{1}尸潮来袭：他们重生更快并变得更强！"
 	}
 	
 	"Frenzy_End"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Zombies are resting..."
+		"chi"		"{1}感染者安定了..."
 	}
 	
 	"Tank_Chosen"
 	{
 		"#format"	"{1:s},{2:s}"
 		"en"		"{1} {2}was chosen to become the TANK!"
+		"chi"		"{1} {2}被选为成为坦克TANK!"
 	}
 	
 	"Tank_Called"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Called tank."
+		"chi"		"{1}呼叫坦克。"
 	}
 	
 	"Tank_Spawn"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Incoming TAAAAANK!"
+		"chi"		"{1}坦克来袭！！！"
 	}
 	
 	"Tank_Died"
 	{
 		"#format"	"{1:N},{2:N},{3:d}"
 		"en"		"The Tank '{1}' has died\nMost damage: {2} ({3})"
+		"chi"		"坦克 '{1}' 死亡\n最高伤害：{2} ({3})"
 	}
 	
 	"Tank_Multi_Died"
 	{
 		"#format"	"{1:d},{2:N},{3:d}"
 		"en"		"{1} tanks has died\nMost damage: {2} ({3})"
+		"chi"		"{1} 坦克们死亡\n最高伤害：{2} ({3})"
 	}
 	
 	"Carry_Pickup"
 	{
 		"en"		"Call 'MEDIC!' to drop your item!\nYou can attack while wielding an item."
+		"chi"		"呼叫 '医生！' 来丢弃你的物品！\n你在拿着此物品的时候可以攻击。"
 	}
 	
 	"Weapon_Pickup"
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
 		"en"		"I have picked up a {1}{2}{3}!"
+		"chi"		"我捡起了一个 {1}{2}{3} ！"
 	}
 	
 	"Weapon_Callout"
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
 		"en"		"{1}{2} {3}here!"
+		"chi"		"{1}{2} {3}在这里！"
 	}
 	
 	"Survivor_Last"
 	{
 		"#format"	"{1:s},{2:s}"
 		"en"		"{1}{2} is the last survivor!"
+		"chi"		"{1}{2} 是最后的幸存者！"
 	}
 	
 	"Infected_Zombify"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}You have perished and turned into a zombie..."
+		"chi"		"{1}你死亡并变成了感染者..."
 	}
 	
 	"Infected_SelectedRespawn"
 	{
 		"#format"	"{1:s},{2:s}"
 		"en"		"{1}You have been selected to become a Special Infected! {2}Call 'MEDIC!' to respawn as one or become one on death."
+		"chi"		"{1}你被选择变成一个特殊感染者！{2}呼叫 '医生！' 来重生为特感或者死亡后变成特感。"
 	}
 	
 	"Infected_UsedQuickRespawn"
 	{
 		"#format"	"{1:s},{2:s},{3:s},{4:s}"
 		"en"		"(TEAM) {1}{2} : I have used my {3}quick respawn into special infected{4}!"
+		"chi"		"(团队) {1}{2} : 我使用了我的 {3}快速重生为特感{4}！"
 	}
 	
 	"Infected_AllInCooldown"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}All special infected seems to be in a cooldown..."
+		"chi"		"{1}所有的特殊感染者似乎都在冷却..."
 	}
 	
 	"Infected_ForceStart"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}You have been forcibly set to infected team due to attempting to skip playing as a infected."
+		"chi"		"{1}你被强制加入感染者队伍来阻止你尝试跳过你的感染者回合。"
 	}
 	
 	"Infected_CallMedic"
 	{
 		"en"		"Call 'MEDIC!' to respawn as a special infected!"
+		"chi"		"呼叫 '医生！' 来重生成为特感！"
 	}
 	
 	"Infected_RageReady"
 	{
 		"en"		"Rage is ready!"
+		"chi"		"愤怒已准备好！"
 	}
 	
 	"Infected_RageReadyInSec"
 	{
 		"#format"	"{1:d}"
 		"en"		"Rage is ready in {1} seconds!"
+		"chi"		"愤怒在 {1} 秒内准备好！"
 	}
 	
 	"Infected_CantUseRage"
 	{
 		"en"		"Can't Activate Rage!"
+		"chi"		"无法激活愤怒！"
 	}
 	
 	"Infected_RageUsed"
 	{
 		"en"		"Rage Activated!"
+		"chi"		"愤怒激活！"
 	}
 	
 	"Tutorial_SurvivorStart1"
 	{
 		"en"		"Welcome to Super Zombie Fortress!"
+		"chi"		"欢迎来到超级感染者要塞！"
 	}
 	
 	"Tutorial_SurvivorStart2"
 	{
 		"en"		"You are currently playing as a Survivor."
+		"chi"		"你当前为幸存者阵营。"
 	}
 	
 	"Tutorial_SurvivorStart3"
 	{
 		"en"		"As a Survivor, your goal is to complete the map objective."
+		"chi"		"作为幸存者，你的任务是完成地图目标。"
 	}
 	
 	"Tutorial_SurvivorStart4"
 	{
 		"en"		"You may have noticed you do not have any weapons."
+		"chi"		"你可能注意到你没有任何武器。"
 	}
 	
 	"Tutorial_SurvivorStart5"
 	{
 		"en"		"You can pick up weapons by calling for medic or attacking it."
+		"chi"		"你可以呼叫医生或者攻击该武器来捡起来。"
 	}
 	
 	"Tutorial_SurvivorStart6"
 	{
 		"en"		"There are normal infected but also special infected, so watch out for those!"
+		"chi"		"有普通的感染者还有特殊感染者，小心他们！"
 	}
 	
 	"Tutorial_SurvivorStart7"
 	{
 		"en"		"You can check out more information by typing '/szf' into the chat."
+		"chi"		"你可以在聊天输入 '/szf' 来获得更多信息。"
 	}
 	
 	"Tutorial_SurvivorStart8"
 	{
 		"en"		"Enjoy the round and good luck out there!"
+		"chi"		"玩的开心，祝你好运！"
 	}
 	
 	"Tutorial_ZombieStart1"
 	{
 		"en"		"Welcome to Super Zombie Fortress!"
+		"chi"		"欢迎来到超级感染者要塞！"
 	}
 	
 	"Tutorial_ZombieStart2"
 	{
 		"en"		"You are currently playing as a Zombie."
+		"chi"		"你现在在感染者阵营。"
 	}
 	
 	"Tutorial_ZombieStart3"
 	{
 		"en"		"As a Zombie, your goal is to kill the Survivors."
+		"chi"		"作为感染者，你的任务是击杀幸存者。"
 	}
 	
 	"Tutorial_ZombieStart4"
 	{
 		"en"		"You and your teammates may be selected to become special infected later on."
+		"chi"		"你和你的队友在之后有机会成为特殊感染者。"
 	}
 	
 	"Tutorial_ZombieStart5"
 	{
 		"en"		"In addition, a tank may be spawned later in the round."
+		"chi"		"另外，坦克在之后也有可能出现。"
 	}
 	
 	"Tutorial_ZombieStart6"
 	{
 		"en"		"You can check out more information by typing '/szf' into the chat."
+		"chi"		"你可以在聊天输入 '/szf' 来获得更多信息。"
 	}
 	
 	"Tutorial_ZombieStart7"
 	{
 		"en"		"Enjoy the round and get them!"
+		"chi"		"玩的开心，抓住幸存者！"
 	}
 	
 	"Tutorial_PickupCommon1"
 	{
 		"en"		"You have picked up a weapon."
+		"chi"		"你捡起了一件武器。"
 	}
 	
 	"Tutorial_PickupCommon2"
 	{
 		"en"		"Finding weapons is crucial to ensure survival."
+		"chi"		"寻找武器对于保证生存是至关重要的。"
 	}
 	
 	"Tutorial_PickupRare1"
 	{
 		"en"		"You have picked up a very effective weapon."
+		"chi"		"你捡起了一个强力的武器。"
 	}
 	
 	"Tutorial_PickupRare2"
 	{
 		"en"		"Some weapons have a lower chance of appearing, like this one."
+		"chi"		"一些武器会低概率出现，就像这个。"
 	}
 	
 	"Tutorial_Callout1"
 	{
 		"en"		"Calling out specific weapons allows other teammates to pick up the weapon."
+		"chi"		"说出特定的武器可以让队友去捡起来。"
 	}
 	
 	"Tutorial_TankSpawn1"
 	{
 		"en"		"Do not let the Tank get close to you, his attacks are very lethal."
+		"chi"		"不要让坦克靠近你，它的攻击是致命的。"
 	}
 	
 	"Tutorial_TankSpawn2"
 	{
 		"en"		"Run and shoot the Tank, it will slow the Tank down and kill it."
+		"chi"		"逃跑，射击坦克，可以使其减速，甚至杀死它。"
 	}
 	
 	"Command_InfectedUsage"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Usage: sm_infected [target] [infected]"
+		"chi"		"{1}用法: sm_infected [目标] [感染者]"
 	}
 	
 	"Command_InfectedNoInfected"
 	{
 		"#format"	"{1:s},{2:s}"
 		"en"		"{1}Unable to find infected \"{2}\""
+		"chi"		"{1}无法找到感染者 \"{2}\""
 	}
 	
 	"Command_InfectedNoTarget"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Could not find anyone to set next infected."
+		"chi"		"{1}无法找到任何人来设为下一个感染者。"
 	}
 	
 	"Command_InfectedNoZombie"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Could not find any zombies to set next infected."
+		"chi"		"{1}无法找到任何感染者来设为下一感染者。"
 	}
 	
 	"Command_InfectedSet"
 	{
 		"#format"	"{1:s},{2:d},{3:s}"
 		"en"		"{1}Set {2} zombies to become next infected \"{3}\""
+		"chi"		"{1}设置 {2} 感染者变成下一个感染者 \"{3}\""
 	}
 	
 	"Command_MusicEnable"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Music has been enabled."
+		"chi"		"{1}音乐已开启。"
 	}
 	
 	"Command_MusicDisable"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Music has been disabled."
+		"chi"		"{1}音乐已关闭。"
 	}
 	
 	"JoinTeam_CantSwitchGrace"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}You can not switch to the opposing team during grace period."
+		"chi"		"{1}你不能在准备阶段切换到对面队伍。"
 	}
 	
 	"JoinTeam_WillJoinInfectedGrace"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}You will join the Infected team when grace period ends."
+		"chi"		"{1}你在准备阶段结束后会加入感染者阵营。"
 	}
 	
 	"JoinTeam_CancelGraceEnd"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}You will no longer automatically join the Infected team when grace period ends."
+		"chi"		"{1}你不会在准备阶段结束之后加入感染者阵营。"
 	}
 	
 	"JoinTeam_CantJoinSurvivorGrace"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Can not join the Survivor team at this time. You will join the Infected team when grace period ends."
+		"chi"		"{1}现在不能加入幸存者阵营。你在准备阶段结束后会加入感染者阵营。"
 	}
 	
 	"JoinClass_ValidZombies"
 	{
 		"#format"	"{1:s},{2:s}"
 		"en"		"{1}Valid zombies:{2}."
+		"chi"		"{1}无效感染者: {2}."
 	}
 	
 	"JoinClass_ValidSurvivors"
 	{
 		"#format"	"{1:s},{2:s}"
 		"en"		"{1}Valid survivors:{2}."
+		"chi"		"{1}无效幸存者: {2}."
 	}
 	
 	"JoinClass_SurvivorsCantChange"
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Survivors can't change classes during a round"
+		"chi"		"{1}幸存者不能在回合中切换兵种"
 	}
 	
 	"SpecialInfected_Boomer"
 	{
 		"en"		"{green}YOU ARE A BOOMER:\n{orange}- Call 'MEDIC!' to EXPLODE and JARATE nearby enemies!\n- You also explode upon dying, coating the killer and assister in JARATE."
+		"chi"		"{green}你变成了BOOMER:\n{orange}- 呼叫'医生！'来自爆并让周围敌人被尿包围！\n- 你也会在死后爆炸，让击杀者和助攻者被尿包围。"
 	}
 	
 	"SpecialInfected_Charger"
 	{
 		"en"		"{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}(16 second cooldown)"
+		"chi"		"{green}你是CHARGER:\n{orange}- 呼叫'医生！'来冲锋！{yellow}(16秒冷却)"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
 		"en"		"{green}YOU ARE A SCREAMER:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(21 second cooldown){orange}\n- Zombies standing near you are more powerful."
+		"chi"		"你是SCREAMER:\n{orange}- 呼叫'医生！'来强化队友感染者！{yellow}(21秒冷却){orange}\n- 靠近你的感染者会变强。"
 	}
 	
 	"SpecialInfected_Stalker"
 	{
 		"en"		"{green}YOU ARE A STALKER:\n{orange}- If not close to any survivors, you will be cloaked and gain super speed!\n- Your backstabs do more damage."
+		"chi"		"{green}你是STALKER:\n{orange}- 假如你没靠近幸存者，你会隐身并获得超级加速！\n- 你的背刺伤害更高。"
 	}
 	
 	"SpecialInfected_Hunter"
 	{
 		"en"		"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}(3 on miss & 21 on hit second cooldown)"
+		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}(未命中3秒冷却 & 命中21秒冷却)"
 	}
 	
 	"SpecialInfected_Smoker"
 	{
 		"en"		"{green}YOU ARE A SMOKER:\n{orange}- Right click to fire a beam to enemy players and pull them towards you! {yellow}(no cooldown)"
+		"chi"		"{green}你是SMOKER:\N{orange}- 右键发射一道光束拉扯敌人靠近你！{yellow}(没有冷却)"
 	}
 	
 	"SpecialInfected_Spitter"
 	{
 		"en"		"{green}YOU ARE A SPITTER:\n{orange}- Call 'MEDIC!' to throw your GAS to pile of survivors to deal damage! {yellow}(16 second cooldown)"
+		"chi"		"{green}你是SPITTER:\N{orange}- 呼叫'医生！'来投掷你的汽油到幸存者中造成伤害！{yellow}(16秒冷却)"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
 		"en"		"{green}YOU ARE A JOCKEY:\n{orange}- Call 'MEDIC!' to LEAP into SURVIVORS and control movements! {yellow}(6 second cooldown)"
+		"chi"		"{green}你是JOCKEY:\n{orange}- 呼叫'医生！'来飞扑感染者并控制其移动！{yellow}(6秒冷却)"
 	}
 
 	"Melee_Atomizer"
 	{
 		"en"		"{orange}The Atomizer {green}pushes enemies back. {red}Triple jump and airborne minicrits are disabled."
+		"chi"		"{orange}原子能球棒{green}击退敌人。{red}三段跳和空中迷你爆击被禁用。"
 	}
 	
 	"Melee_CandyCane"
 	{
 		"en"		"{orange}The Candy Cane {red}makes you take 10%% additional damage."
+		"chi"		"{orange}糖果手杖{red}使你受到额外10%%的伤害。"
 	}
 	
 	"Melee_PainTrain"
 	{
 		"en"		"{orange}The Pain Train {red}makes you take 10%% additional damage."
+		"chi"		"{orange}钉棍{red}使你受到额外10%%的伤害。"
 	}
 	
 	"Melee_HalfZatochi"
 	{
 		"en"		"{orange}The Half-Zatoichi {red}drains your max health while active."
+		"chi"		"{orange}座头市之刀{red}部署时消耗你的最大生命值。"
 	}
 	
 	"Melee_MarketGardener"
 	{
 		"en"		"{orange}The Market Gardener {green}makes you rocket jump 25%% higher."
+		"chi"		"{orange}市场花园铁铲{green}让你火箭跳高度增加25%%。"
 	}
 	
 	"Melee_KillingGlovesofBoxing"
 	{
 		"en"		"{orange}The Killing Gloves of Boxing {red}gives 5 seconds of minicrits on kill."
+		"chi"		"{orange}杀戮拳击手套{red}击杀后获得5秒的迷你爆击。"
 	}
 	
 	"Melee_FistsofSteel"
 	{
 		"en"		"{orange}The Fists of Steel {green}gives 10%% melee resistance while active."
+		"chi"		"{orange}钢铁全套{green}部署时获得10%%的近战抗性。"
 	}
 	
 	"Melee_EurekaEffect"
 	{
 		"en"		"{orange}The Eureka Effect {green}periodically regenerates metal. {red}Teleportation is disabled."
+		"chi"		"{orange}传送扳手{green}会逐渐恢复金属。{red}传送已被禁用。"
 	}
 	
 	"Melee_Ubersaw"
 	{
 		"en"		"{orange}The Ubersaw {red}gives 10%% uber on hit."
+		"chi"		"{orange}过载充能锯{red}击中后获得10%%的uber。"
 	}
 
 	"Melee_VitaSaw"
 	{
 		"en"		"{orange}The Vita-Saw {green}increases uber rate by 15%%"
+		"chi"		"{orange}维塔锯{green}增加你的uber充能效率15%%。"
 	}
 	
 	"Melee_Amputator"
 	{
 		"en"		"{orange}The Amputator {red}does not heal in an area when taunting."
+		"chi"		"{orange}器官切割器{red}嘲讽时不能群体治疗。"
 	}
 	
 	"Melee_TribalmansShiv"
 	{
 		"en"		"{orange}The Tribalman's Shiv {green}has its damage penalty reduced to 20%%."
+		"chi"		"{orange}部落者刮刀{green}的伤害减少20%%。"
 	}
 	
 	"PDA_DeadRinger"
 	{
 		"en"		"{orange}The Dead Ringer {red}has no increased cloak duration."
+		"chi"		"{orange}假死之铃{red}没有增加的隐身时间。"
 	}
 	"PDA_CloakAndDagger"
 	{
 		"en"		"{orange}The Cloak and Dagger {red}is disabled."
+		"chi"		"{orange}隐形刺客{red}被禁用。"
 	}
 	
 	"Menu_MainTitle"
 	{
 		"#format"	"{1:s},{2:s}"
 		"en"		"Super Zombie Fortress - {1}.{2}"
+		"chi"		"超级感染者要塞 - {1}.{2}"
 	}
 	
 	"Menu_MainOverview"
 	{
 		"en"		"Overview"
+		"chi"		"概述"
 	}
 	
 	"Menu_MainTeamSurvivor"
 	{
 		"en"		"Team: Survivors"
+		"chi"		"阵营: 幸存者"
 	}
 	
 	"Menu_MainTeamZombie"
 	{
 		"en"		"Team: Infected"
+		"chi"		"阵营: 感染者"
 	}
 	
 	"Menu_MainClassesSurvivor"
 	{
 		"en"		"Classes: Survivors"
+		"chi"		"兵种: 幸存者"
 	}
 	
 	"Menu_MainClassesZombie"
 	{
 		"en"		"Classes: Infected"
+		"chi"		"兵种: 感染者"
 	}
 	
 	"Menu_MainClassesInfected"
 	{
 		"en"		"Classes: Infected (Special)"
+		"chi"		"兵种: 感染者(特殊)"
 	}
 	
 	"Menu_MainBack"
 	{
 		"en"		"Back"
+		"chi"		"返回"
 	}
 	
 	"Menu_Overview"
 	{
 		"en"		"Survivors must survive the endless hoarde of Infected.\nWhen a Survivor dies, they join the Zombie team and play as a Zombie.\nZombies need to work together to take down the survivors.\nSurvivor gain access to morale and weapon pickups, while zombies gain access to special infected."
+		"chi"		"幸存者必须在无尽僵尸潮活下来。\n幸存者死亡后，加入感染者阵营变成感染者。\n感染者要合作击败幸存者。\n幸存者有士气Morale和武器补给，感染者有权限变成特感。"
 	}
 	
 	"Menu_TeamSurvivors"
 	{
 		"en"		"Survivors gain regeneration and a small bonus to their damage based on Morale.\nMorale is gained by doing objectives and killing infected but is also lost over time and by negative events.\nSurvivors only start with a melee weapon and pick up weapons (using CALL 'MEDIC!', 'mouse1' or 'mouse2') as they progress through the map."
+		"chi"		"幸存者有恢复能力并且有基于士气Morale的伤害加成。\n士气Morale在完成目标点和击杀时增加，但随时间和负面事件而减少。\n幸存者一开始只有近战武器，要捡起武器(使用呼叫'医生！', '鼠标左键'或者'鼠标右键')，武器散步在地图中。"
 	}
 	
 	"Menu_TeamZombie"
 	{
 		"en"		"Infected gain bonuses when sticking together as a hoarde and can enrage which boost health or activate special abilities as special infected.\nEnrage is used by calling for a 'medic' and has a cooldown after use.\nYou may be given the option to respawn as a special infected using 'medic'."
+		"chi"		"感染者集中时获得生命加成或使用特感的特殊能力。\n愤怒可以在呼叫'医生'激活，然后进入冷却。\n你可能会获得重生为特感的选择，使用呼叫'医生'来变成特感。"
 	}
 	
 	"Menu_ClassesSurvivorsScout"
 	{
 		"en"		"Has 25 extra max health.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"chi"		"有额外25生命值。\n击杀后获得2主武器弹药，可以超过最大值。"
 	}
 	
 	"Menu_ClassesSurvivorsSoldier"
 	{
 		"en"		"Gains 1 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"chi"		"击杀时获得1主武器弹药，可以超过最大值。"
 	}
 	
 	"Menu_ClassesSurvivorsPyro"
 	{
 		"en"		"Burning zombies move faster.\nFlamethrower ammo limited to 100."
+		"chi"		"燃烧僵尸移动更快。\n火焰喷射器弹药限制在100."
 	}
 	
 	"Menu_ClassesSurvivorsDemoman"
 	{
 		"en"		"Gains 1 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"chi"		"击杀时获得1主武器弹药，可以超过最大值。"
 	}
 	
 	"Menu_ClassesSurvivorsHeavy"
 	{
 		"en"		"Minigun ammo limited to 100."
+		"chi"		"转轮机枪弹药限制为100."
 	}
 	
 	"Menu_ClassesSurvivorsEngineer"
 	{
 		"en"		"Starts with PDAs.\nCan only build sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished.\nDispensers act as walls, with higher health than usual but no ammo replenishment."
+		"chi"		"以PDA开局。\n只可以建造步哨和补给器，不能升级。\n步哨枪弹药有限制，随时间消耗并且不可以补充。\n补给器充当墙的角色，有更高的生命值，但是不能补充弹药。"
 	}
 	
 	"Menu_ClassesSurvivorsMedic"
 	{
 		"en"		"Medigun has a heal rate penalty."
+		"chi"		"医疗枪有治疗速率的负面效果。"
 	}
 	
 	"Menu_ClassesSurvivorsSniper"
 	{
 		"en"		"SMG doesn't have to reload.\nJarate slows down Infected.\nHas 25 extra max health.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"chi"		"SMG不用重新装填。\n尿瓶使感染者减速。\n有25额外生命值。\n击杀时获得2主武器弹药，可以超过最大值。"
 	}
 	
 	"Menu_ClassesSurvivorsSpy"
 	{
 		"en"		"Starts with cloak watches and disguise kit.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"chi"		"以隐身手表和位置工具开局。\n击杀时获得2主武器弹药，可以超过最大值。"
 	}
 	
 	"Menu_ClassesInfectedScout"
 	{
 		"en"		"Has Sandman to slow down survivors.\nAble to keep drinks in secondary slot to use."
+		"chi"		"获得可以让幸存者减速的睡魔。\n可以使用饮料。"
 	}
 	
 	"Menu_ClassesInfectedSoldier"
 	{
 		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep banners in secondary slot to use."
+		"chi"		"在感染者尸潮时获得更少的移动速度和生命恢复。\n可以使用旗子。"
 	}
 	
 	"Menu_ClassesInfectedPyro"
 	{
 		"en"		"Has Sharpened Volcano Fragment to ignite survivors.\nAfterburn damage is reduced.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
+		"chi"		"使用熔岩战斧来点燃幸存者。\n后续燃烧伤害被减少。\n在感染者尸潮时获得更少的移动速度和生命恢复。"
 	}
 	
 	"Menu_ClassesInfectedDemoman"
 	{
 		"en"		"Has Eyelander to damage survivors with long range.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
+		"chi"		"获得苏格兰长剑，远距离造成伤害。\n在感染者尸潮时获得更少的移动速度和生命恢复。"
 	}
 	
 	"Menu_ClassesInfectedHeavy"
 	{
 		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep foods in secondary slot to use, and damage survivors."
+		"chi:		"在感染者尸潮时获得更少的移动速度和生命恢复。\n可以使用食物，也可以伤害幸存者。"
 	}
 	
 	"Menu_ClassesInfectedEngineer"
 	{
 		"en"		"Gunslinger third critical punch stuns survivor with reduced damage.\nCan only build mini-sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished."
+		"chi"		"枪炮工之臂第三下的爆击使幸存者眩晕，但造成更少的伤害。\n只可以建造迷你步哨和补给器，不能升级。\n步哨弹药限制，随时间消失，不能补充。"
 	}
 	
 	"Menu_ClassesInfectedMedic"
 	{
 		"en"		"Has Amputator to heal nearby infected on taunt.\nBenefits less from health regeneration bonuses while in a horde."
+		"chi"		"使用器官切割器嘲讽治疗周围的感染者。\n在感染者尸潮时获得更少的移动速度和生命恢复。"
 	}
 	
 	"Menu_ClassesInfectedSniper"
 	{
 		"en"		"Has Bushwacka to crit damage survivors who are under mini-crit effect.\nAble to keep wearables in secondary slot to use."
+		"chi"		"可以使用灌木丛在迷你爆击情况下造成爆击。\n可以使用背包和鳄鱼盾。"
 	}
 	
 	"Menu_ClassesInfectedSpy"
 	{
 		"en"		"Backstabs put the victim into a 'scared' state, slowing and disabling weapon usage for few seconds.\nSurvivors has small resistant while backstabbed."
+		"chi"		"背刺使敌人被'惊吓'，减速敌人并且无法使用武器一段时间。\n幸存者在被背刺时获得小型抗性。"
 	}
 	
 	"Menu_ClassesInfectedSpecialTank"
 	{
 		"en"		"As one of the strongest and brutal infected he has the ability to quickly take down an unsuspecting team of survivors.\n- The Tank has a lot of health which he eventually loses after a while.\n- The Tank has full knockback resistance.\n- The Tank starts of fast but is slowed down if damaged by the survivors.\n- The Tank spawns if certain conditions are met."
+		"chi"		"作为最强大最致命的感染者，他可以突击击倒整支敌方队伍。\n- 坦克生命很多，但是最后会逐渐丢失生命值。\n- 坦克有完全击退抗性。\n- 坦克一开始很快，但受到伤害之后变慢。\n- 坦克会在特定条件满足后生成。"
 	}
 	
 	"Menu_ClassesInfectedSpecialBoomer"
 	{
 		"en"		"He is gross, he is dirty and is not afraid to share this with any unlucky survivors.\n- Upon raging the Boomer explodes, covering survivors close to him in Jarate.\n- Also explodes on death, but weaker and covering less range."
+		"chi"		"他恶心，脏，很乐意把这些分享给幸存者。\n- 技能是自爆，让敌人被尿包围。\n- 死亡也会爆炸，但是威力和范围会减少。"
 	}
 	
 	"Menu_ClassesInfectedSpecialCharger"
 	{
 		"en"		"His inner rage and insanity has caused him to lose any care for how he uses his body, as long as he can take somebody with it.\n- Using rage to charge the Charger is able to lock survivor movement and keeps pushing across the area."
+		"chi"		"内在的愤怒让它不顾一切的卡其脱离带，直到撞倒人。\n- 使用愤怒，Charger可以冲锋并且锁定幸存者的移动，推动他穿越区域。"
 	}
 	
 	"Menu_ClassesInfectedSpecialScreamer"
 	{
 		"en"		"The Screamer is the director of the pack, he makes sure that the Zombies give their fullest in taking down the survivors.\n- Using rage, the Screamer will rally up the Zombies with an ear-piercing yell, increasing the overall power of the zombies.\n- The Screamer motivates zombies by standing near them, increasing their efficiency."
+		"chi"		"Screamer是感染者队长，可以让感染者们全副武装攻击幸存者。\n- 使用愤怒，Screamer会用一声刺破耳膜的尖叫声集结感染者，增加感染者的总体能力。\n- Screamer靠近感染者可以强化他们，增加强度。"
 	}
 	
 	"Menu_ClassesInfectedSpecialStalker"
 	{
 		"en"		"The Stalker is elusive, being able to get close to survivors and back away in the blink of an eye.\n- The Stalker is always cloaked if not close to any survivor.\n- Backstabs deal 50 health damage to a survivor, making it 2.5x stronger than a normal backstab."
+		"chi"		"Stalker难以捉摸，可以在眨眼间靠近幸存者。\n- Stalker在不靠近幸存者的情况下一直是隐形的。\n- 背刺造成50伤害，比普通背刺强2.5倍。"
 	}
 	
 	"Menu_ClassesInfectedSpecialHunter"
 	{
 		"en"		"The Hunter is a fast being, being very agile they can easily reach beyond the level's obstacles.\n- Using rage will perform a swift leap which can pounce enemies when making physical contact while leaping.\n- Upon pounce, you will be 'stuck' inside the enemy, making you a very dangerous encounter to face when the opponent is alone."
+		"chi"		"Hunter很快，轻易地越过大片障碍追杀幸存者。\n- 使用愤怒可以进行飞扑，扑到敌人。\n- 抓住敌人后，你会'卡'在敌人身体中，让幸存者在独自作战的时候变得十分危险。"
 	}
 	
 	"Menu_ClassesInfectedSpecialSmoker"
 	{
 		"en"		"The Smoker relies on his toxic beam which damages survivors can pulls them towards the Smoker.\n- The pull power grows stronger the less health the victim has.\n- Cannot use rage."
+		"chi"		"Smoker使用它的有毒光束，伤害幸存者并拉扯过来。\n- 幸存者生命越低，拉扯的力量越强。\n- 不能使用愤怒。"
 	}
 	
 	"Menu_ClassesInfectedSpecialSpitter"
 	{
 		"en"		"The Spitter has a long neck filled with nasty gas survivors couldn't take it.\n- Using rage froze the spitter, spewing out to ground damaging nearby survivors.\n- Also releases gas on death.\n- This gives a bigger threat to horde of survivors in small room."
+		"chi"		"Spitter是长脖子的，使用有毒气体攻击的特感。\n- 使用愤怒会让spitter停下，吐出一地造成伤害的气体到地上。\n- 死亡后也会释放毒气。\n- 在小房间显得十分危险。"
 	}
 	
 	"Menu_ClassesInfectedSpecialJockey"
 	{
 		"en"		"The Jockey creeps around, finds survivor head to mock around with it.\n- Using rage allows jockey to pounce into survivors head, but range not as long as hunter\n- Can walk into survivors head and play with it.\nCan't attack, but deals small damage and can mostly control movement while sitting on survivor."
+		"chi"		"Jockey到处爬，寻找幸存者骑上去。\n- 使用愤怒可以让它飞扑，抓住幸存者的头，但与Hunter不同。\n- 可以控制幸存者的头，控制行动。\n不能攻击，但是在控制幸存者的时候可以逐渐造成少量伤害。"
 	}
 }
