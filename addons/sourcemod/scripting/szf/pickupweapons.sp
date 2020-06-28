@@ -280,8 +280,8 @@ bool AttemptGrabItem(int iClient)
 				}
 			}
 			
-			int iGlow = CreateWeaponGlow(iTarget);
-			CreateTimer(10.0, Timer_KillEntity, EntIndexToEntRef(iGlow));
+			if (GetWeaponGlowEnt(iTarget) == -1)
+				CreateWeaponGlow(iTarget, 10.0);
 			
 			AddToCookie(iClient, 1, g_cWeaponsCalled);
 			if (GetCookie(iClient, g_cWeaponsCalled) <= 1)
@@ -348,6 +348,12 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 			{
 				EmitSoundToClient(iClient, "ui/item_heavy_gun_drop.wav");
 				SetWeaponModel(iTarget, oldwep);
+				
+				//Kill the weapon glow if it had one.
+				int iGlow = GetWeaponGlowEnt(iTarget);
+				if (iGlow != -1)
+					RemoveEntity(iGlow);
+				
 				bKillEntity = false;
 			}
 		}
@@ -569,13 +575,35 @@ void GetModelPath(int iIndex, char[] sModel, int iMaxSize)
 	ReadStringTable(iTable, iIndex, sModel, iMaxSize);
 }
 
-int CreateWeaponGlow(int iEntity)
+int GetWeaponGlowEnt(int iEntity)
+{
+	for (int i = 33; i <= 2048; i++)
+	{
+		if (IsValidEntity(i))
+		{
+			int iParent = GetEntPropEnt(i, Prop_Data, "m_pParent");
+			if (iParent == iEntity)
+			{
+				//Make sure that we're removing the glow entity.
+				char sName[128];
+				GetEntPropString(i, Prop_Data, "m_iName", sName, sizeof(sName));
+				if (StrEqual(sName, "SZF_WEAPON_GLOW"))
+					return i;
+			}
+		}
+	}
+	
+	return -1;
+}
+
+int CreateWeaponGlow(int iEntity, float flDuration)
 {
 	int iGlow = CreateEntityByName("tf_taunt_prop");
 	if (IsValidEntity(iGlow) && DispatchSpawn(iGlow))
 	{
 		Weapon wep;
 		GetWeaponFromEntity(wep, iEntity);
+		SetEntPropString(iGlow, Prop_Data, "m_iName", "SZF_WEAPON_GLOW");
 		SetEntityModel(iGlow, wep.sModel);
 		SetEntProp(iGlow, Prop_Send, "m_nSkin", wep.iSkin);
 		
@@ -589,6 +617,8 @@ int CreateWeaponGlow(int iEntity)
 		AcceptEntityInput(iGlow, "SetParent", iEntity);
 		
 		SDKHook(iGlow, SDKHook_SetTransmit, Weapon_SetTransmit);
+		
+		CreateTimer(flDuration, Timer_KillEntity, EntIndexToEntRef(iGlow), TIMER_FLAG_NO_MAPCHANGE);
 	}
 	
 	return iGlow;
@@ -601,6 +631,7 @@ public Action Weapon_SetTransmit(int iEntity, int iClient)
 	{
 		Weapon wep;
 		GetWeaponFromEntity(wep, iEntity);
+		
 		int iSlot = TF2_GetItemSlot(wep.iIndex, TF2_GetPlayerClass(iClient));
 		if (iSlot >= 0)
 			return Plugin_Continue;
