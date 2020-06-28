@@ -439,7 +439,7 @@
 	"SpecialInfected_Spitter"
 	{
 		"en"		"{green}YOU ARE A SPITTER:\n{orange}- Call 'MEDIC!' to throw your GAS to pile of survivors to deal damage! {yellow}(16 second cooldown)"
-		"chi"		"{green}你是SPITTER:\N{orange}- 呼叫'医生！'来投掷你的汽油到幸存者中造成伤害！{yellow}(16秒冷却)"
+		"chi"		"{green}你是SPITTER:\N{orange}- 呼叫'医生！'来投掷你的毒气到幸存者中造成伤害！{yellow}(16秒冷却)"
 	}
 	
 	"SpecialInfected_Jockey"
