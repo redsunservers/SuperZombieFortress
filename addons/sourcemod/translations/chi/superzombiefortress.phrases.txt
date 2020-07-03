@@ -1,0 +1,607 @@
+"Phrases"
+{
+	"Welcome"
+	{
+		"chi"		"{1}欢迎来到超级感染者要塞。\n想打开指导菜单，使用{2}/szf{3}。"
+	}
+	
+	"Grace_Start"
+	{
+		"chi"		"{1}准备阶段开始。幸存者可以改变兵种。"
+	}
+	
+	"Grace_End"
+	{
+		"chi"		"{1}准备阶段完成。幸存者不能在更换兵种。"
+	}
+	
+	"Grace_InfectedBoost"
+	{
+		"chi"		"{1}感染者获得额外生命值和其他增益来确保开局游戏的平衡。"
+	}
+	
+	"Frenzy_Start"
+	{
+		"chi"		"{1}尸潮来袭：他们重生更快并变得更强！"
+	}
+	
+	"Frenzy_End"
+	{
+		"chi"		"{1}感染者安定了..."
+	}
+	
+	"Tank_Chosen"
+	{
+		"chi"		"{1} {2}被选为成为坦克TANK!"
+	}
+	
+	"Tank_Called"
+	{
+		"chi"		"{1}呼叫坦克。"
+	}
+	
+	"Tank_Spawn"
+	{
+		"chi"		"{1}坦克来袭！！！"
+	}
+	
+	"Tank_Died"
+	{
+		"chi"		"坦克 '{1}' 死亡\n最高伤害：{2} ({3})"
+	}
+	
+	"Tank_Multi_Died"
+	{
+		"chi"		"{1} 坦克们死亡\n最高伤害：{2} ({3})"
+	}
+	
+	"Carry_Pickup"
+	{
+		"chi"		"呼叫 '医生！' 来丢弃你的物品！\n你在拿着此物品的时候可以攻击。"
+	}
+	
+	"Weapon_Pickup"
+	{
+		"chi"		"我捡起了一个 {1}{2}{3} ！"
+	}
+	
+	"Weapon_Callout"
+	{
+		"chi"		"{1}{2} {3}在这里！"
+	}
+	
+	"Survivor_Last"
+	{
+		"chi"		"{1}{2} 是最后的幸存者！"
+	}
+	
+	"Infected_Zombify"
+	{
+		"chi"		"{1}你死亡并变成了感染者..."
+	}
+	
+	"Infected_SelectedRespawn"
+	{
+		"chi"		"{1}你被选择变成一个特殊感染者！{2}呼叫 '医生！' 来重生为特感或者死亡后变成特感。"
+	}
+	
+	"Infected_UsedQuickRespawn"
+	{
+		"chi"		"(团队) {1}{2} : 我使用了我的 {3}快速重生为特感{4}！"
+	}
+	
+	"Infected_AllInCooldown"
+	{
+		"chi"		"{1}所有的特殊感染者似乎都在冷却..."
+	}
+	
+	"Infected_ForceStart"
+	{
+		"chi"		"{1}你被强制加入感染者队伍来阻止你尝试跳过你的感染者回合。"
+	}
+	
+	"Infected_CallMedic"
+	{
+		"chi"		"呼叫 '医生！' 来重生成为特感！"
+	}
+	
+	"Infected_RageReady"
+	{
+		"chi"		"愤怒已准备好！"
+	}
+	
+	"Infected_RageReadyInSec"
+	{
+		"chi"		"愤怒在 {1} 秒内准备好！"
+	}
+	
+	"Infected_CantUseRage"
+	{
+		"chi"		"无法激活愤怒！"
+	}
+	
+	"Infected_RageUsed"
+	{
+		"chi"		"愤怒激活！"
+	}
+	
+	"Tutorial_SurvivorStart1"
+	{
+		"chi"		"欢迎来到超级感染者要塞！"
+	}
+	
+	"Tutorial_SurvivorStart2"
+	{
+		"chi"		"你当前为幸存者阵营。"
+	}
+	
+	"Tutorial_SurvivorStart3"
+	{
+		"chi"		"作为幸存者，你的任务是完成地图目标。"
+	}
+	
+	"Tutorial_SurvivorStart4"
+	{
+		"chi"		"你可能注意到你没有任何武器。"
+	}
+	
+	"Tutorial_SurvivorStart5"
+	{
+		
+		"chi"		"你可以呼叫医生或者攻击该武器来捡起来。"
+	}
+	
+	"Tutorial_SurvivorStart6"
+	{
+		"chi"		"有普通的感染者还有特殊感染者，小心他们！"
+	}
+	
+	"Tutorial_SurvivorStart7"
+	{
+		"chi"		"你可以在聊天输入 '/szf' 来获得更多信息。"
+	}
+	
+	"Tutorial_SurvivorStart8"
+	{
+		"chi"		"玩的开心，祝你好运！"
+	}
+	
+	"Tutorial_ZombieStart1"
+	{
+		"chi"		"欢迎来到超级感染者要塞！"
+	}
+	
+	"Tutorial_ZombieStart2"
+	{
+		"chi"		"你现在在感染者阵营。"
+	}
+	
+	"Tutorial_ZombieStart3"
+	{
+		"chi"		"作为感染者，你的任务是击杀幸存者。"
+	}
+	
+	"Tutorial_ZombieStart4"
+	{
+		"chi"		"你和你的队友在之后有机会成为特殊感染者。"
+	}
+	
+	"Tutorial_ZombieStart5"
+	{
+		"chi"		"另外，坦克在之后也有可能出现。"
+	}
+	
+	"Tutorial_ZombieStart6"
+	{
+		"chi"		"你可以在聊天输入 '/szf' 来获得更多信息。"
+	}
+	
+	"Tutorial_ZombieStart7"
+	{
+		"chi"		"玩的开心，抓住幸存者！"
+	}
+	
+	"Tutorial_PickupCommon1"
+	{
+		"chi"		"你捡起了一件武器。"
+	}
+	
+	"Tutorial_PickupCommon2"
+	{
+		"chi"		"寻找武器对于保证生存是至关重要的。"
+	}
+	
+	"Tutorial_PickupRare1"
+	{
+		"chi"		"你捡起了一个强力的武器。"
+	}
+	
+	"Tutorial_PickupRare2"
+	{
+		"chi"		"一些武器会低概率出现，就像这个。"
+	}
+	
+	"Tutorial_Callout1"
+	{
+		"chi"		"说出特定的武器可以让队友去捡起来。"
+	}
+	
+	"Tutorial_TankSpawn1"
+	{
+		"chi"		"不要让坦克靠近你，它的攻击是致命的。"
+	}
+	
+	"Tutorial_TankSpawn2"
+	{
+		"chi"		"逃跑，射击坦克，可以使其减速，甚至杀死它。"
+	}
+	
+	"Command_InfectedUsage"
+	{
+		"chi"		"{1}用法: sm_infected [目标] [感染者]"
+	}
+	
+	"Command_InfectedNoInfected"
+	{
+		"chi"		"{1}无法找到感染者 \"{2}\""
+	}
+	
+	"Command_InfectedNoTarget"
+	{
+		"chi"		"{1}无法找到任何人来设为下一个感染者。"
+	}
+	
+	"Command_InfectedNoZombie"
+	{
+		"chi"		"{1}无法找到任何感染者来设为下一感染者。"
+	}
+	
+	"Command_InfectedSet"
+	{
+		"chi"		"{1}设置 {2} 感染者变成下一个感染者 \"{3}\""
+	}
+	
+	"Command_MusicEnable"
+	{
+		"chi"		"{1}音乐已开启。"
+	}
+	
+	"Command_MusicDisable"
+	{
+		"chi"		"{1}音乐已关闭。"
+	}
+	
+	"JoinTeam_CantSwitchGrace"
+	{
+		"chi"		"{1}你不能在准备阶段切换到对面队伍。"
+	}
+	
+	"JoinTeam_WillJoinInfectedGrace"
+	{
+		"chi"		"{1}你在准备阶段结束后会加入感染者阵营。"
+	}
+	
+	"JoinTeam_CancelGraceEnd"
+	{
+		"chi"		"{1}你不会在准备阶段结束之后加入感染者阵营。"
+	}
+	
+	"JoinTeam_CantJoinSurvivorGrace"
+	{
+		"chi"		"{1}现在不能加入幸存者阵营。你在准备阶段结束后会加入感染者阵营。"
+	}
+	
+	"JoinClass_ValidZombies"
+	{
+		"chi"		"{1}无效感染者: {2}."
+	}
+	
+	"JoinClass_ValidSurvivors"
+	{
+		"chi"		"{1}无效幸存者: {2}."
+	}
+	
+	"JoinClass_SurvivorsCantChange"
+	{
+		"chi"		"{1}幸存者不能在回合中切换兵种"
+	}
+	
+	"SpecialInfected_Boomer"
+	{
+		"chi"		"{green}你变成了BOOMER:\n{orange}- 呼叫'医生！'来自爆并让周围敌人被尿包围！\n- 你也会在死后爆炸，让击杀者和助攻者被尿包围。"
+	}
+	
+	"SpecialInfected_Charger"
+	{
+		"chi"		"{green}你是CHARGER:\n{orange}- 呼叫'医生！'来冲锋！{yellow}(16秒冷却)"
+	}
+	
+	"SpecialInfected_Screamer"
+	{
+		"chi"		"你是SCREAMER:\n{orange}- 呼叫'医生！'来强化队友感染者！{yellow}(21秒冷却){orange}\n- 靠近你的感染者会变强。"
+	}
+	
+	"SpecialInfected_Stalker"
+	{
+		"chi"		"{green}你是STALKER:\n{orange}- 假如你没靠近幸存者，你会隐身并获得超级加速！\n- 你的背刺伤害更高。"
+	}
+	
+	"SpecialInfected_Hunter"
+	{
+		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}(未命中3秒冷却 & 命中21秒冷却)"
+	}
+	
+	"SpecialInfected_Smoker"
+	{
+		"chi"		"{green}你是SMOKER:\N{orange}- 右键发射一道光束拉扯敌人靠近你！{yellow}(没有冷却)"
+	}
+	
+	"SpecialInfected_Spitter"
+	{
+		"chi"		"{green}你是SPITTER:\N{orange}- 呼叫'医生！'来投掷你的毒气到幸存者中造成伤害！{yellow}(16秒冷却)"
+	}
+	
+	"SpecialInfected_Jockey"
+	{
+		"chi"		"{green}你是JOCKEY:\n{orange}- 呼叫'医生！'来飞扑感染者并控制其移动！{yellow}(6秒冷却)"
+	}
+
+	"Melee_Atomizer"
+	{
+		"chi"		"{orange}原子能球棒{green}击退敌人。{red}三段跳和空中迷你爆击被禁用。"
+	}
+	
+	"Melee_CandyCane"
+	{
+		"chi"		"{orange}糖果手杖{red}使你受到额外10%%的伤害。"
+	}
+	
+	"Melee_PainTrain"
+	{
+		"chi"		"{orange}钉棍{red}使你受到额外10%%的伤害。"
+	}
+	
+	"Melee_HalfZatochi"
+	{
+		"chi"		"{orange}座头市之刀{red}部署时消耗你的最大生命值。"
+	}
+	
+	"Melee_MarketGardener"
+	{
+		"chi"		"{orange}市场花园铁铲{green}让你火箭跳高度增加25%%。"
+	}
+	
+	"Melee_KillingGlovesofBoxing"
+	{
+		"chi"		"{orange}杀戮拳击手套{red}击杀后获得5秒的迷你爆击。"
+	}
+	
+	"Melee_FistsofSteel"
+	{
+		"chi"		"{orange}钢铁全套{green}部署时获得10%%的近战抗性。"
+	}
+	
+	"Melee_EurekaEffect"
+	{
+		"chi"		"{orange}传送扳手{green}会逐渐恢复金属。{red}传送已被禁用。"
+	}
+	
+	"Melee_Ubersaw"
+	{
+		"chi"		"{orange}过载充能锯{red}击中后获得10%%的uber。"
+	}
+
+	"Melee_VitaSaw"
+	{
+		"chi"		"{orange}维塔锯{green}增加你的uber充能效率15%%。"
+	}
+	
+	"Melee_Amputator"
+	{
+		"chi"		"{orange}器官切割器{red}嘲讽时不能群体治疗。"
+	}
+	
+	"Melee_TribalmansShiv"
+	{
+		"chi"		"{orange}部落者刮刀{green}的伤害减少20%%。"
+	}
+	
+	"PDA_DeadRinger"
+	{
+		"chi"		"{orange}假死之铃{red}没有增加的隐身时间。"
+	}
+	"PDA_CloakAndDagger"
+	{
+		"chi"		"{orange}隐形刺客{red}被禁用。"
+	}
+	
+	"Menu_MainTitle"
+	{
+		"chi"		"超级感染者要塞 - {1}.{2}"
+	}
+	
+	"Menu_MainOverview"
+	{
+		"chi"		"概述"
+	}
+	
+	"Menu_MainTeamSurvivor"
+	{
+		"chi"		"阵营: 幸存者"
+	}
+	
+	"Menu_MainTeamZombie"
+	{
+		"chi"		"阵营: 感染者"
+	}
+	
+	"Menu_MainClassesSurvivor"
+	{
+		"chi"		"兵种: 幸存者"
+	}
+	
+	"Menu_MainClassesZombie"
+	{
+		"chi"		"兵种: 感染者"
+	}
+	
+	"Menu_MainClassesInfected"
+	{
+		"chi"		"兵种: 感染者(特殊)"
+	}
+	
+	"Menu_MainBack"
+	{
+		"chi"		"返回"
+	}
+	
+	"Menu_Overview"
+	{
+		"chi"		"幸存者必须在无尽僵尸潮活下来。\n幸存者死亡后，加入感染者阵营变成感染者。\n感染者要合作击败幸存者。\n幸存者有士气Morale和武器补给，感染者有权限变成特感。"
+	}
+	
+	"Menu_TeamSurvivors"
+	{
+		"chi"		"幸存者有恢复能力并且有基于士气Morale的伤害加成。\n士气Morale在完成目标点和击杀时增加，但随时间和负面事件而减少。\n幸存者一开始只有近战武器，要捡起武器(使用呼叫'医生！', '鼠标左键'或者'鼠标右键')，武器散步在地图中。"
+	}
+	
+	"Menu_TeamZombie"
+	{
+		"chi"		"感染者集中时获得生命加成或使用特感的特殊能力。\n愤怒可以在呼叫'医生'激活，然后进入冷却。\n你可能会获得重生为特感的选择，使用呼叫'医生'来变成特感。"
+	}
+	
+	"Menu_ClassesSurvivorsScout"
+	{
+		"chi"		"有额外25生命值。\n击杀后获得2主武器弹药，可以超过最大值。"
+	}
+	
+	"Menu_ClassesSurvivorsSoldier"
+	{
+		"chi"		"击杀时获得1主武器弹药，可以超过最大值。"
+	}
+	
+	"Menu_ClassesSurvivorsPyro"
+	{
+		"chi"		"燃烧僵尸移动更快。\n火焰喷射器弹药限制在100."
+	}
+	
+	"Menu_ClassesSurvivorsDemoman"
+	{
+		"chi"		"击杀时获得1主武器弹药，可以超过最大值。"
+	}
+	
+	"Menu_ClassesSurvivorsHeavy"
+	{
+		"chi"		"转轮机枪弹药限制为100."
+	}
+	
+	"Menu_ClassesSurvivorsEngineer"
+	{
+		"chi"		"以PDA开局。\n只可以建造步哨和补给器，不能升级。\n步哨枪弹药有限制，随时间消耗并且不可以补充。\n补给器充当墙的角色，有更高的生命值，但是不能补充弹药。"
+	}
+	
+	"Menu_ClassesSurvivorsMedic"
+	{
+		"chi"		"医疗枪有治疗速率的负面效果。"
+	}
+	
+	"Menu_ClassesSurvivorsSniper"
+	{
+		"chi"		"SMG不用重新装填。\n尿瓶使感染者减速。\n有25额外生命值。\n击杀时获得2主武器弹药，可以超过最大值。"
+	}
+	
+	"Menu_ClassesSurvivorsSpy"
+	{
+		"chi"		"以隐身手表和位置工具开局。\n击杀时获得2主武器弹药，可以超过最大值。"
+	}
+	
+	"Menu_ClassesInfectedScout"
+	{
+		"chi"		"获得可以让幸存者减速的睡魔。\n可以使用饮料。"
+	}
+	
+	"Menu_ClassesInfectedSoldier"
+	{
+		"chi"		"在感染者尸潮时获得更少的移动速度和生命恢复。\n可以使用旗子。"
+	}
+	
+	"Menu_ClassesInfectedPyro"
+	{
+		"chi"		"使用熔岩战斧来点燃幸存者。\n后续燃烧伤害被减少。\n在感染者尸潮时获得更少的移动速度和生命恢复。"
+	}
+	
+	"Menu_ClassesInfectedDemoman"
+	{
+		"chi"		"获得苏格兰长剑，远距离造成伤害。\n在感染者尸潮时获得更少的移动速度和生命恢复。"
+	}
+	
+	"Menu_ClassesInfectedHeavy"
+	{
+		"chi:		"在感染者尸潮时获得更少的移动速度和生命恢复。\n可以使用食物，也可以伤害幸存者。"
+	}
+	
+	"Menu_ClassesInfectedEngineer"
+	{
+		"chi"		"枪炮工之臂第三下的爆击使幸存者眩晕，但造成更少的伤害。\n只可以建造迷你步哨和补给器，不能升级。\n步哨弹药限制，随时间消失，不能补充。"
+	}
+	
+	"Menu_ClassesInfectedMedic"
+	{
+		"chi"		"使用器官切割器嘲讽治疗周围的感染者。\n在感染者尸潮时获得更少的移动速度和生命恢复。"
+	}
+	
+	"Menu_ClassesInfectedSniper"
+	{
+		"chi"		"可以使用灌木丛在迷你爆击情况下造成爆击。\n可以使用背包和鳄鱼盾。"
+	}
+	
+	"Menu_ClassesInfectedSpy"
+	{
+		"chi"		"背刺使敌人被'惊吓'，减速敌人并且无法使用武器一段时间。\n幸存者在被背刺时获得小型抗性。"
+	}
+	
+	"Menu_ClassesInfectedSpecialTank"
+	{
+		"chi"		"作为最强大最致命的感染者，他可以突击击倒整支敌方队伍。\n- 坦克生命很多，但是最后会逐渐丢失生命值。\n- 坦克有完全击退抗性。\n- 坦克一开始很快，但受到伤害之后变慢。\n- 坦克会在特定条件满足后生成。"
+	}
+	
+	"Menu_ClassesInfectedSpecialBoomer"
+	{
+		"chi"		"他恶心，脏，很乐意把这些分享给幸存者。\n- 技能是自爆，让敌人被尿包围。\n- 死亡也会爆炸，但是威力和范围会减少。"
+	}
+	
+	"Menu_ClassesInfectedSpecialCharger"
+	{
+		"chi"		"内在的愤怒让它不顾一切的卡其脱离带，直到撞倒人。\n- 使用愤怒，Charger可以冲锋并且锁定幸存者的移动，推动他穿越区域。"
+	}
+	
+	"Menu_ClassesInfectedSpecialScreamer"
+	{
+		"chi"		"Screamer是感染者队长，可以让感染者们全副武装攻击幸存者。\n- 使用愤怒，Screamer会用一声刺破耳膜的尖叫声集结感染者，增加感染者的总体能力。\n- Screamer靠近感染者可以强化他们，增加强度。"
+	}
+	
+	"Menu_ClassesInfectedSpecialStalker"
+	{
+		"chi"		"Stalker难以捉摸，可以在眨眼间靠近幸存者。\n- Stalker在不靠近幸存者的情况下一直是隐形的。\n- 背刺造成50伤害，比普通背刺强2.5倍。"
+	}
+	
+	"Menu_ClassesInfectedSpecialHunter"
+	{
+		"chi"		"Hunter很快，轻易地越过大片障碍追杀幸存者。\n- 使用愤怒可以进行飞扑，扑到敌人。\n- 抓住敌人后，你会'卡'在敌人身体中，让幸存者在独自作战的时候变得十分危险。"
+	}
+	
+	"Menu_ClassesInfectedSpecialSmoker"
+	{
+		"chi"		"Smoker使用它的有毒光束，伤害幸存者并拉扯过来。\n- 幸存者生命越低，拉扯的力量越强。\n- 不能使用愤怒。"
+	}
+	
+	"Menu_ClassesInfectedSpecialSpitter"
+	{
+		"chi"		"Spitter是长脖子的，使用有毒气体攻击的特感。\n- 使用愤怒会让spitter停下，吐出一地造成伤害的气体到地上。\n- 死亡后也会释放毒气。\n- 在小房间显得十分危险。"
+	}
+	
+	"Menu_ClassesInfectedSpecialJockey"
+	{
+		"chi"		"Jockey到处爬，寻找幸存者骑上去。\n- 使用愤怒可以让它飞扑，抓住幸存者的头，但与Hunter不同。\n- 可以控制幸存者的头，控制行动。\n不能攻击，但是在控制幸存者的时候可以逐渐造成少量伤害。"
+	}
+}
