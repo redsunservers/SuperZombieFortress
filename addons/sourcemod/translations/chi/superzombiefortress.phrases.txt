@@ -537,7 +537,7 @@
 	
 	"Menu_ClassesInfectedHeavy"
 	{
-		"chi:		"在感染者尸潮时获得更少的移动速度和生命恢复。\n可以使用食物，也可以伤害幸存者。"
+		"chi"		"在感染者尸潮时获得更少的移动速度和生命恢复。\n可以使用食物，也可以伤害幸存者。"
 	}
 	
 	"Menu_ClassesInfectedEngineer"
