@@ -100,7 +100,7 @@ ArrayList Config_LoadWeaponData()
 				wep.iIndex = StringToInt(sBuffer);
 				
 				kv.GetString("rarity", sBuffer, sizeof(sBuffer), "common");
-				CStrToLower(sBuffer);
+				StrToLower(sBuffer, sBuffer, sizeof(sBuffer));
 				
 				mRarity.GetValue(sBuffer, wep.nRarity);
 				
@@ -440,6 +440,8 @@ void Config_LoadInfectedVo(KeyValues kv, ArrayList aSoundVo[view_as<int>(Infecte
 					char sVoType[64], sFilepath[PLATFORM_MAX_PATH];
 					kv.GetSectionName(sVoType, sizeof(sVoType));
 					kv.GetString(NULL_STRING, sFilepath, sizeof(sFilepath));
+					
+					StrToLower(sVoType, sVoType, sizeof(sVoType));
 					SoundVo nSoundVo = Sound_GetVoType(sVoType);
 					if (nSoundVo == SoundVo_Unknown)
 					{
