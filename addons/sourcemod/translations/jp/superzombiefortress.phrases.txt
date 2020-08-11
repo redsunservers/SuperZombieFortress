@@ -2,67 +2,56 @@
 {
 	"Welcome"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
 		"jp"		"{1}スーパーゾンビ要塞へようこそ。\n{2}/szf{3}を使用して取扱説明書を開くことができます。"
 	}
 	
 	"Grace_Start"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}猶予期間が始まりました。 生存者はクラスを変更できます。"
 	}
 	
 	"Grace_End"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}猶予期間が終了しました。 生存者はクラスを変更できなくなりました。"
 	}
 	
 	"Grace_InfectedBoost"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}感染者には、ラウンド開始時のゲームバランスを確保するために、追加のヘルスとその他のボーナスが与えられています。"
 	}
 	
 	"Frenzy_Start"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}ゾンビは狂乱しています：彼らはより速くリスポーンし、より強力です！"
 	}
 	
 	"Frenzy_End"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}ゾンビが休んでいます..."
 	}
 	
 	"Tank_Chosen"
 	{
-		"#format"	"{1:s},{2:s}"
 		"jp"		"{1} {2}戦車に選ばれました！"
 	}
 	
 	"Tank_Called"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}戦車が呼ばれた。"
 	}
 	
 	"Tank_Spawn"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}着信タンク!!"
 	}
 	
 	"Tank_Died"
 	{
-		"#format"	"{1:N},{2:N},{3:d}"
 		"jp"		"タンク '{1}' 亡くなりました。\nほとんどの損傷： {2} ({3})"
 	}
 	
 	"Tank_Multi_Died"
 	{
-		"#format"	"{1:d},{2:N},{3:d}"
 		"jp"		"{1} 戦車が死亡しました。 \nほとんどの損傷： {2} ({3})"
 	}
 	
@@ -73,49 +62,41 @@
 	
 	"Weapon_Pickup"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
 		"jp"		"私は拾いました {1}{2}{3}！"
 	}
 	
 	"Weapon_Callout"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
 		"jp"		"{1}{2} {3}ここに！"
 	}
 	
 	"Survivor_Last"
 	{
-		"#format"	"{1:s},{2:s}"
 		"jp"		"{1}{2} これが最後の生存者です！"
 	}
 	
 	"Infected_Zombify"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}あなたは死に、ゾンビに変わりました..."
 	}
 	
 	"Infected_SelectedRespawn"
 	{
-		"#format"	"{1:s},{2:s}"
 		"jp"		"{1}あなたは特別感染者に選ばれました！ {2}メディックが特別なゾンビとして復活するか、死んだときに特別なゾンビとして復活するように要請します。"
 	}
 	
 	"Infected_UsedQuickRespawn"
 	{
-		"#format"	"{1:s},{2:s},{3:s},{4:s}"
 		"jp"		"(TEAM) {1}{2} : 私は私のを使用しました {3}特別な感染者にすばやくリスポーン{4}！"
 	}
 	
 	"Infected_AllInCooldown"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}すべての特別なゾンビがクールダウンしています..."
 	}
 	
 	"Infected_ForceStart"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}ゾンビとしてプレイをスキップしようとしたため、感染するように強制的に設定されました。"
 	}
 	
@@ -131,7 +112,6 @@
 	
 	"Infected_RageReadyInSec"
 	{
-		"#format"	"{1:d}"
 		"jp"		"怒りは準備ができています {1} 秒！"
 	}
 	
@@ -257,85 +237,71 @@
 	
 	"Command_InfectedUsage"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}使用法： sm_infected [目標] [感染した]"
 	}
 	
 	"Command_InfectedNoInfected"
 	{
-		"#format"	"{1:s},{2:s}"
 		"jp"		"{1}感染を見つけることができません \"{2}\""
 	}
 	
 	"Command_InfectedNoTarget"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}感染するように次に設定する人を見つけることができませんでした。"
 	}
 	
 	"Command_InfectedNoZombie"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}次に感染させるゾンビを見つけることができませんでした。"
 	}
 	
 	"Command_InfectedSet"
 	{
-		"#format"	"{1:s},{2:d},{3:s}"
 		"jp"		"{1}セット {2} 次に感染するゾンビ \"{3}\""
 	}
 	
 	"Command_MusicEnable"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}音楽が有効になりました。"
 	}
 	
 	"Command_MusicDisable"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}音楽が無効になりました。"
 	}
 	
 	"JoinTeam_CantSwitchGrace"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}猶予期間中は敵チームに切り替えることはできません。"
 	}
 	
 	"JoinTeam_WillJoinInfectedGrace"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}猶予期間が終了すると、感染したチームに参加します。"
 	}
 	
 	"JoinTeam_CancelGraceEnd"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}猶予期間が終了しても、感染したチームに自動的に参加することはありません。"
 	}
 	
 	"JoinTeam_CantJoinSurvivorGrace"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}現在、サバイバーチームに参加できません。 猶予期間が終了すると、感染したチームに参加します。"
 	}
 	
 	"JoinClass_ValidZombies"
 	{
-		"#format"	"{1:s},{2:s}"
 		"jp"		"{1}有効なゾンビ：{2}."
 	}
 	
 	"JoinClass_ValidSurvivors"
 	{
-		"#format"	"{1:s},{2:s}"
 		"jp"		"{1}有効な生存者：{2}."
 	}
 	
 	"JoinClass_SurvivorsCantChange"
 	{
-		"#format"	"{1:s}"
 		"jp"		"{1}生存者はラウンド中にクラスを変更することはできません。"
 	}
 	
@@ -421,12 +387,12 @@
 	
 	"Melee_Ubersaw"
 	{
-		"jp"		"{orange}The ユーバーソウ {red}ヒット時に10%%のUberChargeを提供します。"
+		"jp"		"{orange}The ユーバーソウ {red}ヒット時に10%%のユーバーチャージを与えます。"
 	}
 
 	"Melee_VitaSaw"
 	{
-		"jp"		"{orange}The ヴィタ・ソウ {green}UberCharge率を15%%増加させます。"
+		"jp"		"{orange}The ヴィタ・ソウ {green}ユーバーチャージ率を15%%増加させます。"
 	}
 	
 	"Melee_Amputator"
@@ -450,7 +416,6 @@
 	
 	"Menu_MainTitle"
 	{
-		"#format"	"{1:s},{2:s}"
 		"jp"		"スーパーゾンビ要塞 - {1}.{2}"
 	}
 	
