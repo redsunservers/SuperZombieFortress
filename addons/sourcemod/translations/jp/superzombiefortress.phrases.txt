@@ -1,0 +1,641 @@
+"Phrases"
+{
+	"Welcome"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"jp"		"{1}スーパーゾンビ要塞へようこそ。\n{2}/szf{3}を使用して取扱説明書を開くことができます。"
+	}
+	
+	"Grace_Start"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}猶予期間が始まりました。 生存者はクラスを変更できます。"
+	}
+	
+	"Grace_End"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}猶予期間が終了しました。 生存者はクラスを変更できなくなりました。"
+	}
+	
+	"Grace_InfectedBoost"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}感染者には、ラウンド開始時のゲームバランスを確保するために、追加のヘルスとその他のボーナスが与えられています。"
+	}
+	
+	"Frenzy_Start"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}ゾンビは狂乱しています：彼らはより速くリスポーンし、より強力です！"
+	}
+	
+	"Frenzy_End"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}ゾンビが休んでいます..."
+	}
+	
+	"Tank_Chosen"
+	{
+		"#format"	"{1:s},{2:s}"
+		"jp"		"{1} {2}戦車に選ばれました！"
+	}
+	
+	"Tank_Called"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}戦車が呼ばれた。"
+	}
+	
+	"Tank_Spawn"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}着信タンク!!"
+	}
+	
+	"Tank_Died"
+	{
+		"#format"	"{1:N},{2:N},{3:d}"
+		"jp"		"タンク '{1}' 亡くなりました。\nほとんどの損傷： {2} ({3})"
+	}
+	
+	"Tank_Multi_Died"
+	{
+		"#format"	"{1:d},{2:N},{3:d}"
+		"jp"		"{1} 戦車が死亡しました。 \nほとんどの損傷： {2} ({3})"
+	}
+	
+	"Carry_Pickup"
+	{
+		"jp"		"「メディック！」 あなたのアイテムを落とす！\nアイテムを持っている間攻撃できます。"
+	}
+	
+	"Weapon_Pickup"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"jp"		"私は拾いました {1}{2}{3}！"
+	}
+	
+	"Weapon_Callout"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"jp"		"{1}{2} {3}ここに！"
+	}
+	
+	"Survivor_Last"
+	{
+		"#format"	"{1:s},{2:s}"
+		"jp"		"{1}{2} これが最後の生存者です！"
+	}
+	
+	"Infected_Zombify"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}あなたは死に、ゾンビに変わりました..."
+	}
+	
+	"Infected_SelectedRespawn"
+	{
+		"#format"	"{1:s},{2:s}"
+		"jp"		"{1}あなたは特別感染者に選ばれました！ {2}メディックが特別なゾンビとして復活するか、死んだときに特別なゾンビとして復活するように要請します。"
+	}
+	
+	"Infected_UsedQuickRespawn"
+	{
+		"#format"	"{1:s},{2:s},{3:s},{4:s}"
+		"jp"		"(TEAM) {1}{2} : 私は私のを使用しました {3}特別な感染者にすばやくリスポーン{4}！"
+	}
+	
+	"Infected_AllInCooldown"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}すべての特別なゾンビがクールダウンしています..."
+	}
+	
+	"Infected_ForceStart"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}ゾンビとしてプレイをスキップしようとしたため、感染するように強制的に設定されました。"
+	}
+	
+	"Infected_CallMedic"
+	{
+		"jp"		"「メディック！」 特別な感染者としてリスポーンします！"
+	}
+	
+	"Infected_RageReady"
+	{
+		"jp"		"怒りは準備ができています！"
+	}
+	
+	"Infected_RageReadyInSec"
+	{
+		"#format"	"{1:d}"
+		"jp"		"怒りは準備ができています {1} 秒！"
+	}
+	
+	"Infected_CantUseRage"
+	{
+		"jp"		"怒りは使えない！"
+	}
+	
+	"Infected_RageUsed"
+	{
+		"jp"		"怒り発動！"
+	}
+	
+	"Tutorial_SurvivorStart1"
+	{
+		"jp"		"スーパーゾンビ要塞へようこそ！"
+	}
+	
+	"Tutorial_SurvivorStart2"
+	{
+		"jp"		"現在、あなたは生存者として選ばれています。"
+	}
+	
+	"Tutorial_SurvivorStart3"
+	{
+		"jp"		"サバイバーとしてのあなたの使命は、マップの目的を完了することです。"
+	}
+	
+	"Tutorial_SurvivorStart4"
+	{
+		"jp"		"武器を持っていないことに気づいたかもしれません。"
+	}
+	
+	"Tutorial_SurvivorStart5"
+	{
+		"jp"		"武器を拾うには、攻撃するか、メディックを呼びます。"
+	}
+	
+	"Tutorial_SurvivorStart6"
+	{
+		"jp"		"通常のゾンビがありますが、特別なゾンビもいるので気をつけてね！"
+	}
+	
+	"Tutorial_SurvivorStart7"
+	{
+		"jp"		"チャットで「/szf」コマンドを使用して、詳細情報を確認できます。"
+	}
+	
+	"Tutorial_SurvivorStart8"
+	{
+		"jp"		"ゲームと幸運をお楽しみください！"
+	}
+	
+	"Tutorial_ZombieStart1"
+	{
+		"jp"		"スーパーゾンビ要塞へようこそ！"
+	}
+	
+	"Tutorial_ZombieStart2"
+	{
+		"jp"		"現在、あなたはゾンビに選ばれています。"
+	}
+	
+	"Tutorial_ZombieStart3"
+	{
+		"jp"		"ゾンビとしてのあなたの使命は、生存者を殺すことです。"
+	}
+	
+	"Tutorial_ZombieStart4"
+	{
+		"jp"		"あなたとあなたの同盟国は、後で特別なゾンビになるかもしれません。"
+	}
+	
+	"Tutorial_ZombieStart5"
+	{
+		"jp"		"さらに、タンクはゲームの後半でスポーンできます。"
+	}
+	
+	"Tutorial_ZombieStart6"
+	{
+		"jp"		"チャットで「/szf」コマンドを使用して、詳細情報を確認できます。"
+	}
+	
+	"Tutorial_ZombieStart7"
+	{
+		"jp"		"ゲームを楽しみ、それらすべてを殺してください！"
+	}
+	
+	"Tutorial_PickupCommon1"
+	{
+		"jp"		"武器を手に入れました。"
+	}
+	
+	"Tutorial_PickupCommon2"
+	{
+		"jp"		"武器は生き残るために重要です。"
+	}
+	
+	"Tutorial_PickupRare1"
+	{
+		"jp"		"あなたは非常に強力な武器を手に入れました。"
+	}
+	
+	"Tutorial_PickupRare2"
+	{
+		"jp"		"これらの武器は出現する可能性が低くなります。"
+	}
+	
+	"Tutorial_Callout1"
+	{
+		"jp"		"珍しい武器を呼び出すと、味方は彼らがどこにいるかを確認できます。"
+	}
+	
+	"Tutorial_TankSpawn1"
+	{
+		"jp"		"戦車を近づけないでください。攻撃は致命的です。"
+	}
+	
+	"Tutorial_TankSpawn2"
+	{
+		"jp"		"逃げて戦車を撃つと、速度が低下し、最終的には死にます。"
+	}
+	
+	"Command_InfectedUsage"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}使用法： sm_infected [目標] [感染した]"
+	}
+	
+	"Command_InfectedNoInfected"
+	{
+		"#format"	"{1:s},{2:s}"
+		"jp"		"{1}感染を見つけることができません \"{2}\""
+	}
+	
+	"Command_InfectedNoTarget"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}感染するように次に設定する人を見つけることができませんでした。"
+	}
+	
+	"Command_InfectedNoZombie"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}次に感染させるゾンビを見つけることができませんでした。"
+	}
+	
+	"Command_InfectedSet"
+	{
+		"#format"	"{1:s},{2:d},{3:s}"
+		"jp"		"{1}セット {2} 次に感染するゾンビ \"{3}\""
+	}
+	
+	"Command_MusicEnable"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}音楽が有効になりました。"
+	}
+	
+	"Command_MusicDisable"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}音楽が無効になりました。"
+	}
+	
+	"JoinTeam_CantSwitchGrace"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}猶予期間中は敵チームに切り替えることはできません。"
+	}
+	
+	"JoinTeam_WillJoinInfectedGrace"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}猶予期間が終了すると、感染したチームに参加します。"
+	}
+	
+	"JoinTeam_CancelGraceEnd"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}猶予期間が終了しても、感染したチームに自動的に参加することはありません。"
+	}
+	
+	"JoinTeam_CantJoinSurvivorGrace"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}現在、サバイバーチームに参加できません。 猶予期間が終了すると、感染したチームに参加します。"
+	}
+	
+	"JoinClass_ValidZombies"
+	{
+		"#format"	"{1:s},{2:s}"
+		"jp"		"{1}有効なゾンビ：{2}."
+	}
+	
+	"JoinClass_ValidSurvivors"
+	{
+		"#format"	"{1:s},{2:s}"
+		"jp"		"{1}有効な生存者：{2}."
+	}
+	
+	"JoinClass_SurvivorsCantChange"
+	{
+		"#format"	"{1:s}"
+		"jp"		"{1}生存者はラウンド中にクラスを変更することはできません。"
+	}
+	
+	"SpecialInfected_Boomer"
+	{
+		"jp"		"{green}あなたはブーマーです：\n{orange}- 「メディック！」 近くの敵を爆破してジャラテする！\n- また、死亡時に爆発し、キラーとアシスタントをジャラテでコーティングします。"
+	}
+	
+	"SpecialInfected_Charger"
+	{
+		"jp"		"{green}あなたは充電器です：\n{orange}- 「メディック！」 充電する！ {yellow}（16秒のクールダウン）"
+	}
+	
+	"SpecialInfected_Screamer"
+	{
+		"jp"		"{green}あなたはスクリーマーです：\n{orange}- 「メディック！」 近くのゾンビを結集させる！ {yellow}（21秒のクールダウン）{orange}\n- あなたの近くに立つゾンビはより強力になります。"
+	}
+	
+	"SpecialInfected_Stalker"
+	{
+		"jp"		"{green}あなたはストーカーです：\n{orange}- 生存者の近くにいない場合、あなたはマントになり、超高速になります！\n- バックスタブはより多くのダメージを与えます。"
+	}
+	
+	"SpecialInfected_Hunter"
+	{
+		"jp"		"{green}あなたはハンターです：\n{orange}- 「メディック！」 敵の生存者をつかむために！ {yellow}（ミス時に3秒のクールダウン、ヒット時に21秒のクールダウン）"
+	}
+	
+	"SpecialInfected_Smoker"
+	{
+		"jp"		"{green}あなたは喫煙者です：\n{orange}- 右クリックを押し続けると、敵を引き寄せてダメージを与えるビームを発射します！ {yellow}（クールダウンなし）"
+	}
+	
+	"SpecialInfected_Spitter"
+	{
+		"jp"		"{green}あなたはつばです：\n{orange}- 「メディック！」 生存者に有害なガスを投げる！ {yellow}（16秒のクールダウン）"
+	}
+	
+	"SpecialInfected_Jockey"
+	{
+		"jp"		"{green}あなたはジョッキーです：\n{orange}- 「メディック！」 生存者をつかみ、彼らの動きを制御する！ {yellow}（6秒のクールダウン）"
+	}
+
+	"Melee_Atomizer"
+	{
+		"jp"		"{orange}The アトマイザー {green}敵を押し戻します。 {red}トリプルジャンプと空中ミニクリットは無効になります。"
+	}
+	
+	"Melee_CandyCane"
+	{
+		"jp"		"{orange}The キャンディー･ケーン {red}10%%の追加ダメージを与えます。"
+	}
+	
+	"Melee_PainTrain"
+	{
+		"jp"		"{orange}The ペイン・トレイン {red}10%%の追加ダメージを与えます。"
+	}
+	
+	"Melee_HalfZatochi"
+	{
+		"jp"		"{orange}The ハーフ座頭市 {red}アクティブな状態で最大の体力を消耗します。"
+	}
+	
+	"Melee_MarketGardener"
+	{
+		"jp"		"{orange}The マーケット・ガーデナー {green}ロケットジャンプが25%%高くなります。"
+	}
+	
+	"Melee_KillingGlovesofBoxing"
+	{
+		"jp"		"{orange}The キリング・グローブ・オブ・ボクシング {red}キル時にミニクリットを5秒与えます。"
+	}
+	
+	"Melee_FistsofSteel"
+	{
+		"jp"		"{orange}The フィスツ・オブ・スチール {green}保持されている間、10%%の近接武器耐性を提供します。"
+	}
+	
+	"Melee_EurekaEffect"
+	{
+		"jp"		"{orange}The ユーリカ・エフェクト {green}定期的に金属を出現させる。 {red}テレポーテーションは無効です。"
+	}
+	
+	"Melee_Ubersaw"
+	{
+		"jp"		"{orange}The ユーバーソウ {red}ヒット時に10%%のUberChargeを提供します。"
+	}
+
+	"Melee_VitaSaw"
+	{
+		"jp"		"{orange}The ヴィタ・ソウ {green}UberCharge率を15%%増加させます。"
+	}
+	
+	"Melee_Amputator"
+	{
+		"jp"		"{orange}The アンピュテーター {red}挑発している間、そのエリアは回復しません。"
+	}
+	
+	"Melee_TribalmansShiv"
+	{
+		"jp"		"{orange}The トライバルマンズ・シブ {green}損害ペナルティが20 %%に減少しました。"
+	}
+	
+	"PDA_DeadRinger"
+	{
+		"jp"		"{orange}The デッドリンガー {red}クロークの持続時間は増加していません。"
+	}
+	"PDA_CloakAndDagger"
+	{
+		"jp"		"{orange}The クロークアンドダガー {red}無効になっています。"
+	}
+	
+	"Menu_MainTitle"
+	{
+		"#format"	"{1:s},{2:s}"
+		"jp"		"スーパーゾンビ要塞 - {1}.{2}"
+	}
+	
+	"Menu_MainOverview"
+	{
+		"jp"		"概観"
+	}
+	
+	"Menu_MainTeamSurvivor"
+	{
+		"jp"		"チーム：サバイバー"
+	}
+	
+	"Menu_MainTeamZombie"
+	{
+		"jp"		"チーム：感染"
+	}
+	
+	"Menu_MainClassesSurvivor"
+	{
+		"jp"		"クラス：サバイバー"
+	}
+	
+	"Menu_MainClassesZombie"
+	{
+		"jp"		"クラス：感染"
+	}
+	
+	"Menu_MainClassesInfected"
+	{
+		"jp"		"クラス：感染（特別）"
+	}
+	
+	"Menu_MainBack"
+	{
+		"jp"		"バック"
+	}
+	
+	"Menu_Overview"
+	{
+		"jp"		"生存者は感染の無限の大群を生き残る必要があります。\n生存者が死ぬと、ゾンビになります。\nゾンビは他の生存者を倒すために協力する必要があります。\n生存者は士気や他の武器を利用でき、ゾンビは特別なゾンビを利用できます。"
+	}
+	
+	"Menu_TeamSurvivors"
+	{
+		"jp"		"生存者は、健康回復と、士気に基づく武器ダメージへの小さなボーナスを持っています。\n士気は目的を達成し、ゾンビを殺すことで得られますが、時間の経過や悪い出来事によって失われます。\n生存者は近接武器でのみ開始し、マップを通過するときに武器を（「メディック！」を呼び出すか攻撃して）拾います。"
+	}
+	
+	"Menu_TeamZombie"
+	{
+		"jp"		"ゾンビは他のゾンビと一緒にいるとボーナスを獲得し、激怒して自分の健康を高めたり、特別なゾンビとして特別な能力を起動したりできます。\nレイジは「メディック！」を呼び出すことで使用でき、使用後は短時間クールダウンします。\nランダムに選択して特別なゾンビになり、「メディック！」を呼び出すことで1つとしてリスポーンできます。"
+	}
+	
+	"Menu_ClassesSurvivorsScout"
+	{
+		"jp"		"最大ヘルスが25追加されます。\nキルごとに最初の武器で2弾薬を獲得し、弾薬容量を超えることができます。"
+	}
+	
+	"Menu_ClassesSurvivorsSoldier"
+	{
+		"jp"		"キルごとに最初の武器で1弾薬を獲得し、弾薬容量を超えることができます。"
+	}
+	
+	"Menu_ClassesSurvivorsPyro"
+	{
+		"jp"		"燃えるゾンビはより速く移動します。\n火炎放射器の弾薬数は100に制限されています。"
+	}
+	
+	"Menu_ClassesSurvivorsDemoman"
+	{
+		"jp"		"キルごとに最初の武器で1弾薬を獲得し、弾薬容量を超えることができます。"
+	}
+	
+	"Menu_ClassesSurvivorsHeavy"
+	{
+		"jp"		"ミニガンの弾薬数は100に制限されています。"
+	}
+	
+	"Menu_ClassesSurvivorsEngineer"
+	{
+		"jp"		"PDAで始まります。\nアップグレードできない歩哨とディスペンサーのみを構築できます。\nセントリーの弾薬は限られており、ゆっくりと消え、元に戻すことはできません。\nディスペンサーは壁として機能します。 彼らはより高い健康を持っていますが、弾薬を復元することはできません。"
+	}
+	
+	"Menu_ClassesSurvivorsMedic"
+	{
+		"jp"		"メディガンには治癒率のペナルティがあります。"
+	}
+	
+	"Menu_ClassesSurvivorsSniper"
+	{
+		"jp"		"SMGをリロードする必要はありません。\nジャラテはゾンビを遅くします。\n最大ヘルスが25追加されます。\nキルごとに最初の武器で2弾薬を獲得し、弾薬容量を超えることができます。"
+	}
+	
+	"Menu_ClassesSurvivorsSpy"
+	{
+		"jp"		"透明ウォッチと変装キットから始まります。\nキルごとに最初の武器で2弾薬を獲得し、弾薬容量を超えることができます"
+	}
+	
+	"Menu_ClassesInfectedScout"
+	{
+		"jp"		"生存者を遅くするサンドマンを持っています。\n使用する2番目のスロットに飲み物を保つことができる。"
+	}
+	
+	"Menu_ClassesInfectedSoldier"
+	{
+		"jp"		"他のゾンビと一緒にいる間、移動速度と健康回復ボーナスがわずかに減少しました。\n使用する2番目のスロットにバナーを保持できます。"
+	}
+	
+	"Menu_ClassesInfectedPyro"
+	{
+		"jp"		"生存者に点火するためのシャーペンド・ボルケイノ・フラッグメントがあります。\nアフターバーンダメージが軽減されます。\n他のゾンビと一緒にいる間、移動速度と健康回復ボーナスがわずかに減少しました。"
+	}
+	
+	"Menu_ClassesInfectedDemoman"
+	{
+		"jp"		"遠距離で生存者にダメージを与えるアイランダーを持っています。\n他のゾンビと一緒にいる間、移動速度と健康回復ボーナスがわずかに減少しました。"
+	}
+	
+	"Menu_ClassesInfectedHeavy"
+	{
+		"jp"		"他のゾンビと一緒にいる間、移動速度と健康回復ボーナスがわずかに減少しました。\n2番目のスロットに食べ物を入れて使用し、生存者に危害を加えることができる。"
+	}
+	
+	"Menu_ClassesInfectedEngineer"
+	{
+		"jp"		"ガンスリンガーの3番目のクリティカルパンチは、被害を抑えて生存者を気絶させます。\nアップグレードできないミニセントリーとディスペンサーのみを構築できます。\nセントリーの弾薬は限られており、ゆっくりと消え、元に戻すことはできません。"
+	}
+	
+	"Menu_ClassesInfectedMedic"
+	{
+		"jp"		"挑発するときに近くのゾンビを癒すためにアンピュテーターを持っています。\n大群にいる間は、健康回復ボーナスのメリットが少なくなります。"
+	}
+	
+	"Menu_ClassesInfectedSniper"
+	{
+		"jp"		"ミニクリット効果で生存者にクリティカルダメージを与えるブッシュワッカを持っています。\n使用する2番目のスロットにバックパックを保管することができます。"
+	}
+	
+	"Menu_ClassesInfectedSpy"
+	{
+		"jp"		"バックスタブは被害者を「怖がらせた」状態にし、それらを減速させ、数秒間武器を無効にします。\n生存者は怖がっている間に小さなダメージ耐性を獲得します。"
+	}
+	
+	"Menu_ClassesInfectedSpecialTank"
+	{
+		"jp"		"最強の特殊ゾンビとして、彼らは準備ができていない生存者のチームを素早く倒すことができます。\n- タンクには多くの最大ヘルスがあり、しばらくすると負け始めます。\n- タンクはすべてのノックバックに抵抗します。\n- タンクはすばやく動きますが、損傷を受けている場合は速度が低下します。\n- タンクは、特定の条件が満たされた場合にのみ生成されます。"
+	}
+	
+	"Menu_ClassesInfectedSpecialBoomer"
+	{
+		"jp"		"H彼はひどく、汚く、邪魔をして生き残った人に両方を爆発させることを恐れていません。\n- 荒れ狂うと、ブーマーは爆発し、ジャラテの近くの生存者を覆います。\n- 彼らは死の際にも爆発しますが、射程と持続時間は短くなります。"
+	}
+	
+	"Menu_ClassesInfectedSpecialCharger"
+	{
+		"jp"		"彼の内なる怒りは、彼が他の誰かを連れて行くことができる限り、彼が自分の体をどのように使用するかについての心配を失いました。\n- 怒りを使って突進すると、進路にいる生存者の動きがロックされ、彼らが押し出されます。"
+	}
+	
+	"Menu_ClassesInfectedSpecialScreamer"
+	{
+		"jp"		"スクリーマーはゾンビの群れを導き、彼らが途中で生存者を殺すことを確認します。\n- 怒鳴ると、スクリーマーは近くのゾンビに耳を刺すような叫び声を上げて集結し、威力を高めます。\n- スクリーマーは近くのゾンビをやる気にさせ、より効率的にします。"
+	}
+	
+	"Menu_ClassesInfectedSpecialStalker"
+	{
+		"jp"		"とらえどころのないストーカーは生存者に近づき、瞬く間に逃げることができます。\n- ストーカーは、生存者の近くにいない場合は常にクロークされます。\n- ストーカーは、バックスタブでサバイバーに50のダメージを与え、通常のバックスタブより2.5倍強力にします。"
+	}
+	
+	"Menu_ClassesInfectedSpecialHunter"
+	{
+		"jp"		"ハンターは速くて機敏で、レベルの障害を乗り越えることができます。\n- 怒り狂うことで、彼らは彼らと物理的に接触するときに敵に引っ掛かることができる跳躍を引き起こします。\n- 敵をつかむと、敵の内部に行き詰まり、生存者が一人でいると非常に危険になります。"
+	}
+	
+	"Menu_ClassesInfectedSpecialSmoker"
+	{
+		"jp"		"喫煙者は、敵を引き寄せてダメージを与える有毒なビームに依存しています。\n- プルの強さは、被害者の健康状態が低いほど強くなります。\n- 怒りは使えない。"
+	}
+	
+	"Menu_ClassesInfectedSpecialSpitter"
+	{
+		"jp"		"スピッターには長い首に厄介なガスが充満しているため、生存者は安全に息をすることができません。\n- 怒りを使用すると、スピットが固定され、近くの生存者にダメージを与えるガスが噴き出します。\n- ガスは死の際にも解放されます。\n- このゾンビは、小さな部屋の生存者にとって大きな脅威になる可能性があります。"
+	}
+	
+	"Menu_ClassesInfectedSpecialJockey"
+	{
+		"jp"		"騎手は忍び寄り、ラッチする生存者を探します。\n- 範囲はハンターほど長くはありませんが、怒りを使用すると、騎手は生存者の頭に掛かることができます。\n- 生存者の頭に掛かり、それで遊ぶことができます。\n攻撃はできませんが、小さなダメージを与え、サバイバーに掛かっている間、ほとんどの場合は動きをコントロールできます。"
+	}
+}
