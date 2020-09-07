@@ -117,7 +117,7 @@ ArrayList Config_LoadWeaponData()
 					bool bFound = false;
 					for (TFClassType iClass = TFClass_Scout; iClass <= TFClass_Engineer; iClass++)
 					{
-						if (IsValidSurvivorClass(iClass) && TF2Econ_GetItemSlot(wep.iIndex, iClass) >= 0)
+						if (IsValidSurvivorClass(iClass) && TF2Econ_GetItemLoadoutSlot(wep.iIndex, iClass) >= 0)
 						{
 							bFound = true;
 							break;

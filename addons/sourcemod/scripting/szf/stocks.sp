@@ -415,7 +415,7 @@ stock bool IsRazorbackActive(int iClient)
 
 stock int TF2_GetItemSlot(int iIndex, TFClassType iClass)
 {
-	int iSlot = TF2Econ_GetItemSlot(iIndex, iClass);
+	int iSlot = TF2Econ_GetItemLoadoutSlot(iIndex, iClass);
 	if (iSlot >= 0)
 	{
 		// Econ reports wrong slots for Engineer and Spy
@@ -626,7 +626,7 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttrib
 	
 	if (bAllowReskin)
 	{
-		int iSlot = TF2Econ_GetItemSlot(iIndex, iClass);	//Uses econ slot
+		int iSlot = TF2Econ_GetItemLoadoutSlot(iIndex, iClass);	//Uses econ slot
 		Address pItem = SDKCall_GetLoadoutItem(iClient, iClass, iSlot);
 		
 		if (pItem && GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(g_iOffsetItemDefinitionIndex), NumberType_Int16)) == iIndex)
