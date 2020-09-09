@@ -467,7 +467,7 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 	int iEntity = event.GetInt("index");
 	TFObjectType nObjectType = view_as<TFObjectType>(event.GetInt("object"));
 	   
-	if (nObjectType == TFObject_Dispenser && IsSurvivor(iClient))
+	if (nObjectType == TFObject_Dispenser && IsSurvivor(iClient) && !GetEntProp(iEntity, Prop_Send, "m_bCarryDeploy"))
 	{
 		SetEntProp(iEntity, Prop_Send, "m_bCarried", 1);	// Disable healing/ammo and upgrading
 		int iMaxHealth = GetEntProp(iEntity, Prop_Send, "m_iMaxHealth");
