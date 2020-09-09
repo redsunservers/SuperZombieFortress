@@ -540,6 +540,18 @@ stock void TF2_SetMetal(int iClient, int iMetal)
 	SetEntProp(iClient, Prop_Send, "m_iAmmo", iMetal, _, 3);
 }
 
+public Action Timer_UpdateClientHud(Handle timer, int serial)
+{
+	int client = GetClientFromSerial(serial);
+	if (0 < client <= MaxClients)
+	{
+		//Call client to reset HUD meter
+		Event event = CreateEvent("localplayer_pickup_weapon", true);
+		event.FireToClient(client);
+		event.Cancel();
+	}
+}
+
 ////////////////
 // Spawn
 ////////////////
