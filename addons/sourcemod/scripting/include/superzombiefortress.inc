@@ -88,9 +88,10 @@ forward void SZF_OnBoomerExplode(int iBoomer, int iClients[MAXPLAYERS], int iLen
  * @param	iClient		client whose picked up the weapon
  * @param	iWeapon		Weapon entity whose picked up
  * @param	rarity		Rarity of the weapon
+ * @param	iTarget		Prop entity whose picked up
  * @noreturn
  */
-forward void SZF_OnWeaponPickup(int iClient, int iWeapon, WeaponRarity rarity);
+forward void SZF_OnWeaponPickup(int iClient, int iWeapon, WeaponRarity rarity, int iTarget);
 
 /**
  * Forward called when survivor called a rare weapon

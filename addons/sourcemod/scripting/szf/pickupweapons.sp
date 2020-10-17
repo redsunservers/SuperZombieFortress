@@ -447,7 +447,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		g_bTriggerEntity[iTarget] = false;
 	}
 	
-	Forward_OnWeaponPickup(iClient, iWeapon, wep.nRarity);
+	Forward_OnWeaponPickup(iClient, iWeapon, wep.nRarity, iTarget);
 }
 
 public Action Timer_ResetPickup(Handle timer, any iClient)
