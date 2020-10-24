@@ -406,7 +406,7 @@
 	
 	"Melee_Eyelander"
 	{
-		"en"		"{orange}The Eyelander {red}has its health penalty increased to 40 and makes you move 15%% slower."
+		"en"		"{orange}The Eyelander {red}has its health penalty increased to 35 and makes you move 15%% slower."
 	}
 	
 	"Melee_ScotsmansSkullcutter"
