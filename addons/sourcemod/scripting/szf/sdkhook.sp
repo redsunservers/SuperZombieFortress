@@ -109,9 +109,11 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				|| iDamageCustom == TF_CUSTOM_TAUNT_GRENADE
 				|| (TF2_GetPlayerClass(iAttacker) == TFClass_Engineer && GetEntProp(iAttacker, Prop_Send, "m_iNextMeleeCrit") == MELEE_CRIT))
 			{
-				if (!g_bBackstabbed[iVictim])
+				float flGameTime = GetGameTime();
+				if (!g_bBackstabbed[iVictim] && g_flBackstabImmunity[iVictim]<flGameTime)
 				{
-					if (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB)
+					if (TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged)
+						|| (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB))
 						return Plugin_Continue;
 					
 					if (g_nInfected[iAttacker] == Infected_Stalker)
@@ -120,8 +122,9 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 						SetEntityHealth(iVictim, GetClientHealth(iVictim) - 20);
 					
 					AddMorale(iVictim, -5);
-					SetBackstabState(iVictim, BACKSTABDURATION_FULL, 0.25);
-					SetNextAttack(iAttacker, GetGameTime() + 1.25);
+					float flDuration = SetBackstabState(iVictim, BACKSTABDURATION_FULL, 0.25);
+					SetNextAttack(iAttacker, flGameTime + 1.25);
+					g_flBackstabImmunity[iVictim] = flGameTime + flDuration + g_cvStunImmunity.FloatValue;
 					
 					Forward_OnBackstab(iVictim, iAttacker);
 					
@@ -167,7 +170,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 					//Don't instantly kill the tank on a backstab
 					if (iDamageCustom == TF_CUSTOM_BACKSTAB)
 					{
-						flDamage = g_iMaxHealth[iVictim]/11.0;
+						flDamage = g_iMaxHealth[iVictim]*g_cvTankStab.FloatValue/3.0;
 						iDamageType |= DMG_CRIT;
 						SetNextAttack(iAttacker, GetGameTime() + 1.25);
 					}
@@ -338,8 +341,11 @@ public Action GasManager_Touch(int iGasManager, int iClient)
 			//Deal bleed instead of gas
 			int iOwner = GetEntPropEnt(iGasManager, Prop_Send, "m_hOwnerEntity");
 			
-			if (iClient != iOwner)
+			if (GetClientTeam(iClient) != GetClientTeam(iOwner))
+			{
 				TF2_MakeBleed(iClient, iOwner, 0.5);
+				TF2_StunPlayer(iClient, 0.5, 0.5, TF_STUNFLAG_SLOWDOWN);
+			}
 		}
 		
 		return Plugin_Handled;

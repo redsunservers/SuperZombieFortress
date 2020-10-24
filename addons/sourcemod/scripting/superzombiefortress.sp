@@ -19,7 +19,7 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.0.2"
+#define PLUGIN_VERSION				"4.0.3"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
@@ -330,14 +330,17 @@ ConVar g_cvTankHealth;
 ConVar g_cvTankHealthMin;
 ConVar g_cvTankHealthMax;
 ConVar g_cvTankTime;
+ConVar g_cvTankStab;
 ConVar g_cvFrenzyChance;
 ConVar g_cvFrenzyTankChance;
+ConVar g_cvStunImmunity;
 
 float g_flZombieDamageScale = 1.0;
 
 ArrayList g_aFastRespawn;
 
 bool g_bBackstabbed[TF_MAXPLAYERS];
+float g_flBackstabImmunity[TF_MAXPLAYERS];
 
 int g_iDamageZombie[TF_MAXPLAYERS];
 int g_iDamageTakenLife[TF_MAXPLAYERS];
@@ -535,7 +538,10 @@ public void OnPluginEnd()
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 		{
 			if (IsClientInGame(iClient))
+			{
 				Sound_EndMusic(iClient);
+				SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", 0, _, VISION_MODE_ROME);
+			}
 		}
 	}
 	
@@ -774,10 +780,12 @@ void EndGracePeriod()
 	g_hTimerProgress = CreateTimer(6.0, Timer_Progress, _, TIMER_REPEAT);
 	
 	g_bFirstRound = false;
-	g_flTankCooldown = GetGameTime() + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before tank spawns will be considered
-	g_flSelectSpecialCooldown = GetGameTime() + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before select special will be considered
-	g_flRageCooldown = GetGameTime() + 60.0 - fMin(0.0, (iSurvivors-12) * 1.5); //1 min cooldown before frenzy will be considered
-	g_flSurvivorsLastDeath = GetGameTime();
+
+	float flGameTime = GetGameTime();
+	g_flTankCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before tank spawns will be considered
+	g_flSelectSpecialCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before select special will be considered
+	g_flRageCooldown = flGameTime + 60.0 - fMin(0.0, (iSurvivors-12) * 1.5); //1 min cooldown before frenzy will be considered
+	g_flSurvivorsLastDeath = flGameTime;
 }
 
 public void Frame_PostGracePeriodSpawn(int iClient)
@@ -819,6 +827,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 	{
 		Handle_WinCondition();
 		
+		float flGameTime = GetGameTime();
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 		{
 			//Alive infected
@@ -828,7 +837,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 				//AND
 				//damage scale is 120% and a dice roll is hit OR the damage scale is 160%
 				if ( g_nRoundState == SZFRoundState_Active 
-					&& g_flSelectSpecialCooldown <= GetGameTime() 
+					&& g_flSelectSpecialCooldown <= flGameTime 
 					&& GetReplaceRageWithSpecialInfectedSpawnCount() <= 2 
 					&& g_nInfected[iClient] == Infected_None 
 					&& g_nNextInfected[iClient] == Infected_None 
@@ -839,7 +848,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 				{
 					g_bSpawnAsSpecialInfected[iClient] = true;
 					g_bReplaceRageWithSpecialInfectedSpawn[iClient] = true;
-					g_flSelectSpecialCooldown = GetGameTime() + 20.0;
+					g_flSelectSpecialCooldown = flGameTime + 20.0;
 					CPrintToChat(iClient, "%t", "Infected_SelectedRespawn", "{green}", "{orange}");
 				}
 			}
@@ -967,7 +976,7 @@ public Action Timer_Zombify(Handle hTimer, int iClient)
 	if (g_nRoundState != SZFRoundState_Active)
 		return Plugin_Continue;
 	
-	if (IsValidClient(iClient))
+	if (IsValidClient(iClient) && !IsPlayerAlive(iClient))
 	{
 		CPrintToChat(iClient, "%t", "Infected_Zombify", "{red}");
 		SpawnClient(iClient, TFTeam_Zombie);
@@ -1310,6 +1319,7 @@ void ResetClientState(int iClient)
 	g_iHorde[iClient] = 0;
 	g_iCapturingPoint[iClient] = -1;
 	g_iRageTimer[iClient] = 0;
+	g_flBackstabImmunity[iClient] = 0.0;
 }
 
 void PrintInfoChat(int iClient)
@@ -1469,8 +1479,10 @@ void UpdateZombieDamageScale()
 	//Not survival, no rage and no active tank
 	if (!g_bSurvival && !g_bZombieRage && !ZombiesTankComing() && !ZombiesHaveTank())
 	{
+		float flGameTime = GetGameTime();
+
 		//Tank cooldown is active
-		if (GetGameTime() > g_flTankCooldown)
+		if (flGameTime > g_flTankCooldown)
 		{
 			//In order:
 			//The damage scale is above 170%
@@ -1478,13 +1490,13 @@ void UpdateZombieDamageScale()
 			//None of the survivors died in the past 120 seconds
 			if ((g_flZombieDamageScale >= 1.7)
 			|| (g_flZombieDamageScale >= 1.2 && g_iZombiesKilledSpree >= 20)
-			|| (g_flSurvivorsLastDeath < GetGameTime() - 120.0) )
+			|| (g_flSurvivorsLastDeath < flGameTime - 120.0) )
 			{
 				ZombieTank();
 			}
 		}
 		//If a random frenzy chance was triggered, determine whether to frenzy or if to trigger a tank
-		else if (GetGameTime() > g_flRageCooldown)
+		else if (flGameTime > g_flRageCooldown)
 		{
 			//In order:
 			//The damage scale is above 120%
@@ -1493,11 +1505,11 @@ void UpdateZombieDamageScale()
 			//None of the survivors died in the past 60 seconds
 			if ( g_flZombieDamageScale >= 1.2
 			|| (g_flZombieDamageScale >= 0.8 && g_iZombiesKilledSpree >= 12)
-			|| GetRandomInt(0, 100) <= g_cvFrenzyChance.IntValue
-			|| (g_flSurvivorsLastDeath < GetGameTime() - 60.0) )
+			|| GetRandomInt(0, 100) < g_cvFrenzyChance.IntValue
+			|| (g_flSurvivorsLastDeath < flGameTime - 60.0) )
 			{
 				//If zombie damage scale is high and the frenzy chance for tank is triggered
-				if (GetRandomInt(0, 100) <= g_cvFrenzyTankChance.IntValue && g_flZombieDamageScale >= 1.2)	//convar right now is at 0%
+				if (GetRandomInt(0, 100) < g_cvFrenzyTankChance.IntValue && g_flZombieDamageScale >= 1.2)	//convar right now is at 0%
 					ZombieTank();
 				else
 					ZombieRage();
@@ -1658,7 +1670,8 @@ int ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 		if (IsValidZombie(iClient))
 			SDKCall_SetSpeed(iClient);
 	
-	g_flRageRespawnStress = GetGameTime();	//Set initial respawn stress
+	float flGameTime = GetGameTime();
+	g_flRageRespawnStress = flGameTime;	//Set initial respawn stress
 	g_bZombieRageAllowRespawn = true;
 	
 	if (flDuration < 20.0)
@@ -1697,7 +1710,7 @@ int ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 		}
 	}
 	
-	g_flRageCooldown = GetGameTime() + flDuration + 40.0;
+	g_flRageCooldown = flGameTime + flDuration + 40.0;
 	
 	FireRelay("FireUser1", "szf_zombierage", "szf_panic_event");
 }
@@ -1876,10 +1889,11 @@ void HandleSurvivorLoadout(int iClient)
 					}
 					
 					//Print text with cooldown to prevent spam
-					if (g_flStopChatSpam[iClient] < GetGameTime() && Melee.sText[0])
+					float flGameTime = GetGameTime();
+					if (g_flStopChatSpam[iClient] < flGameTime && Melee.sText[0])
 					{
 						CPrintToChat(iClient, "%t", Melee.sText);
-						g_flStopChatSpam[iClient] = GetGameTime() + 1.0;
+						g_flStopChatSpam[iClient] = flGameTime + 1.0;
 					}
 					
 					//Apply attribute
@@ -1908,6 +1922,9 @@ void HandleSurvivorLoadout(int iClient)
 	//Reset custom models
 	SetVariantString("");
 	AcceptEntityInput(iClient, "SetCustomModel");
+	
+	//Remove any existing viewmodels
+	ViewModel_Destroy(iClient);
 	
 	//Prevent Survivors with voodoo-cursed souls
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
@@ -2389,33 +2406,38 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 	return Plugin_Continue;
 }
 
-void SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, float flSlowdown = 0.5)
+float SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, float flSlowdown = 0.5)
 {
 	if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient))
 	{
-		int iSurvivors = GetSurvivorCount();
-		int iZombies = GetZombieCount();
-		
-		//Reduce backstab duration if:
-		//3 or less survivors are left while there are 12 or more zombies
-		//There are 24 or more zombies
-		//Zombie damage scale is 50% or lower
-		//Victim has the defense buff
-		if ( flDuration > BACKSTABDURATION_REDUCED && (
-				( iSurvivors <= 3 && iZombies >= 12 )
-				|| iZombies >= 24
-				|| g_flZombieDamageScale <= 0.5
-				|| TF2_IsPlayerInCondition(iClient, TFCond_DefenseBuffed) ) )
+		float flGameTime = GetGameTime();
+		if (g_flBackstabImmunity[iClient] < flGameTime)
 		{
-			flDuration = BACKSTABDURATION_REDUCED;
+			int iSurvivors = GetSurvivorCount();
+			int iZombies = GetZombieCount();
+			
+			//Reduce backstab duration if:
+			//3 or less survivors are left while there are 12 or more zombies
+			//There are 24 or more zombies
+			//Zombie damage scale is 50% or lower
+			//Victim has the defense buff
+			if ( flDuration > BACKSTABDURATION_REDUCED && (
+					( iSurvivors <= 3 && iZombies >= 12 )
+					|| iZombies >= 24
+					|| g_flZombieDamageScale <= 0.5
+					|| TF2_IsPlayerInCondition(iClient, TFCond_DefenseBuffed) ) )
+			{
+				flDuration = BACKSTABDURATION_REDUCED;
+			}
+			
+			TF2_StunPlayer(iClient, flDuration, flSlowdown, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, 0);
+			g_bBackstabbed[iClient] = true;
+			ClientCommand(iClient, "r_screenoverlay\"debug/yuv\"");
+			Sound_PlayMusicToClient(iClient, "backstab", flDuration);
+			CreateTimer(flDuration, RemoveBackstab, iClient); //Removes overlay and backstate state
 		}
-		
-		TF2_StunPlayer(iClient, flDuration, flSlowdown, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, 0);
-		g_bBackstabbed[iClient] = true;
-		ClientCommand(iClient, "r_screenoverlay\"debug/yuv\"");
-		Sound_PlayMusicToClient(iClient, "backstab", flDuration);
-		CreateTimer(flDuration, RemoveBackstab, iClient); //Removes overlay and backstate state
 	}
+	return flDuration;
 }
 
 public Action RemoveBackstab(Handle hTimer, int iClient)

@@ -7,6 +7,7 @@ static GlobalForward g_hForwardChargerHit;
 static GlobalForward g_hForwardHunterHit;
 static GlobalForward g_hForwardBoomerExplode;
 static GlobalForward g_hForwardWeaponPickup;
+static GlobalForward g_hForwardWeaponPickupPre;
 static GlobalForward g_hForwardWeaponCallout;
 static GlobalForward g_hForwardClientName;
 static GlobalForward g_hForwardStartZombie;
@@ -22,7 +23,8 @@ void Forward_AskLoad()
 	g_hForwardChargerHit = new GlobalForward("SZF_OnChargerHit", ET_Ignore, Param_Cell, Param_Cell);
 	g_hForwardHunterHit = new GlobalForward("SZF_OnHunterHit", ET_Ignore, Param_Cell, Param_Cell);
 	g_hForwardBoomerExplode = new GlobalForward("SZF_OnBoomerExplode", ET_Ignore, Param_Cell, Param_Array, Param_Cell);
-	g_hForwardWeaponPickup = new GlobalForward("SZF_OnWeaponPickup", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell);
+	g_hForwardWeaponPickup = new GlobalForward("SZF_OnWeaponPickup", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
+	g_hForwardWeaponPickupPre = new GlobalForward("SZF_ShouldPickupWeapon", ET_Single, Param_Cell, Param_Cell, Param_Cell);
 	g_hForwardWeaponCallout = new GlobalForward("SZF_OnWeaponCallout", ET_Ignore, Param_Cell);
 	g_hForwardClientName = new GlobalForward("SZF_GetClientName", ET_Ignore, Param_Cell, Param_String, Param_Cell);
 	g_hForwardStartZombie = new GlobalForward("SZF_ShouldStartZombie", ET_Hook, Param_Cell);
@@ -92,14 +94,24 @@ void Forward_OnBoomerExplode(int iClient, int iClients[MAXPLAYERS], int iCount)
 	Call_Finish();
 }
 
-void Forward_OnWeaponPickup(int iClient, int iWeapon, WeaponRarity nRarity, int iTarget)
+void Forward_OnWeaponPickup(int iClient, int iWeapon, WeaponRarity nRarity)
 {
 	Call_StartForward(g_hForwardWeaponPickup);
 	Call_PushCell(iClient);
 	Call_PushCell(iWeapon);
 	Call_PushCell(nRarity);
-	Call_PushCell(iTarget);
 	Call_Finish();
+}
+
+Action Forward_OnWeaponPickupPre(int iClient, int iTarget, WeaponRarity nRarity)
+{
+	Action action = Plugin_Continue;
+	Call_StartForward(g_hForwardWeaponPickupPre);
+	Call_PushCell(iClient);
+	Call_PushCell(iTarget);
+	Call_PushCell(nRarity);
+	Call_Finish(action);
+	return action;
 }
 
 void Forward_OnWeaponCallout(int iClient)
