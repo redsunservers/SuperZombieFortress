@@ -406,12 +406,12 @@
 	
 	"Melee_Eyelander"
 	{
-		"en"		"{orange}The Eyelander {red}has its health penalty increased to 35 and makes you move 15%% slower."
+		"en"		"{orange}The Eyelander {red}makes you move 15%% slower."
 	}
 	
 	"Melee_ScotsmansSkullcutter"
 	{
-		"en"		"{orange}The Scotsman's Skullcutter {green}has its damage increased to 30%%. Move speed reduced by 10%% when deployed"
+		"en"		"{orange}The Scotsman's Skullcutter {green}only gives you 10%% move speed penalty when deployed."
 	}
 	
 	"Melee_KillingGlovesofBoxing"
