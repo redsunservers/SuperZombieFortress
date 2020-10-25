@@ -404,6 +404,16 @@
 		"en"		"{orange}The Market Gardener {green}makes you rocket jump 25%% higher."
 	}
 	
+	"Melee_Eyelander"
+	{
+		"en"		"{orange}The Eyelander {red}makes you move 15%% slower."
+	}
+	
+	"Melee_ScotsmansSkullcutter"
+	{
+		"en"		"{orange}The Scotsman's Skullcutter {green}has its damage bonus increased to 30%%."
+	}
+	
 	"Melee_KillingGlovesofBoxing"
 	{
 		"en"		"{orange}The Killing Gloves of Boxing {red}gives 5 seconds of minicrits on kill."
