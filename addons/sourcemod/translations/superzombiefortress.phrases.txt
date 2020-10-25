@@ -411,7 +411,7 @@
 	
 	"Melee_ScotsmansSkullcutter"
 	{
-		"en"		"{orange}The Scotsman's Skullcutter {green}only gives you 10%% move speed penalty while active."
+		"en"		"{orange}The Scotsman's Skullcutter {green}has its damage bonus increased to 30%%."
 	}
 	
 	"Melee_KillingGlovesofBoxing"
