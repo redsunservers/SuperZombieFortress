@@ -132,7 +132,7 @@ forward Action SZF_ShouldAllowMusicPlay();
  * @param	iClient		Client whose picked up the weapon
  * @param	iTarget		Prop entity whose picked up
  * @param	rarity		Rarity of the weapon
- * @return	Plugin_Handled to prevent picking up the weapon, Plugin_Continue otherwise
+ * @return	Plugin_Handled to prevent picking up the weapon, Plugin_Stop to also prevent calling out rare weapons, Plugin_Continue otherwise
  */
 forward Action SZF_ShouldPickupWeapon(int iClient, int iTarget, WeaponRarity rarity);
 
