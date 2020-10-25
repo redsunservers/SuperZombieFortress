@@ -6,6 +6,7 @@ void Event_Init()
 	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
 	HookEvent("player_hurt", Event_PlayerHurt, EventHookMode_Pre);
 	HookEvent("player_builtobject", Event_PlayerBuiltObject);
+	HookEvent("object_destroyed", Event_ObjectDestoryed, EventHookMode_Pre);
 	HookEvent("teamplay_point_captured", Event_CPCapture);
 	HookEvent("teamplay_point_startcapture", Event_CPCaptureStart);
 	HookEvent("teamplay_broadcast_audio", Event_Broadcast, EventHookMode_Pre);
@@ -73,6 +74,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 	
 	SetEntityRenderColor(iClient, 255, 255, 255, 255);
 	SetEntityRenderMode(iClient, RENDER_NORMAL);
+	SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", 0, _, VISION_MODE_ROME);
 	
 	TFClassType nClass = TF2_GetPlayerClass(iClient);
 	Infected nInfected = g_nInfected[iClient];
@@ -255,8 +257,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		{
 			if (weapon.iIndex == event.GetInt("weapon_def_index"))
 			{
-				//TODO fix buildings kill, those dont have 'weapon_def_index'
-				
 				if (weapon.sLogName[0])
 					event.SetString("weapon_logclassname", weapon.sLogName);
 				
@@ -474,6 +474,33 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 		SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", iMaxHealth * 2);	// Double max health (default level 1 is 150)
 	}
 	
+	return Plugin_Continue;
+}
+
+public Action Event_ObjectDestoryed(Event event, const char[] name, bool dontBroadcast)
+{
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	int iKiller = event.GetInt("attacker");
+	if (iKiller != event.GetInt("userid"))
+	{
+		iKiller = GetClientOfUserId(iKiller);
+		if (IsValidZombie(iKiller))
+		{
+			int iWeapon = GetEntPropEnt(iKiller, Prop_Send, "m_hActiveWeapon");
+			if (iWeapon > MaxClients)
+			{
+				iWeapon = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
+				
+				int iPos;
+				WeaponClasses weapon;
+				while (g_ClientClasses[iKiller].GetWeapon(iPos, weapon))
+					if (weapon.iIndex == iWeapon && weapon.sIconName[0])
+						event.SetString("weapon", weapon.sIconName);
+			}
+		}
+	}
 	return Plugin_Continue;
 }
 

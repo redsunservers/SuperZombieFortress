@@ -205,7 +205,18 @@ bool AttemptGrabItem(int iClient)
 		Call_Finish(bAllowPickup);
 	}
 	
-	if (wep.nRarity == WeaponRarity_Pickup)
+	WeaponRarity nRarity = wep.nRarity;
+	Action action = Forward_OnWeaponPickupPre(iClient, iTarget, nRarity);
+	if (action == Plugin_Handled)
+	{
+		bAllowPickup = false;
+	}
+	else if (action == Plugin_Stop)
+	{
+		return false;
+	}
+	
+	if (nRarity == WeaponRarity_Pickup)
 	{
 		if (!bAllowPickup)
 			return false;
@@ -220,7 +231,6 @@ bool AttemptGrabItem(int iClient)
 	}
 	
 	int iIndex = wep.iIndex;
-	WeaponRarity nRarity = wep.nRarity;
 	
 	if (iIndex > -1)
 	{
