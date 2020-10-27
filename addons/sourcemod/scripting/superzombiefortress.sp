@@ -1607,11 +1607,11 @@ public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, 
 	char sTargetName[255];
 	GetEntPropString(iCaller, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
 	
-	if(StrEqual("szf_panic_event", sTargetName))
+	if (StrEqual("szf_panic_event", sTargetName))
 	{
 		ZombieRage(_, true);
 	}
-	else if (StrContains("szf_zombierage", sTargetName) == 0)
+	else if (StrContains(sTargetName, "szf_zombierage") == 0)
 	{
 		ReplaceString(sTargetName, sizeof(sTargetName), "szf_zombierage_", "");
 		float time = StringToFloat(sTargetName);
