@@ -46,6 +46,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	int iRare = g_iMaxRareWeapons;
 	
 	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
+	ArrayList aWeaponsUncommon = GetAllWeaponsWithRarity(WeaponRarity_Uncommon);
 	ArrayList aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
 	
 	while ((iEntity = FindEntityByClassname(iEntity, "prop_dynamic")) != -1)
@@ -105,13 +106,50 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			}
 			case WeaponType_RareSpawn:
 			{
-				SetRandomWeapon(iEntity, WeaponRarity_Rare);
+				if (aWeaponsRares.Length > 0)
+				{
+					//Make sure every spawn weapon is different
+					int iRandom = GetRandomInt(0, aWeaponsRares.Length - 1);
+					
+					Weapon wep;
+					aWeaponsRares.GetArray(iRandom, wep);
+					
+					SetWeaponModel(iEntity, wep);
+					aWeaponsRares.Erase(iRandom);
+				}
+				else
+				{
+					//If we already went through every spawn weapons, no point having rest of it
+					RemoveEntity(iEntity);
+					continue;
+				}
+			}
+			case WeaponType_UncommonSpawn:
+			{
+				//Make sure every spawn weapon is different
+				if (aWeaponsUncommon.Length > 0)
+				{
+					//Make sure every spawn weapon is different
+					int iRandom = GetRandomInt(0, aWeaponsUncommon.Length - 1);
+					
+					Weapon wep;
+					aWeaponsUncommon.GetArray(iRandom, wep);
+					
+					SetWeaponModel(iEntity, wep);
+					aWeaponsUncommon.Erase(iRandom);
+				}
+				else
+				{
+					//If we already went through every spawn weapons, no point having rest of it
+					RemoveEntity(iEntity);
+					continue;
+				}
 			}
 			case WeaponType_Common:
 			{
 				SetRandomWeapon(iEntity, WeaponRarity_Common);
 			}
-			case WeaponType_Uncommon, WeaponType_UncommonSpawn:
+			case WeaponType_Uncommon:
 			{
 				SetRandomWeapon(iEntity, WeaponRarity_Uncommon);
 			}
