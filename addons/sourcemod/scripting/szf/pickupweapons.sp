@@ -16,6 +16,7 @@ enum WeaponType
 	WeaponType_DefaultNoPickup,
 	WeaponType_Common,
 	WeaponType_Uncommon,
+	WeaponType_UncommonSpawn,
 };
 
 static bool g_bCanPickup[TF_MAXPLAYERS] = false;
@@ -110,7 +111,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			{
 				SetRandomWeapon(iEntity, WeaponRarity_Common);
 			}
-			case WeaponType_Uncommon:
+			case WeaponType_Uncommon, WeaponType_UncommonSpawn:
 			{
 				SetRandomWeapon(iEntity, WeaponRarity_Uncommon);
 			}
@@ -340,7 +341,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	WeaponType iWepType = GetWeaponType(iTarget);
 	
 	//TODO: Use a flag for spawn weapons instead?
-	if (iWepType != WeaponType_Spawn && iWepType != WeaponType_RareSpawn && iWepType != WeaponType_StaticSpawn)
+	if (!IsSpawnWeapon(iWepType))
 	{
 		Weapon oldwep;
 		bool bKillEntity = true;
@@ -486,12 +487,22 @@ WeaponType GetWeaponType(int iEntity)
 		return WeaponType_DefaultNoPickup; //No pickup: this weapon can never become a pickup
 	else if (StrContains(sName, "szf_weapon_common", false) == 0)
 		return WeaponType_Common; //Guaranteed common
+	else if (StrContains(sName, "szf_weapon_uncommon_spawn", false) == 0)
+		return WeaponType_UncommonSpawn; //Guaranteed uncommon and non-expiring
 	else if (StrContains(sName, "szf_weapon_uncommon", false) == 0)
 		return WeaponType_Uncommon; //Guaranteed uncommon
 	else if (StrContains(sName, "szf_weapon", false) != -1)
 		return WeaponType_Default; //Normal
 	
 	return WeaponType_Invalid;
+}
+
+bool IsSpawnWeapon(WeaponType iWepType)
+{
+	if (iWepType == WeaponType_Spawn || iWepType == WeaponType_RareSpawn || iWepType == WeaponType_StaticSpawn || iWepType == WeaponType_UncommonSpawn)
+		return true;
+	else
+		return false;
 }
 
 void SetRandomPickup(int iEntity)
