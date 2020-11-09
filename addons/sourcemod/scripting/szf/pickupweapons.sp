@@ -57,44 +57,14 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 		{
 			case WeaponType_Spawn:
 			{
-				if (aWeaponsCommon.Length > 0)
-				{
-					//Make sure every spawn weapon is different
-					int iRandom = GetRandomInt(0, aWeaponsCommon.Length - 1);
-					
-					Weapon wep;
-					aWeaponsCommon.GetArray(iRandom, wep);
-					
-					SetWeaponModel(iEntity, wep);
-					aWeaponsCommon.Erase(iRandom);
-				}
-				else
-				{
-					//If we already went through every spawn weapons, no point having rest of it
-					RemoveEntity(iEntity);
-					continue;
-				}
+				SetUniqueWeapon(iEntity, aWeaponsCommon, WeaponRarity_Common);
 			}
 			case WeaponType_Rare:
 			{
 				//If rare weapon cap is unreached, make it a "rare" weapon
 				if (iRare > 0)
 				{
-					Weapon wep;
-					
-					//If array is empty, fill it again with the weapon list
-					if (aWeaponsRares.Length == 0)
-					{
-						delete aWeaponsRares;
-						aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
-					}
-					
-					int iRandom = GetRandomInt(0, aWeaponsRares.Length - 1);
-					
-					aWeaponsRares.GetArray(iRandom, wep);
-					SetWeaponModel(iEntity, wep);
-					//This weapon is no longer in the pool
-					aWeaponsRares.Erase(iRandom);
+					SetUniqueWeapon(iEntity, aWeaponsRares, WeaponRarity_Rare);
 					
 					iRare--;
 				}
@@ -106,44 +76,11 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			}
 			case WeaponType_RareSpawn:
 			{
-				if (aWeaponsRares.Length > 0)
-				{
-					//Make sure every spawn weapon is different
-					int iRandom = GetRandomInt(0, aWeaponsRares.Length - 1);
-					
-					Weapon wep;
-					aWeaponsRares.GetArray(iRandom, wep);
-					
-					SetWeaponModel(iEntity, wep);
-					aWeaponsRares.Erase(iRandom);
-				}
-				else
-				{
-					//If we already went through every spawn weapons, no point having rest of it
-					RemoveEntity(iEntity);
-					continue;
-				}
+				SetUniqueWeapon(iEntity, aWeaponsRares, WeaponRarity_Rare);
 			}
 			case WeaponType_UncommonSpawn:
 			{
-				//Make sure every spawn weapon is different
-				if (aWeaponsUncommon.Length > 0)
-				{
-					//Make sure every spawn weapon is different
-					int iRandom = GetRandomInt(0, aWeaponsUncommon.Length - 1);
-					
-					Weapon wep;
-					aWeaponsUncommon.GetArray(iRandom, wep);
-					
-					SetWeaponModel(iEntity, wep);
-					aWeaponsUncommon.Erase(iRandom);
-				}
-				else
-				{
-					//If we already went through every spawn weapons, no point having rest of it
-					RemoveEntity(iEntity);
-					continue;
-				}
+				SetUniqueWeapon(iEntity, aWeaponsUncommon, WeaponRarity_Uncommon);
 			}
 			case WeaponType_Common:
 			{
@@ -158,7 +95,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 				//If rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
 				if (iRare > 0 && !GetRandomInt(0, 5))
 				{
-					SetRandomWeapon(iEntity, WeaponRarity_Rare);
+					SetUniqueWeapon(iEntity, aWeaponsRares, WeaponRarity_Rare);
 					iRare--;
 				}
 				//Pick-ups
@@ -208,7 +145,27 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	}
 	
 	delete aWeaponsCommon;
+	delete aWeaponsUncommon;
 	delete aWeaponsRares;
+}
+
+void SetUniqueWeapon(int iEntity, ArrayList aWeapons, WeaponRarity iWepRarity)
+{
+	Weapon wep;
+	
+	//If array is empty, fill it again with the weapon list
+	if (aWeapons.Length == 0)
+	{
+		delete aWeapons;
+		aWeapons = GetAllWeaponsWithRarity(iWepRarity);
+	}
+	
+	int iRandom = GetRandomInt(0, aWeapons.Length - 1);
+	
+	aWeapons.GetArray(iRandom, wep);
+	SetWeaponModel(iEntity, wep);
+	//This weapon is no longer in the pool
+	aWeapons.Erase(iRandom);
 }
 
 public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadcast)
