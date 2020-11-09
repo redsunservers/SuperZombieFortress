@@ -154,7 +154,7 @@
 				"signature"	"CTFPlayer::TeamFortress_CalculateMaxSpeed"
 				"callconv"	"thiscall"
 				"return"	"float"
-				"this"		"address"
+				"this"		"entity"
 				"arguments"
 				{
 					"bIgnoreSpecialAbility"

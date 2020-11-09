@@ -76,7 +76,7 @@ void DHook_HookGamerules()
 {
 	g_hDHookSetWinningTeam.HookGamerules(Hook_Pre, DHook_SetWinningTeamPre);
 	g_hDHookRoundRespawn.HookGamerules(Hook_Pre, DHook_RoundRespawnPre);
-	g_hDHookGetCaptureValueForPlayer.HookGamerules(Hook_Pre, DHook_GetCaptureValueForPlayerPre);
+	g_hDHookGetCaptureValueForPlayer.HookGamerules(Hook_Post, DHook_GetCaptureValueForPlayerPost);
 }
 
 public MRESReturn DHook_DoAnimationEventPre(int iClient, DHookParam hParams)
@@ -432,7 +432,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	UpdateZombieDamageScale();
 }
 
-public MRESReturn DHook_GetCaptureValueForPlayerPre(DHookReturn hReturn, DHookParam hParams)
+public MRESReturn DHook_GetCaptureValueForPlayerPost(DHookReturn hReturn, DHookParam hParams)
 {
 	int iClient = hParams.Get(1);
 	if (TF2_GetPlayerClass(iClient) == TFClass_Scout) //Reduce capture rate for scout
