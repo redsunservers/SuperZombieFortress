@@ -16,6 +16,7 @@ enum WeaponType
 	WeaponType_DefaultNoPickup,
 	WeaponType_Common,
 	WeaponType_Uncommon,
+	WeaponType_UncommonSpawn,
 };
 
 static bool g_bCanPickup[TF_MAXPLAYERS] = false;
@@ -45,6 +46,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	int iRare = g_iMaxRareWeapons;
 	
 	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
+	ArrayList aWeaponsUncommon = GetAllWeaponsWithRarity(WeaponRarity_Uncommon);
 	ArrayList aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
 	
 	while ((iEntity = FindEntityByClassname(iEntity, "prop_dynamic")) != -1)
@@ -55,44 +57,14 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 		{
 			case WeaponType_Spawn:
 			{
-				if (aWeaponsCommon.Length > 0)
-				{
-					//Make sure every spawn weapon is different
-					int iRandom = GetRandomInt(0, aWeaponsCommon.Length - 1);
-					
-					Weapon wep;
-					aWeaponsCommon.GetArray(iRandom, wep);
-					
-					SetWeaponModel(iEntity, wep);
-					aWeaponsCommon.Erase(iRandom);
-				}
-				else
-				{
-					//If we already went through every spawn weapons, no point having rest of it
-					RemoveEntity(iEntity);
-					continue;
-				}
+				SetUniqueWeapon(iEntity, aWeaponsCommon, WeaponRarity_Common);
 			}
 			case WeaponType_Rare:
 			{
 				//If rare weapon cap is unreached, make it a "rare" weapon
 				if (iRare > 0)
 				{
-					Weapon wep;
-					
-					//If array is empty, fill it again with the weapon list
-					if (aWeaponsRares.Length == 0)
-					{
-						delete aWeaponsRares;
-						aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
-					}
-					
-					int iRandom = GetRandomInt(0, aWeaponsRares.Length - 1);
-					
-					aWeaponsRares.GetArray(iRandom, wep);
-					SetWeaponModel(iEntity, wep);
-					//This weapon is no longer in the pool
-					aWeaponsRares.Erase(iRandom);
+					SetUniqueWeapon(iEntity, aWeaponsRares, WeaponRarity_Rare);
 					
 					iRare--;
 				}
@@ -104,7 +76,11 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 			}
 			case WeaponType_RareSpawn:
 			{
-				SetRandomWeapon(iEntity, WeaponRarity_Rare);
+				SetUniqueWeapon(iEntity, aWeaponsRares, WeaponRarity_Rare);
+			}
+			case WeaponType_UncommonSpawn:
+			{
+				SetUniqueWeapon(iEntity, aWeaponsUncommon, WeaponRarity_Uncommon);
 			}
 			case WeaponType_Common:
 			{
@@ -119,7 +95,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 				//If rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
 				if (iRare > 0 && !GetRandomInt(0, 5))
 				{
-					SetRandomWeapon(iEntity, WeaponRarity_Rare);
+					SetUniqueWeapon(iEntity, aWeaponsRares, WeaponRarity_Rare);
 					iRare--;
 				}
 				//Pick-ups
@@ -169,7 +145,27 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	}
 	
 	delete aWeaponsCommon;
+	delete aWeaponsUncommon;
 	delete aWeaponsRares;
+}
+
+void SetUniqueWeapon(int iEntity, ArrayList aWeapons, WeaponRarity iWepRarity)
+{
+	Weapon wep;
+	
+	//If array is empty, fill it again with the weapon list
+	if (aWeapons.Length == 0)
+	{
+		delete aWeapons;
+		aWeapons = GetAllWeaponsWithRarity(iWepRarity);
+	}
+	
+	int iRandom = GetRandomInt(0, aWeapons.Length - 1);
+	
+	aWeapons.GetArray(iRandom, wep);
+	SetWeaponModel(iEntity, wep);
+	//This weapon is no longer in the pool
+	aWeapons.Erase(iRandom);
 }
 
 public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadcast)
@@ -340,7 +336,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	WeaponType iWepType = GetWeaponType(iTarget);
 	
 	//TODO: Use a flag for spawn weapons instead?
-	if (iWepType != WeaponType_Spawn && iWepType != WeaponType_RareSpawn && iWepType != WeaponType_StaticSpawn)
+	if (!IsSpawnWeapon(iWepType))
 	{
 		Weapon oldwep;
 		bool bKillEntity = true;
@@ -486,12 +482,22 @@ WeaponType GetWeaponType(int iEntity)
 		return WeaponType_DefaultNoPickup; //No pickup: this weapon can never become a pickup
 	else if (StrContains(sName, "szf_weapon_common", false) == 0)
 		return WeaponType_Common; //Guaranteed common
+	else if (StrContains(sName, "szf_weapon_uncommon_spawn", false) == 0)
+		return WeaponType_UncommonSpawn; //Guaranteed uncommon and non-expiring
 	else if (StrContains(sName, "szf_weapon_uncommon", false) == 0)
 		return WeaponType_Uncommon; //Guaranteed uncommon
 	else if (StrContains(sName, "szf_weapon", false) != -1)
 		return WeaponType_Default; //Normal
 	
 	return WeaponType_Invalid;
+}
+
+bool IsSpawnWeapon(WeaponType iWepType)
+{
+	if (iWepType == WeaponType_Spawn || iWepType == WeaponType_RareSpawn || iWepType == WeaponType_StaticSpawn || iWepType == WeaponType_UncommonSpawn)
+		return true;
+	else
+		return false;
 }
 
 void SetRandomPickup(int iEntity)
