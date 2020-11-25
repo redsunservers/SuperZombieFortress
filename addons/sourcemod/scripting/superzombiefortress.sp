@@ -292,6 +292,7 @@ Cookie g_cForceZombieStart;
 //Global State
 bool g_bEnabled;
 bool g_bNewRound;
+bool g_bNewMultiStageRound;
 bool g_bFirstRound = true;
 bool g_bLastSurvivor;
 bool g_bTF2Items;
@@ -950,7 +951,11 @@ public Action Timer_GraceStartPost(Handle hTimer)
 	while((iEntity = FindEntityByClassname(iEntity, "mapobj_cart_dispenser")) != -1)
 		SetEntProp(iEntity, Prop_Send, "m_bDisabled", 1);
 	
-	Sound_PlayMusicToTeam(TFTeam_Survivor, "start");
+	//If the round is part of a multi-staged map, and that round is after the first one, play a saferoom theme.
+	if(g_bNewMultiStageRound)
+		Sound_PlayMusicToTeam(TFTeam_Survivor, "saferoom");
+	else
+		Sound_PlayMusicToTeam(TFTeam_Survivor, "start");
 }
 
 public Action Timer_GraceEnd(Handle hTimer)
