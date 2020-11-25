@@ -952,7 +952,7 @@ public Action Timer_GraceStartPost(Handle hTimer)
 		SetEntProp(iEntity, Prop_Send, "m_bDisabled", 1);
 	
 	//If the round is part of a multi-staged map, and that round is after the first one, play a saferoom theme.
-	if(g_bNewMultiStageRound)
+	if (g_bNewMultiStageRound)
 		Sound_PlayMusicToTeam(TFTeam_Survivor, "saferoom");
 	else
 		Sound_PlayMusicToTeam(TFTeam_Survivor, "start");
