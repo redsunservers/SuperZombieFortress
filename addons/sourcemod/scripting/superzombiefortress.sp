@@ -291,8 +291,7 @@ Cookie g_cForceZombieStart;
 
 //Global State
 bool g_bEnabled;
-bool g_bNewRound;
-bool g_bNewMultiStageRound;
+bool g_bNewFullRound;
 bool g_bFirstRound = true;
 bool g_bLastSurvivor;
 bool g_bTF2Items;
@@ -455,7 +454,7 @@ public void OnPluginStart()
 	g_bDirectorSpawnTeleport = false;
 	g_iMaxRareWeapons = MAX_RARE;
 	g_bEnabled = false;
-	g_bNewRound = true;
+	g_bNewFullRound = true;
 	g_bLastSurvivor = false;
 	
 	AddNormalSoundHook(SoundHook);
@@ -952,10 +951,10 @@ public Action Timer_GraceStartPost(Handle hTimer)
 		SetEntProp(iEntity, Prop_Send, "m_bDisabled", 1);
 	
 	//If the round is part of a multi-staged map, and that round is after the first one, play a saferoom theme.
-	if (g_bNewMultiStageRound)
-		Sound_PlayMusicToTeam(TFTeam_Survivor, "saferoom");
-	else
+	if (g_bNewFullRound)
 		Sound_PlayMusicToTeam(TFTeam_Survivor, "start");
+	else
+		Sound_PlayMusicToTeam(TFTeam_Survivor, "saferoom");
 }
 
 public Action Timer_GraceEnd(Handle hTimer)
@@ -1257,7 +1256,7 @@ void SZFEnable()
 	g_bDirectorSpawnTeleport = false;
 	g_iMaxRareWeapons = MAX_RARE;
 	g_bEnabled = true;
-	g_bNewRound = true;
+	g_bNewFullRound = true;
 	g_bLastSurvivor = false;
 	
 	g_flTimeProgress = 0.0;
@@ -1294,7 +1293,7 @@ void SZFDisable()
 	g_bDirectorSpawnTeleport = false;
 	g_iMaxRareWeapons = MAX_RARE;
 	g_bEnabled = false;
-	g_bNewRound = true;
+	g_bNewFullRound = true;
 	g_bLastSurvivor = false;
 	
 	g_flTimeProgress = 0.0;
