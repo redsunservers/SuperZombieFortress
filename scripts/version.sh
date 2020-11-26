@@ -13,4 +13,4 @@ git rev-list --count HEAD >> $GITHUB_ENV
 echo 'EOF' >> $GITHUB_ENV
 
 # Set revision to superzombiefortress.sp
-sed -i -e 's/#define PLUGIN_VERSION_REVISION.*".*"/#define PLUGIN_VERSION_REVISION "'$PLUGIN_VERSION_REVISION'"/g' superzombiefortress.sp
+sed -i -e 's/#define PLUGIN_VERSION_REVISION.*".*"/#define PLUGIN_VERSION_REVISION "'$PLUGIN_VERSION_REVISION'"/g' superzombiefortress.sp >> $GITHUB_ENV
