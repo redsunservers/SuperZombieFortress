@@ -15,14 +15,15 @@ jobs:
       - name: Environments
         run: |
           echo "SM_VERSION=1.10" >> $GITHUB_ENV
+          echo "PLUGIN_VERSION_REVISION<<EOF" >> $GITHUB_ENV
+          git rev-list --count HEAD >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
       
       - name: Install
         run: |
           bash scripts/install.sh
       
       - name: Set Version
-        env:
-          PLUGIN_VERSION_REVISION: $(git rev-list --count HEAD)
         run: |
           bash scripts/version.sh
       
@@ -38,5 +39,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@master
         with:
-          name: SuperZombieFortress-${{env.PLUGIN_VERSION}}.$(git rev-list --count HEAD)
+          name: SuperZombieFortress-${{env.PLUGIN_VERSION}}.${{env.PLUGIN_VERSION_REVISION}}
           path: ./build/package
