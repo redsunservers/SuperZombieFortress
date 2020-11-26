@@ -27,7 +27,7 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	
 	//Prepare for a completely new round
 	TFTeam nTeam = view_as<TFTeam>(event.GetInt("team"));
-	g_bNewFullRound = !event.GetBool("full_round");
+	g_bNewFullRound = event.GetBool("full_round");
 	g_nRoundState = SZFRoundState_End;
 	
 	if (nTeam == TFTeam_Zombie)
