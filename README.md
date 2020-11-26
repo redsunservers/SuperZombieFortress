@@ -6,7 +6,7 @@ Plugin originally based off [MekuCube's 1.05 version](https://forums.alliedmods.
 [redsun.tf](https://redsun.tf/) has been updating this plugin since 2016, with many balance changes and bugfixes for 2.0 (private) and 3.0 (public) versions.
 
 ## Builds
-All builds can be found [here](https://github.com/redsunservers/SuperZombieFortress/actions?query=branch%3Amaster).
+All builds can be found [here](https://github.com/redsunservers/SuperZombieFortress/actions?query=workflow%3APackage+branch%3Amaster).
 To download latest build version, select latest package then "Artifacts" button at top right.
 
 # Required Plugin/Extension Dependencies
