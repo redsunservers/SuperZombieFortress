@@ -45,7 +45,7 @@
 	"Tank_Called"
 	{
 		"#format"	"{1:s}"
-		"ru"		"{1}Призвал танка."
+		"ru"		"{1}Призываем танка."
 	}
 	
 	"Tank_Spawn"
@@ -80,7 +80,7 @@
 	"Weapon_Callout"
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
-		"ru"		"здесь {1}{2} {3}!"
+		"ru"		"Здесь {1}{2} {3}!"
 	}
 	
 	"Survivor_Last"
