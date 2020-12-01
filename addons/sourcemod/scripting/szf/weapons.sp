@@ -184,10 +184,7 @@ public bool Weapons_OnPickup_Ammo(int iClient)
 	int iMaxAmmo = SDKCall_GetMaxAmmo(iClient, view_as<int>(TF_AMMO_METAL));
 	int iAmmo = GetEntProp(iClient, Prop_Data, "m_iAmmo", _, view_as<int>(TF_AMMO_METAL));
 	
-	bool bResult = false;
-	if (iMaxAmmo > iAmmo)
-		bResult = true;
-	
+	bool bResult = iMaxAmmo > iAmmo;
 	if (!bResult)
 	{
 		//Check if any weapon in loadout is low on ammo
