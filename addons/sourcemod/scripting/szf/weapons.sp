@@ -169,7 +169,7 @@ void Weapons_ReplaceEntityModel(int iEnt, int iIndex)
 // -----------------------------------------------------------
 public bool Weapons_OnPickup_Health(int iClient)
 {
-	if (GetClientHealth(iClient) < SDKCall_GetMaxHealth(iClient))
+	if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire) || GetClientHealth(iClient) < SDKCall_GetMaxHealth(iClient))
 	{
 		SpawnPickup(iClient, "item_healthkit_full");
 		return true;
@@ -180,9 +180,43 @@ public bool Weapons_OnPickup_Health(int iClient)
 
 public bool Weapons_OnPickup_Ammo(int iClient)
 {
-	SpawnPickup(iClient, "item_ammopack_full");
+	//Check if client is low on metal
+	int iMaxAmmo = SDKCall_GetMaxAmmo(iClient, view_as<int>(TF_AMMO_METAL));
+	int iAmmo = GetEntProp(iClient, Prop_Data, "m_iAmmo", _, view_as<int>(TF_AMMO_METAL));
 	
-	return true;
+	bool bResult = false;
+	if (iMaxAmmo > iAmmo)
+		bResult = true;
+	
+	if (!bResult)
+	{
+		//Check if any weapon in loadout is low on ammo
+		for (int i = WeaponSlot_Primary; i <= WeaponSlot_Melee; i++)
+		{
+			int iWeapon = GetPlayerWeaponSlot(iClient, i);
+			if (iWeapon != -1)
+			{
+				int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
+				if (iAmmoType != -1)
+				{
+					iMaxAmmo = SDKCall_GetMaxAmmo(iClient, iAmmoType);
+					iAmmo = GetEntProp(iClient, Prop_Send, "m_iAmmo", _, iAmmoType);
+
+					//Ignore charge meters
+					if (iMaxAmmo != 1 && iMaxAmmo > iAmmo)
+					{
+						bResult = true;
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	if (bResult)
+		SpawnPickup(iClient, "item_ammopack_full");
+	
+	return bResult;
 }
 
 public bool Weapons_OnPickup_Minicrits(int iClient)
