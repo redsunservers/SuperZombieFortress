@@ -8,6 +8,7 @@ static Handle g_hSDKCallSetSpeed;
 static Handle g_hSDKCallTossJarThink;
 static Handle g_hSDKCallGetBaseEntity;
 static Handle g_hSDKCallGetDefaultItemChargeMeterValue;
+static Handle g_SDKCallGetMaxAmmo;
 
 void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 {
@@ -89,6 +90,15 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	g_hSDKCallGetDefaultItemChargeMeterValue = EndPrepSDKCall();
 	if (!g_hSDKCallGetDefaultItemChargeMeterValue)
 		LogError("Failed to create call: CBaseEntity::GetDefaultItemChargeMeterValue");
+
+	StartPrepSDKCall(SDKCall_Player);
+	PrepSDKCall_SetFromConf(hSZF, SDKConf_Signature, "CTFPlayer::GetMaxAmmo");
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+	g_SDKCallGetMaxAmmo = EndPrepSDKCall();
+	if (!g_SDKCallGetMaxAmmo)
+		LogError("Failed to create call: CTFPlayer::GetMaxAmmo");
 }
 
 int SDKCall_GetMaxHealth(int iClient)
@@ -142,4 +152,9 @@ int SDKCall_GetBaseEntity(Address pEnt)
 float SDKCall_GetDefaultItemChargeMeterValue(int iWeapon)
 {
 	return SDKCall(g_hSDKCallGetDefaultItemChargeMeterValue, iWeapon);
+}
+
+int SDKCall_GetMaxAmmo(int client, int ammoType)
+{
+	return SDKCall(g_SDKCallGetMaxAmmo, client, ammoType, -1);
 }
