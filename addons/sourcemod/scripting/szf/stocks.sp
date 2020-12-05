@@ -338,22 +338,22 @@ stock void FireRelay(const char[] sInput, const char[] sTargetName1, const char[
 
 stock void TF2_EndRound(TFTeam nTeam)
 {
-	int iIndex = FindEntityByClassname(-1, "team_control_point_master");
+	int iIndex = FindEntityByClassname(-1, "game_round_win");
 	if (iIndex == -1)
 	{
-		iIndex = CreateEntityByName("team_control_point_master");
+		iIndex = CreateEntityByName("game_round_win");
 		DispatchSpawn(iIndex);
 	}
 	
 	if (iIndex == -1)
 	{
-		LogError("[SZF] Can't create 'team_control_point_master,' can't end round!");
+		LogError("[SZF] Can't create 'game_round_win', can't end round!");
 	}
 	else
 	{
-		AcceptEntityInput(iIndex, "Enable");
 		SetVariantInt(view_as<int>(nTeam));
-		AcceptEntityInput(iIndex, "SetWinner");
+		AcceptEntityInput(iIndex, "SetTeam");
+		AcceptEntityInput(iIndex, "RoundWin");
 	}
 }
 
