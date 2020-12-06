@@ -25,11 +25,9 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
-	//Prepare for a completely new round, if
-	//+ Round was a full round (full_round flag is set), OR
-	//+ Zombies are the winning team.
+	//Prepare for a completely new round
 	TFTeam nTeam = view_as<TFTeam>(event.GetInt("team"));
-	g_bNewRound = event.GetBool("full_round") || (nTeam == TFTeam_Zombie);
+	g_bNewFullRound = event.GetBool("full_round");
 	g_nRoundState = SZFRoundState_End;
 	
 	if (nTeam == TFTeam_Zombie)

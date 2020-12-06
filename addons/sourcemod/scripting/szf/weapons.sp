@@ -1,4 +1,8 @@
+#define ENT_ONPICKUP	"FireUser1"
+#define ENT_ONKILL		"FireUser2"
+
 typedef Weapon_OnPickup = function bool (int client); //Return false to prevent client from picking up the item.
+typedef Weapon_OnSpawn = function void (int entity);
 
 static ArrayList g_Weapons;
 static ArrayList g_WepIndexesByRarity[view_as<int>(WeaponRarity)]; //Array indexes of g_Weapons array
@@ -18,7 +22,8 @@ enum struct Weapon
 	float vecAnglesOffset[3];
 	float vecAnglesConst[3];
 	bool bAnglesConst[3];
-	Weapon_OnPickup callback;
+	Weapon_OnPickup pickupCallback;
+	Weapon_OnSpawn spawnCallback;
 }
 
 void Weapons_Refresh()
@@ -167,53 +172,37 @@ void Weapons_ReplaceEntityModel(int iEnt, int iIndex)
 }
 
 // -----------------------------------------------------------
-public bool Weapons_OnPickup_Health(int iClient)
+public void Weapons_OnSpawn_Health(int iEntity)
 {
-	if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire) || GetClientHealth(iClient) < SDKCall_GetMaxHealth(iClient))
-	{
-		SpawnPickup(iClient, "item_healthkit_full");
-		return true;
-	}
+	int iPickup = SpawnPickup(iEntity, "item_healthkit_full", false);
 	
-	return false;
+	char sName[32];
+	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
+	SetVariantString(sName);
+	AcceptEntityInput(iPickup, "SetParent", iEntity, iPickup);
+	
+	SDKHook_HookPickup(iPickup);
+	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
+	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
 }
 
-public bool Weapons_OnPickup_Ammo(int iClient)
+public void Weapons_OnSpawn_Ammo(int iEntity)
 {
-	//Check if client is low on metal
-	int iMaxAmmo = SDKCall_GetMaxAmmo(iClient, view_as<int>(TF_AMMO_METAL));
-	int iAmmo = GetEntProp(iClient, Prop_Data, "m_iAmmo", _, view_as<int>(TF_AMMO_METAL));
+	int iPickup = SpawnPickup(iEntity, "item_ammopack_full", false);
 	
-	bool bResult = iMaxAmmo > iAmmo;
-	if (!bResult)
-	{
-		//Check if any weapon in loadout is low on ammo
-		for (int i = WeaponSlot_Primary; i <= WeaponSlot_Melee; i++)
-		{
-			int iWeapon = GetPlayerWeaponSlot(iClient, i);
-			if (iWeapon != -1)
-			{
-				int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
-				if (iAmmoType != -1)
-				{
-					iMaxAmmo = SDKCall_GetMaxAmmo(iClient, iAmmoType);
-					iAmmo = GetEntProp(iClient, Prop_Send, "m_iAmmo", _, iAmmoType);
+	char sName[32];
+	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
+	SetVariantString(sName);
+	AcceptEntityInput(iPickup, "SetParent", iEntity, iPickup);
+	
+	SDKHook_HookPickup(iPickup);
+	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
+	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
+}
 
-					//Ignore charge meters
-					if (iMaxAmmo != 1 && iMaxAmmo > iAmmo)
-					{
-						bResult = true;
-						break;
-					}
-				}
-			}
-		}
-	}
-	
-	if (bResult)
-		SpawnPickup(iClient, "item_ammopack_full");
-	
-	return bResult;
+public bool Weapons_OnPickup_Deny(int iClient)
+{
+	return false;
 }
 
 public bool Weapons_OnPickup_Minicrits(int iClient)
@@ -228,4 +217,16 @@ public bool Weapons_OnPickup_Defense(int iClient)
 	TF2_AddCondition(iClient, TFCond_DefenseBuffed, 30.0);
 	
 	return true;
+}
+
+public Action Weapons_PickupTouch(const char[] sOutput, int iCaller, int iActivator, float flDelay)
+{
+	int iParent = GetEntPropEnt(iCaller, Prop_Data, "m_pParent");
+	if (iParent != -1)
+	{
+		AcceptEntityInput(iParent, ENT_ONKILL, iActivator, iActivator);
+		RemoveEntity(iParent);
+	}
+
+	RemoveEntity(iCaller);
 }

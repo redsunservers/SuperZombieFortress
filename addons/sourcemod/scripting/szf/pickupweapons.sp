@@ -1,9 +1,6 @@
 #define PICKUP_COOLDOWN 	2.0
 #define MAX_RARE			15
 
-#define ENT_ONPICKUP	"FireUser1"
-#define ENT_ONKILL		"FireUser2"
-
 enum WeaponType
 {
 	WeaponType_Invalid,
@@ -194,9 +191,9 @@ bool AttemptGrabItem(int iClient)
 		return false;
 	
 	bool bAllowPickup = true;
-	if (wep.callback != INVALID_FUNCTION)
+	if (wep.pickupCallback != INVALID_FUNCTION)
 	{
-		Call_StartFunction(null, wep.callback);
+		Call_StartFunction(null, wep.pickupCallback);
 		Call_PushCell(iClient);
 		Call_Finish(bAllowPickup);
 	}
@@ -516,6 +513,13 @@ void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 	
 	Weapon wep;
 	aList.GetArray(iRandom, wep);
+	
+	if (wep.spawnCallback != INVALID_FUNCTION)
+	{
+		Call_StartFunction(null, wep.spawnCallback);
+		Call_PushCell(iEntity);
+		Call_Finish();
+	}
 	
 	SetWeaponModel(iEntity, wep);
 	

@@ -310,105 +310,102 @@ public MRESReturn DHook_RoundRespawnPre()
 	CPrintToChatAll("%t", "Grace_Start", "{green}");
 	
 	//Assign players to zombie and survivor teams.
-	if (g_bNewRound)
+	int[] iClients = new int[MaxClients];
+	int iLength = 0;
+	int iSurvivorCount;
+	
+	//Find all active players.
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		int[] iClients = new int[MaxClients];
-		int iLength = 0;
-		int iSurvivorCount;
+		g_iZombiesKilledSurvivor[iClient] = 0;
+		Sound_EndMusic(iClient);
 		
-		//Find all active players.
-		for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
 		{
-			g_iZombiesKilledSurvivor[iClient] = 0;
-			Sound_EndMusic(iClient);
-			
-			if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
-			{
-				iClients[iLength] = iClient;
-				iLength++;
-			}
+			iClients[iLength] = iClient;
+			iLength++;
 		}
+	}
+	
+	//Randomize, sort players
+	SortIntegers(iClients, iLength, Sort_Random);
+	
+	//Calculate team counts. At least one survivor must exist.
+	iSurvivorCount = RoundToFloor(iLength * g_cvRatio.FloatValue);
+	if (iSurvivorCount == 0 && iLength > 0)
+		iSurvivorCount = 1;
+	
+	TFTeam[] nClientTeam = new TFTeam[MaxClients+1];
+	g_iStartSurvivors = 0;
+	
+	//Check if we need to force players to survivor or zombie team
+	for (int i = 0; i < iLength; i++)
+	{
+		int iClient = iClients[i];
 		
-		//Randomize, sort players
-		SortIntegers(iClients, iLength, Sort_Random);
-		
-		//Calculate team counts. At least one survivor must exist.
-		iSurvivorCount = RoundToFloor(iLength * g_cvRatio.FloatValue);
-		if (iSurvivorCount == 0 && iLength > 0)
-			iSurvivorCount = 1;
-		
-		TFTeam[] nClientTeam = new TFTeam[MaxClients+1];
-		g_iStartSurvivors = 0;
-		
-		//Check if we need to force players to survivor or zombie team
-		for (int i = 0; i < iLength; i++)
+		if (IsValidClient(iClient))
 		{
-			int iClient = iClients[i];
+			Action action = Forward_ShouldStartZombie(iClient);
 			
-			if (IsValidClient(iClient))
+			if (action == Plugin_Handled)
 			{
-				Action action = Forward_ShouldStartZombie(iClient);
+				//Zombie
+				SpawnClient(iClient, TFTeam_Zombie, false);
+				nClientTeam[iClient] = TFTeam_Zombie;
+				g_bStartedAsZombie[iClient] = true;
+				g_flTimeStartAsZombie[iClient] = GetGameTime();
+			}
+			else if (g_bForceZombieStart[iClient] && !g_bFirstRound)
+			{
+				//If they attempted to skip playing as zombie last time, force him to be in zombie team
+				CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}");
+				g_bForceZombieStart[iClient] = false;
+				SetClientCookie(iClient, g_cForceZombieStart, "0");
 				
-				if (action == Plugin_Handled)
-				{
-					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie, false);
-					nClientTeam[iClient] = TFTeam_Zombie;
-					g_bStartedAsZombie[iClient] = true;
-					g_flTimeStartAsZombie[iClient] = GetGameTime();
-				}
-				else if (g_bForceZombieStart[iClient] && !g_bFirstRound)
-				{
-					//If they attempted to skip playing as zombie last time, force him to be in zombie team
-					CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}");
-					g_bForceZombieStart[iClient] = false;
-					SetClientCookie(iClient, g_cForceZombieStart, "0");
-					
-					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie, false);
-					nClientTeam[iClient] = TFTeam_Zombie;
-					g_bStartedAsZombie[iClient] = true;
-					g_flTimeStartAsZombie[iClient] = GetGameTime();
-				}
-				else if (g_bStartedAsZombie[iClient])
-				{
-					//Players who started as zombie last time is forced to be survivors
-					
-					//Survivor
-					SpawnClient(iClient, TFTeam_Survivor, false);
-					nClientTeam[iClient] = TFTeam_Survivor;
-					g_bStartedAsZombie[iClient] = false;
-					g_iStartSurvivors++;
-					iSurvivorCount--;
-				}
+				//Zombie
+				SpawnClient(iClient, TFTeam_Zombie, false);
+				nClientTeam[iClient] = TFTeam_Zombie;
+				g_bStartedAsZombie[iClient] = true;
+				g_flTimeStartAsZombie[iClient] = GetGameTime();
+			}
+			else if (g_bStartedAsZombie[iClient])
+			{
+				//Players who started as zombie last time is forced to be survivors
+				
+				//Survivor
+				SpawnClient(iClient, TFTeam_Survivor, false);
+				nClientTeam[iClient] = TFTeam_Survivor;
+				g_bStartedAsZombie[iClient] = false;
+				g_iStartSurvivors++;
+				iSurvivorCount--;
 			}
 		}
+	}
+	
+	//From SortIntegers, we set the rest to survivors, then zombies
+	for (int i = 0; i < iLength; i++)
+	{
+		int iClient = iClients[i];
 		
-		//From SortIntegers, we set the rest to survivors, then zombies
-		for (int i = 0; i < iLength; i++)
+		//Check if they have not already been assigned
+		if (IsValidClient(iClient) && !(nClientTeam[iClient] == TFTeam_Zombie) && !(nClientTeam[iClient] == TFTeam_Survivor))
 		{
-			int iClient = iClients[i];
-			
-			//Check if they have not already been assigned
-			if (IsValidClient(iClient) && !(nClientTeam[iClient] == TFTeam_Zombie) && !(nClientTeam[iClient] == TFTeam_Survivor))
+			if (iSurvivorCount > 0)
 			{
-				if (iSurvivorCount > 0)
-				{
-					//Survivor
-					SpawnClient(iClient, TFTeam_Survivor, false);
-					nClientTeam[iClient] = TFTeam_Survivor;
-					g_bStartedAsZombie[iClient] = false;
-					g_iStartSurvivors++;
-					iSurvivorCount--;
-				}
-				else
-				{
-					//Zombie
-					SpawnClient(iClient, TFTeam_Zombie, false);
-					nClientTeam[iClient] = TFTeam_Zombie;
-					g_bStartedAsZombie[iClient] = true;
-					g_flTimeStartAsZombie[iClient] = GetGameTime();
-				}
+				//Survivor
+				SpawnClient(iClient, TFTeam_Survivor, false);
+				nClientTeam[iClient] = TFTeam_Survivor;
+				g_bStartedAsZombie[iClient] = false;
+				g_iStartSurvivors++;
+				iSurvivorCount--;
+			}
+			else
+			{
+				//Zombie
+				SpawnClient(iClient, TFTeam_Zombie, false);
+				nClientTeam[iClient] = TFTeam_Zombie;
+				g_bStartedAsZombie[iClient] = true;
+				g_flTimeStartAsZombie[iClient] = GetGameTime();
 			}
 		}
 	}

@@ -167,9 +167,11 @@ ArrayList Config_LoadWeaponData()
 					kv.GoBack();
 				}
 				
+				kv.GetString("callback_pickup", sBuffer, sizeof(sBuffer));
+				wep.pickupCallback = view_as<Weapon_OnPickup>(GetFunctionByName(null, sBuffer));
 				
-				kv.GetString("callback", sBuffer, sizeof(sBuffer));
-				wep.callback = view_as<Weapon_OnPickup>(GetFunctionByName(null, sBuffer));
+				kv.GetString("callback_spawn", sBuffer, sizeof(sBuffer));
+				wep.spawnCallback = view_as<Weapon_OnSpawn>(GetFunctionByName(null, sBuffer));
 				
 				int iColor[4];
 				kv.GetColor4("color", iColor);
