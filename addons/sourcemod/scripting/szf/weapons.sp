@@ -181,7 +181,6 @@ public void Weapons_OnSpawn_Health(int iEntity)
 	SetVariantString(sName);
 	AcceptEntityInput(iPickup, "SetParent", iEntity, iPickup);
 	
-	SDKHook_HookPickup(iPickup);
 	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
 	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
 }
@@ -195,7 +194,6 @@ public void Weapons_OnSpawn_Ammo(int iEntity)
 	SetVariantString(sName);
 	AcceptEntityInput(iPickup, "SetParent", iEntity, iPickup);
 	
-	SDKHook_HookPickup(iPickup);
 	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
 	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
 }
