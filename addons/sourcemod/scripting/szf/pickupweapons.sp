@@ -146,7 +146,7 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	delete aWeaponsRares;
 }
 
-void SetUniqueWeapon(int iEntity, ArrayList aWeapons, WeaponRarity iWepRarity)
+void SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
 {
 	Weapon wep;
 	
