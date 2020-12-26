@@ -176,10 +176,8 @@ public void Weapons_OnSpawn_Health(int iEntity)
 {
 	int iPickup = SpawnPickup(iEntity, "item_healthkit_full", false);
 	
-	char sName[32];
-	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
-	SetVariantString(sName);
-	AcceptEntityInput(iPickup, "SetParent", iEntity, iPickup);
+	SetVariantString("!activator");
+	AcceptEntityInput(iPickup, "SetParent", iEntity);
 	
 	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
 	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
@@ -189,10 +187,8 @@ public void Weapons_OnSpawn_Ammo(int iEntity)
 {
 	int iPickup = SpawnPickup(iEntity, "item_ammopack_full", false);
 	
-	char sName[32];
-	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
-	SetVariantString(sName);
-	AcceptEntityInput(iPickup, "SetParent", iEntity, iPickup);
+	SetVariantString("!activator");
+	AcceptEntityInput(iPickup, "SetParent", iEntity);
 	
 	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
 	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
