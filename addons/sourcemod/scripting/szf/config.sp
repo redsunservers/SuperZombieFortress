@@ -80,6 +80,7 @@ ArrayList Config_LoadWeaponData()
 		mRarity.SetValue("common", WeaponRarity_Common);
 		mRarity.SetValue("uncommon", WeaponRarity_Uncommon);
 		mRarity.SetValue("rare", WeaponRarity_Rare);
+		mRarity.SetValue("static", WeaponRarity_Static);
 		mRarity.SetValue("pickup", WeaponRarity_Pickup);
 	}
 	
