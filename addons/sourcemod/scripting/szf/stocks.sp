@@ -338,9 +338,12 @@ stock void FireRelay(const char[] sInput, const char[] sTargetName1, const char[
 
 stock void TF2_EndRound(TFTeam nTeam)
 {
-	int iIndex = CreateEntityByName("game_round_win");
-	DispatchKeyValue(iIndex, "force_map_reset", "1");
-	DispatchSpawn(iIndex);
+	int iIndex = FindEntityByClassname(-1, "game_round_win");
+	if (iIndex == -1)
+	{
+		iIndex = CreateEntityByName("game_round_win");
+		DispatchSpawn(iIndex);
+	}
 	
 	if (iIndex == -1)
 	{
