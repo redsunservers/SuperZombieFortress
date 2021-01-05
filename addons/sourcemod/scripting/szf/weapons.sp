@@ -1,4 +1,8 @@
+#define ENT_ONPICKUP	"FireUser1"
+#define ENT_ONKILL		"FireUser2"
+
 typedef Weapon_OnPickup = function bool (int client); //Return false to prevent client from picking up the item.
+typedef Weapon_OnSpawn = function void (int entity);
 
 static ArrayList g_Weapons;
 static ArrayList g_WepIndexesByRarity[view_as<int>(WeaponRarity)]; //Array indexes of g_Weapons array
@@ -18,7 +22,8 @@ enum struct Weapon
 	float vecAnglesOffset[3];
 	float vecAnglesConst[3];
 	bool bAnglesConst[3];
-	Weapon_OnPickup callback;
+	Weapon_OnPickup pickupCallback;
+	Weapon_OnSpawn spawnCallback;
 }
 
 void Weapons_Refresh()
@@ -167,22 +172,31 @@ void Weapons_ReplaceEntityModel(int iEnt, int iIndex)
 }
 
 // -----------------------------------------------------------
-public bool Weapons_OnPickup_Health(int iClient)
+public void Weapons_OnSpawn_Health(int iEntity)
 {
-	if (GetClientHealth(iClient) < SDKCall_GetMaxHealth(iClient))
-	{
-		SpawnPickup(iClient, "item_healthkit_full");
-		return true;
-	}
+	int iPickup = SpawnPickup(iEntity, "item_healthkit_full", false);
 	
-	return false;
+	SetVariantString("!activator");
+	AcceptEntityInput(iPickup, "SetParent", iEntity);
+	
+	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
+	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
 }
 
-public bool Weapons_OnPickup_Ammo(int iClient)
+public void Weapons_OnSpawn_Ammo(int iEntity)
 {
-	SpawnPickup(iClient, "item_ammopack_full");
+	int iPickup = SpawnPickup(iEntity, "item_ammopack_full", false);
 	
-	return true;
+	SetVariantString("!activator");
+	AcceptEntityInput(iPickup, "SetParent", iEntity);
+	
+	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
+	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
+}
+
+public bool Weapons_OnPickup_Deny(int iClient)
+{
+	return false;
 }
 
 public bool Weapons_OnPickup_Minicrits(int iClient)
@@ -197,4 +211,16 @@ public bool Weapons_OnPickup_Defense(int iClient)
 	TF2_AddCondition(iClient, TFCond_DefenseBuffed, 30.0);
 	
 	return true;
+}
+
+public Action Weapons_PickupTouch(const char[] sOutput, int iCaller, int iActivator, float flDelay)
+{
+	int iParent = GetEntPropEnt(iCaller, Prop_Data, "m_pParent");
+	if (iParent != -1)
+	{
+		AcceptEntityInput(iParent, ENT_ONKILL, iActivator, iActivator);
+		RemoveEntity(iParent);
+	}
+
+	RemoveEntity(iCaller);
 }
