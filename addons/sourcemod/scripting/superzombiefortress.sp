@@ -1328,13 +1328,10 @@ void ResetClientState(int iClient)
 
 void PrintInfoChat(int iClient)
 {
-	char sMessage[256];
-	Format(sMessage, sizeof(sMessage), "%t", "Welcome", "{lightsalmon}", "{limegreen}", "{lightsalmon}");
-	
 	if (iClient == 0)
-		CPrintToChatAll(sMessage);
+		CPrintToChatAll("%t", "Welcome", "{lightsalmon}", "{limegreen}", "{lightsalmon}");
 	else
-		CPrintToChat(iClient, sMessage);
+		CPrintToChat(iClient, "%t", "Welcome", "{lightsalmon}", "{limegreen}", "{lightsalmon}");
 }
 
 void SetGlow()
