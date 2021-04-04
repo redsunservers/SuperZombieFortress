@@ -8,6 +8,7 @@ enum WeaponRarity
 	WeaponRarity_Common,
 	WeaponRarity_Uncommon,
 	WeaponRarity_Rare,
+	WeaponRarity_Static,
 	WeaponRarity_Pickup,
 };
 
