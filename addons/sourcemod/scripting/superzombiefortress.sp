@@ -712,6 +712,8 @@ public void TF2_OnConditionRemoved(int iClient, TFCond nCond)
 	
 	if (nCond == TFCond_Taunting)
 		ViewModel_Hide(iClient);
+	else if (nCond == TFCond_Disguised)
+		SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", 0, _, VISION_MODE_ROME);	//Reset disguise model
 }
 
 public Action TF2_OnIsHolidayActive(TFHoliday nHoliday, bool &bResult)
