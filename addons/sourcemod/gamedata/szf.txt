@@ -26,7 +26,7 @@
 			{
 				"library"	"server"
 				"linux"		"@_ZN15CTFPlayerShared23DetermineDisguiseWeaponEb"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x1C\x53\x8B\xD9\x56\x33\xF6"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x1C\x53\x8B\xD9\xC7\x45\xFC\x00\x00\x00\x00"
 			}
 			"CGameUI::Deactivate"
 			{
@@ -72,18 +72,18 @@
 			}
 			"CTFPlayer::GiveNamedItem"
 			{
-				"linux"		"484"
-				"windows"	"477"
+				"linux"		"485"
+				"windows"	"478"
 			}
 			"CTFJar::TossJarThink"
 			{
-				"linux"		"490"
-				"windows"	"483"
+				"linux"		"491"
+				"windows"	"484"
 			}
 			"CBaseEntity::GetBaseEntity"
 			{
-				"windows" 	"5"
 				"linux" 	"6"
+				"windows" 	"5"
 			}
 			"CBaseEntity::GetDefaultItemChargeMeterValue"
 			{
