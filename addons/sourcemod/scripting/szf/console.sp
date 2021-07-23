@@ -10,11 +10,6 @@ void Console_Init()
 
 public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 {
-	char sArg[32];
-	char sSurTeam[16];
-	char sZomTeam[16];
-	char sZomVgui[16];
-	
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
@@ -26,6 +21,8 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 	
 	if (!IsClientInGame(iClient))
 		return Plugin_Continue;
+	
+	char sArg[32], sSurTeam[16], sZomTeam[16], sZomVgui[16];
 	
 	//Get command/arg on which team player joined
 	if (StrEqual(sCommand, "jointeam", false)) //This is done because "jointeam spectate" should take priority over "spectate"
@@ -228,10 +225,10 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 
 public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 {
-	if (!IsClientInGame(iClient) || !IsPlayerAlive(iClient))
+	if (!g_bEnabled)
 		return Plugin_Continue;
 	
-	if (!g_bEnabled)
+	if (!IsClientInGame(iClient) || !IsPlayerAlive(iClient))
 		return Plugin_Continue;
 	
 	if (iArgs < 2)

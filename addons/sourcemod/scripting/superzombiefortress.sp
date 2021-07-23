@@ -290,6 +290,7 @@ Cookie g_cNoMusicForPlayer;
 Cookie g_cForceZombieStart;
 
 //Global State
+bool g_bLateLoad;
 bool g_bEnabled;
 bool g_bNewFullRound;
 bool g_bFirstRound = true;
@@ -435,6 +436,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	Native_AskLoad();
 	
 	RegPluginLibrary("superzombiefortress");
+	
+	g_bLateLoad = late;
 }
 
 public void OnPluginStart()
@@ -456,11 +459,6 @@ public void OnPluginStart()
 	g_bEnabled = false;
 	g_bNewFullRound = true;
 	g_bLastSurvivor = false;
-	
-	AddNormalSoundHook(SoundHook);
-	
-	HookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
-	HookEntityOutput("math_counter", "OutValue", OnCounterValue);
 	
 	g_cFirstTimeZombie = new Cookie("szf_firsttimezombie", "is this the flowey map?", CookieAccess_Protected);
 	g_cFirstTimeSurvivor = new Cookie("szf_firsttimesurvivor2", "is this the flowey map?", CookieAccess_Protected);
@@ -523,9 +521,10 @@ public void OnLibraryRemoved(const char[] sName)
 		g_bTF2Items = false;
 		
 		//TF2Items unloaded with GiveNamedItem unhooked, we can now safely hook GiveNamedItem ourself
-		for (int iClient = 1; iClient <= MaxClients; iClient++)
-			if (IsClientInGame(iClient))
-				DHook_HookGiveNamedItem(iClient);
+		if (g_bEnabled)
+			for (int iClient = 1; iClient <= MaxClients; iClient++)
+				if (IsClientInGame(iClient))
+					DHook_HookGiveNamedItem(iClient);
 	}
 }
 
@@ -533,8 +532,6 @@ public void OnPluginEnd()
 {
 	if (g_bEnabled)
 	{
-		TF2_EndRound(TFTeam_Zombie);
-		
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 		{
 			if (IsClientInGame(iClient))
@@ -543,9 +540,10 @@ public void OnPluginEnd()
 				SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", 0, _, VISION_MODE_ROME);
 			}
 		}
+		
+		SZFDisable();
+		TF2_EndRound(TFTeam_Zombie);
 	}
-	
-	SZFDisable();
 }
 
 public void OnClientCookiesCached(int iClient)
@@ -564,19 +562,18 @@ public void OnClientCookiesCached(int iClient)
 
 public void OnConfigsExecuted()
 {
-	if (IsMapSZF())
+	if (IsMapSZF() || g_cvForceOn.BoolValue)
 	{
 		SZFEnable();
 		GetMapSettings();
-	}
-	else
-	{
-		g_cvForceOn.BoolValue ? SZFEnable() : SZFDisable();
 	}
 }
 
 public void OnMapEnd()
 {
+	if (!g_bEnabled)
+		return;
+	
 	g_nRoundState = SZFRoundState_End;
 	SZFDisable();
 }
@@ -620,12 +617,15 @@ void GetMapSettings()
 
 public void OnClientPutInServer(int iClient)
 {
+	g_iDamageZombie[iClient] = 0;
+	
+	if (!g_bEnabled)
+		return;
+	
 	CreateTimer(10.0, Timer_InitialHelp, iClient, TIMER_FLAG_NO_MAPCHANGE);
 	
 	DHook_HookGiveNamedItem(iClient);
 	SDKHook_HookClient(iClient);
-	
-	g_iDamageZombie[iClient] = 0;
 }
 
 public void OnClientDisconnect(int iClient)
@@ -648,13 +648,12 @@ public void OnClientDisconnect(int iClient)
 
 public void OnEntityCreated(int iEntity, const char[] sClassname)
 {
-	if (StrContains(sClassname, "item_healthkit") == 0 || StrContains(sClassname, "item_ammopack") == 0 || StrEqual(sClassname, "tf_ammo_pack"))
-		SDKHook_HookPickup(iEntity);
-	else if (StrEqual(sClassname, "tf_gas_manager"))
-		SDKHook_HookGasManager(iEntity);
-	else if (StrEqual(sClassname, "trigger_capture_area"))
-		SDKHook_HookCaptureArea(iEntity);
-	else if (StrEqual(sClassname, "tf_dropped_weapon") || StrEqual(sClassname, "item_powerup_rune"))	//Never allow dropped weapon and rune dropped from survivors
+	if (!g_bEnabled)
+		return;
+	
+	SDKHook_OnEntityCreated(iEntity, sClassname);
+	
+	if (StrEqual(sClassname, "tf_dropped_weapon") || StrEqual(sClassname, "item_powerup_rune"))	//Never allow dropped weapon and rune dropped from survivors
 		RemoveEntity(iEntity);
 }
 
@@ -708,6 +707,9 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 
 public void TF2_OnConditionRemoved(int iClient, TFCond nCond)
 {
+	if (!g_bEnabled)
+		return;
+	
 	SDKCall_SetSpeed(iClient);
 	
 	if (nCond == TFCond_Taunting)
@@ -792,6 +794,9 @@ void EndGracePeriod()
 
 public void Frame_PostGracePeriodSpawn(int iClient)
 {
+	if (!g_bEnabled)
+		return;
+	
 	TF2_ChangeClientTeam(iClient, TFTeam_Zombie);
 	
 	if (!IsPlayerAlive(iClient))
@@ -1264,9 +1269,18 @@ void SZFEnable()
 	g_flTimeProgress = 0.0;
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
 		ResetClientState(iClient);
+		DHook_HookGiveNamedItem(iClient);
+	}
 	
 	ConVar_Enable();
+	DHook_Enable();
+	
+	AddNormalSoundHook(SoundHook);
+	
+	HookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
+	HookEntityOutput("math_counter", "OutValue", OnCounterValue);
 	
 	//[Re]Enable periodic timers.
 	delete g_hTimerMain;
@@ -1283,6 +1297,11 @@ void SZFEnable()
 	
 	delete g_hTimerDataCollect;
 	g_hTimerDataCollect = CreateTimer(2.0, Timer_Datacollect, _, TIMER_REPEAT);
+	
+	if (g_bLateLoad)	//Restart current round
+		TF2_EndRound(TFTeam_Zombie);
+	
+	g_bLateLoad = false;
 }
 
 void SZFDisable()
@@ -1301,9 +1320,18 @@ void SZFDisable()
 	g_flTimeProgress = 0.0;
 	
 	for (int iClient = 0; iClient <= MaxClients; iClient++)
+	{
 		ResetClientState(iClient);
+		DHook_UnhookGiveNamedItem(iClient);
+	}
 	
 	ConVar_Disable();
+	DHook_Disable();
+	
+	RemoveNormalSoundHook(SoundHook);
+	
+	UnhookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
+	UnhookEntityOutput("math_counter", "OutValue", OnCounterValue);
 	
 	//Disable periodic timers.
 	delete g_hTimerMain;
@@ -1596,8 +1624,6 @@ public void OnMapStart()
 	
 	//Smoker beam
 	g_iSprite = PrecacheModel("materials/sprites/laser.vmt");
-	
-	DHook_HookGamerules();
 	
 	if (GameRules_GetRoundState() < RoundState_Preround)
 		g_nRoundState = SZFRoundState_Setup;
@@ -2387,6 +2413,9 @@ public Action Timer_DisplayTutorialMessage(Handle hTimer, DataPack data)
 
 public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fVelocity[3], float fAngles[3], int &iWeapon)
 {
+	if (!g_bEnabled)
+		return;
+	
 	if (IsValidLivingZombie(iClient))
 	{
 		if (g_ClientClasses[iClient].callback_think != INVALID_FUNCTION)
@@ -2405,8 +2434,6 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 		iButtons &= ~IN_ATTACK;
 		iButtons &= ~IN_ATTACK2;
 	}
-	
-	return Plugin_Continue;
 }
 
 float SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, float flSlowdown = 0.5)
@@ -2558,5 +2585,8 @@ Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
 
 public Action TF2Items_OnGiveNamedItem(int iClient, char[] sClassname, int iIndex, Handle& hItem)
 {
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
 	return OnGiveNamedItem(iClient, sClassname, iIndex);
 }

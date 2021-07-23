@@ -120,6 +120,9 @@ public Action Command_ForceInfected(int iClient, int iArgs)
 
 public Action Command_ReloadConfigs(int iClient, int iArgs)
 {
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
 	Config_Refresh();
 	Classes_Refresh();
 	Weapons_Refresh();

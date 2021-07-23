@@ -39,6 +39,9 @@ void Weapons_ClientDisconnect(int iClient)
 
 public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
+	if (!g_bEnabled)
+		return;
+	
 	int iEntity = -1;
 	int iRare = g_iMaxRareWeapons;
 	
@@ -146,6 +149,20 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	delete aWeaponsRares;
 }
 
+public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadcast)
+{
+	if (!g_bEnabled)
+		return;
+	
+	int iClient = GetClientOfUserId(event.GetInt("userid"));
+	
+	if (IsValidClient(iClient))
+	{
+		g_bCanPickup[iClient] = true;
+		g_flLastCallout[iClient] = 0.0;
+	}
+}
+
 void SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
 {
 	Weapon wep;
@@ -163,17 +180,6 @@ void SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
 	SetWeaponModel(iEntity, wep);
 	//This weapon is no longer in the pool
 	aWeapons.Erase(iRandom);
-}
-
-public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadcast)
-{
-	int iClient = GetClientOfUserId(event.GetInt("userid"));
-	
-	if (IsValidClient(iClient))
-	{
-		g_bCanPickup[iClient] = true;
-		g_flLastCallout[iClient] = 0.0;
-	}
 }
 
 bool AttemptGrabItem(int iClient)

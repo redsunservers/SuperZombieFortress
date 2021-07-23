@@ -1,12 +1,24 @@
+enum struct Detour
+{
+	char sName[64];
+	DynamicDetour hDetour;
+	DHookCallback callbackPre;
+	DHookCallback callbackPost;
+}
+
+static ArrayList g_aDHookDetours;
+
 static DynamicHook g_hDHookSetWinningTeam;
 static DynamicHook g_hDHookRoundRespawn;
-static DynamicHook g_hDHookGiveNamedItem;
 static DynamicHook g_hDHookGetCaptureValueForPlayer;
+static DynamicHook g_hDHookGiveNamedItem;
 
 static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
 void DHook_Init(GameData hSZF)
 {
+	g_aDHookDetours = new ArrayList(sizeof(Detour));
+	
 	DHook_CreateDetour(hSZF, "CTFPlayer::DoAnimationEvent", DHook_DoAnimationEventPre, _);
 	DHook_CreateDetour(hSZF, "CTFPlayerShared::DetermineDisguiseWeapon", DHook_DetermineDisguiseWeaponPre, _);
 	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
@@ -18,24 +30,20 @@ void DHook_Init(GameData hSZF)
 	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
 }
 
-static void DHook_CreateDetour(GameData gamedata, const char[] name, DHookCallback preCallback = INVALID_FUNCTION, DHookCallback postCallback = INVALID_FUNCTION)
+static void DHook_CreateDetour(GameData hGameData, const char[] sName, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
 {
-	DynamicDetour hDetour = DynamicDetour.FromConf(gamedata, name);
-	if (!hDetour)
+	Detour detour;
+	detour.hDetour = DynamicDetour.FromConf(hGameData, sName);
+	if (!detour.hDetour)
 	{
-		LogError("Failed to create detour: %s", name);
+		LogError("Failed to create detour: %s", sName);
 	}
 	else
 	{
-		if (preCallback != INVALID_FUNCTION)
-			if (!hDetour.Enable(Hook_Pre, preCallback))
-				LogError("Failed to enable pre detour: %s", name);
-		
-		if (postCallback != INVALID_FUNCTION)
-			if (!hDetour.Enable(Hook_Post, postCallback))
-				LogError("Failed to enable post detour: %s", name);
-		
-		delete hDetour;
+		strcopy(detour.sName, sizeof(detour.sName), sName);
+		detour.callbackPre = callbackPre;
+		detour.callbackPost = callbackPost;
+		g_aDHookDetours.PushArray(detour);
 	}
 }
 
@@ -59,7 +67,7 @@ void DHook_UnhookGiveNamedItem(int iClient)
 	if (g_iHookIdGiveNamedItem[iClient])
 	{
 		DHookRemoveHookID(g_iHookIdGiveNamedItem[iClient]);
-		g_iHookIdGiveNamedItem[iClient] = 0;	
+		g_iHookIdGiveNamedItem[iClient] = INVALID_HOOK_ID;	
 	}
 }
 
@@ -72,11 +80,44 @@ bool DHook_IsGiveNamedItemActive()
 	return false;
 }
 
-void DHook_HookGamerules()
+void DHook_Enable()
 {
+	int iLength = g_aDHookDetours.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		Detour detour;
+		g_aDHookDetours.GetArray(i, detour);
+		
+		if (detour.callbackPre != INVALID_FUNCTION)
+			if (!detour.hDetour.Enable(Hook_Pre, detour.callbackPre))
+				LogError("Failed to enable pre detour: %s", detour.sName);
+		
+		if (detour.callbackPost != INVALID_FUNCTION)
+			if (!detour.hDetour.Enable(Hook_Post, detour.callbackPost))
+				LogError("Failed to enable post detour: %s", detour.sName);
+	}
+	
 	g_hDHookSetWinningTeam.HookGamerules(Hook_Pre, DHook_SetWinningTeamPre);
 	g_hDHookRoundRespawn.HookGamerules(Hook_Pre, DHook_RoundRespawnPre);
 	g_hDHookGetCaptureValueForPlayer.HookGamerules(Hook_Post, DHook_GetCaptureValueForPlayerPost);
+}
+
+void DHook_Disable()
+{
+	int iLength = g_aDHookDetours.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		Detour detour;
+		g_aDHookDetours.GetArray(i, detour);
+		
+		if (detour.callbackPre != INVALID_FUNCTION)
+			if (!detour.hDetour.Disable(Hook_Pre, detour.callbackPre))
+				LogError("Failed to disable pre detour: %s", detour.sName);
+		
+		if (detour.callbackPost != INVALID_FUNCTION)
+			if (!detour.hDetour.Disable(Hook_Post, detour.callbackPost))
+				LogError("Failed to disable post detour: %s", detour.sName);
+	}
 }
 
 public MRESReturn DHook_DoAnimationEventPre(int iClient, DHookParam hParams)
@@ -110,9 +151,6 @@ public MRESReturn DHook_DoAnimationEventPre(int iClient, DHookParam hParams)
 
 public MRESReturn DHook_DetermineDisguiseWeaponPre(Address pPlayerShared, DHookParam hParams)
 {
-	if (!g_bEnabled)
-		return MRES_Ignored;
-	
 	Address pAddress = view_as<Address>(LoadFromAddress(pPlayerShared + view_as<Address>(g_iOffsetOuter), NumberType_Int32));
 	int iClient = SDKCall_GetBaseEntity(pAddress);
 	
@@ -134,9 +172,6 @@ public MRESReturn DHook_DetermineDisguiseWeaponPre(Address pPlayerShared, DHookP
 
 public MRESReturn DHook_DeactivatePre(int iThis, DHookParam hParams)
 {
-	if (!g_bEnabled)
-		return MRES_Ignored;
-	
 	// Detour used to prevent a crash with "game_ui" entity
 	// World entity 0 should always be valid
 	// If not, then pass a resource entity like "tf_gamerules"
@@ -276,9 +311,6 @@ public MRESReturn DHook_SetWinningTeamPre(DHookParam hParams)
 
 public MRESReturn DHook_RoundRespawnPre()
 {
-	if (!g_bEnabled)
-		return;
-	
 	if (g_nRoundState == SZFRoundState_Setup)
 		return;
 	

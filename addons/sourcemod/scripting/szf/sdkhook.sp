@@ -1,3 +1,20 @@
+void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
+{
+	if (StrContains(sClassname, "item_healthkit") == 0 || StrContains(sClassname, "item_ammopack") == 0 || StrEqual(sClassname, "tf_ammo_pack"))
+	{
+		SDKHook(iEntity, SDKHook_SpawnPost, Pickup_SpawnPost);
+	}
+	else if (StrEqual(sClassname, "tf_gas_manager"))
+	{
+		SDKHook(iEntity, SDKHook_Touch, GasManager_Touch);
+	}
+	else if (StrEqual(sClassname, "trigger_capture_area"))
+	{
+		SDKHook(iEntity, SDKHook_StartTouch, CaptureArea_StartTouch);
+		SDKHook(iEntity, SDKHook_EndTouch, CaptureArea_EndTouch);
+	}
+}
+
 void SDKHook_HookClient(int iClient)
 {
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_PreThinkPost);
@@ -6,27 +23,8 @@ void SDKHook_HookClient(int iClient)
 	SDKHook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
 }
 
-void SDKHook_HookPickup(int iEntity)
-{
-	SDKHook(iEntity, SDKHook_SpawnPost, Pickup_SpawnPost);
-}
-
-void SDKHook_HookGasManager(int iEntity)
-{
-	SDKHook(iEntity, SDKHook_Touch, GasManager_Touch);
-}
-
-void SDKHook_HookCaptureArea(int iEntity)
-{
-	SDKHook(iEntity, SDKHook_StartTouch, CaptureArea_StartTouch);
-	SDKHook(iEntity, SDKHook_EndTouch, CaptureArea_EndTouch);
-}
-
 public void Client_PreThinkPost(int iClient)
 {
-	if (!g_bEnabled)
-		return;
-	
 	UpdateClientCarrying(iClient);
 }
 
@@ -43,9 +41,6 @@ public Action Client_Touch(int iClient, int iToucher)
 
 public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
 {
-	if (!g_bEnabled)
-		return Plugin_Continue;
-	
 	if (!CanRecieveDamage(iVictim))
 		return Plugin_Continue;
 	
@@ -211,9 +206,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 
 public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
 {
-	if (!g_bEnabled)
-		return Plugin_Continue;
-	
 	if (g_iMaxHealth[iClient] > 0)
 	{
 		iMaxHealth = g_iMaxHealth[iClient];
@@ -356,9 +348,6 @@ public Action GasManager_Touch(int iGasManager, int iClient)
 
 public Action CaptureArea_StartTouch(int iEntity, int iClient)
 {
-	if (!g_bEnabled)
-		return Plugin_Continue;
-	
 	if (!IsClassname(iEntity, "trigger_capture_area"))
 		return Plugin_Continue;
 	
@@ -388,9 +377,6 @@ public Action CaptureArea_StartTouch(int iEntity, int iClient)
 
 public Action CaptureArea_EndTouch(int iEntity, int iClient)
 {
-	if (!g_bEnabled)
-		return Plugin_Continue;
-	
 	if (IsValidClient(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient))
 		g_iCapturingPoint[iClient] = -1;
 	
