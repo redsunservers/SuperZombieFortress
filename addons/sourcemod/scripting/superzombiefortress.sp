@@ -1277,6 +1277,31 @@ void SZFEnable()
 	ConVar_Enable();
 	DHook_Enable();
 	
+	Config_Refresh();
+	Classes_Refresh();
+	Sound_Refresh();
+	Weapons_Refresh();
+	
+	DetermineControlPoints();
+	PrecacheZombieSouls();
+	
+	PrecacheParticle("spell_cast_wheel_blue");
+	
+	//Boomer
+	PrecacheParticle("asplode_hoodoo_debris");
+	PrecacheParticle("asplode_hoodoo_dust");
+	
+	//Map pickup
+	PrecacheSound("ui/item_paint_can_pickup.wav");
+	
+	//Smoker beam
+	g_iSprite = PrecacheModel("materials/sprites/laser.vmt");
+	
+	if (GameRules_GetRoundState() < RoundState_Preround)
+		g_nRoundState = SZFRoundState_Setup;
+	else	//Plugin late-load while already midgame, skip setup time
+		g_nRoundState = SZFRoundState_Grace;
+	
 	AddNormalSoundHook(SoundHook);
 	
 	HookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
@@ -1590,45 +1615,6 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	FireRelay("FireUser1", "szf_laststand", _, iLastSurvivor);
 	
 	Forward_OnLastSurvivor(iLastSurvivor);
-}
-
-public void OnMapStart()
-{
-	Config_Refresh();
-	Classes_Refresh();
-	Sound_Refresh();
-	Weapons_Refresh();
-	
-	DetermineControlPoints();
-	PrecacheZombieSouls();
-	
-	PrecacheParticle("spell_cast_wheel_blue");
-	
-	//Boomer
-	PrecacheParticle("asplode_hoodoo_debris");
-	PrecacheParticle("asplode_hoodoo_dust");
-	
-	//Map pickup
-	PrecacheSound("ui/item_paint_can_pickup.wav");
-	
-	//Screamer scream
-	PrecacheSound("ambient/halloween/male_scream_15.wav");
-	PrecacheSound("ambient/halloween/male_scream_16.wav");
-	
-	//Hopper scream
-	PrecacheSound("ambient/halloween/male_scream_18.wav");
-	PrecacheSound("ambient/halloween/male_scream_19.wav");
-	
-	//Charger ka-klunk
-	PrecacheSound("weapons/demo_charge_hit_flesh_range1.wav");
-	
-	//Smoker beam
-	g_iSprite = PrecacheModel("materials/sprites/laser.vmt");
-	
-	if (GameRules_GetRoundState() < RoundState_Preround)
-		g_nRoundState = SZFRoundState_Setup;
-	else	//Plugin late-load while already midgame, skip setup time
-		g_nRoundState = SZFRoundState_Grace;
 }
 
 public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, float flDelay)
