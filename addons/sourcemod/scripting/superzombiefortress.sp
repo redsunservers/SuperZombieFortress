@@ -290,7 +290,6 @@ Cookie g_cNoMusicForPlayer;
 Cookie g_cForceZombieStart;
 
 //Global State
-bool g_bLateLoad;
 bool g_bEnabled;
 bool g_bNewFullRound;
 bool g_bFirstRound = true;
@@ -436,8 +435,6 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	Native_AskLoad();
 	
 	RegPluginLibrary("superzombiefortress");
-	
-	g_bLateLoad = late;
 }
 
 public void OnPluginStart()
@@ -542,7 +539,9 @@ public void OnPluginEnd()
 		}
 		
 		SZFDisable();
-		TF2_EndRound(TFTeam_Zombie);
+		
+		if (GameRules_GetRoundState() >= RoundState_Preround)	//Must check if round on-going, otherwise possible crash
+			TF2_EndRound(TFTeam_Zombie);
 	}
 }
 
@@ -1299,8 +1298,8 @@ void SZFEnable()
 	
 	if (GameRules_GetRoundState() < RoundState_Preround)
 		g_nRoundState = SZFRoundState_Setup;
-	else	//Plugin late-load while already midgame, skip setup time
-		g_nRoundState = SZFRoundState_Grace;
+	else	//Plugin late-load while already midgame, restart round
+		TF2_EndRound(TFTeam_Zombie);
 	
 	AddNormalSoundHook(SoundHook);
 	
@@ -1322,11 +1321,6 @@ void SZFEnable()
 	
 	delete g_hTimerDataCollect;
 	g_hTimerDataCollect = CreateTimer(2.0, Timer_Datacollect, _, TIMER_REPEAT);
-	
-	if (g_bLateLoad)	//Restart current round
-		TF2_EndRound(TFTeam_Zombie);
-	
-	g_bLateLoad = false;
 }
 
 void SZFDisable()
