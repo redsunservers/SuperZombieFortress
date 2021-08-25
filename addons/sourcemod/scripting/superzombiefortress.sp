@@ -1270,7 +1270,9 @@ void SZFEnable()
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		ResetClientState(iClient);
-		DHook_HookGiveNamedItem(iClient);
+		
+		if (IsClientInGame(iClient))
+			DHook_HookGiveNamedItem(iClient);
 	}
 	
 	ConVar_Enable();
