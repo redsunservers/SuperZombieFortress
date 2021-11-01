@@ -1923,6 +1923,15 @@ void HandleSurvivorLoadout(int iClient)
 		}
 	}
 	
+	//Remove rome vision
+	int iWearable = INVALID_ENT_REFERENCE;
+	while ((iWearable = FindEntityByClassname(iWearable, "tf_wearable*")) != INVALID_ENT_REFERENCE)
+	{
+		if (GetEntPropEnt(iWearable, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iWearable, Prop_Send, "moveparent") == iClient)
+			if (0 <= GetEntProp(iWearable, Prop_Send, "m_iItemDefinitionIndex") < 0xFFFF)
+				RemoveWeaponVision(iWearable, TF_VISION_FILTER_ROME);
+	}
+	
 	int iMelee = TF2_GetItemInSlot(iClient, WeaponSlot_Melee);
 	if (iMelee > MaxClients)
 	{
@@ -2476,8 +2485,6 @@ Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
 	Action iAction = Plugin_Continue;
 	if (iTeam == TFTeam_Survivor)
 	{
-		float flVal;
-		
 		if (iSlot < WeaponSlot_Melee)
 		{
 			iAction = Plugin_Handled;
@@ -2485,11 +2492,6 @@ Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
 		else if (GetClassVoodooItemDefIndex(iClass) == iIndex)
 		{
 			//Survivors are not zombies
-			iAction = Plugin_Handled;
-		}
-		else if (TF2_DefIndexFindAttribute(iIndex, ATTRIB_VISION, flVal) && RoundToNearest(flVal) & TF_VISION_FILTER_ROME)
-		{
-			//Rome vision is used for zombie custom model disguise detour fix, dont give vision to survivor
 			iAction = Plugin_Handled;
 		}
 	}

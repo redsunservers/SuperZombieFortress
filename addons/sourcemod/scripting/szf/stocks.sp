@@ -191,7 +191,18 @@ stock void AddWeaponVision(int iWeapon, int iFlag)
 	//Get current flag and add into it
 	float flVal = float(TF_VISION_FILTER_NONE);
 	TF2_WeaponFindAttribute(iWeapon, ATTRIB_VISION, flVal);
-	flVal = float(RoundToNearest(flVal)|iFlag);
+	flVal = float(RoundToNearest(flVal) | iFlag);
+	TF2Attrib_SetByDefIndex(iWeapon, ATTRIB_VISION, flVal);
+}
+
+stock void RemoveWeaponVision(int iWeapon, int iFlag)
+{
+	//If have vision, get current flag and remove it
+	float flVal = float(TF_VISION_FILTER_NONE);
+	if (!TF2_WeaponFindAttribute(iWeapon, ATTRIB_VISION, flVal))
+		return;
+	
+	flVal = float(RoundToNearest(flVal) & ~iFlag);
 	TF2Attrib_SetByDefIndex(iWeapon, ATTRIB_VISION, flVal);
 }
 
