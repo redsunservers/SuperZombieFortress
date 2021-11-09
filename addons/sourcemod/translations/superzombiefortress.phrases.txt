@@ -24,6 +24,12 @@
 		"en"		"{1}Infected have received extra health and other benefits to ensure game balance at the start of the round."
 	}
 	
+	"Hud_Morale"
+	{
+		"#format"	"{1:d}"
+		"en"		"Morale: {1}/100"
+	}
+	
 	"Frenzy_Start"
 	{
 		"#format"	"{1:s}"
