@@ -1069,7 +1069,7 @@ void Handle_SurvivorAbilities()
 			
 			//2.1. Show morale on HUD
 			SetHudTextParams(0.18, 0.71, 1.0, 200 - (iMorale * 2), 255, 200 - (iMorale * 2), 255);
-			ShowHudText(iClient, 3, "Morale: %d/100", iMorale);
+			ShowHudText(iClient, 3, "%t", "Hud_Morale", iMorale);
 			
 			//2.2. Award buffs if high morale is detected
 			if (iMorale > 50)	//50: defense buff
