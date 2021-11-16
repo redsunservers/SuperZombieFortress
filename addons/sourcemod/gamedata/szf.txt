@@ -72,13 +72,13 @@
 			}
 			"CTFPlayer::GiveNamedItem"
 			{
-				"linux"		"485"
-				"windows"	"478"
+				"linux"		"488"
+				"windows"	"481"
 			}
 			"CTFJar::TossJarThink"
 			{
-				"linux"		"491"
-				"windows"	"484"
+				"linux"		"494"
+				"windows"	"487"
 			}
 			"CBaseEntity::GetBaseEntity"
 			{
@@ -87,8 +87,8 @@
 			}
 			"CBaseEntity::GetDefaultItemChargeMeterValue"
 			{
-				"linux"		"191"
-				"windows"	"190"
+				"linux"		"194"
+				"windows"	"193"
 			}
 			"CEconItemView::m_iItemDefinitionIndex"
 			{
