@@ -62,8 +62,8 @@
 			}
 			"CTeamplayRoundBasedRules::RoundRespawn"
 			{
-				"linux"		"226"
-				"windows"	"224"
+				"linux"		"227"
+				"windows"	"225"
 			}
 			"CTFGameRules::GetCaptureValueForPlayer"
 			{
