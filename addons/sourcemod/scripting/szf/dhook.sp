@@ -13,6 +13,8 @@ static DynamicHook g_hDHookRoundRespawn;
 static DynamicHook g_hDHookGetCaptureValueForPlayer;
 static DynamicHook g_hDHookGiveNamedItem;
 
+static TFTeam g_iOldClientTeam[TF_MAXPLAYERS];
+
 static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
 
 void DHook_Init(GameData hSZF)
@@ -23,6 +25,7 @@ void DHook_Init(GameData hSZF)
 	DHook_CreateDetour(hSZF, "CTFPlayerShared::DetermineDisguiseWeapon", DHook_DetermineDisguiseWeaponPre, _);
 	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
 	DHook_CreateDetour(hSZF, "CTFPlayer::TeamFortress_CalculateMaxSpeed", _, DHook_CalculateMaxSpeedPost);
+	DHook_CreateDetour(hSZF, "CTFWeaponBaseMelee::DoSwingTraceInternal", DHook_DoSwingTraceInternalPre, DHook_DoSwingTraceInternalPost);
 	
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
@@ -261,6 +264,54 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 			hReturn.Value = flSpeed;
 			return MRES_Override;
 		}
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHook_DoSwingTraceInternalPre(int iMelee, DHookReturn hReturn, DHookParam hParams)
+{
+	if (!g_cvMeleeIgnoreTeammates.BoolValue)
+		return MRES_Ignored;
+	
+	// Enable MvM for this function for melee trace hack
+	GameRules_SetProp("m_bPlayingMannVsMachine", true);
+	
+	int iOwner = GetEntPropEnt(iMelee, Prop_Send, "m_hOwnerEntity");
+	TFTeam iOwnerTeam = TF2_GetClientTeam(iOwner);
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (!IsClientInGame(iClient))
+			continue;
+		
+		// Save current team for later
+		TFTeam iTeam = TF2_GetClientTeam(iClient);
+		g_iOldClientTeam[iClient] = iTeam;
+		
+		// Melee trace ignores teammates for MvM invaders
+		// Move teammates to the BLU team and enemies to the RED team
+		SetEntProp(iClient, Prop_Data, "m_iTeamNum", iTeam == iOwnerTeam ? TFTeam_Blue : TFTeam_Red);
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHook_DoSwingTraceInternalPost(int iMelee, DHookReturn hReturn, DHookParam hParams)
+{
+	if (!g_cvMeleeIgnoreTeammates.BoolValue)
+		return MRES_Ignored;
+	
+	// Disable MvM so there are no lingering effects
+	GameRules_SetProp("m_bPlayingMannVsMachine", false);
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (!IsClientInGame(iClient))
+			continue;
+		
+		// Restore client's previous team
+		SetEntProp(iClient, Prop_Data, "m_iTeamNum", g_iOldClientTeam[iClient]);
 	}
 	
 	return MRES_Ignored;
