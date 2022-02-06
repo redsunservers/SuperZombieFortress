@@ -376,6 +376,16 @@
 		"chi"		"{orange}市场花园铁铲{green}让你火箭跳高度增加25%%。"
 	}
 	
+	"Melee_Eyelander"
+	{
+		"chi"		"{orange}苏格兰长剑{red}会使你的移动速度降低15%%。"
+	}
+	
+	"Melee_ScotsmansSkullcutter"
+	{
+		"chi"		"{orange}苏格兰颅骨切割者{green}会额外获得30%%的伤害加成。"
+	}
+	
 	"Melee_KillingGlovesofBoxing"
 	{
 		"chi"		"{orange}杀戮拳击手套{red}击杀后获得5秒的迷你爆击。"
