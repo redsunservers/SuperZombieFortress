@@ -1603,7 +1603,7 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	g_bLastSurvivor = true;
 	SetMorale(iLastSurvivor, 100);
 	
-	char sName[255];
+	char sName[256];
 	GetClientName2(iLastSurvivor, sName, sizeof(sName));
 	CPrintToChatAllEx(iLastSurvivor, "%t", "Survivor_Last", sName, "{green}");
 	
@@ -2078,7 +2078,7 @@ void ZombieTank(int iCaller = -1)
 	if (iClient <= 0)
 		return;
 	
-	char sName[255];
+	char sName[256];
 	GetClientName2(iClient, sName, sizeof(sName));
 	
 	for (int iTarget = 1; iTarget <= MaxClients; iTarget++)

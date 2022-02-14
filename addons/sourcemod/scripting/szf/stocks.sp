@@ -1038,7 +1038,7 @@ stock void CPrintToChatTranslation(int iClient, int iCaller, char[] sText, bool 
 	if (bTeam && !IsValidClient(iCaller))
 		return;
 	
-	char sName[80], sMessage[255];
+	char sName[256], sMessage[256];
 	if (0 < iCaller <= MaxClients)
 	{
 		GetClientName2(iCaller, sName, sizeof(sName));

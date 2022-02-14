@@ -233,7 +233,7 @@ bool AttemptGrabItem(int iClient)
 	
 	if (iIndex > -1)
 	{
-		char sClient[128];
+		char sClient[256];
 		GetClientName2(iClient, sClient, sizeof(sClient));
 		
 		int iSlot = TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(iClient));

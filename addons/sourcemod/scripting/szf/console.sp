@@ -261,7 +261,7 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 				Forward_OnQuickSpawnAsSpecialInfected(iClient);
 				
 				//Broadcast to team
-				char sName[255];
+				char sName[256];
 				GetClientName2(iClient, sName, sizeof(sName));
 				
 				for (int i = 1; i <= MaxClients; i++)
