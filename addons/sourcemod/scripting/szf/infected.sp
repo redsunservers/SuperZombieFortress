@@ -893,3 +893,8 @@ public Action Infected_OnJockeyAnim(int iClient, PlayerAnimEvent_t &nAnim, int &
 	
 	return Plugin_Continue;
 }
+
+public void Infected_OnJockeyDeath(int iClient, int iKiller, int iAssist)
+{
+	g_iJockeyTarget[iClient] = 0;
+}
