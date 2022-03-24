@@ -37,9 +37,6 @@ void ConVar_Init()
 	ConVar_Add("tf_obj_upgrade_per_hit", 0.0);
 	ConVar_Add("tf_player_movement_restart_freeze", 0.0);
 	ConVar_Add("tf_sentrygun_metal_per_shell", 201.0);
-	ConVar_Add("tf_spy_cloak_no_attack_time", 0.0);
-	ConVar_Add("tf_spy_invis_time", 0.5);
-	ConVar_Add("tf_spy_invis_unstealth_time", 0.75);
 	ConVar_Add("tf_weapon_criticals", 0.0);
 }
 
