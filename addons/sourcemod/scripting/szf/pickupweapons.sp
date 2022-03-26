@@ -17,7 +17,7 @@ enum WeaponType
 };
 
 static bool g_bCanPickup[TF_MAXPLAYERS] = false;
-static bool g_bTriggerEntity[2048] = true;
+static bool g_bTriggerEntity[2048];
 static float g_flLastCallout[TF_MAXPLAYERS] = 0.0;
 
 void Weapons_Init()
@@ -44,6 +44,8 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	
 	int iEntity = -1;
 	int iRare = g_iMaxRareWeapons;
+	bool bTriggerEntity[2048] = true;
+	g_bTriggerEntity = bTriggerEntity;
 	
 	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
 	ArrayList aWeaponsUncommon = GetAllWeaponsWithRarity(WeaponRarity_Uncommon);
@@ -141,7 +143,6 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 		flPosition[2] += 0.8;
 		TeleportEntity(iEntity, flPosition, NULL_VECTOR, NULL_VECTOR);
 		
-		g_bTriggerEntity[iEntity] = true; //Indicate reset of the OnUser triggers
 	}
 	
 	delete aWeaponsCommon;
