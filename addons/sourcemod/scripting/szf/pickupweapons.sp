@@ -168,19 +168,54 @@ void SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
 {
 	Weapon wep;
 	
+	TFClassType nClassFilter = GetWeaponClassFilter(iEntity);
+	
 	//If array is empty, fill it again with the weapon list
 	if (aWeapons.Length == 0)
 	{
 		delete aWeapons;
 		aWeapons = GetAllWeaponsWithRarity(iWepRarity);
 	}
-	
-	int iRandom = GetRandomInt(0, aWeapons.Length - 1);
-	
-	aWeapons.GetArray(iRandom, wep);
-	SetWeaponModel(iEntity, wep);
-	//This weapon is no longer in the pool
-	aWeapons.Erase(iRandom);
+	//filter if class specific
+	if (nClassFilter == TFClass_Unknown)
+	{
+		int iRandom = GetRandomInt(0, aWeapons.Length - 1);
+		
+		aWeapons.GetArray(iRandom, wep);
+		SetWeaponModel(iEntity, wep);
+		//This weapon is no longer in the pool
+		aWeapons.Erase(iRandom);
+		
+		return;
+	}
+	else
+	{
+		ArrayList aLocalList = new ArrayList(sizeof(Weapon));
+		
+		for (int i = 0; i < aWeapons.Length; i++)
+		{
+			aWeapons.GetArray(i, wep);
+			int iSlot = TF2_GetItemSlot(wep.iIndex, nClassFilter);
+			if (iSlot >= 0)
+				aLocalList.PushArray(wep);
+		}
+		//If array empty, pick random weapon
+		if (aLocalList.Length == 0)
+		{
+			SetRandomWeapon(iEntity, iWepRarity);
+			return;
+		}
+		
+		int iRandom = GetRandomInt(0, aLocalList.Length - 1);
+		
+		aLocalList.GetArray(iRandom, wep);
+		SetWeaponModel(iEntity, wep);
+		//This weapon is no longer in the pool in the global array
+		int arrayIndex = aWeapons.FindValue(wep.iIndex);
+		aWeapons.Erase(arrayIndex);
+		
+		return;
+	}
 }
 
 bool AttemptGrabItem(int iClient)
@@ -496,6 +531,21 @@ WeaponType GetWeaponType(int iEntity)
 	return WeaponType_Invalid;
 }
 
+TFClassType GetWeaponClassFilter(int iEntity)
+{
+	TFClassType nClass = TFClass_Unknown;
+	char sName[255];
+	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
+	for (int i = 0; i < sizeof(g_sClassNames); i++)
+	{
+		if (StrContains(sName, g_sClassNames[i], false) != -1)
+		{
+			nClass = view_as<TFClassType>(i);
+		}
+	}
+	return nClass;
+}
+
 bool IsSpawnWeapon(WeaponType iWepType)
 {
 	if (iWepType == WeaponType_Spawn || iWepType == WeaponType_RareSpawn || iWepType == WeaponType_StaticSpawn || iWepType == WeaponType_UncommonSpawn)
@@ -515,7 +565,10 @@ void SetRandomPickup(int iEntity)
 
 void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 {
-	ArrayList aList = GetAllWeaponsWithRarity(nRarity);
+	//Check if the weapon has a filter
+	TFClassType nClassFilter = GetWeaponClassFilter(iEntity);
+	
+	ArrayList aList = GetAllWeaponsWithRarity(nRarity, nClassFilter);
 	int iRandom = GetRandomInt(0, aList.Length - 1);
 	
 	Weapon wep;
