@@ -292,7 +292,6 @@ Cookie g_cForceZombieStart;
 //Global State
 bool g_bEnabled;
 bool g_bNewFullRound;
-bool g_bFirstRound = true;
 bool g_bLastSurvivor;
 bool g_bTF2Items;
 bool g_bGiveNamedItemSkip;
@@ -447,7 +446,6 @@ public void OnPluginStart()
 	LoadTranslations("superzombiefortress.phrases");
 	
 	//Initialize global state
-	g_bFirstRound = true;
 	g_bSurvival = false;
 	g_bNoMusic = false;
 	g_bNoDirectorTanks = false;
@@ -783,8 +781,6 @@ void EndGracePeriod()
 	g_flTimeProgress = 0.0;
 	g_hTimerProgress = CreateTimer(6.0, Timer_Progress, _, TIMER_REPEAT);
 	
-	g_bFirstRound = false;
-
 	float flGameTime = GetGameTime();
 	g_flTankCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before tank spawns will be considered
 	g_flSelectSpecialCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before select special will be considered
@@ -1255,7 +1251,6 @@ void Handle_HoardeBonus()
 
 void SZFEnable()
 {
-	g_bFirstRound = true;
 	g_bSurvival = false;
 	g_bNoMusic = false;
 	g_bNoDirectorTanks = false;
@@ -1328,7 +1323,6 @@ void SZFEnable()
 
 void SZFDisable()
 {
-	g_bFirstRound = false;
 	g_bSurvival = false;
 	g_bNoMusic = false;
 	g_bNoDirectorTanks = false;
@@ -1425,11 +1419,10 @@ void CheckZombieBypass(int iClient)
 	int iSurvivors = GetSurvivorCount();
 	int iZombies = GetZombieCount();
 	
-	//5 Checks
+	//4 Checks
 	if ((g_flTimeStartAsZombie[iClient] != 0.0)						//Check if client is currently playing as zombie (if it 0.0, it means he have not played as zombie yet this round)
 		&& (g_flTimeStartAsZombie[iClient] > GetGameTime() - 90.0)	//Check if client have been playing zombie less than 90 seconds
 		&& (float(iZombies) / float(iSurvivors + iZombies) <= 0.6)	//Check if less than 60% of players is zombie
-		&& (!g_bFirstRound)											//Check if it not first round
 		&& (g_nRoundState != SZFRoundState_End))								//Check if round did not end or map changing
 	{
 		g_bForceZombieStart[iClient] = true;

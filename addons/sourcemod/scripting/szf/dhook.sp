@@ -438,7 +438,7 @@ public MRESReturn DHook_RoundRespawnPre()
 				g_bStartedAsZombie[iClient] = true;
 				g_flTimeStartAsZombie[iClient] = GetGameTime();
 			}
-			else if (g_bForceZombieStart[iClient] && !g_bFirstRound)
+			else if (g_bForceZombieStart[iClient])
 			{
 				//If they attempted to skip playing as zombie last time, force him to be in zombie team
 				CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}");
