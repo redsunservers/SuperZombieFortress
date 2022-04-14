@@ -16,9 +16,9 @@ enum WeaponType
 	WeaponType_UncommonSpawn,
 };
 
-static bool g_bCanPickup[TF_MAXPLAYERS] = false;
-static bool g_bTriggerEntity[2048] = true;
-static float g_flLastCallout[TF_MAXPLAYERS] = 0.0;
+static bool g_bCanPickup[TF_MAXPLAYERS] = {false, ...};
+static bool g_bTriggerEntity[2048] = {true, ...};
+static float g_flLastCallout[TF_MAXPLAYERS] = {0.0, ...};
 
 void Weapons_Init()
 {
@@ -40,7 +40,7 @@ void Weapons_ClientDisconnect(int iClient)
 public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	int iEntity = -1;
 	int iRare = g_iMaxRareWeapons;
@@ -147,12 +147,14 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	delete aWeaponsCommon;
 	delete aWeaponsUncommon;
 	delete aWeaponsRares;
+	
+	return Plugin_Continue;
 }
 
 public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	int iClient = GetClientOfUserId(event.GetInt("userid"));
 	
@@ -161,6 +163,8 @@ public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadca
 		g_bCanPickup[iClient] = true;
 		g_flLastCallout[iClient] = 0.0;
 	}
+	
+	return Plugin_Continue;
 }
 
 void SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
@@ -463,6 +467,8 @@ public Action Timer_ResetPickup(Handle timer, any iClient)
 {
 	if (IsValidClient(iClient))
 		g_bCanPickup[iClient] = true;
+	
+	return Plugin_Continue;
 }
 
 WeaponType GetWeaponType(int iEntity)

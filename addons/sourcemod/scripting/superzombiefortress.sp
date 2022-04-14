@@ -174,6 +174,8 @@ enum Infected
 	Infected_Smoker,
 	Infected_Spitter,
 	Infected_Jockey,
+
+	Infected_Count
 }
 
 enum struct WeaponClasses
@@ -258,7 +260,7 @@ TFClassType g_iClassDisplay[] = {
 	TFClass_Spy,
 };
 
-char g_sClassNames[view_as<int>(TFClassType)][] = {
+char g_sClassNames[view_as<int>(TFClass_Engineer) + 1][] = {
 	"",
 	"Scout",
 	"Sniper",
@@ -271,7 +273,7 @@ char g_sClassNames[view_as<int>(TFClassType)][] = {
 	"Engineer",
 };
 
-char g_sInfectedNames[view_as<int>(Infected)][] = {
+char g_sInfectedNames[Infected_Count][] = {
 	"None",
 	"Tank",
 	"Boomer",
@@ -359,8 +361,8 @@ float g_flTimeProgress;
 float g_flTankCooldown;
 float g_flRageCooldown;
 float g_flRageRespawnStress;
-float g_flInfectedCooldown[view_as<int>(Infected)];	//GameTime
-int g_iInfectedCooldown[view_as<int>(Infected)];	//Client who started the cooldown
+float g_flInfectedCooldown[Infected_Count];	//GameTime
+int g_iInfectedCooldown[Infected_Count];	//Client who started the cooldown
 float g_flSelectSpecialCooldown;
 int g_iStartSurvivors;
 
@@ -371,7 +373,7 @@ bool g_bZombieRageAllowRespawn;
 bool g_bSpawnAsSpecialInfected[TF_MAXPLAYERS];
 int g_iKillsThisLife[TF_MAXPLAYERS];
 int g_iMaxHealth[TF_MAXPLAYERS];
-bool g_bShouldBacteriaPlay[TF_MAXPLAYERS] = true;
+bool g_bShouldBacteriaPlay[TF_MAXPLAYERS] = {true, ...};
 bool g_bReplaceRageWithSpecialInfectedSpawn[TF_MAXPLAYERS];
 float g_flTimeStartAsZombie[TF_MAXPLAYERS];
 bool g_bForceZombieStart[TF_MAXPLAYERS];
@@ -435,6 +437,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	Native_AskLoad();
 	
 	RegPluginLibrary("superzombiefortress");
+	
+	return APLRes_Success;
 }
 
 public void OnPluginStart()
@@ -814,7 +818,7 @@ public void Frame_PostGracePeriodSpawn(int iClient)
 public Action Timer_Main(Handle hTimer) //1 second
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	Handle_SurvivorAbilities();
 	Handle_ZombieAbilities();
@@ -857,6 +861,8 @@ public Action Timer_Main(Handle hTimer) //1 second
 			}
 		}
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action Timer_MoraleDecay(Handle hTimer) //Timer scales based on how many zombies, slow if low zombies, fast if high zombies
@@ -958,6 +964,8 @@ public Action Timer_GraceStartPost(Handle hTimer)
 		Sound_PlayMusicToTeam(TFTeam_Survivor, "start");
 	else
 		Sound_PlayMusicToTeam(TFTeam_Survivor, "saferoom");
+	
+	return Plugin_Continue;
 }
 
 public Action Timer_GraceEnd(Handle hTimer)
@@ -1514,7 +1522,7 @@ void UpdateZombieDamageScale()
 	
 	//Post-calculation
 	if (g_flZombieDamageScale < 1.0)
-		g_flZombieDamageScale *= g_flZombieDamageScale;
+		g_flZombieDamageScale = g_flZombieDamageScale * g_flZombieDamageScale; // TODO: Compiler bug in 1.11 doesn't allow us to use g_flZombieDamageScale *= g_flZombieDamageScale;
 	
 	if (g_flZombieDamageScale < 0.33)
 		g_flZombieDamageScale = 0.33;
@@ -1568,6 +1576,8 @@ public Action Timer_RespawnPlayer(Handle hTimer, int iClient)
 {
 	if (IsClientInGame(iClient) && !IsPlayerAlive(iClient))
 		TF2_RespawnPlayer2(iClient);
+	
+	return Plugin_Continue;
 }
 
 void CheckLastSurvivor(int iIgnoredClient = 0)
@@ -1637,6 +1647,8 @@ public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, 
 	{
 		Sound_PlayMusicToAll("laststand");
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action OnCounterValue(const char[] sOutput, int iCaller, int iActivator, float flDelay)
@@ -1653,9 +1665,11 @@ public Action OnCounterValue(const char[] sOutput, int iCaller, int iActivator, 
 		iOffset = FindDataMapInfo(iCaller, "m_OutValue");
 		g_flCapScale = GetEntDataFloat(iCaller, iOffset);
 	}
+	
+	return Plugin_Continue;
 }
 
-int ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
+void ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 {
 	if (g_nRoundState != SZFRoundState_Active)
 		return;
@@ -1731,6 +1745,8 @@ public Action Timer_StopZombieRage(Handle hTimer)
 				CPrintToChat(iClient, "%t", "Frenzy_End", (IsZombie(iClient)) ? "{red}" : "{green}");
 	
 	FireRelay("FireUser2", "szf_zombierage", "szf_panic_event");
+	
+	return Plugin_Continue;
 }
 
 int FastRespawnNearby(int iClient, float flDistance, bool bMustBeInvisible = true)
@@ -2390,16 +2406,18 @@ public Action Timer_DisplayTutorialMessage(Handle hTimer, DataPack data)
 	data.ReadString(sDisplay, sizeof(sDisplay));
 	
 	if (!IsValidClient(iClient))
-		return;
+		return Plugin_Continue;
 	
 	SetHudTextParams(-1.0, 0.32, flDuration, 100, 100, 255, 128);
 	ShowHudText(iClient, 4, "%t", sDisplay);
+	
+	return Plugin_Continue;
 }
 
 public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fVelocity[3], float fAngles[3], int &iWeapon)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	if (IsValidLivingZombie(iClient))
 	{
@@ -2419,6 +2437,8 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 		iButtons &= ~IN_ATTACK;
 		iButtons &= ~IN_ATTACK2;
 	}
+	
+	return Plugin_Continue;
 }
 
 float SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, float flSlowdown = 0.5)
@@ -2458,13 +2478,15 @@ float SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, fl
 public Action RemoveBackstab(Handle hTimer, int iClient)
 {
 	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient))
-		return;
+		return Plugin_Continue;
 	
 	g_bBackstabbed[iClient] = false;
 	ClientCommand(iClient, "r_screenoverlay\"\"");
 	
 	TF2_RemoveCondition(iClient, TFCond_Dazed);
 	SDKCall_SetSpeed(iClient);
+	
+	return Plugin_Continue;
 }
 
 Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)

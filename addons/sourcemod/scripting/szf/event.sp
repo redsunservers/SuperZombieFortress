@@ -15,15 +15,17 @@ void Event_Init()
 public Action Event_SetupEnd(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	EndGracePeriod();
+	
+	return Plugin_Continue;
 }
 
 public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	//Prepare for a completely new round
 	TFTeam nTeam = view_as<TFTeam>(event.GetInt("team"));
@@ -38,16 +40,18 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	SetGlow();
 	UpdateZombieDamageScale();
 	g_bTankRefreshed = false;
+	
+	return Plugin_Continue;
 }
 
 public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	int iClient = GetClientOfUserId(event.GetInt("userid"));
 	if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
-		return;
+		return Plugin_Continue;
 	
 	//Reset overlay
 	ClientCommand(iClient, "r_screenoverlay\"\"");
@@ -57,7 +61,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		//Make sure max health hook is reset properly
 		g_iMaxHealth[iClient] = -1;
 		TF2_RespawnPlayer2(iClient);
-		return;
+		return Plugin_Continue;
 	}
 	
 	g_bBackstabbed[iClient] = false;
@@ -88,7 +92,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 			g_bSpawnAsSpecialInfected[iClient] = false;
 			
 			//Create list of all special infected to randomize, apart from tank and non-special infected
-			int iLength = view_as<int>(Infected) - 2;
+			int iLength = view_as<int>(Infected_Count) - 2;
 			Infected[] nSpecialInfected = new Infected[iLength];
 			for (int i = 0; i < iLength; i++)
 				nSpecialInfected[i] = view_as<Infected>(i + 2);
@@ -131,13 +135,13 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		if (g_nRoundState == SZFRoundState_Active)
 		{
 			SpawnClient(iClient, TFTeam_Zombie);
-			return;
+			return Plugin_Continue;
 		}
 		
 		if (!IsValidSurvivorClass(nClass))
 		{
 			TF2_RespawnPlayer2(iClient);
-			return;
+			return Plugin_Continue;
 		}
 		
 		HandleSurvivorLoadout(iClient);
@@ -150,13 +154,13 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		{
 			TF2_SetPlayerClass(iClient, GetInfectedClass(g_nInfected[iClient]));
 			TF2_RespawnPlayer(iClient);
-			return;
+			return Plugin_Continue;
 		}
 		
 		if (!IsValidZombieClass(nClass))
 		{
 			TF2_RespawnPlayer2(iClient);
-			return;
+			return Plugin_Continue;
 		}
 		
 		if (g_nRoundState == SZFRoundState_Active)
@@ -205,12 +209,14 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 	}
 	
 	SetGlow();
+	
+	return Plugin_Continue;
 }
 
 public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	int iKillers[2];
 	int iVictim = GetClientOfUserId(event.GetInt("userid"));
@@ -324,7 +330,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	if (g_nRoundState != SZFRoundState_Active && g_nRoundState != SZFRoundState_End)
 	{
 		CreateTimer(0.1, Timer_RespawnPlayer, iVictim);
-		return;
+		return Plugin_Continue;
 	}
 	
 	//Handle survivor death logic, active round only.
@@ -429,12 +435,14 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	}
 	
 	SetGlow();
+	
+	return Plugin_Continue;
 }
 
 public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	int iVictim = GetClientOfUserId(event.GetInt("userid"));
 	int iAttacker = GetClientOfUserId(event.GetInt("attacker"));
@@ -448,12 +456,14 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 		if (IsValidZombie(iAttacker))
 			g_iDamageZombie[iAttacker] += iDamageAmount;
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	int iClient = GetClientOfUserId(event.GetInt("userid"));
 	int iEntity = event.GetInt("index");
@@ -468,12 +478,14 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 		}
 		SetEntProp(iEntity, Prop_Send, "m_bCarried", 1);	// Disable healing/ammo and upgrading
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action Event_ObjectDestoryed(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	int iKiller = event.GetInt("attacker");
 	if (iKiller != event.GetInt("userid"))
@@ -494,19 +506,21 @@ public Action Event_ObjectDestoryed(Event event, const char[] name, bool dontBro
 			}
 		}
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action Event_CPCapture(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	if (g_iControlPoints <= 0) 
-		return;
+		return Plugin_Continue;
 	
 	int iCaptureIndex = event.GetInt("cp");
 	if (iCaptureIndex < 0 || iCaptureIndex >= g_iControlPoints)
-		return;
+		return Plugin_Continue;
 	
 	for (int i = 0; i < g_iControlPoints; i++)
 	{
@@ -525,25 +539,29 @@ public Action Event_CPCapture(Event event, const char[] name, bool dontBroadcast
 	}
 	
 	CheckRemainingCP();
+	
+	return Plugin_Continue;
 }
 
 public Action Event_CPCaptureStart(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	if (g_iControlPoints <= 0)
-		return;
+		return Plugin_Continue;
 	
 	int iCaptureIndex = event.GetInt("cp");
 	if (iCaptureIndex < 0 || iCaptureIndex >= g_iControlPoints)
-		return;
+		return Plugin_Continue;
 	
 	for (int i = 0; i < g_iControlPoints; i++)
 		if (g_iControlPointsInfo[i][0] == iCaptureIndex)
 			g_iControlPointsInfo[i][1] = 1;
 	
 	CheckRemainingCP();
+	
+	return Plugin_Continue;
 }
 
 public Action Event_Broadcast(Event event, const char[] name, bool dontBroadcast)

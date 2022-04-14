@@ -46,10 +46,12 @@ enum SoundVo
 	SoundVo_Mumbling,
 	SoundVo_Shoved,
 	SoundVo_Death,
+
+	SoundVo_Count,
 }
 
 static StringMap g_mSoundMusic;
-static ArrayList g_aSoundVoInfected[view_as<int>(Infected)][view_as<int>(SoundVo)];
+static ArrayList g_aSoundVoInfected[Infected_Count][SoundVo_Count];
 
 static SoundFilepath g_SoundFilepath[TF_MAXPLAYERS];
 static SoundMusic g_SoundMusic[TF_MAXPLAYERS];
@@ -128,9 +130,9 @@ void Sound_Precache()
 		delete snapshot;
 	}
 	
-	for (Infected nInfected; nInfected < Infected; nInfected++)
+	for (Infected nInfected; nInfected < Infected_Count; nInfected++)
 	{
-		for (SoundVo nVoType; nVoType < SoundVo; nVoType++)
+		for (SoundVo nVoType; nVoType < SoundVo_Count; nVoType++)
 		{
 			if (g_aSoundVoInfected[nInfected][nVoType])
 			{
@@ -264,6 +266,8 @@ public Action Timer_EndMusic(Handle hTimer, int iSerial)
 	//Check if client current sound is still the same
 	if (g_hSoundMusicTimer[iClient] == hTimer)
 		Sound_EndMusic(iClient);
+	
+	return Plugin_Continue;
 }
 
 void Sound_EndMusic(int iClient)
