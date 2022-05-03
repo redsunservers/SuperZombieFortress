@@ -37,6 +37,8 @@ public Action Client_Touch(int iClient, int iToucher)
 		Call_PushCell(iToucher);
 		Call_Finish();
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
@@ -271,10 +273,12 @@ public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
 {
 	int iEntity = EntRefToEntIndex(iRef);
 	if (!IsValidEntity(iEntity))
-		return;
+		return Plugin_Continue;
 	
 	SDKUnhook(iEntity, SDKHook_Touch, Pickup_BlockTouch);
 	SDKHook(iEntity, SDKHook_Touch, Pickup_SandvichTouch);
+	
+	return Plugin_Continue;
 }
 
 public Action Pickup_SandvichTouch(int iEntity, int iToucher)

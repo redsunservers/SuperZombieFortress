@@ -363,7 +363,7 @@ public MRESReturn DHook_SetWinningTeamPre(DHookParam hParams)
 public MRESReturn DHook_RoundRespawnPre()
 {
 	if (g_nRoundState == SZFRoundState_Setup)
-		return;
+		return MRES_Ignored;
 	
 	DetermineControlPoints();
 	
@@ -382,7 +382,7 @@ public MRESReturn DHook_RoundRespawnPre()
 		g_flDamageDealtAgainstTank[iClient] = 0.0;
 	}
 	
-	for (int i = 0; i < view_as<int>(Infected); i++)
+	for (int i = 0; i < view_as<int>(Infected_Count); i++)
 	{
 		g_flInfectedCooldown[i] = 0.0;
 		g_iInfectedCooldown[i] = 0;
@@ -438,7 +438,7 @@ public MRESReturn DHook_RoundRespawnPre()
 				g_bStartedAsZombie[iClient] = true;
 				g_flTimeStartAsZombie[iClient] = GetGameTime();
 			}
-			else if (g_bForceZombieStart[iClient] && !g_bFirstRound)
+			else if (g_bForceZombieStart[iClient])
 			{
 				//If they attempted to skip playing as zombie last time, force him to be in zombie team
 				CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}");
@@ -510,6 +510,8 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	SetGlow();
 	UpdateZombieDamageScale();
+	
+	return MRES_Ignored;
 }
 
 public MRESReturn DHook_GetCaptureValueForPlayerPost(DHookReturn hReturn, DHookParam hParams)

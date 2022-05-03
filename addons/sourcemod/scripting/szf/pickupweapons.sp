@@ -16,9 +16,9 @@ enum WeaponType
 	WeaponType_UncommonSpawn,
 };
 
-static bool g_bCanPickup[TF_MAXPLAYERS] = false;
-static bool g_bTriggerEntity[2048];
-static float g_flLastCallout[TF_MAXPLAYERS] = 0.0;
+static bool g_bCanPickup[TF_MAXPLAYERS] = {false, ...};
+static bool g_bTriggerEntity[2048] = {true, ...};
+static float g_flLastCallout[TF_MAXPLAYERS] = {0.0, ...};
 
 void Weapons_Init()
 {
@@ -40,12 +40,10 @@ void Weapons_ClientDisconnect(int iClient)
 public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	int iEntity = -1;
 	int iRare = g_iMaxRareWeapons;
-	bool bTriggerEntity[2048] = true;
-	g_bTriggerEntity = bTriggerEntity;
 	
 	ArrayList aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
 	ArrayList aWeaponsUncommon = GetAllWeaponsWithRarity(WeaponRarity_Uncommon);
@@ -143,17 +141,20 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 		flPosition[2] += 0.8;
 		TeleportEntity(iEntity, flPosition, NULL_VECTOR, NULL_VECTOR);
 		
+		g_bTriggerEntity[iEntity] = true; //Indicate reset of the OnUser triggers
 	}
 	
 	delete aWeaponsCommon;
 	delete aWeaponsUncommon;
 	delete aWeaponsRares;
+	
+	return Plugin_Continue;
 }
 
 public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_bEnabled)
-		return;
+		return Plugin_Continue;
 	
 	int iClient = GetClientOfUserId(event.GetInt("userid"));
 	
@@ -162,12 +163,13 @@ public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadca
 		g_bCanPickup[iClient] = true;
 		g_flLastCallout[iClient] = 0.0;
 	}
+	
+	return Plugin_Continue;
 }
 
 void SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
 {
 	Weapon wep;
-	
 	TFClassType nClassFilter = GetWeaponClassFilter(iEntity);
 	
 	//If array is empty, fill it again with the weapon list
@@ -499,6 +501,8 @@ public Action Timer_ResetPickup(Handle timer, any iClient)
 {
 	if (IsValidClient(iClient))
 		g_bCanPickup[iClient] = true;
+	
+	return Plugin_Continue;
 }
 
 WeaponType GetWeaponType(int iEntity)

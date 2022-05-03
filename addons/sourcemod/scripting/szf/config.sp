@@ -169,10 +169,10 @@ ArrayList Config_LoadWeaponData()
 				}
 				
 				kv.GetString("callback_pickup", sBuffer, sizeof(sBuffer));
-				wep.pickupCallback = view_as<Weapon_OnPickup>(GetFunctionByName(null, sBuffer));
+				wep.pickupCallback = GetFunctionByName(null, sBuffer);
 				
 				kv.GetString("callback_spawn", sBuffer, sizeof(sBuffer));
-				wep.spawnCallback = view_as<Weapon_OnSpawn>(GetFunctionByName(null, sBuffer));
+				wep.spawnCallback = GetFunctionByName(null, sBuffer);
 				
 				int iColor[4];
 				kv.GetColor4("color", iColor);
@@ -421,7 +421,7 @@ StringMap Config_LoadMusic(KeyValues kv)
 	return mMusics;
 }
 
-void Config_LoadInfectedVo(KeyValues kv, ArrayList aSoundVo[view_as<int>(Infected)][view_as<int>(SoundVo)])
+void Config_LoadInfectedVo(KeyValues kv, ArrayList aSoundVo[Infected_Count][SoundVo_Count])
 {
 	if (kv.GotoFirstSubKey(false))
 	{

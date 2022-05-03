@@ -778,9 +778,11 @@ public Action Infected_SpitterTimer(Handle hTimer, int iSerial)
 {
 	int iClient = GetClientFromSerial(iSerial);
 	if (!IsValidLivingZombie(iClient) || g_nInfected[iClient] != Infected_Spitter)
-		return;
+		return Plugin_Continue;
 	
 	SetEntityMoveType(iClient, MOVETYPE_WALK);
+	
+	return Plugin_Continue;
 }
 
 ////////////////

@@ -50,6 +50,8 @@ public int Menu_SelectMain(Menu hMenu, MenuAction action, int iClient, int iSele
 			delete hMenu;
 		}
 	}
+	
+	return 0;
 }
 
 void Menu_DisplayInfo(int iClient, const char[] sTitle, const char[] sInfo)
@@ -84,6 +86,8 @@ public int Menu_SelectInfo(Menu hMenu, MenuAction action, int iClient, int iSele
 			delete hMenu;
 		}
 	}
+	
+	return 0;
 }
 
 void Menu_DisplayClasses(int iClient, const char[] sTitle, MenuSelect nSelect)
@@ -152,6 +156,8 @@ public int Menu_SelectClasses(Menu hMenu, MenuAction action, int iClient, int iS
 			delete hMenu;
 		}
 	}
+	
+	return 0;
 }
 
 void Menu_DisplayClassesInfo(int iClient, const char[] sTitle, const char[] sClass, const char[] sInfo, MenuSelect nSelect)
@@ -193,6 +199,8 @@ public int Menu_SelectClassesInfo(Menu hMenu, MenuAction action, int iClient, in
 			delete hMenu;
 		}
 	}
+	
+	return 0;
 }
 
 void Menu_SetTitleTranslation(Menu hMenu, const char[] sTranslation, int iClient)

@@ -5,7 +5,7 @@ typedef Weapon_OnPickup = function bool (int client); //Return false to prevent 
 typedef Weapon_OnSpawn = function void (int entity);
 
 static ArrayList g_Weapons;
-static ArrayList g_WepIndexesByRarity[view_as<int>(WeaponRarity)]; //Array indexes of g_Weapons array
+static ArrayList g_WepIndexesByRarity[WeaponRarity_Count]; //Array indexes of g_Weapons array
 static StringMap g_WeaponsReskin;
 
 enum struct Weapon
@@ -16,14 +16,14 @@ enum struct Weapon
 	int iSkin;
 	char sSound[PLATFORM_MAX_PATH];
 	char sAttribs[256];
-	ArrayList aClassSpecific[view_as<int>(TFClassType)];
+	ArrayList aClassSpecific[view_as<int>(TFClass_Engineer) + 1];
 	int iColor[3];
 	float flHeightOffset;
 	float vecAnglesOffset[3];
 	float vecAnglesConst[3];
 	bool bAnglesConst[3];
-	Weapon_OnPickup pickupCallback;
-	Weapon_OnSpawn spawnCallback;
+	Function pickupCallback;
+	Function spawnCallback;
 }
 
 void Weapons_Refresh()
@@ -36,7 +36,7 @@ void Weapons_Refresh()
 			Weapon wep;
 			g_Weapons.GetArray(i, wep);
 			
-			for (TFClassType iClass; iClass < TFClassType; iClass++)
+			for (int iClass; iClass < view_as<int>(TFClass_Engineer) + 1; iClass++)
 				delete wep.aClassSpecific[iClass];
 		}
 		
@@ -52,7 +52,7 @@ void Weapons_Refresh()
 	g_WeaponsReskin = Config_LoadWeaponReskinData();
 	
 	int iLength = g_Weapons.Length;
-	for (int i = 0; i < view_as<int>(WeaponRarity); i++)
+	for (int i = 0; i < view_as<int>(WeaponRarity_Count); i++)
 	{
 		g_WepIndexesByRarity[i] = new ArrayList();
 		
@@ -232,4 +232,6 @@ public Action Weapons_PickupTouch(const char[] sOutput, int iCaller, int iActiva
 	}
 
 	RemoveEntity(iCaller);
+
+	return Plugin_Continue;
 }

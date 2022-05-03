@@ -168,7 +168,7 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 		}
 		
 		//It's invalid, then display which classes the player can choose
-		for (int i = 1; i < view_as<int>(TFClassType); i++)
+		for (int i = 1; i < view_as<int>(TFClass_Engineer) + 1; i++)
 		{
 			if (IsValidZombieClass(view_as<TFClassType>(i)))
 			{
@@ -203,7 +203,7 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 		}
 		
 		//It's invalid, then display which classes the player can choose
-		for (int i = 1; i < view_as<int>(TFClassType); i++)
+		for (int i = 1; i < view_as<int>(TFClass_Engineer) + 1; i++)
 		{
 			if (IsValidSurvivorClass(view_as<TFClassType>(i)))
 			{

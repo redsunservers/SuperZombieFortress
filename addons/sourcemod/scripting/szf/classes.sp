@@ -1,17 +1,17 @@
 #define CONFIG_CLASSES       "configs/szf/classes.cfg"
 
-static TFClassType g_nSurvivorClass[view_as<int>(TFClassType)];
-static TFClassType g_nZombieClass[view_as<int>(TFClassType)];
-static Infected g_nInfectedClass[view_as<int>(Infected)];
+static TFClassType g_nSurvivorClass[view_as<int>(TFClass_Engineer) + 1];
+static TFClassType g_nZombieClass[view_as<int>(TFClass_Engineer) + 1];
+static Infected g_nInfectedClass[Infected_Count];
 
 static int g_iSurvivorClassCount;
 static int g_iZombieClassCount;
 static int g_iInfectedClassCount;
 
 static ClientClasses g_DefaultClasses;
-static ClientClasses g_SurvivorClasses[view_as<int>(TFClassType)];
-static ClientClasses g_ZombieClasses[view_as<int>(TFClassType)];
-static ClientClasses g_InfectedClasses[view_as<int>(Infected)];
+static ClientClasses g_SurvivorClasses[view_as<int>(TFClass_Engineer) + 1];
+static ClientClasses g_ZombieClasses[view_as<int>(TFClass_Engineer) + 1];
+static ClientClasses g_InfectedClasses[Infected_Count];
 
 void Classes_Refresh()
 {
@@ -92,7 +92,7 @@ void Classes_Refresh()
 			Classes_SetClient(iClient);
 }
 
-bool Classes_LoadTeam(KeyValues kv, const char[] sKey, ClientClasses classes[view_as<int>(TFClassType)])
+bool Classes_LoadTeam(KeyValues kv, const char[] sKey, ClientClasses classes[view_as<int>(TFClass_Engineer) + 1])
 {
 	if (!kv.JumpToKey(sKey, false))
 	{
@@ -144,7 +144,7 @@ bool Classes_LoadTeam(KeyValues kv, const char[] sKey, ClientClasses classes[vie
 	return true;
 }
 
-bool Classes_LoadInfected(KeyValues kv, const char[] sKey, ClientClasses classes[view_as<int>(Infected)])
+bool Classes_LoadInfected(KeyValues kv, const char[] sKey, ClientClasses classes[Infected_Count])
 {
 	if (!kv.JumpToKey(sKey, false))
 	{
@@ -193,7 +193,7 @@ bool Classes_LoadInfected(KeyValues kv, const char[] sKey, ClientClasses classes
 
 void Classes_Precache()
 {
-	for (Infected nInfected; nInfected < Infected; nInfected++)
+	for (Infected nInfected; nInfected < Infected_Count; nInfected++)
 	{
 		if (g_InfectedClasses[nInfected].sWorldModel[0])
 		{
