@@ -660,84 +660,14 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 		
 	if (StrEqual(sClassname, "prop_dynamic") && g_nRoundState == SZFRoundState_Active)
 	{
-		RequestFrame(Frame_SetSpawnedWeapon, iEntity);
+		SDKHook(iEntity, SDKHook_SpawnPost, SDK_SetSpawnedWeapon);
 	}
 }
 
-public void Frame_SetSpawnedWeapon(int iWeapon)
+public Action SDK_SetSpawnedWeapon(int iWeapon)
 {
-	WeaponType nWeaponType = GetWeaponType(iWeapon);
-	
-	switch (nWeaponType)
-	{
-		case WeaponType_Spawn:
-		{
-			SetRandomWeapon(iWeapon, WeaponRarity_Common);
-		}
-		case WeaponType_Rare:
-		{
-			SetRandomWeapon(iWeapon, WeaponRarity_Rare);
-		}
-		case WeaponType_RareSpawn:
-		{
-			SetRandomWeapon(iWeapon, WeaponRarity_Rare);
-		}
-		case WeaponType_UncommonSpawn:
-		{
-			SetRandomWeapon(iWeapon, WeaponRarity_Uncommon);
-		}
-		case WeaponType_Common:
-		{
-			SetRandomWeapon(iWeapon, WeaponRarity_Common);
-		}
-		case WeaponType_Uncommon:
-		{
-			SetRandomWeapon(iWeapon, WeaponRarity_Uncommon);
-		}
-		case WeaponType_Default, WeaponType_DefaultNoPickup:
-		{
-			//Pick-ups
-			if (!GetRandomInt(0, 9) && nWeaponType != WeaponType_DefaultNoPickup)
-			{
-				SetRandomPickup(iWeapon);
-			}
-			//Else make it either common or uncommon weapon
-			else
-			{
-				int iCommon = GetRarityWeaponCount(WeaponRarity_Common);
-				int iUncommon = GetRarityWeaponCount(WeaponRarity_Uncommon);
-				
-				if (GetRandomInt(0, iCommon + iUncommon) < iCommon)
-					SetRandomWeapon(iWeapon, WeaponRarity_Common);
-				else
-					SetRandomWeapon(iWeapon, WeaponRarity_Uncommon);
-			}
-		}
-		case WeaponType_Static, WeaponType_StaticSpawn:
-		{
-			//Check if there reskin weapons to replace
-			char sModel[256];
-			GetEntPropString(iWeapon, Prop_Data, "m_ModelName", sModel, sizeof(sModel));
-			int iIndex = GetReskinIndex(sModel);
-			
-			if (iIndex >= 0)
-				Weapons_ReplaceEntityModel(iWeapon, iIndex);
-		}
-		default:	//Not a SZF weapon
-		{
-			return;
-		}
-	}
-	
-	SetEntProp(iWeapon, Prop_Send, "m_CollisionGroup", 2);
-	AcceptEntityInput(iWeapon, "DisableShadow");
-	AcceptEntityInput(iWeapon, "EnableCollision");
-	
-	//Relocate weapon to higher height, looks much better
-	float flPosition[3];
-	GetEntPropVector(iWeapon, Prop_Send, "m_vecOrigin", flPosition);
-	flPosition[2] += 0.8;
-	TeleportEntity(iWeapon, flPosition, NULL_VECTOR, NULL_VECTOR);
+	SetWeapon(iWeapon);
+	return Plugin_Continue;
 }
 
 public void TF2_OnWaitingForPlayersStart()
