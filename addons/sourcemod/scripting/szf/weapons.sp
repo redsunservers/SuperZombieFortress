@@ -5,7 +5,7 @@ typedef Weapon_OnPickup = function bool (int client); //Return false to prevent 
 typedef Weapon_OnSpawn = function void (int entity);
 
 static ArrayList g_Weapons;
-static ArrayList g_WepIndexesByRarity[WeaponRarity_Count]; //Array indexes of g_Weapons array
+static ArrayList g_WepIndexesByRarity[view_as<int>(WeaponRarity_Count)]; //Array indexes of g_Weapons array
 static StringMap g_WeaponsReskin;
 
 enum struct Weapon

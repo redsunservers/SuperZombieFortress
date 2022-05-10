@@ -421,7 +421,7 @@ StringMap Config_LoadMusic(KeyValues kv)
 	return mMusics;
 }
 
-void Config_LoadInfectedVo(KeyValues kv, ArrayList aSoundVo[Infected_Count][SoundVo_Count])
+void Config_LoadInfectedVo(KeyValues kv, ArrayList aSoundVo[view_as<int>(Infected_Count)][view_as<int>(SoundVo_Count)])
 {
 	if (kv.GotoFirstSubKey(false))
 	{

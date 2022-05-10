@@ -51,7 +51,7 @@ enum SoundVo
 }
 
 static StringMap g_mSoundMusic;
-static ArrayList g_aSoundVoInfected[Infected_Count][SoundVo_Count];
+static ArrayList g_aSoundVoInfected[view_as<int>(Infected_Count)][view_as<int>(SoundVo_Count)];
 
 static SoundFilepath g_SoundFilepath[TF_MAXPLAYERS];
 static SoundMusic g_SoundMusic[TF_MAXPLAYERS];

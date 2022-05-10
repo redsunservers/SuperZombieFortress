@@ -273,7 +273,7 @@ char g_sClassNames[view_as<int>(TFClass_Engineer) + 1][] = {
 	"Engineer",
 };
 
-char g_sInfectedNames[Infected_Count][] = {
+char g_sInfectedNames[view_as<int>(Infected_Count)][] = {
 	"None",
 	"Tank",
 	"Boomer",
@@ -361,8 +361,8 @@ float g_flTimeProgress;
 float g_flTankCooldown;
 float g_flRageCooldown;
 float g_flRageRespawnStress;
-float g_flInfectedCooldown[Infected_Count];	//GameTime
-int g_iInfectedCooldown[Infected_Count];	//Client who started the cooldown
+float g_flInfectedCooldown[view_as<int>(Infected_Count)];	//GameTime
+int g_iInfectedCooldown[view_as<int>(Infected_Count)];	//Client who started the cooldown
 float g_flSelectSpecialCooldown;
 int g_iStartSurvivors;
 
