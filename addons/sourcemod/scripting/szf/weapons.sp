@@ -125,7 +125,7 @@ void GetWeaponFromIndex(Weapon buffer, int iIndex)
 	}
 }
 
-ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity)
+ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, TFClassType nFilter = TFClass_Unknown)
 {
 	ArrayList aList = new ArrayList(sizeof(Weapon));
 	
@@ -135,7 +135,16 @@ ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity)
 		Weapon wep;
 		g_Weapons.GetArray(g_WepIndexesByRarity[iRarity].Get(i), wep);
 		
-		aList.PushArray(wep);
+		if (nFilter == TFClass_Unknown)
+		{
+			aList.PushArray(wep);
+		}
+		else
+		{
+			int iSlot = TF2_GetItemSlot(wep.iIndex, nFilter);
+			if (iSlot >= 0)
+				aList.PushArray(wep);
+		}
 	}
 	
 	return aList;

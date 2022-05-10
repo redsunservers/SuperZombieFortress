@@ -1,6 +1,10 @@
 void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 {
-	if (StrContains(sClassname, "item_healthkit") == 0 || StrContains(sClassname, "item_ammopack") == 0 || StrEqual(sClassname, "tf_ammo_pack"))
+	if (StrEqual(sClassname, "prop_dynamic") && g_nRoundState == SZFRoundState_Active)
+	{
+		SDKHook(iEntity, SDKHook_SpawnPost, Prop_SetSpawnedWeapon);
+	}
+	else if (StrContains(sClassname, "item_healthkit") == 0 || StrContains(sClassname, "item_ammopack") == 0 || StrEqual(sClassname, "tf_ammo_pack"))
 	{
 		SDKHook(iEntity, SDKHook_SpawnPost, Pickup_SpawnPost);
 	}
@@ -220,6 +224,12 @@ public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
 		return Plugin_Changed;
 	}
 	
+	return Plugin_Continue;
+}
+
+public Action Prop_SetSpawnedWeapon(int iWeapon)
+{
+	SetWeapon(iWeapon);
 	return Plugin_Continue;
 }
 
