@@ -2,7 +2,7 @@
 
 static TFClassType g_nSurvivorClass[view_as<int>(TFClass_Engineer) + 1];
 static TFClassType g_nZombieClass[view_as<int>(TFClass_Engineer) + 1];
-static Infected g_nInfectedClass[Infected_Count];
+static Infected g_nInfectedClass[view_as<int>(Infected_Count)];
 
 static int g_iSurvivorClassCount;
 static int g_iZombieClassCount;
@@ -11,7 +11,7 @@ static int g_iInfectedClassCount;
 static ClientClasses g_DefaultClasses;
 static ClientClasses g_SurvivorClasses[view_as<int>(TFClass_Engineer) + 1];
 static ClientClasses g_ZombieClasses[view_as<int>(TFClass_Engineer) + 1];
-static ClientClasses g_InfectedClasses[Infected_Count];
+static ClientClasses g_InfectedClasses[view_as<int>(Infected_Count)];
 
 void Classes_Refresh()
 {
@@ -144,7 +144,7 @@ bool Classes_LoadTeam(KeyValues kv, const char[] sKey, ClientClasses classes[vie
 	return true;
 }
 
-bool Classes_LoadInfected(KeyValues kv, const char[] sKey, ClientClasses classes[Infected_Count])
+bool Classes_LoadInfected(KeyValues kv, const char[] sKey, ClientClasses classes[view_as<int>(Infected_Count)])
 {
 	if (!kv.JumpToKey(sKey, false))
 	{
