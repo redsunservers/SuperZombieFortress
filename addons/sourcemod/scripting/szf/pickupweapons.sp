@@ -20,9 +20,9 @@ static bool g_bCanPickup[TF_MAXPLAYERS] = {false, ...};
 static bool g_bTriggerEntity[2048] = {true, ...};
 static float g_flLastCallout[TF_MAXPLAYERS] = {0.0, ...};
 static int g_iAvailableRareCount;
-static ArrayList aWeaponsCommon;
-static ArrayList aWeaponsUncommon;
-static ArrayList aWeaponsRares;
+static ArrayList g_aWeaponsCommon;
+static ArrayList g_aWeaponsUncommon;
+static ArrayList g_aWeaponsRares;
 
 void Weapons_Init()
 {
@@ -49,14 +49,16 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	int iEntity = -1;
 	g_iAvailableRareCount = g_iMaxRareWeapons;
 	
-	aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
-	aWeaponsUncommon = GetAllWeaponsWithRarity(WeaponRarity_Uncommon);
-	aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
+	delete g_aWeaponsCommon;
+	delete g_aWeaponsUncommon;
+	delete g_aWeaponsRares;
+	
+	g_aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
+	g_aWeaponsUncommon = GetAllWeaponsWithRarity(WeaponRarity_Uncommon);
+	g_aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
 	
 	while ((iEntity = FindEntityByClassname(iEntity, "prop_dynamic")) != -1)
-	{
 		SetWeapon(iEntity);
-	}
 	
 	return Plugin_Continue;
 }
@@ -69,14 +71,14 @@ public void SetWeapon(int iEntity)
 	{
 		case WeaponType_Spawn:
 		{
-			SetUniqueWeapon(iEntity, aWeaponsCommon, WeaponRarity_Common);
+			SetUniqueWeapon(iEntity, g_aWeaponsCommon, WeaponRarity_Common);
 		}
 		case WeaponType_Rare:
 		{
 			//If rare weapon cap is unreached, make it a "rare" weapon
 			if (g_iAvailableRareCount > 0)
 			{
-				SetUniqueWeapon(iEntity, aWeaponsRares, WeaponRarity_Rare);
+				SetUniqueWeapon(iEntity, g_aWeaponsRares, WeaponRarity_Rare);
 				
 				g_iAvailableRareCount--;
 			}
@@ -88,11 +90,11 @@ public void SetWeapon(int iEntity)
 		}
 		case WeaponType_RareSpawn:
 		{
-			SetUniqueWeapon(iEntity, aWeaponsRares, WeaponRarity_Rare);
+			SetUniqueWeapon(iEntity, g_aWeaponsRares, WeaponRarity_Rare);
 		}
 		case WeaponType_UncommonSpawn:
 		{
-			SetUniqueWeapon(iEntity, aWeaponsUncommon, WeaponRarity_Uncommon);
+			SetUniqueWeapon(iEntity, g_aWeaponsUncommon, WeaponRarity_Uncommon);
 		}
 		case WeaponType_Common:
 		{
@@ -107,7 +109,7 @@ public void SetWeapon(int iEntity)
 			//If rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
 			if (g_iAvailableRareCount > 0 && !GetRandomInt(0, 5))
 			{
-				SetUniqueWeapon(iEntity, aWeaponsRares, WeaponRarity_Rare);
+				SetUniqueWeapon(iEntity, g_aWeaponsRares, WeaponRarity_Rare);
 				g_iAvailableRareCount--;
 			}
 			//Pick-ups
@@ -537,17 +539,14 @@ WeaponType GetWeaponType(int iEntity)
 
 TFClassType GetWeaponClassFilter(int iEntity)
 {
-	TFClassType nClass = TFClass_Unknown;
 	char sName[255];
 	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
+	
 	for (int i = 0; i < sizeof(g_sClassNames); i++)
-	{
 		if (StrContains(sName, g_sClassNames[i], false) != -1)
-		{
-			nClass = view_as<TFClassType>(i);
-		}
-	}
-	return nClass;
+			return view_as<TFClassType>(i);
+	
+	return TFClass_Unknown;
 }
 
 bool IsSpawnWeapon(WeaponType iWepType)

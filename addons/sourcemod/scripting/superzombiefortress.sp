@@ -657,17 +657,6 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	
 	if (StrEqual(sClassname, "tf_dropped_weapon") || StrEqual(sClassname, "item_powerup_rune"))	//Never allow dropped weapon and rune dropped from survivors
 		RemoveEntity(iEntity);
-		
-	if (StrEqual(sClassname, "prop_dynamic") && g_nRoundState == SZFRoundState_Active)
-	{
-		SDKHook(iEntity, SDKHook_SpawnPost, SDK_SetSpawnedWeapon);
-	}
-}
-
-public Action SDK_SetSpawnedWeapon(int iWeapon)
-{
-	SetWeapon(iWeapon);
-	return Plugin_Continue;
 }
 
 public void TF2_OnWaitingForPlayersStart()
