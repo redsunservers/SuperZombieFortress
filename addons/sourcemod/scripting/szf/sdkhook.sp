@@ -11,6 +11,7 @@ void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 	else if (StrEqual(sClassname, "tf_gas_manager"))
 	{
 		SDKHook(iEntity, SDKHook_Touch, GasManager_Touch);
+		SDKHook(iEntity, SDKHook_EndTouch, GasManager_EndTouch);
 	}
 	else if (StrEqual(sClassname, "trigger_capture_area"))
 	{
@@ -327,13 +328,27 @@ public Action GasManager_Touch(int iGasManager, int iClient)
 			int iOwner = GetEntPropEnt(iGasManager, Prop_Send, "m_hOwnerEntity");
 			
 			if (GetClientTeam(iClient) != GetClientTeam(iOwner))
-			{
 				TF2_MakeBleed(iClient, iOwner, 0.5);
-				TF2_StunPlayer(iClient, 0.5, 0.5, TF_STUNFLAG_SLOWDOWN);
-			}
 		}
 		
 		return Plugin_Handled;
+	}
+	
+	return Plugin_Continue;
+}
+
+public Action GasManager_EndTouch(int iGasManager, int iClient)
+{
+	if (IsValidSurvivor(iClient))
+	{
+		//Add 5 extra secs of bleed after leaving
+		int iOwner = GetEntPropEnt(iGasManager, Prop_Send, "m_hOwnerEntity");
+		
+		if (GetClientTeam(iClient) != GetClientTeam(iOwner))
+		{
+			TF2_RemoveCondition(iClient, TFCond_Bleeding);
+			TF2_MakeBleed(iClient, iOwner, 5.0);
+		}
 	}
 	
 	return Plugin_Continue;

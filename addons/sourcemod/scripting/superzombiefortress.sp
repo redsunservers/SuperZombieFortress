@@ -1020,7 +1020,7 @@ void Handle_SurvivorAbilities()
 			//1. Survivor health regeneration.
 			int iHealth = GetClientHealth(iClient);
 			int iMaxHealth = SDKCall_GetMaxHealth(iClient);
-			if (iHealth < iMaxHealth)
+			if (iHealth < iMaxHealth && !TF2_IsPlayerInCondition(iClient, TFCond_Bleeding))	// No regen while in spitter bleed
 			{
 				int iRegen = g_ClientClasses[iClient].iRegen;
 				

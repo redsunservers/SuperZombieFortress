@@ -731,8 +731,7 @@ public void Infected_DoSpitterGas(int iClient)
 	SDKCall_PlaySpecificSequence(iClient, "spitter_spitting");
 	ViewModel_SetAnimation(iClient, "spit");
 	
-	SetEntityMoveType(iClient, MOVETYPE_NONE);
-	CreateTimer(2.0, Infected_SpitterTimer, GetClientSerial(iClient));
+	TF2_AddCondition(iClient, TFCond_FreezeInput, 1.0);
 	
 	int iGas = TF2_GetItemInSlot(iClient, WeaponSlot_Secondary);
 	if (iGas > MaxClients)
@@ -769,17 +768,6 @@ public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
 			TeleportEntity(iGas, vecOrigin, vecAngles, NULL_VECTOR);
 		}
 	}
-}
-
-public Action Infected_SpitterTimer(Handle hTimer, int iSerial)
-{
-	int iClient = GetClientFromSerial(iSerial);
-	if (!IsValidLivingZombie(iClient) || g_nInfected[iClient] != Infected_Spitter)
-		return Plugin_Continue;
-	
-	SetEntityMoveType(iClient, MOVETYPE_WALK);
-	
-	return Plugin_Continue;
 }
 
 ////////////////
