@@ -104,17 +104,15 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 					return Plugin_Continue;
 				
 				if (Stun_StartPlayer(iVictim))
-				{
-					if (g_nInfected[iAttacker] == Infected_Stalker)
-						SetEntityHealth(iVictim, GetClientHealth(iVictim) - 50);
-					else
-						SetEntityHealth(iVictim, GetClientHealth(iVictim) - 20);
-					
 					Forward_OnBackstab(iVictim, iAttacker);
-					
-					flDamage = 1.0;
-					bChanged = true;
-				}
+				
+				if (g_nInfected[iAttacker] == Infected_Stalker)
+					SetEntityHealth(iVictim, GetClientHealth(iVictim) - 50);
+				else
+					SetEntityHealth(iVictim, GetClientHealth(iVictim) - 20);
+				
+				flDamage = 1.0;
+				bChanged = true;
 			}
 			
 			Sound_PlayInfectedVo(iAttacker, g_nInfected[iAttacker], SoundVo_Attack);
