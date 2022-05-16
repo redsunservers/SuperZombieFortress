@@ -314,7 +314,6 @@ int g_iSprite; //Smoker beam
 
 //Global Timer Handles
 Handle g_hTimerMain;
-Handle g_hTimerMoraleDecay;
 Handle g_hTimerMainSlow;
 Handle g_hTimerHoarde;
 Handle g_hTimerDataCollect;
@@ -859,30 +858,6 @@ public Action Timer_Main(Handle hTimer) //1 second
 	return Plugin_Continue;
 }
 
-public Action Timer_MoraleDecay(Handle hTimer) //Timer scales based on how many zombies, slow if low zombies, fast if high zombies
-{
-	if (!g_bEnabled)
-		return Plugin_Stop;
-	
-	AddMoraleAll(-1);
-	
-	float flTimer;
-	if (GetZombieCount() + GetSurvivorCount() != 0)
-	{
-		float flPercentage = (float(GetZombieCount()) / float(GetZombieCount() + GetSurvivorCount()));
-		flTimer = ((1.0 - flPercentage) * 5.0);	//Calculate timer to reduce morale, 5.0 sec if 0% zombies, min 0.5 sec if 90% zombies
-		
-		if (flTimer < 0.5)
-			flTimer = 0.5;
-	}
-	else
-		flTimer = 5.0;
-	
-	g_hTimerMoraleDecay = CreateTimer(flTimer, Timer_MoraleDecay);
-	
-	return Plugin_Continue;
-}
-
 public Action Timer_MainSlow(Handle hTimer) //4 mins
 {
 	if (!g_bEnabled)
@@ -1050,7 +1025,6 @@ void Handle_SurvivorAbilities()
 				int iRegen = g_ClientClasses[iClient].iRegen;
 				
 				if (TF2_GetPlayerClass(iClient) == TFClass_Medic && TF2_IsEquipped(iClient, 36)) iRegen--;
-				iRegen += (!g_bSurvival) ? RoundToFloor(fMin(GetMorale(iClient) * 0.166, 4.0)) : 1;
 				iRegen = min(iRegen, iMaxHealth - iHealth);
 				SetEntityHealth(iClient, iHealth + iRegen);
 				
@@ -1060,19 +1034,6 @@ void Handle_SurvivorAbilities()
 				event.FireToClient(iClient);
 				event.Cancel();
 			}
-			
-			//2. Handle survivor morale.
-			if (g_iMorale[iClient] > 100) SetMorale(iClient, 100);
-			int iMorale = GetMorale(iClient);
-			//Decrement morale bonus over time
-			
-			//2.1. Show morale on HUD
-			SetHudTextParams(0.18, 0.71, 1.0, 200 - (iMorale * 2), 255, 200 - (iMorale * 2), 255);
-			ShowHudText(iClient, 3, "%t", "Hud_Morale", iMorale);
-			
-			//2.2. Award buffs if high morale is detected
-			if (iMorale > 50)	//50: defense buff
-				TF2_AddCondition(iClient, TFCond_DefenseBuffed, 1.1);
 		}
 	}
 	
@@ -1310,9 +1271,6 @@ void SZFEnable()
 	delete g_hTimerMain;
 	g_hTimerMain = CreateTimer(1.0, Timer_Main, _, TIMER_REPEAT);
 	
-	delete g_hTimerMoraleDecay;
-	g_hTimerMoraleDecay = CreateTimer(1.0, Timer_MoraleDecay);	//Timer inside will call itself for loops
-	
 	delete g_hTimerMainSlow;
 	g_hTimerMainSlow = CreateTimer(240.0, Timer_MainSlow, _, TIMER_REPEAT);
 	
@@ -1353,7 +1311,6 @@ void SZFDisable()
 	
 	//Disable periodic timers.
 	delete g_hTimerMain;
-	delete g_hTimerMoraleDecay;
 	delete g_hTimerMainSlow;
 	delete g_hTimerHoarde;
 	delete g_hTimerDataCollect;
@@ -1597,7 +1554,6 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	SetEntityHealth(iLastSurvivor, SDKCall_GetMaxHealth(iLastSurvivor));
 	
 	g_bLastSurvivor = true;
-	SetMorale(iLastSurvivor, 100);
 	
 	char sName[256];
 	GetClientName2(iLastSurvivor, sName, sizeof(sName));
@@ -1705,18 +1661,6 @@ void ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 				{
 					TF2_RespawnPlayer2(iClient);
 					g_flRageRespawnStress += 1.7;	//Add stress time 1.7 sec for every respawn zombies
-				}
-				else if (IsSurvivor(iClient) && IsPlayerAlive(iClient))
-				{
-					//Zombies are enraged, reduce morale
-					int iMorale = GetMorale(iClient);
-					iMorale = RoundToNearest(float(iMorale) * 0.5);	//Half current morale
-					iMorale -= 15;	//Remove 15 extra morale
-					
-					if (iMorale < 0)
-						iMorale = 0;
-					
-					SetMorale(iClient, iMorale);
 				}
 			}
 		}
@@ -2093,7 +2037,6 @@ void ZombieTank(int iCaller = -1)
 	g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
 	g_nNextInfected[iClient] = Infected_Tank;
 	g_flTankCooldown = GetGameTime() + 120.0; //Set new cooldown
-	SetMoraleAll(0); //Tank spawn, reset morale
 }
 
 void DetermineControlPoints()

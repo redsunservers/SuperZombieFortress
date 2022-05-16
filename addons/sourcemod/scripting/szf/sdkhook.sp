@@ -74,10 +74,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			
 			//Damage scaling Survivors
 			if (IsValidSurvivor(iAttacker) && !IsClassname(iInflicter, "obj_sentrygun"))
-			{
-				float flMoraleBonus = fMin(GetMorale(iAttacker) * 0.005, 0.25); //50 morale: 0.25
-				flDamage = flDamage / g_flZombieDamageScale * (1.1 + flMoraleBonus); //Default: 1.1
-			}
+				flDamage /= g_flZombieDamageScale;
 			
 			bChanged = true;
 		}
@@ -111,8 +108,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 						SetEntityHealth(iVictim, GetClientHealth(iVictim) - 50);
 					else
 						SetEntityHealth(iVictim, GetClientHealth(iVictim) - 20);
-					
-					AddMorale(iVictim, -5);
 					
 					Forward_OnBackstab(iVictim, iAttacker);
 					

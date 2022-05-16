@@ -195,9 +195,6 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 					iWinner = i;
 				}
 				
-				//Give Morale from the pool according to the percentage of damage dealth
-				float ratio = g_flDamageDealtAgainstTank[i] / float(g_iMaxHealth[i]);
-				AddMorale(i, 10 + RoundToNearest(ratio * g_flTankMoralePool[iVictim]));
 				g_flDamageDealtAgainstTank[i] = 0.0;
 			}
 		}

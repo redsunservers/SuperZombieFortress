@@ -24,12 +24,6 @@
 		"en"		"{1}Infected have received extra health and other benefits to ensure game balance at the start of the round."
 	}
 	
-	"Hud_Morale"
-	{
-		"#format"	"{1:d}"
-		"en"		"Morale: {1}/100"
-	}
-	
 	"Frenzy_Start"
 	{
 		"#format"	"{1:s}"
@@ -507,7 +501,7 @@
 	
 	"Menu_Overview"
 	{
-		"en"		"Survivors must survive the endless hoarde of Infected.\nWhen a Survivor dies, they join the Zombie team and play as a Zombie.\nZombies need to work together to take down the survivors.\nSurvivor gain access to morale and weapon pickups, while zombies gain access to special infected."
+		"en"		"Survivors must survive the endless hoarde of Infected.\nWhen a Survivor dies, they join the Zombie team and play as a Zombie.\nZombies need to work together to take down the survivors.\nSurvivor gain access to weapon pickups, while zombies gain access to special infected."
 	}
 	
 	"Menu_TeamSurvivors"
