@@ -79,15 +79,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				flDamage = flDamage / g_flZombieDamageScale * (1.1 + flMoraleBonus); //Default: 1.1
 			}
 			
-			//If backstabbed
-			if (g_bBackstabbed[iVictim])
-			{
-				if (flDamage > STUNNED_DAMAGE_CAP)
-					flDamage = STUNNED_DAMAGE_CAP;
-				
-				iDamageType &= ~DMG_CRIT;
-			}
-			
 			bChanged = true;
 		}
 		
@@ -110,32 +101,22 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				|| iDamageCustom == TF_CUSTOM_TAUNT_GRENADE
 				|| (TF2_GetPlayerClass(iAttacker) == TFClass_Engineer && GetEntProp(iAttacker, Prop_Send, "m_iNextMeleeCrit") == MELEE_CRIT))
 			{
-				float flGameTime = GetGameTime();
-				if (!g_bBackstabbed[iVictim] && g_flBackstabImmunity[iVictim]<flGameTime)
+				
+				if (TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged) || (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB))
+					return Plugin_Continue;
+				
+				if (Stun_StartPlayer(iVictim))
 				{
-					if (TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged)
-						|| (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB))
-						return Plugin_Continue;
-					
 					if (g_nInfected[iAttacker] == Infected_Stalker)
 						SetEntityHealth(iVictim, GetClientHealth(iVictim) - 50);
 					else
 						SetEntityHealth(iVictim, GetClientHealth(iVictim) - 20);
 					
 					AddMorale(iVictim, -5);
-					float flDuration = SetBackstabState(iVictim, BACKSTABDURATION_FULL, 0.25);
-					SetNextAttack(iAttacker, flGameTime + 1.25);
-					g_flBackstabImmunity[iVictim] = flGameTime + flDuration + g_cvStunImmunity.FloatValue;
 					
 					Forward_OnBackstab(iVictim, iAttacker);
 					
 					flDamage = 1.0;
-					bChanged = true;
-				}
-				
-				else
-				{
-					flDamage = STUNNED_DAMAGE_CAP;
 					bChanged = true;
 				}
 			}
@@ -201,6 +182,9 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				ForcePlayerSuicide(iVictim);
 		}
 	}
+	
+	if (Stun_IsPlayerStunned(iVictim))
+		Stun_Shake(iVictim, vecForce, flDamage * 8.0);
 	
 	SDKCall_SetSpeed(iVictim);
 	

@@ -19,14 +19,10 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.2.1"
+#define PLUGIN_VERSION				"4.3.0"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
-
-#define BACKSTABDURATION_FULL		5.5
-#define BACKSTABDURATION_REDUCED	3.5
-#define STUNNED_DAMAGE_CAP			10.0
 
 #define ATTRIB_VISION		406
 
@@ -341,9 +337,6 @@ float g_flZombieDamageScale = 1.0;
 
 ArrayList g_aFastRespawn;
 
-bool g_bBackstabbed[TF_MAXPLAYERS];
-float g_flBackstabImmunity[TF_MAXPLAYERS];
-
 int g_iDamageZombie[TF_MAXPLAYERS];
 int g_iDamageTakenLife[TF_MAXPLAYERS];
 int g_iDamageDealtLife[TF_MAXPLAYERS];
@@ -414,6 +407,7 @@ int g_iOffsetOuter;
 #include "szf/sdkcall.sp"
 #include "szf/sdkhook.sp"
 #include "szf/stocks.sp"
+#include "szf/stun.sp"
 #include "szf/viewmodel.sp"
 
 public Plugin myinfo =
@@ -1377,7 +1371,6 @@ void ResetClientState(int iClient)
 	g_iHorde[iClient] = 0;
 	g_iCapturingPoint[iClient] = -1;
 	g_iRageTimer[iClient] = 0;
-	g_flBackstabImmunity[iClient] = 0.0;
 }
 
 void PrintInfoChat(int iClient)
@@ -1403,7 +1396,7 @@ void SetGlow()
 					bGlow = true;
 				else if (GetClientHealth(iClient) <= 30)
 					bGlow = true;
-				else if (g_bBackstabbed[iClient])
+				else if (Stun_IsPlayerStunned(iClient))
 					bGlow = true;
 			}
 			else if (g_ClientClasses[iClient].bGlow)
@@ -2243,50 +2236,64 @@ bool DropCarryingItem(int iClient, bool bDrop = true)
 	return true;
 }
 
-public Action SoundHook(int iClients[64], int &iLength, char sSound[PLATFORM_MAX_PATH], int &iClient, int &iChannel, float &flVolume, int &iLevel, int &iPitch, int &iFlags)
+public Action SoundHook(int iClients[MAXPLAYERS], int &iNumClients, char sSound[PLATFORM_MAX_PATH], int &iClient, int &iChannel, float &flVolume, int &iLevel, int &iPitch, int &iFlags, char sSoundEntry[PLATFORM_MAX_PATH], int &iSeed)
 {
+	Action action = Plugin_Continue;
+	for (int i = iNumClients - 1; i >= 0; i--)
+	{
+		//Don't play any sounds to stunned players
+		if (Stun_IsPlayerStunned(iClients[i]))
+		{
+			for (int j = i; j < iNumClients; j++)
+				iClients[j] = iClients[j+1];
+			
+			iNumClients--;
+			action = Plugin_Changed;
+		}
+	}
+	
 	if (!IsValidClient(iClient))
-		return Plugin_Continue;
+		return action;
 	
 	if (StrContains(sSound, "vo/", false) != -1 && IsZombie(iClient))
 	{
 		if (StrContains(sSound, "zombie_vo/", false) != -1)
-			return Plugin_Continue; //So rage sounds (for normal & most special infected alike) don't get blocked
+			return action; //So rage sounds (for normal & most special infected alike) don't get blocked
 		
 		if (StrContains(sSound, "_pain", false) != -1)
 		{
 			if (GetClientHealth(iClient) < 50 || StrContains(sSound, "crticial", false) != -1)  //The typo is intended because that's how the soundfiles are named
-				if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Death))
-					return Plugin_Handled;
+				if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Death, sSound, sizeof(sSound)))
+					return Plugin_Changed;
 			
 			if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-				if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Fire))
-					return Plugin_Handled;
+				if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Fire, sSound, sizeof(sSound)))
+					return Plugin_Changed;
 			
-			if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Pain))
-				return Plugin_Handled;
+			if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Pain, sSound, sizeof(sSound)))
+				return Plugin_Changed;
 		}
 		else if (StrContains(sSound, "_laugh", false) != -1 || StrContains(sSound, "_no", false) != -1 || StrContains(sSound, "_yes", false) != -1)
 		{
-			if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Mumbling))
-				return Plugin_Handled;
+			if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Mumbling, sSound, sizeof(sSound)))
+				return Plugin_Changed;
 		}
 		else if (StrContains(sSound, "_go", false) != -1 || StrContains(sSound, "_jarate", false) != -1)
 		{
-			if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Shoved))
-				return Plugin_Handled;
+			if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Shoved, sSound, sizeof(sSound)))
+				return Plugin_Changed;
 		}
 		
 		//Play default vo for whatever infected
-		if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Default))
-			return Plugin_Handled;
+		if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Default, sSound, sizeof(sSound)))
+			return Plugin_Changed;
 		
 		//If sound still not found, try normal infected
-		Sound_PlayInfectedVo(iClient, Infected_None, SoundVo_Default);
-		return Plugin_Handled;
+		Sound_GetInfectedVo(Infected_None, SoundVo_Default, sSound, sizeof(sSound));
+		return Plugin_Changed;
 	}
 	
-	return Plugin_Continue;
+	return action;
 }
 
 void SetNextAttack(int iClient, float flDuration = 0.0, bool bMeleeOnly = true)
@@ -2437,54 +2444,6 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 		iButtons &= ~IN_ATTACK;
 		iButtons &= ~IN_ATTACK2;
 	}
-	
-	return Plugin_Continue;
-}
-
-float SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, float flSlowdown = 0.5)
-{
-	if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient))
-	{
-		float flGameTime = GetGameTime();
-		if (g_flBackstabImmunity[iClient] < flGameTime)
-		{
-			int iSurvivors = GetSurvivorCount();
-			int iZombies = GetZombieCount();
-			
-			//Reduce backstab duration if:
-			//3 or less survivors are left while there are 12 or more zombies
-			//There are 24 or more zombies
-			//Zombie damage scale is 50% or lower
-			//Victim has the defense buff
-			if ( flDuration > BACKSTABDURATION_REDUCED && (
-					( iSurvivors <= 3 && iZombies >= 12 )
-					|| iZombies >= 24
-					|| g_flZombieDamageScale <= 0.5
-					|| TF2_IsPlayerInCondition(iClient, TFCond_DefenseBuffed) ) )
-			{
-				flDuration = BACKSTABDURATION_REDUCED;
-			}
-			
-			TF2_StunPlayer(iClient, flDuration, flSlowdown, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, 0);
-			g_bBackstabbed[iClient] = true;
-			ClientCommand(iClient, "r_screenoverlay\"debug/yuv\"");
-			Sound_PlayMusicToClient(iClient, "backstab", flDuration);
-			CreateTimer(flDuration, RemoveBackstab, iClient); //Removes overlay and backstate state
-		}
-	}
-	return flDuration;
-}
-
-public Action RemoveBackstab(Handle hTimer, int iClient)
-{
-	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient))
-		return Plugin_Continue;
-	
-	g_bBackstabbed[iClient] = false;
-	ClientCommand(iClient, "r_screenoverlay\"\"");
-	
-	TF2_RemoveCondition(iClient, TFCond_Dazed);
-	SDKCall_SetSpeed(iClient);
 	
 	return Plugin_Continue;
 }

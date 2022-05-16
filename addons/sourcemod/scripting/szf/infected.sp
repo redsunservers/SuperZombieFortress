@@ -578,19 +578,19 @@ public void Infected_OnHunterTouch(int iClient, int iToucher)
 		
 		if (IsValidLivingSurvivor(iToucher))
 		{
-			if (!g_bBackstabbed[iToucher])
+			const float flDuration = 5.5;
+			if (Stun_StartPlayer(iToucher, flDuration))
 			{
 				SetEntityHealth(iToucher, GetClientHealth(iToucher) - 20);
-				
-				SetBackstabState(iToucher, BACKSTABDURATION_FULL, 1.0);
 				SetNextAttack(iClient, GetGameTime() + 0.6);
 				
 				//Teleport hunter inside the target
 				float vecPosClient[3];
 				GetClientAbsOrigin(iToucher, vecPosClient);
 				TeleportEntity(iClient, vecPosClient, NULL_VECTOR, NULL_VECTOR);
-				//Dont allow hunter to move during lock
-				TF2_StunPlayer(iClient, BACKSTABDURATION_FULL, 1.0, TF_STUNFLAG_SLOWDOWN, 0);
+				
+				TF2_StunPlayer(iToucher, flDuration, 0.5, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, 0);
+				TF2_StunPlayer(iClient, flDuration, 1.0, TF_STUNFLAG_SLOWDOWN, 0);
 				
 				Forward_OnHunterHit(iClient, iToucher);
 			}

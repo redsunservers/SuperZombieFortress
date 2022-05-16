@@ -9,6 +9,7 @@ void Command_Init()
 	RegAdminCmd("sm_rage", Command_ZombieRage, ADMFLAG_CHANGEMAP, "(Try to) call a frenzy.");
 	RegAdminCmd("sm_infected", Command_ForceInfected, ADMFLAG_CHANGEMAP, "Force someone to become infected on next spawn.");
 	RegAdminCmd("sm_szfreload", Command_ReloadConfigs, ADMFLAG_RCON, "Reload SZF configs.");
+	RegAdminCmd("sm_stun", Command_Stun, ADMFLAG_RCON, "SZF Stun player.");
 	
 	RegConsoleCmd("sm_zf", Command_MainMenu);
 	RegConsoleCmd("sm_szf", Command_MainMenu);
@@ -126,6 +127,16 @@ public Action Command_ReloadConfigs(int iClient, int iArgs)
 	Config_Refresh();
 	Classes_Refresh();
 	Weapons_Refresh();
+	
+	return Plugin_Handled;
+}
+
+public Action Command_Stun(int iClient, int iArgs)
+{
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	Stun_StartPlayer(iClient, GetCmdArgFloat(1));
 	
 	return Plugin_Handled;
 }

@@ -10,6 +10,10 @@ void Event_Init()
 	HookEvent("teamplay_point_captured", Event_CPCapture);
 	HookEvent("teamplay_point_startcapture", Event_CPCaptureStart);
 	HookEvent("teamplay_broadcast_audio", Event_Broadcast, EventHookMode_Pre);
+	HookEvent("player_death", Event_HideNotice, EventHookMode_Pre);
+	HookEvent("fish_notice", Event_HideNotice, EventHookMode_Pre);
+	HookEvent("fish_notice__arm", Event_HideNotice, EventHookMode_Pre);
+	HookEventEx("slap_notice", Event_HideNotice, EventHookMode_Pre);
 }
 
 public Action Event_SetupEnd(Event event, const char[] name, bool dontBroadcast)
@@ -64,7 +68,6 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		return Plugin_Continue;
 	}
 	
-	g_bBackstabbed[iClient] = false;
 	g_iKillsThisLife[iClient] = 0;
 	g_iDamageTakenLife[iClient] = 0;
 	g_iDamageDealtLife[iClient] = 0;
@@ -346,9 +349,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_iSurvivorsKilledCounter++;
 		}
 		
-		//reset backstab state
-		g_bBackstabbed[iVictim] = false;
-		
 		//Set zombie time to iVictim as he started playing zombie
 		g_flTimeStartAsZombie[iVictim] = GetGameTime();
 		
@@ -574,6 +574,21 @@ public Action Event_Broadcast(Event event, const char[] name, bool dontBroadcast
 	
 	if (!strcmp(sSound, "Game.YourTeamWon", false) || !strcmp(sSound, "Game.YourTeamLost", false))
 		return Plugin_Handled;
+	
+	return Plugin_Continue;
+}
+
+public Action Event_HideNotice(Event event, const char[] name, bool dontBroadcast)
+{
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	//Don't show notices to stunned players
+	event.BroadcastDisabled = true;
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsClientInGame(iClient) && !Stun_IsPlayerStunned(iClient))
+			event.FireToClient(iClient);
 	
 	return Plugin_Continue;
 }

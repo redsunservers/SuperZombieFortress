@@ -191,79 +191,88 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 {
 	if (IsClientInGame(iClient) && IsPlayerAlive(iClient))
 	{
-		//Handle speed bonuses.
-		if ((!TF2_IsPlayerInCondition(iClient, TFCond_Slowed) && !TF2_IsPlayerInCondition(iClient, TFCond_Dazed)) || g_bBackstabbed[iClient])
+		float flSpeed = hReturn.Value;
+		
+		if (IsZombie(iClient))
 		{
-			float flSpeed = hReturn.Value;
-			
-			if (IsZombie(iClient))
+			if (g_nInfected[iClient] == Infected_None)
 			{
-				if (g_nInfected[iClient] == Infected_None)
+				//Movement speed increase
+				flSpeed += fMin(g_ClientClasses[iClient].flMaxSpree, g_ClientClasses[iClient].flSpree * g_iZombiesKilledSpree) + fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
+				
+				if (g_bZombieRage)
+					flSpeed += 40.0; //Map-wide zombie enrage event
+				
+				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
+					flSpeed += 20.0; //On fire
+				
+				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
+					flSpeed += 20.0; //Screamer effect
+				
+				if (GetClientHealth(iClient) > SDKCall_GetMaxHealth(iClient))
+					flSpeed += 20.0; //Has overheal due to normal rage
+				
+				//Movement speed decrease
+				if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
+					flSpeed -= 30.0; //Jarate'd by sniper
+				
+				if (GetClientHealth(iClient) < 50)
+					flSpeed -= 50.0 - float(GetClientHealth(iClient)); //If under 50 health, tick away one speed per hp lost
+			}
+			else
+			{
+				switch (g_nInfected[iClient])
 				{
-					//Movement speed increase
-					flSpeed += fMin(g_ClientClasses[iClient].flMaxSpree, g_ClientClasses[iClient].flSpree * g_iZombiesKilledSpree) + fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
-					
-					if (g_bZombieRage)
-						flSpeed += 40.0; //Map-wide zombie enrage event
-					
-					if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-						flSpeed += 20.0; //On fire
-					
-					if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
-						flSpeed += 20.0; //Screamer effect
-					
-					if (GetClientHealth(iClient) > SDKCall_GetMaxHealth(iClient))
-						flSpeed += 20.0; //Has overheal due to normal rage
-					
-					//Movement speed decrease
-					if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
-						flSpeed -= 30.0; //Jarate'd by sniper
-					
-					if (GetClientHealth(iClient) < 50)
-						flSpeed -= 50.0 - float(GetClientHealth(iClient)); //If under 50 health, tick away one speed per hp lost
-				}
-				else
-				{
-					switch (g_nInfected[iClient])
+					//Tank: movement speed bonus based on damage taken and ignite speed bonus
+					case Infected_Tank:
 					{
-						//Tank: movement speed bonus based on damage taken and ignite speed bonus
-						case Infected_Tank:
-						{
-							//Reduce speed when tank deals damage to survivors 
-							flSpeed -= fMin(70.0, (float(g_iDamageDealtLife[iClient]) / 10.0));
-							
-							//Reduce speed when tank takes damage from survivors 
-							flSpeed -= fMin(100.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
-							
-							if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-								flSpeed += 40.0; //On fire
-							
-							if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
-								flSpeed -= 30.0; //Jarate'd by sniper
-						}
+						//Reduce speed when tank deals damage to survivors 
+						flSpeed -= fMin(70.0, (float(g_iDamageDealtLife[iClient]) / 10.0));
 						
-						//Cloaked: super speed if cloaked
-						case Infected_Stalker:
-						{
-							if (TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
-								flSpeed += 80.0;
-						}
+						//Reduce speed when tank takes damage from survivors 
+						flSpeed -= fMin(100.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
+						
+						if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
+							flSpeed += 40.0; //On fire
+						
+						if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
+							flSpeed -= 30.0; //Jarate'd by sniper
+					}
+					
+					//Cloaked: super speed if cloaked
+					case Infected_Stalker:
+					{
+						if (TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
+							flSpeed += 80.0;
 					}
 				}
 			}
-			else if (IsSurvivor(iClient))
-			{
-				//If under 50 health, tick away one speed per hp lost
-				if (GetClientHealth(iClient) < 50)
-					flSpeed -= 50.0 - float(GetClientHealth(iClient));
-				
-				if (g_bBackstabbed[iClient])
-					flSpeed *= 0.66;
-			}
-			
-			hReturn.Value = flSpeed;
-			return MRES_Override;
 		}
+		else if (IsSurvivor(iClient))
+		{
+			//If under 50 health, tick away one speed per hp lost
+			if (GetClientHealth(iClient) < 50)
+				flSpeed -= 50.0 - float(GetClientHealth(iClient));
+		}
+		
+		if (Stun_IsPlayerStunned(iClient))
+		{
+			flSpeed *= Stun_GetSpeedMulti(iClient);
+			if (GetEntityFlags(iClient) & FL_ONGROUND)
+			{
+				float vecVelocity[3];
+				GetEntPropVector(iClient, Prop_Data, "m_vecVelocity", vecVelocity);
+				if (GetVectorLength(vecVelocity) > flSpeed)
+				{
+					NormalizeVector(vecVelocity, vecVelocity);
+					ScaleVector(vecVelocity, flSpeed);
+					TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
+				}
+			}
+		}
+		
+		hReturn.Value = flSpeed;
+		return MRES_Override;
 	}
 	
 	return MRES_Ignored;
