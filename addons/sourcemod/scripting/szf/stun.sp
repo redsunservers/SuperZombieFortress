@@ -145,10 +145,14 @@ void Stun_ClientThink(int iClient)
 	SetVariantFloat(float(iFog));
 	AcceptEntityInput(iFogEnt, "SetStartDist");
 	
-	int iPreviousFogEnt = EntIndexToEntRef(GetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl"));
+	int iPreviousFogEnt = GetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl");
 	if (iPreviousFogEnt != iFogEnt)
 	{
-		g_StunInfo[iClient].iPreviousFogEnt = iPreviousFogEnt;
+		if (iPreviousFogEnt == INVALID_ENT_REFERENCE)
+			g_StunInfo[iClient].iPreviousFogEnt = INVALID_ENT_REFERENCE;
+		else
+			g_StunInfo[iClient].iPreviousFogEnt = EntIndexToEntRef(iPreviousFogEnt);
+		
 		SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", iFogEnt);
 	}
 	
