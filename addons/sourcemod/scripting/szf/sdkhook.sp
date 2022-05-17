@@ -52,11 +52,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		return Plugin_Continue;
 	
 	bool bChanged = false;
-	if (IsValidClient(iVictim) && IsValidClient(iAttacker))
-	{
-		if (GetClientTeam(iVictim) != GetClientTeam(iAttacker))
-			EndGracePeriod();
-	}
 	
 	//Disable fall damage to tank
 	if (g_nInfected[iVictim] == Infected_Tank && iDamageType & DMG_FALL)

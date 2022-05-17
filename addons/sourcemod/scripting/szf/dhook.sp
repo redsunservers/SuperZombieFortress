@@ -515,7 +515,6 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	//Handle grace period timers.
 	CreateTimer(0.5, Timer_GraceStartPost, TIMER_FLAG_NO_MAPCHANGE);
-	CreateTimer(45.0, Timer_GraceEnd, TIMER_FLAG_NO_MAPCHANGE);
 	
 	SetGlow();
 	UpdateZombieDamageScale();

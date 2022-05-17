@@ -937,13 +937,6 @@ public Action Timer_GraceStartPost(Handle hTimer)
 	return Plugin_Continue;
 }
 
-public Action Timer_GraceEnd(Handle hTimer)
-{
-	EndGracePeriod();
-	
-	return Plugin_Continue;
-}
-
 public Action Timer_InitialHelp(Handle hTimer, int iClient)
 {
 	//Wait until client is in game before printing initial help text.
