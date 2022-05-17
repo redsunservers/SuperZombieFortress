@@ -57,6 +57,8 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 	if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
 		return Plugin_Continue;
 	
+	Stun_EndPlayer(iClient);
+	
 	//Reset overlay
 	ClientCommand(iClient, "r_screenoverlay\"\"");
 	

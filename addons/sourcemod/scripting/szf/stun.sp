@@ -29,6 +29,7 @@ enum struct StunInfo
 	bool bStunned;
 	int iPreviousFogEnt;
 	int iCurrentFogEnt;
+	ArrayList aTimers;
 	
 	float flCurrentBlinkStart;
 	float flCurrentBlinkStartHold;
@@ -52,6 +53,9 @@ bool Stun_StartPlayer(int iClient, float flDuration = 10.0)
 	if (g_StunInfo[iClient].bStunned)
 		return false;	//Already stunned
 	
+	g_StunInfo[iClient].bStunned = true;
+	g_StunInfo[iClient].aTimers = new ArrayList();
+	
 	const float flFirstFade = 1.0;
 	DataPack hPack;
 	
@@ -66,42 +70,48 @@ bool Stun_StartPlayer(int iClient, float flDuration = 10.0)
 	Stun_GetRandomBlinkDuration(flDuration, flFadeIn, flFadeHold, flFadeOut);
 	flFadeOut = 1.0;
 	
-	CreateDataTimer(flDuration - flFadeIn - flFadeHold, Stun_StartBlinkTimer, hPack);
+	Handle hTimer = CreateDataTimer(flDuration - flFadeIn - flFadeHold, Stun_StartBlinkTimer, hPack);
 	hPack.WriteCell(GetClientSerial(iClient));
 	hPack.WriteFloat(flFadeIn);
 	hPack.WriteFloat(flFadeHold);
 	hPack.WriteFloat(1.0);
+	g_StunInfo[iClient].aTimers.Push(hTimer);
 	
 	float flDurationMade = flFirstFade;
 	float flDurationLeft = flDuration - flFadeIn - flFadeHold - flDurationMade;
 	while (Stun_GetRandomBlinkDuration(flDurationLeft, flFadeIn, flFadeHold, flFadeOut))
 	{
-		CreateDataTimer(flDurationMade, Stun_StartBlinkTimer, hPack);
+		hTimer = CreateDataTimer(flDurationMade, Stun_StartBlinkTimer, hPack);
 		hPack.WriteCell(GetClientSerial(iClient));
 		hPack.WriteFloat(flFadeIn);
 		hPack.WriteFloat(flFadeHold);
 		hPack.WriteFloat(flFadeOut);
+		g_StunInfo[iClient].aTimers.Push(hTimer);
 		
 		flDurationMade += flFadeIn + flFadeHold + flFadeOut;
 		flDurationLeft -= flFadeIn + flFadeHold + flFadeOut;
 	}
 	
-	g_StunInfo[iClient].bStunned = true;
-	
 	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD")|HIDEHUD_ALL);
 	
 	SDKHook(iClient, SDKHook_PostThinkPost, Stun_ClientThink);
-	CreateTimer(flDuration, Stun_EndPlayerTimer, GetClientSerial(iClient));
+	hTimer = CreateTimer(flDuration, Stun_EndPlayerTimer, GetClientSerial(iClient));
+	g_StunInfo[iClient].aTimers.Push(hTimer);
 	return true;
 }
 
 void Stun_EndPlayer(int iClient)
 {
-	ClientCommand(iClient, "r_screenoverlay\"\"");
+	if (!g_StunInfo[iClient].bStunned)
+		return;
+	
+	if (IsPlayerAlive(iClient))	//Keep grey screen if dead
+		ClientCommand(iClient, "r_screenoverlay\"\"");
 	
 	SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", g_StunInfo[iClient].iPreviousFogEnt);
 	g_StunInfo[iClient].iPreviousFogEnt = INVALID_ENT_REFERENCE;
 	g_StunInfo[iClient].bStunned = false;
+	delete g_StunInfo[iClient].aTimers;
 	
 	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD") & ~HIDEHUD_ALL);
 	TF2_RemoveCondition(iClient, TFCond_LostFooting);
@@ -112,7 +122,10 @@ void Stun_EndPlayer(int iClient)
 public Action Stun_EndPlayerTimer(Handle hTimer, int iSerial)
 {
 	int iClient = GetClientFromSerial(iSerial);
-	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient))
+	if (!IsValidClient(iClient))
+		return Plugin_Continue;
+	
+	if (!g_StunInfo[iClient].aTimers || g_StunInfo[iClient].aTimers.FindValue(hTimer) == -1)
 		return Plugin_Continue;
 	
 	Stun_EndPlayer(iClient);
@@ -146,13 +159,12 @@ void Stun_ClientThink(int iClient)
 	AcceptEntityInput(iFogEnt, "SetStartDist");
 	
 	int iPreviousFogEnt = GetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl");
+	if (iPreviousFogEnt != INVALID_ENT_REFERENCE)
+		iPreviousFogEnt = EntIndexToEntRef(iPreviousFogEnt);
+	
 	if (iPreviousFogEnt != iFogEnt)
 	{
-		if (iPreviousFogEnt == INVALID_ENT_REFERENCE)
-			g_StunInfo[iClient].iPreviousFogEnt = INVALID_ENT_REFERENCE;
-		else
-			g_StunInfo[iClient].iPreviousFogEnt = EntIndexToEntRef(iPreviousFogEnt);
-		
+		g_StunInfo[iClient].iPreviousFogEnt = iPreviousFogEnt;
 		SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", iFogEnt);
 	}
 	
@@ -171,6 +183,12 @@ Action Stun_StartBlinkTimer(Handle hTimer, DataPack hPack)
 	float flFadeIn = hPack.ReadFloat();
 	float flFadeHold = hPack.ReadFloat();
 	float flFadeOut = hPack.ReadFloat();
+	
+	if (iClient == 0 || !IsPlayerAlive(iClient))
+		return Plugin_Continue;
+	
+	if (!g_StunInfo[iClient].aTimers || g_StunInfo[iClient].aTimers.FindValue(hTimer) == -1)
+		return Plugin_Continue;
 	
 	CreateFade(iClient, flFadeIn, flFadeHold, FFADE_OUT|FFADE_PURGE, BLIND_COLOR);
 	
@@ -195,7 +213,11 @@ Action Stun_EndBlinkTimer(Handle hTimer, DataPack hPack)
 	float flFadeHold = hPack.ReadFloat();
 	float flFadeOut = hPack.ReadFloat();
 	
-	CreateFade(iClient, flFadeOut, flFadeHold, FFADE_IN|FFADE_PURGE, BLIND_COLOR);
+	if (iClient == 0)
+		return Plugin_Continue;
+	
+	if (g_StunInfo[iClient].bStunned)
+		CreateFade(iClient, flFadeOut, flFadeHold, FFADE_IN|FFADE_PURGE, BLIND_COLOR);
 	
 	return Plugin_Continue;
 }
