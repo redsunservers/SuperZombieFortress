@@ -370,12 +370,18 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 		GetClientEyeAngles(iClient, vecAngles);
 		
 		//Move origin a bit further so we get a better guess who were colliding with
-		vecAngles[2] = 0.0;
+		vecAngles[0] = 0.0;
 		AnglesToVelocity(vecAngles, vecVel, 75.0);
 		AddVectors(vecOrigin, vecVel, vecOrigin);
 		
 		//Force push charger at stupid amount of speed, WEEEEEEEEEEEEEEEEEE
-		AnglesToVelocity(vecAngles, vecVel, 520.0);
+		const float flSpeed = 520.0;
+		AnglesToVelocity(vecAngles, vecVel, flSpeed);
+		
+		float vecCurrentVelocity[3];
+		GetEntPropVector(iClient, Prop_Data, "m_vecVelocity", vecCurrentVelocity);
+		vecVel[2] = vecCurrentVelocity[2];
+		
 		TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVel);
 		
 		for (int iVictim = 1; iVictim <= MaxClients; iVictim++)
@@ -386,11 +392,9 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 				GetClientAbsOrigin(iVictim, vecPosClient);
 				if (GetVectorDistance(vecOrigin, vecPosClient) <= 75.0)
 				{
-					if (GetEntityFlags(iVictim) & FL_ONGROUND)
-						vecVel[2] = 260.0;	//Launch survivor slightly up so we can push em more easier
-					else
-						vecVel[2] = 0.0;
+					TF2_AddCondition(iVictim, TFCond_LostFooting, 0.5);	//Allow push victims easier with friction
 					
+					vecVel[2] = 0.0;
 					TeleportEntity(iVictim, NULL_VECTOR, NULL_VECTOR, vecVel);
 					
 					if (!TF2_IsPlayerInCondition(iVictim, TFCond_Bleeding))
