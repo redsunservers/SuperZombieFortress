@@ -390,7 +390,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		
 		if (IsValidEntity(iEntity))
 		{
-			int iOldIndex = GetOriginalItemDefIndex(GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex"));
+			int iOldIndex = Config_GetOriginalItemDefIndex(GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex"));
 			GetWeaponFromIndex(oldwep, iOldIndex);
 			
 			if (oldwep.iIndex >= 0)

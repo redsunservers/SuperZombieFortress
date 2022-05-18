@@ -612,7 +612,7 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttrib
 		int iSlot = TF2Econ_GetItemLoadoutSlot(iIndex, iClass);	//Uses econ slot
 		Address pItem = SDKCall_GetLoadoutItem(iClient, iClass, iSlot);
 		
-		if (pItem && GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(g_iOffsetItemDefinitionIndex), NumberType_Int16)) == iIndex)
+		if (pItem && Config_GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(g_iOffsetItemDefinitionIndex), NumberType_Int16)) == iIndex)
 			iWeapon = SDKCall_GetBaseEntity(SDKCall_GiveNamedItem(iClient, sClassname, iSubType, pItem));
 	}
 	
@@ -729,19 +729,6 @@ stock void CheckClientWeapons(int iClient)
 				TF2_RemoveWearable(iClient, iPowerupBottle);
 		}
 	}
-}
-
-stock int GetOriginalItemDefIndex(int iIndex)
-{
-	int iOrigIndex;
-	
-	char sIndex[8];
-	IntToString(iIndex, sIndex, sizeof(sIndex));
-	
-	if (g_mConfigReskins.GetValue(sIndex, iOrigIndex))
-		return iOrigIndex;
-	else
-		return iIndex;
 }
 
 ////////////////

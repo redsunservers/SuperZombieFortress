@@ -131,6 +131,87 @@ public Action Infected_TankTimer(Handle hTimer, int iSerial)
 	return Plugin_Continue;
 }
 
+public void Infected_DoTankThrow(int iClient)
+{
+	float flThrow, flEnd;
+	
+	switch (GetRandomInt(2, 4))
+	{
+		case 2:
+		{
+			SDKCall_PlaySpecificSequence(iClient, "Throw_02");
+			flThrow = 2.5;
+			flEnd = 3.1;
+		}
+		case 3:
+		{
+			SDKCall_PlaySpecificSequence(iClient, "Throw_03");
+			flThrow = 2.0;
+			flEnd = 2.7;
+		}
+		case 4:
+		{
+			SDKCall_PlaySpecificSequence(iClient, "Throw_04");
+			flThrow = 2.7;
+			flEnd = 3.1;
+		}
+	}
+	
+	TF2_AddCondition(iClient, TFCond_FreezeInput, flEnd);
+	
+	int iDebris = CreateEntityByName("prop_physics_override");
+	
+	Debris debris;
+	Config_GetRandomDebris(debris);
+	SetEntityModel(iDebris, debris.sModel);
+	
+	SetEntProp(iDebris, Prop_Send, "m_nSolidType", SOLID_VPHYSICS);
+	DispatchKeyValueFloat(iDebris, "massScale", g_cvDebrisMass.FloatValue);
+	DispatchKeyValueFloat(iDebris, "physdamagescale", 0.0);
+	DispatchKeyValueFloat(iDebris, "modelscale", debris.flScale);
+	
+	SetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity", iClient);
+	SetEntProp(iDebris, Prop_Data, "m_spawnflags", GetEntProp(iDebris, Prop_Data, "m_spawnflags")|SF_PHYSPROP_START_ASLEEP|SF_PHYSPROP_DEBRIS|SF_PHYSPROP_MOTIONDISABLED);
+	SetEntProp(iDebris, Prop_Data, "m_takedamage", DAMAGE_NO);
+	
+	float vecPos[3], vecAngle[3];
+	GetClientAbsOrigin(iClient, vecPos);
+	GetClientAbsAngles(iClient, vecAngle);
+	AddVectors(vecPos, debris.vecOffset, vecPos);
+	AddVectors(vecAngle, debris.vecAngle, vecAngle);
+	TeleportEntity(iDebris, vecPos, vecAngle, NULL_VECTOR);
+	
+	SetVariantString("!activator");
+	AcceptEntityInput(iDebris, "SetParent", iClient);
+	
+	SetVariantString("debris");
+	AcceptEntityInput(iDebris, "SetParentAttachmentMaintainOffset");
+	
+	DispatchSpawn(iDebris);
+	
+	CreateTimer(flThrow, Infected_DebrisTimer, EntIndexToEntRef(iDebris));
+}
+
+public Action Infected_DebrisTimer(Handle hTimer, int iDebris)
+{
+	if (!IsValidEntity(iDebris))
+		return Plugin_Continue;
+	
+	AcceptEntityInput(iDebris, "ClearParent");
+	AcceptEntityInput(iDebris, "EnableMotion");
+	
+	int iClient = GetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity");
+	if (!IsValidClient(iClient))
+		return Plugin_Continue;
+	
+	float vecAngles[3], vecVel[3];
+	GetClientEyeAngles(iClient, vecAngles);
+	AnglesToVelocity(vecAngles, vecVel, g_cvDebrisVelocity.FloatValue);
+	TeleportEntity(iDebris, NULL_VECTOR, NULL_VECTOR, vecVel);
+	
+	return Plugin_Continue;
+}
+
 public Action Infected_OnTankAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
 {
 	if (nAnim == PLAYERANIMEVENT_SPAWN)
