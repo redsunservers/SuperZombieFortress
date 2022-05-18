@@ -199,6 +199,7 @@ public Action Infected_DebrisTimer(Handle hTimer, int iDebris)
 	
 	AcceptEntityInput(iDebris, "ClearParent");
 	AcceptEntityInput(iDebris, "EnableMotion");
+	ActivateEntity(iDebris);	//So physics can scale with modelscale
 	
 	int iClient = GetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity");
 	if (!IsValidClient(iClient))
