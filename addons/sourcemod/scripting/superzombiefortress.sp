@@ -1264,7 +1264,10 @@ void SZFEnable()
 		ResetClientState(iClient);
 		
 		if (IsClientInGame(iClient))
+		{
 			DHook_HookGiveNamedItem(iClient);
+			SDKHook_HookClient(iClient);
+		}
 	}
 	
 	ConVar_Enable();
@@ -1328,10 +1331,13 @@ void SZFDisable()
 	
 	g_flTimeProgress = 0.0;
 	
-	for (int iClient = 0; iClient <= MaxClients; iClient++)
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		ResetClientState(iClient);
 		DHook_UnhookGiveNamedItem(iClient);
+		
+		if (IsClientInGame(iClient))
+			SDKHook_UnhookClient(iClient);
 	}
 	
 	ConVar_Disable();

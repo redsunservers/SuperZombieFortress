@@ -28,6 +28,14 @@ void SDKHook_HookClient(int iClient)
 	SDKHook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
 }
 
+void SDKHook_UnhookClient(int iClient)
+{
+	SDKUnhook(iClient, SDKHook_PreThinkPost, Client_PreThinkPost);
+	SDKUnhook(iClient, SDKHook_Touch, Client_Touch);
+	SDKUnhook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
+	SDKUnhook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
+}
+
 public void Client_PreThinkPost(int iClient)
 {
 	UpdateClientCarrying(iClient);
