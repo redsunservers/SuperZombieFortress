@@ -1477,6 +1477,27 @@ void UpdateZombieDamageScale()
 	{
 		flProgress = g_flCapScale;
 	}
+	else if (g_bSurvival)
+	{
+		int iTimer = FindEntityByClassname(INVALID_ENT_REFERENCE, "team_round_timer");
+		if (iTimer != INVALID_ENT_REFERENCE)
+		{
+			float flTimerInitialLength = float(GetEntProp(iTimer, Prop_Send, "m_nTimerInitialLength"));
+			float flTimerEndTime = GetEntPropFloat(iTimer, Prop_Send, "m_flTimerEndTime");
+			float flGameTime = GetGameTime();
+			if (flGameTime > flTimerEndTime)
+			{
+				flProgress = 1.0;
+			}
+			else
+			{
+				float flTimeLeft = flTimerEndTime - flGameTime;
+				flProgress = 1.0 - (flTimeLeft / flTimerInitialLength);
+				if (flProgress < 0.0)
+					flProgress = 0.0;
+			}
+		}
+	}
 	else
 	{
 		//iCurrentCP: +1 if CP currently capping, +2 if CP capped
