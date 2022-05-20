@@ -140,20 +140,20 @@ public void Infected_DoTankThrow(int iClient)
 		case 2:
 		{
 			SDKCall_PlaySpecificSequence(iClient, "Throw_02");
-			flThrow = 2.5;
-			flEnd = 3.1;
+			flThrow = 2.4;
+			flEnd = 3.0;
 		}
 		case 3:
 		{
 			SDKCall_PlaySpecificSequence(iClient, "Throw_03");
 			flThrow = 2.0;
-			flEnd = 2.7;
+			flEnd = 2.6;
 		}
 		case 4:
 		{
 			SDKCall_PlaySpecificSequence(iClient, "Throw_04");
-			flThrow = 2.7;
-			flEnd = 3.1;
+			flThrow = 2.6;
+			flEnd = 3.0;
 		}
 	}
 	
@@ -170,22 +170,25 @@ public void Infected_DoTankThrow(int iClient)
 	DispatchKeyValueFloat(iDebris, "physdamagescale", 0.0);
 	DispatchKeyValueFloat(iDebris, "modelscale", debris.flScale);
 	
-	SetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity", iClient);
-	SetEntProp(iDebris, Prop_Data, "m_spawnflags", GetEntProp(iDebris, Prop_Data, "m_spawnflags")|SF_PHYSPROP_START_ASLEEP|SF_PHYSPROP_DEBRIS|SF_PHYSPROP_MOTIONDISABLED);
+//	SetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity", iClient);
+	SetEntProp(iDebris, Prop_Data, "m_spawnflags", GetEntProp(iDebris, Prop_Data, "m_spawnflags")|SF_PHYSPROP_START_ASLEEP|SF_PHYSPROP_MOTIONDISABLED);
 	SetEntProp(iDebris, Prop_Data, "m_takedamage", DAMAGE_NO);
+	SetEntProp(iDebris, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_PLAYER);
+//	SetEntProp(iDebris, Prop_Send, "m_iTeamNum", GetClientTeam(iClient));
+	
+	int iBonemerge = CreateBonemerge(iClient, "debris");
 	
 	float vecPos[3], vecAngle[3];
 	GetClientAbsOrigin(iClient, vecPos);
 	GetClientAbsAngles(iClient, vecAngle);
 	AddVectors(vecPos, debris.vecOffset, vecPos);
 	AddVectors(vecAngle, debris.vecAngle, vecAngle);
-	TeleportEntity(iDebris, vecPos, vecAngle, NULL_VECTOR);
+	TeleportEntity(iBonemerge, vecPos, vecAngle, NULL_VECTOR);
 	
 	SetVariantString("!activator");
-	AcceptEntityInput(iDebris, "SetParent", iClient);
-	
+	AcceptEntityInput(iDebris, "SetParent", iBonemerge);
 	SetVariantString("debris");
-	AcceptEntityInput(iDebris, "SetParentAttachmentMaintainOffset");
+	AcceptEntityInput(iDebris, "SetParentAttachment");
 	
 	DispatchSpawn(iDebris);
 	
@@ -200,6 +203,10 @@ public Action Infected_DebrisTimer(Handle hTimer, int iDebris)
 	AcceptEntityInput(iDebris, "ClearParent");
 	AcceptEntityInput(iDebris, "EnableMotion");
 	ActivateEntity(iDebris);	//So physics can scale with modelscale
+	
+	int iBonemerge = GetEntPropEnt(iDebris, Prop_Data, "m_pParent");
+	if (iBonemerge != INVALID_ENT_REFERENCE && IsClassname(iBonemerge, "tf_taunt_prop"))
+		RemoveEntity(iBonemerge);
 	
 	int iClient = GetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity");
 	if (!IsValidClient(iClient))
@@ -925,7 +932,7 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			g_iJockeyTarget[iClient] = 0;
 			
 			SetEntityMoveType(iClient, MOVETYPE_WALK);
-			SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 5);
+			SetEntProp(iClient, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_PLAYER);
 		}
 	}
 }
@@ -948,7 +955,7 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 	Shake(iToucher, 3.0, 3.0);
 	
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
-	SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 2);
+	SetEntProp(iClient, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_DEBRIS_TRIGGER);
 	SDKCall_PlaySpecificSequence(iClient, "jockey_ride");
 }
 

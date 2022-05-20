@@ -146,7 +146,7 @@ public void SetWeapon(int iEntity)
 	}
 		
 		
-	SetEntProp(iEntity, Prop_Send, "m_CollisionGroup", 2);
+	SetEntProp(iEntity, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_DEBRIS_TRIGGER);
 	AcceptEntityInput(iEntity, "DisableShadow");
 	AcceptEntityInput(iEntity, "EnableCollision");
 	
@@ -330,7 +330,12 @@ bool AttemptGrabItem(int iClient)
 			}
 			
 			if (GetWeaponGlowEnt(iTarget) == -1)
-				CreateWeaponGlow(iTarget, 10.0);
+			{
+				int iProp = CreateBonemerge(iTarget);
+				SetEntProp(iProp, Prop_Send, "m_bGlowEnabled", true);
+				SDKHook(iProp, SDKHook_SetTransmit, Weapon_SetTransmit);
+				CreateTimer(10.0, Timer_KillEntity, EntIndexToEntRef(iProp), TIMER_FLAG_NO_MAPCHANGE);
+			}
 			
 			AddToCookie(iClient, 1, g_cWeaponsCalled);
 			if (GetCookie(iClient, g_cWeaponsCalled) <= 1)
@@ -674,34 +679,6 @@ int GetWeaponGlowEnt(int iEntity)
 	}
 	
 	return -1;
-}
-
-int CreateWeaponGlow(int iEntity, float flDuration)
-{
-	int iGlow = CreateEntityByName("tf_taunt_prop");
-	if (IsValidEntity(iGlow) && DispatchSpawn(iGlow))
-	{
-		Weapon wep;
-		GetWeaponFromEntity(wep, iEntity);
-		SetEntPropString(iGlow, Prop_Data, "m_iName", "SZF_WEAPON_GLOW");
-		SetEntityModel(iGlow, wep.sModel);
-		SetEntProp(iGlow, Prop_Send, "m_nSkin", wep.iSkin);
-		
-		SetEntPropEnt(iGlow, Prop_Data, "m_hEffectEntity", iEntity);
-		SetEntProp(iGlow, Prop_Send, "m_bGlowEnabled", true);
-		
-		int iEffects = GetEntProp(iGlow, Prop_Send, "m_fEffects");
-		SetEntProp(iGlow, Prop_Send, "m_fEffects", iEffects | EF_BONEMERGE | EF_NOSHADOW | EF_NORECEIVESHADOW);
-		
-		SetVariantString("!activator");
-		AcceptEntityInput(iGlow, "SetParent", iEntity);
-		
-		SDKHook(iGlow, SDKHook_SetTransmit, Weapon_SetTransmit);
-		
-		CreateTimer(flDuration, Timer_KillEntity, EntIndexToEntRef(iGlow), TIMER_FLAG_NO_MAPCHANGE);
-	}
-	
-	return iGlow;
 }
 
 public Action Weapon_SetTransmit(int iEntity, int iClient)
