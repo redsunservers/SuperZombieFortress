@@ -2166,9 +2166,8 @@ bool AttemptCarryItem(int iClient)
 		return false;
 	
 	g_iCarryingItem[iClient] = EntIndexToEntRef(iTarget);
-	SetEntProp(iClient, Prop_Send, "m_bDrawViewmodel", 0);
 	AcceptEntityInput(iTarget, "DisableMotion");
-	SetEntProp(iTarget, Prop_Send, "m_nSolidType", 0);
+	SetEntProp(iTarget, Prop_Send, "m_nSolidType", SOLID_NONE);
 	
 	EmitSoundToClient(iClient, "ui/item_paint_can_pickup.wav");
 	PrintHintText(iClient, "%t", "Carry_Pickup");
@@ -2206,9 +2205,7 @@ bool DropCarryingItem(int iClient, bool bDrop = true)
 	if (!IsValidEntity(g_iCarryingItem[iClient]))
 		return false;
 	
-	SetEntProp(iClient, Prop_Send, "m_bDrawViewmodel", 1);
-	
-	SetEntProp(g_iCarryingItem[iClient], Prop_Send, "m_nSolidType", 6);
+	SetEntProp(g_iCarryingItem[iClient], Prop_Send, "m_nSolidType", SOLID_VPHYSICS);
 	AcceptEntityInput(g_iCarryingItem[iClient], "EnableMotion");
 	AcceptEntityInput(g_iCarryingItem[iClient], "FireUser2", iClient, iClient);
 	
