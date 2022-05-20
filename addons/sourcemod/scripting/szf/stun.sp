@@ -139,24 +139,18 @@ public Action Stun_EndPlayerTimer(Handle hTimer, int iSerial)
 void Stun_ClientThink(int iClient)
 {
 	static int iFogEnt = INVALID_ENT_REFERENCE;
-	static int iFog = 512;
 	
 	if (!IsValidEntity(iFogEnt))
 	{
 		iFogEnt = EntIndexToEntRef(CreateEntityByName("env_fog_controller"));
-		DispatchKeyValue(iFogEnt, "fogstart", "512");
-		DispatchKeyValue(iFogEnt, "fogend", "512");
+		DispatchKeyValue(iFogEnt, "fogstart", "768");
+		DispatchKeyValue(iFogEnt, "fogend", "768");
 		DispatchKeyValue(iFogEnt, "fogenable", "1");
 		DispatchKeyValue(iFogEnt, "fogcolor", "0 0 0");
 		DispatchKeyValue(iFogEnt, "fogcolor2", "171 177 209");
 		
 		DispatchSpawn(iFogEnt);
 	}
-	
-	iFog--;
-	
-	SetVariantFloat(float(iFog));
-	AcceptEntityInput(iFogEnt, "SetStartDist");
 	
 	int iPreviousFogEnt = GetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl");
 	if (iPreviousFogEnt != INVALID_ENT_REFERENCE)
