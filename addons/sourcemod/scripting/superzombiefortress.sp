@@ -2205,16 +2205,19 @@ bool DropCarryingItem(int iClient, bool bDrop = true)
 public Action SoundHook(int iClients[MAXPLAYERS], int &iNumClients, char sSound[PLATFORM_MAX_PATH], int &iClient, int &iChannel, float &flVolume, int &iLevel, int &iPitch, int &iFlags, char sSoundEntry[PLATFORM_MAX_PATH], int &iSeed)
 {
 	Action action = Plugin_Continue;
-	for (int i = iNumClients - 1; i >= 0; i--)
+	if (StrContains(sSound, "vo/", false) != -1)
 	{
 		//Don't play any sounds to stunned players
-		if (Stun_IsPlayerStunned(iClients[i]))
+		for (int i = iNumClients - 1; i >= 0; i--)
 		{
-			for (int j = i; j < iNumClients; j++)
-				iClients[j] = iClients[j+1];
-			
-			iNumClients--;
-			action = Plugin_Changed;
+			if (Stun_IsPlayerStunned(iClients[i]))
+			{
+				for (int j = i; j < iNumClients; j++)
+					iClients[j] = iClients[j+1];
+				
+				iNumClients--;
+				action = Plugin_Changed;
+			}
 		}
 	}
 	
