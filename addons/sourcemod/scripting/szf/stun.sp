@@ -146,8 +146,8 @@ void Stun_ClientThink(int iClient)
 	if (!IsValidEntity(iFogEnt))
 	{
 		iFogEnt = EntIndexToEntRef(CreateEntityByName("env_fog_controller"));
-		DispatchKeyValue(iFogEnt, "fogstart", "768");
-		DispatchKeyValue(iFogEnt, "fogend", "768");
+		DispatchKeyValue(iFogEnt, "fogstart", "256");
+		DispatchKeyValue(iFogEnt, "fogend", "512");
 		DispatchKeyValue(iFogEnt, "fogenable", "1");
 		DispatchKeyValue(iFogEnt, "fogcolor", "0 0 0");
 		DispatchKeyValue(iFogEnt, "fogcolor2", "171 177 209");
