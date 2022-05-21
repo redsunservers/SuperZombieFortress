@@ -248,6 +248,16 @@ public Action Infected_OnTankAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iD
 	return Plugin_Continue;
 }
 
+public void Infected_OnTankTouch(int iClient, int iToucher)
+{
+	if (IsClassname(iToucher, "func_respawnroom"))
+	{
+		//Reset lifetime so tank don't drain it's health while in spawnroom
+		if (!GetEntProp(iToucher, Prop_Data, "m_bDisabled") && GetEntProp(iToucher, Prop_Send, "m_iTeamNum") == GetClientTeam(iClient))
+			g_flTankLifetime[iClient] = GetGameTime();
+	}
+}
+
 public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 {
 	g_hTimerTank[iVictim] = null;
