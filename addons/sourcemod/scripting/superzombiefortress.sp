@@ -1321,9 +1321,14 @@ void SZFEnable()
 	g_iSprite = PrecacheModel("materials/sprites/laser.vmt");
 	
 	if (GameRules_GetRoundState() < RoundState_Preround)
+	{
 		g_nRoundState = SZFRoundState_Setup;
+	}
 	else	//Plugin late-load while already midgame, restart round
+	{
 		TF2_EndRound(TFTeam_Zombie);
+		g_nRoundState = SZFRoundState_End;
+	}
 	
 	AddNormalSoundHook(SoundHook);
 	
