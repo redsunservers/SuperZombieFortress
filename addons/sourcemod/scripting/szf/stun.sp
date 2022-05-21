@@ -6,6 +6,7 @@
 
 #define SCREENFADE_FRACBITS		9
 
+
 #define HIDEHUD_WEAPONSELECTION		( 1<<0 )	// Hide ammo count & weapon selection
 #define HIDEHUD_FLASHLIGHT			( 1<<1 )
 #define HIDEHUD_ALL					( 1<<2 )
@@ -21,8 +22,10 @@
 
 #define HIDEHUD_BITCOUNT			12
 
+
 #define BLIND_COLOR			{0, 0, 0, 255}
 #define BLIND_MULTI_SPEED_MIN		0.5
+#define BLIND_HIDEHUD				HIDEHUD_WEAPONSELECTION|HIDEHUD_HEALTH|HIDEHUD_PLAYERDEAD|HIDEHUD_MISCSTATUS|HIDEHUD_CROSSHAIR|HIDEHUD_BONUS_PROGRESS
 
 enum struct StunInfo
 {
@@ -92,7 +95,7 @@ bool Stun_StartPlayer(int iClient, float flDuration = 10.0)
 		flDurationLeft -= flFadeIn + flFadeHold + flFadeOut;
 	}
 	
-	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD")|HIDEHUD_ALL);
+	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD")|BLIND_HIDEHUD);
 	
 	SDKHook(iClient, SDKHook_PostThinkPost, Stun_ClientThink);
 	hTimer = CreateTimer(flDuration, Stun_EndPlayerTimer, GetClientSerial(iClient));
@@ -113,7 +116,7 @@ void Stun_EndPlayer(int iClient)
 	g_StunInfo[iClient].bStunned = false;
 	delete g_StunInfo[iClient].aTimers;
 	
-	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD") & ~HIDEHUD_ALL);
+	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD") & ~BLIND_HIDEHUD);
 	TF2_RemoveCondition(iClient, TFCond_LostFooting);
 	SDKUnhook(iClient, SDKHook_PostThinkPost, Stun_ClientThink);
 	SDKCall_SetSpeed(iClient);
