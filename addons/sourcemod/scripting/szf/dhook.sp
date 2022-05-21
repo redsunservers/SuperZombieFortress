@@ -506,7 +506,6 @@ public MRESReturn DHook_RoundRespawnPre()
 	g_flCapScale = -1.0;
 	g_flSurvivorsLastDeath = GetGameTime();
 	g_iSurvivorsKilledCounter = 0;
-	g_iZombiesKilledCounter = 0;
 	g_iZombiesKilledSpree = 0;
 	g_iTanksSpawned = 0;
 	

@@ -368,7 +368,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		if (IsValidSurvivor(iKillers[0]))
 		{
 			g_iZombiesKilledSpree++;
-			g_iZombiesKilledCounter++;
 			g_iZombiesKilledSurvivor[iKillers[0]]++;
 		}
 		

@@ -362,7 +362,6 @@ bool g_bGiveNamedItemSkip;
 
 float g_flSurvivorsLastDeath = 0.0;
 int g_iSurvivorsKilledCounter;
-int g_iZombiesKilledCounter;
 int g_iZombiesKilledSpree;
 int g_iZombiesKilledSurvivor[TF_MAXPLAYERS];
 
@@ -1537,33 +1536,22 @@ void UpdateZombieDamageScale()
 	}
 	
 	//Get the amount of zombies killed since last survivor death
-	g_flZombieDamageScale += fMin(0.3, g_iZombiesKilledSpree * 0.003);
-	
-	//Get total amount of zombies killed
-	g_flZombieDamageScale += fMin(0.2, g_iZombiesKilledCounter * 0.0005);
+	g_flZombieDamageScale += g_iZombiesKilledSpree * 0.004;
 	
 	//Zombie rage increases damage
 	if (g_bZombieRage)
-	{
-		g_flZombieDamageScale += 0.1;
-		if (g_flZombieDamageScale < 1.1)
-			g_flZombieDamageScale = 1.1;
-	}
+		g_flZombieDamageScale += 0.2;
 	
-	//In survival, zombie to survivor ratio is also taken to calculate damage.
-	if (g_bSurvival)
-		g_flZombieDamageScale += fMax(0.0, (iSurvivors / iZombies / 30) + 0.08); //28-4 = +0.213, 16-16 = +0.113
-	
-	//If the last point is being captured, set the damage scale to 110% if lower than 110%
-	if (g_bCapturingLastPoint && g_flZombieDamageScale < 1.1 && !g_bSurvival)
-		g_flZombieDamageScale = 1.1;
+	//If the last point is being captured, increase damage scale if lower than 100%
+	if (g_bCapturingLastPoint && g_flZombieDamageScale < 1.0 && !g_bSurvival)
+		g_flZombieDamageScale += (1.0 - g_flZombieDamageScale) * 0.5;
 	
 	//Post-calculation
 	if (g_flZombieDamageScale < 1.0)
-		g_flZombieDamageScale = g_flZombieDamageScale * g_flZombieDamageScale; // TODO: Compiler bug in 1.11 doesn't allow us to use g_flZombieDamageScale *= g_flZombieDamageScale;
+		g_flZombieDamageScale = Pow(3.0, g_flZombieDamageScale);
 	
-	if (g_flZombieDamageScale < 0.33)
-		g_flZombieDamageScale = 0.33;
+	if (g_flZombieDamageScale < 0.2)
+		g_flZombieDamageScale = 0.2;
 	
 	if (g_flZombieDamageScale > 3.0)
 		g_flZombieDamageScale = 3.0;
@@ -1578,10 +1566,10 @@ void UpdateZombieDamageScale()
 		{
 			//In order:
 			//The damage scale is above 170%
-			//The damage scale is above 120% and the total amount of zombies killed since a survivor died exceeds 20
-			//None of the survivors died in the past 120 seconds
+			//The damage scale is above 120% and either zombies killed since a survivor died exceeds 20 or last capture
+			//None of the survivors died in the past 90 seconds
 			if ((g_flZombieDamageScale >= 1.7)
-			|| (g_flZombieDamageScale >= 1.2 && g_iZombiesKilledSpree >= 20)
+			|| (g_flZombieDamageScale >= 1.2 && (g_iZombiesKilledSpree >= 20 || g_bCapturingLastPoint))
 			|| (g_flSurvivorsLastDeath < flGameTime - 120.0) )
 			{
 				ZombieTank();
@@ -1592,11 +1580,11 @@ void UpdateZombieDamageScale()
 		{
 			//In order:
 			//The damage scale is above 120%
-			//The damage scale is above 80% and the total amount of zombies killed since a survivor died exceeds 12
+			//The damage scale is above 80% and either zombies killed since a survivor died exceeds 12 or last capture
 			//The frenzy chance rng is triggered
 			//None of the survivors died in the past 60 seconds
 			if ( g_flZombieDamageScale >= 1.2
-			|| (g_flZombieDamageScale >= 0.8 && g_iZombiesKilledSpree >= 12)
+			|| (g_flZombieDamageScale >= 0.8 && (g_iZombiesKilledSpree >= 12 || g_bCapturingLastPoint))
 			|| GetRandomInt(0, 100) < g_cvFrenzyChance.IntValue
 			|| (g_flSurvivorsLastDeath < flGameTime - 60.0) )
 			{
