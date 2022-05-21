@@ -28,11 +28,18 @@ public void Infected_DoNoRage(int iClient)
 static Handle g_hTimerTank[TF_MAXPLAYERS];
 static float g_flTankLifetime[TF_MAXPLAYERS];
 static int g_iTankHealthSubtract[TF_MAXPLAYERS];
-static float g_flTankMoralePool[TF_MAXPLAYERS];
 
 public void Infected_OnTankSpawn(int iClient)
 {
-	//TAAAAANK
+	if (g_flTankLifetime[iClient] < GetGameTime() - 0.5)	//Prevent multiple announces from spawnroom
+	{
+		//TAAAAANK
+		CPrintToChatAll("%t", "Tank_Spawn", "{red}");
+		Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
+		
+		g_iTanksSpawned++;
+	}
+	
 	g_hTimerTank[iClient] = CreateTimer(1.0, Infected_TankTimer, GetClientSerial(iClient), TIMER_REPEAT);
 	g_flTankLifetime[iClient] = GetGameTime();
 	
@@ -44,19 +51,11 @@ public void Infected_OnTankSpawn(int iClient)
 	g_iMaxHealth[iClient] = iHealth;
 	SetEntityHealth(iClient, iHealth);
 	
-	//Set the Morale reward pool for killing the tank
-	g_flTankMoralePool[iClient] = g_ClientClasses[iClient].flMoraleValue * float(iSurvivors + 2);
-	
 	int iSubtract = 0;
 	if (g_cvTankTime.FloatValue > 0.0)
 		iSubtract = max(RoundFloat(float(iHealth) / g_cvTankTime.FloatValue), 3);
 	
 	g_iTankHealthSubtract[iClient] = iSubtract;
-	
-	CPrintToChatAll("%t", "Tank_Spawn", "{red}");
-	Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
-	
-	g_iTanksSpawned++;
 	
 	for (int i = 1; i <= MaxClients; i++)
 	{
