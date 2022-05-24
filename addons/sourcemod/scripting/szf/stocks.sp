@@ -219,6 +219,39 @@ stock void PrecacheSound2(const char[] sSoundPath)
 	AddFileToDownloadsTable(sBuffer);
 }
 
+int CreateBonemerge(int iEntity, const char[] sAttachment = NULL_STRING)
+{
+	int iProp = CreateEntityByName("tf_taunt_prop");
+	
+	int iTeam = GetEntProp(iEntity, Prop_Send, "m_iTeamNum");
+	SetEntProp(iProp, Prop_Data, "m_iInitialTeamNum", iTeam);
+	SetEntProp(iProp, Prop_Send, "m_iTeamNum", iTeam);
+	SetEntProp(iProp, Prop_Send, "m_nSkin", GetEntProp(iEntity, Prop_Send, "m_nSkin"));
+	
+	char sModel[PLATFORM_MAX_PATH];
+	GetEntPropString(iEntity, Prop_Data, "m_ModelName", sModel, sizeof(sModel));
+	SetEntityModel(iProp, sModel);
+	
+	DispatchSpawn(iProp);
+	
+	SetEntPropEnt(iProp, Prop_Data, "m_hEffectEntity", iEntity);
+	//SetEntProp(iProp, Prop_Send, "m_fEffects", GetEntProp(iProp, Prop_Send, "m_fEffects")|EF_BONEMERGE|EF_NOSHADOW|EF_NOINTERP);
+	SetEntProp(iProp, Prop_Send, "m_fEffects", EF_BONEMERGE|EF_NOSHADOW|EF_NORECEIVESHADOW|EF_NOINTERP);
+	
+	SetVariantString("!activator");
+	AcceptEntityInput(iProp, "SetParent", iEntity);
+	
+	if (sAttachment[0])
+	{
+		SetVariantString(sAttachment);
+		AcceptEntityInput(iProp, "SetParentAttachmentMaintainOffset");
+	}
+	
+	SetEntityRenderMode(iProp, RENDER_TRANSCOLOR);
+	SetEntityRenderColor(iProp, 0, 0, 0, 0);
+	return iProp;
+}
+
 ////////////////
 // SZF Class
 ////////////////
@@ -651,7 +684,7 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttrib
 		int iSlot = TF2Econ_GetItemLoadoutSlot(iIndex, iClass);	//Uses econ slot
 		Address pItem = SDKCall_GetLoadoutItem(iClient, iClass, iSlot);
 		
-		if (pItem && GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(g_iOffsetItemDefinitionIndex), NumberType_Int16)) == iIndex)
+		if (pItem && Config_GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(g_iOffsetItemDefinitionIndex), NumberType_Int16)) == iIndex)
 			iWeapon = SDKCall_GetBaseEntity(SDKCall_GiveNamedItem(iClient, sClassname, iSubType, pItem));
 	}
 	
@@ -768,19 +801,6 @@ stock void CheckClientWeapons(int iClient)
 				TF2_RemoveWearable(iClient, iPowerupBottle);
 		}
 	}
-}
-
-stock int GetOriginalItemDefIndex(int iIndex)
-{
-	int iOrigIndex;
-	
-	char sIndex[8];
-	IntToString(iIndex, sIndex, sizeof(sIndex));
-	
-	if (g_mConfigReskins.GetValue(sIndex, iOrigIndex))
-		return iOrigIndex;
-	else
-		return iIndex;
 }
 
 ////////////////

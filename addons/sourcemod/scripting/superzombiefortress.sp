@@ -36,6 +36,60 @@
 #define TF_VISION_FILTER_HALLOWEEN	(1<<1)	// 2
 #define TF_VISION_FILTER_ROME		(1<<2)	// 4
 
+// settings for m_takedamage
+#define DAMAGE_NO				0
+#define DAMAGE_EVENTS_ONLY		1		// Call damage functions, but don't modify health
+#define DAMAGE_YES				2
+#define DAMAGE_AIM				3
+
+// Phys prop spawnflags
+#define SF_PHYSPROP_START_ASLEEP				0x000001
+#define SF_PHYSPROP_DONT_TAKE_PHYSICS_DAMAGE	0x000002		// this prop can't be damaged by physics collisions
+#define SF_PHYSPROP_DEBRIS						0x000004
+#define SF_PHYSPROP_MOTIONDISABLED				0x000008		// motion disabled at startup (flag only valid in spawn - motion can be enabled via input)
+#define SF_PHYSPROP_TOUCH						0x000010		// can be 'crashed through' by running player (plate glass)
+#define SF_PHYSPROP_PRESSURE					0x000020		// can be broken by a player standing on it
+#define SF_PHYSPROP_ENABLE_ON_PHYSCANNON		0x000040		// enable motion only if the player grabs it with the physcannon
+#define SF_PHYSPROP_NO_ROTORWASH_PUSH			0x000080		// The rotorwash doesn't push these
+#define SF_PHYSPROP_ENABLE_PICKUP_OUTPUT		0x000100		// If set, allow the player to +USE this for the purposes of generating an output
+#define SF_PHYSPROP_PREVENT_PICKUP				0x000200		// If set, prevent +USE/Physcannon pickup of this prop
+#define SF_PHYSPROP_PREVENT_PLAYER_TOUCH_ENABLE	0x000400		// If set, the player will not cause the object to enable its motion when bumped into
+#define SF_PHYSPROP_HAS_ATTACHED_RAGDOLLS		0x000800		// Need to remove attached ragdolls on enable motion/etc
+#define SF_PHYSPROP_FORCE_TOUCH_TRIGGERS		0x001000		// Override normal debris behavior and respond to triggers anyway
+#define SF_PHYSPROP_FORCE_SERVER_SIDE			0x002000		// Force multiplayer physics object to be serverside
+#define SF_PHYSPROP_RADIUS_PICKUP				0x004000		// For Xbox, makes small objects easier to pick up by allowing them to be found 
+#define SF_PHYSPROP_ALWAYS_PICK_UP				0x100000		// Physcannon can always pick this up, no matter what mass or constraints may apply.
+#define SF_PHYSPROP_NO_COLLISIONS				0x200000		// Don't enable collisions on spawn
+#define SF_PHYSPROP_IS_GIB						0x400000		// Limit # of active gibs
+
+enum
+{
+	COLLISION_GROUP_NONE  = 0,
+	COLLISION_GROUP_DEBRIS,			// Collides with nothing but world and static stuff
+	COLLISION_GROUP_DEBRIS_TRIGGER, // Same as debris, but hits triggers
+	COLLISION_GROUP_INTERACTIVE_DEBRIS,	// Collides with everything except other interactive debris or debris
+	COLLISION_GROUP_INTERACTIVE,	// Collides with everything except interactive debris or debris
+	COLLISION_GROUP_PLAYER,
+	COLLISION_GROUP_BREAKABLE_GLASS,
+	COLLISION_GROUP_VEHICLE,
+	COLLISION_GROUP_PLAYER_MOVEMENT,  // For HL2, same as Collision_Group_Player, for
+										// TF2, this filters out other players and CBaseObjects
+	COLLISION_GROUP_NPC,			// Generic NPC group
+	COLLISION_GROUP_IN_VEHICLE,		// for any entity inside a vehicle
+	COLLISION_GROUP_WEAPON,			// for any weapons that need collision detection
+	COLLISION_GROUP_VEHICLE_CLIP,	// vehicle clip brush to restrict vehicle movement
+	COLLISION_GROUP_PROJECTILE,		// Projectiles!
+	COLLISION_GROUP_DOOR_BLOCKER,	// Blocks entities not permitted to get near moving doors
+	COLLISION_GROUP_PASSABLE_DOOR,	// Doors that the player shouldn't collide with
+	COLLISION_GROUP_DISSOLVING,		// Things that are dissolving are in this group
+	COLLISION_GROUP_PUSHAWAY,		// Nonsolid on client and server, pushaway in player code
+
+	COLLISION_GROUP_NPC_ACTOR,		// Used so NPCs in scripts ignore the player.
+	COLLISION_GROUP_NPC_SCRIPTED,	// USed for NPCs in scripts that should not collide with each other
+
+	LAST_SHARED_COLLISION_GROUP
+};
+
 enum
 {
 	VISION_MODE_NONE = 0,
@@ -71,6 +125,18 @@ enum
 	EF_ITEM_BLINK			= 0x100,	// blink an item so that the user notices it.
 	EF_PARENT_ANIMATES		= 0x200,	// always assume that the parent entity is animating
 	EF_MAX_BITS = 10
+};
+
+enum SolidType_t
+{
+	SOLID_NONE			= 0,	// no solid model
+	SOLID_BSP			= 1,	// a BSP tree
+	SOLID_BBOX			= 2,	// an AABB
+	SOLID_OBB			= 3,	// an OBB (not implemented yet)
+	SOLID_OBB_YAW		= 4,	// an OBB, constrained so that it can only yaw
+	SOLID_CUSTOM		= 5,	// Always call into the entity for tests
+	SOLID_VPHYSICS		= 6,	// solid vphysics object, get vcollide from the model and collide with that
+	SOLID_LAST,
 };
 
 // Spectator Movement modes
@@ -1881,51 +1947,35 @@ void HandleSurvivorLoadout(int iClient)
 			//Get attrib from index to apply
 			int iIndex = GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex");
 			
-			int iLength = g_aConfigMelee.Length;
-			for (int i = 0; i < iLength; i++)
+			ConfigMelee melee;
+			if (Config_GetMeleeByDefIndex(iIndex, melee))
 			{
-				ConfigMelee Melee;
-				g_aConfigMelee.GetArray(i, Melee, sizeof(Melee));
+				//If have prefab, use said index instead
+				if (melee.iIndexPrefab >= 0)
+					Config_GetMeleeByDefIndex(melee.iIndexPrefab, melee);
 				
-				if (Melee.iIndex == iIndex)
+				//See if there weapon to replace
+				if (melee.iIndexReplace >= 0)
 				{
-					//If have prefab, use said index instead
-					if (Melee.iIndexPrefab >= 0)
-					{
-						int iPrefab = Melee.iIndexPrefab;
-						for (int j = 0; j < iLength; j++)
-						{
-							g_aConfigMelee.GetArray(j, Melee, sizeof(Melee));
-							if (Melee.iIndex == iPrefab)
-								break;
-						}
-					}
-					
-					//See if there weapon to replace
-					if (Melee.iIndexReplace >= 0)
-					{
-						iIndex = Melee.iIndexReplace;
-						TF2_RemoveWeaponSlot(iClient, iSlot);
-						iEntity = TF2_CreateAndEquipWeapon(iClient, iIndex);
-					}
-					
-					//Print text with cooldown to prevent spam
-					float flGameTime = GetGameTime();
-					if (g_flStopChatSpam[iClient] < flGameTime && Melee.sText[0])
-					{
-						CPrintToChat(iClient, "%t", Melee.sText);
-						g_flStopChatSpam[iClient] = flGameTime + 1.0;
-					}
-					
-					//Apply attribute
-					char sAttribs[32][32];
-					int iCount = ExplodeString(Melee.sAttrib, " ; ", sAttribs, sizeof(sAttribs), sizeof(sAttribs));
-					if (iCount > 1)
-						for (int j = 0; j < iCount; j+= 2)
-							TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[j]), StringToFloat(sAttribs[j+1]));
-					
-					break;
+					iIndex = melee.iIndexReplace;
+					TF2_RemoveWeaponSlot(iClient, iSlot);
+					iEntity = TF2_CreateAndEquipWeapon(iClient, iIndex);
 				}
+				
+				//Print text with cooldown to prevent spam
+				float flGameTime = GetGameTime();
+				if (g_flStopChatSpam[iClient] < flGameTime && melee.sText[0])
+				{
+					CPrintToChat(iClient, "%t", melee.sText);
+					g_flStopChatSpam[iClient] = flGameTime + 1.0;
+				}
+					
+				//Apply attribute
+				char sAttribs[32][32];
+				int iCount = ExplodeString(melee.sAttrib, " ; ", sAttribs, sizeof(sAttribs), sizeof(sAttribs));
+				if (iCount > 1)
+					for (int j = 0; j < iCount; j+= 2)
+						TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[j]), StringToFloat(sAttribs[j+1]));
 			}
 			
 			//This will refresh health max calculation and other attributes

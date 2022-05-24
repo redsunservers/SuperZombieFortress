@@ -1,5 +1,6 @@
 #define CONFIG_WEAPONS       "configs/szf/weapons.cfg"
 #define CONFIG_RESKINS       "configs/szf/reskins.cfg"
+#define CONFIG_DEBRIS        "configs/szf/debris.cfg"
 
 enum struct ConfigMelee
 {
@@ -10,8 +11,19 @@ enum struct ConfigMelee
 	char sAttrib[256];
 }
 
-ArrayList g_aConfigMelee;
-StringMap g_mConfigReskins;
+enum struct Debris
+{
+	char sModel[PLATFORM_MAX_PATH];
+	float flScale;
+	float vecOffset[3];
+	float vecAngle[3];
+	char sIconName[64];
+	float flChance;
+}
+
+static ArrayList g_aConfigMelee;
+static StringMap g_mConfigReskins;
+static ArrayList g_aConfigDebris;
 
 void Config_Init()
 {
@@ -64,7 +76,11 @@ void Config_Refresh()
 	
 	delete kv;
 	
+	delete g_mConfigReskins;
 	g_mConfigReskins = Config_LoadReskins();
+	
+	delete g_aConfigDebris;
+	g_aConfigDebris = Config_LoadDebris();
 }
 
 ArrayList Config_LoadWeaponData()
@@ -357,6 +373,37 @@ StringMap Config_LoadReskins()
 	return mReskins;
 }
 
+ArrayList Config_LoadDebris()
+{
+	KeyValues kv = Config_LoadFile(CONFIG_DEBRIS, "Debris");
+	if (kv == null)
+		return null;
+	
+	ArrayList aDebris = new ArrayList(sizeof(Debris));
+	
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			Debris debris;
+			kv.GetSectionName(debris.sModel, sizeof(debris.sModel));
+			debris.flScale = kv.GetFloat("scale", 1.0);
+			kv.GetVector("offset", debris.vecOffset);
+			kv.GetVector("angle", debris.vecAngle);
+			kv.GetString("iconname", debris.sIconName, sizeof(debris.sIconName));
+			debris.flChance = kv.GetFloat("chance", 1.0);
+			
+			aDebris.PushArray(debris);
+			PrecacheModel(debris.sModel);
+		}
+		while (kv.GotoNextKey(false));
+	}
+	
+	delete kv;
+	return aDebris;
+}
+
+
 StringMap Config_LoadMusic(KeyValues kv)
 {
 	StringMap mMusics = new StringMap();
@@ -487,4 +534,43 @@ KeyValues Config_LoadFile(const char[] sConfigFile, const char [] sConfigSection
 	}
 	
 	return kv;
+}
+
+int Config_GetOriginalItemDefIndex(int iIndex)
+{
+	int iOrigIndex;
+	
+	char sIndex[8];
+	IntToString(iIndex, sIndex, sizeof(sIndex));
+	
+	if (g_mConfigReskins.GetValue(sIndex, iOrigIndex))
+		return iOrigIndex;
+	else
+		return iIndex;
+}
+
+bool Config_GetMeleeByDefIndex(int iIndex, ConfigMelee melee)
+{
+	int iPos = g_aConfigMelee.FindValue(iIndex, ConfigMelee::iIndex);
+	if (iPos == -1)
+		return false;
+	
+	g_aConfigMelee.GetArray(iPos, melee);
+	return true;
+}
+
+void Config_GetRandomDebris(Debris debris)
+{
+	ArrayList aList = new ArrayList(sizeof(Debris));
+	int iLength = g_aConfigDebris.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		g_aConfigDebris.GetArray(i, debris);
+		if (debris.flChance > GetRandomFloat(0.0, 1.0))
+			aList.PushArray(debris);
+	}
+	
+	int iRandom = GetRandomInt(0, aList.Length - 1);
+	aList.GetArray(iRandom, debris);
+	delete aList;
 }
