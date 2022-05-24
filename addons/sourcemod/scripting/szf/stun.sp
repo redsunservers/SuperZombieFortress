@@ -30,6 +30,7 @@
 enum struct StunInfo
 {
 	bool bStunned;
+	bool bCooldown;
 	int iPreviousFogEnt;
 	int iCurrentFogEnt;
 	ArrayList aTimers;
@@ -53,7 +54,7 @@ bool Stun_IsPlayerStunned(int iClient)
 
 bool Stun_StartPlayer(int iClient, float flDuration = 10.0)
 {
-	if (g_StunInfo[iClient].bStunned)
+	if (g_StunInfo[iClient].bStunned || g_StunInfo[iClient].bCooldown)
 		return false;	//Already stunned
 	
 	g_StunInfo[iClient].bStunned = true;
@@ -116,6 +117,13 @@ void Stun_EndPlayer(int iClient)
 	g_StunInfo[iClient].bStunned = false;
 	delete g_StunInfo[iClient].aTimers;
 	
+	float flCooldown = g_cvStunImmunity.FloatValue;
+	if (flCooldown > 0.0)
+	{
+		CreateTimer(flCooldown, Stun_EndCooldownTimer, GetClientSerial(iClient));
+		g_StunInfo[iClient].bCooldown = true;
+	}
+	
 	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD") & ~BLIND_HIDEHUD);
 	TF2_RemoveCondition(iClient, TFCond_LostFooting);
 	SDKUnhook(iClient, SDKHook_PostThinkPost, Stun_ClientThink);
@@ -132,6 +140,17 @@ public Action Stun_EndPlayerTimer(Handle hTimer, int iSerial)
 		return Plugin_Continue;
 	
 	Stun_EndPlayer(iClient);
+	return Plugin_Continue;
+}
+
+public Action Stun_EndCooldownTimer(Handle hTimer, int iSerial)
+{
+	int iClient = GetClientFromSerial(iSerial);
+	if (!IsValidClient(iClient))
+		return Plugin_Continue;
+	
+	
+	g_StunInfo[iClient].bCooldown = false;
 	return Plugin_Continue;
 }
 
