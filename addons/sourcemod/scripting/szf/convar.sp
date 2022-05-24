@@ -24,8 +24,6 @@ void ConVar_Init()
 	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy", _, true, 0.0);
 	g_cvStunImmunity = CreateConVar("sm_szf_stun_immunity", "0.0", "How long until the survivor can be stunned again", _, true, 0.0);
 	g_cvMeleeIgnoreTeammates = CreateConVar("sm_szf_melee_ignores_teammates", "1.0", "<0/1> If enabled, melee hits will ignore teammates", _, true, 0.0, true, 1.0);
-	g_cvDebrisMass = CreateConVar("sm_szf_debris_mass", "300.0", "", _, true, 0.0);
-	g_cvDebrisVelocity = CreateConVar("sm_szf_debris_velocity", "2000.0", "", _, true, 0.0);
 	
 	g_aConVar = new ArrayList(sizeof(ConVarInfo));
 	
