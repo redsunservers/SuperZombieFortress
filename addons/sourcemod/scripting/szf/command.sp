@@ -163,9 +163,9 @@ public Action Command_Stun(int iClient, int iArgs)
 	for (int i = 0; i < iTargetCount; i++)
 	{
 		if (flDuration > 0)
-			Stun_StartPlayer(iClient, flDuration);
+			Stun_StartPlayer(iTargetList[i], flDuration);
 		else
-			Stun_StartPlayer(iClient);
+			Stun_StartPlayer(iTargetList[i]);
 	}
 	
 	CReplyToCommand(iClient, "%t", "Command_StunSet", "{limegreen}", iTargetCount);
