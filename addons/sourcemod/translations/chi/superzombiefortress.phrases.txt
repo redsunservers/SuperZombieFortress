@@ -261,6 +261,21 @@
 		"chi"		"{1}设置 {2} 感染者变成下一个感染者 \"{3}\""
 	}
 	
+	"Command_StunUsage"
+	{
+		"chi"		"{1}用法: sm_stun [目标] [期间]"
+	}
+	
+	"Command_StunNoTarget"
+	{
+		"chi"		"{1}找不到可以击晕的人。"
+	}
+	
+	"Command_StunSet"
+	{
+		"chi"		"{1}惊呆了 {2} 名玩家。"
+	}
+	
 	"Command_MusicEnable"
 	{
 		"chi"		"{1}音乐已开启。"

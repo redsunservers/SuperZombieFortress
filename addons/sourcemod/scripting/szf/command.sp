@@ -136,8 +136,39 @@ public Action Command_Stun(int iClient, int iArgs)
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
-	Stun_StartPlayer(iClient, GetCmdArgFloat(1));
+	if (iArgs < 1)
+	{
+		CReplyToCommand(iClient, "%t", "Command_StunUsage", "{red}");
+		return Plugin_Handled;
+	}
 	
+	char sTarget[32];
+	GetCmdArg(1, sTarget, sizeof(sTarget));
+	
+	int iTargetList[TF_MAXPLAYERS];
+	char sTargetName[MAX_TARGET_LENGTH];
+	bool bIsML;
+	
+	int iTargetCount = ProcessTargetString(sTarget, iClient, iTargetList, sizeof(iTargetList), COMMAND_FILTER_NO_IMMUNITY|COMMAND_FILTER_ALIVE, sTargetName, sizeof(sTargetName), bIsML);
+	if (iTargetCount <= 0)
+	{
+		CReplyToCommand(iClient, "%t", "Command_StunNoTarget", "{red}");
+		return Plugin_Handled;
+	}
+	
+	float flDuration;
+	if (iArgs >= 2)
+		flDuration = GetCmdArgFloat(2);
+	
+	for (int i = 0; i < iTargetCount; i++)
+	{
+		if (flDuration > 0)
+			Stun_StartPlayer(iClient, flDuration);
+		else
+			Stun_StartPlayer(iClient);
+	}
+	
+	CReplyToCommand(iClient, "%t", "Command_StunSet", "{limegreen}", iTargetCount);
 	return Plugin_Handled;
 }
 

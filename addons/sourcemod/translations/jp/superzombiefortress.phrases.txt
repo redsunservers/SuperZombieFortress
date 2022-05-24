@@ -260,6 +260,21 @@
 		"jp"		"{1}セット {2} 次に感染するゾンビ \"{3}\""
 	}
 	
+	"Command_StunUsage"
+	{
+		"jp"		"{1}使用法: sm_stun [目標] [間隔]"
+	}
+	
+	"Command_StunNoTarget"
+	{
+		"jp"		"{1}気絶させる人が見つかりませんでした。"
+	}
+	
+	"Command_StunSet"
+	{
+		"jp"		"{1}唖然とした{2}人のプレイヤー。"
+	}
+	
 	"Command_MusicEnable"
 	{
 		"jp"		"{1}音楽が有効になりました。"

@@ -285,6 +285,24 @@
 		"en"		"{1}Set {2} zombies to become next infected \"{3}\""
 	}
 	
+	"Command_StunUsage"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Usage: sm_stun [target] [duration]"
+	}
+	
+	"Command_StunNoTarget"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Could not find anyone to stun."
+	}
+	
+	"Command_StunSet"
+	{
+		"#format"	"{1:s},{2:d}"
+		"en"		"{1}Stunned {2} players."
+	}
+	
 	"Command_MusicEnable"
 	{
 		"#format"	"{1:s}"
