@@ -52,7 +52,7 @@ bool Stun_IsPlayerStunned(int iClient)
 	return g_StunInfo[iClient].bStunned;
 }
 
-bool Stun_StartPlayer(int iClient, float flDuration = 10.0)
+bool Stun_StartPlayer(int iClient, float flDuration = 6.0)
 {
 	if (g_StunInfo[iClient].bStunned || g_StunInfo[iClient].bCooldown)
 		return false;	//Already stunned
@@ -329,8 +329,7 @@ bool Stun_GetRandomBlinkDuration(float flDurationLeft, float &flFadeIn, float &f
 		flTotalDuration = GetRandomFloat(flMinDuration, flDuration);
 	}
 	
-	//flFadeHold = GetRandomFloat(1.0, 2.0);
-	flFadeHold = GetRandomFloat(0.5, 1.0);
+	flFadeHold = 0.5;
 	flFadeIn = GetRandomFloat(0.5, flTotalDuration - 0.5 - flFadeHold);
 	flFadeOut = flTotalDuration - flFadeIn - flFadeHold;
 	return true;
