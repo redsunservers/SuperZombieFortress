@@ -543,10 +543,13 @@ TFClassType GetWeaponClassFilter(int iEntity)
 	GetEntPropString(iEntity, Prop_Data, "m_iName", sName, sizeof(sName));
 	
 	for (int i = 0; i < sizeof(g_sClassNames); i++)
+	{
 		if (StrContains(sName, g_sClassNames[i], false) != -1)
-			return view_as<TFClassType>(i);
-	
-	return TFClass_Unknown;
+		{
+			nClass = view_as<TFClassType>(i);
+		}
+	}
+	return nClass;
 }
 
 bool IsSpawnWeapon(WeaponType iWepType)
