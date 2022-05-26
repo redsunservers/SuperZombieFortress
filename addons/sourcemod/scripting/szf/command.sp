@@ -158,7 +158,11 @@ public Action Command_Stun(int iClient, int iArgs)
 	
 	float flDuration;
 	if (iArgs >= 2)
-		flDuration = GetCmdArgFloat(2);
+	{
+		char sBuffer[16];
+		GetCmdArg(2, sBuffer, sizeof(sBuffer));
+		flDuration = StringToFloat(sBuffer);
+	}
 	
 	for (int i = 0; i < iTargetCount; i++)
 	{
