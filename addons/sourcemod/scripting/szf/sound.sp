@@ -293,7 +293,7 @@ void Sound_EndMusic(int iClient)
 void Sound_Attack(int iVictim, int iAttacker)
 {
 	TFClassType iClass = TF2_GetPlayerClass(iAttacker);
-	bool bDramatic = (g_bBackstabbed[iVictim] || GetClientHealth(iVictim) <= 50);
+	bool bDramatic = Stun_IsPlayerStunned(iVictim) || GetClientHealth(iVictim) <= 50;
 	char sName[64];
 	
 	switch (iClass)
@@ -382,28 +382,37 @@ bool Sound_IsMusicOverrideOn()
 	return false;
 }
 
-bool Sound_PlayInfectedVo(int iClient, Infected nInfected, SoundVo nVoType)
+bool Sound_GetInfectedVo(Infected nInfected, SoundVo nVoType, char[] sFilepath, int iLength)
 {
 	if (!g_aSoundVoInfected[nInfected][nVoType])
 		return false;
 	
 	int iRandom = GetRandomInt(0, g_aSoundVoInfected[nInfected][nVoType].Length - 1);
 	
-	char sFilepath[PLATFORM_MAX_PATH];
-	g_aSoundVoInfected[nInfected][nVoType].GetString(iRandom, sFilepath, sizeof(sFilepath));
-	EmitSoundToAll(sFilepath, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+	g_aSoundVoInfected[nInfected][nVoType].GetString(iRandom, sFilepath, iLength);
 	return true;
+}
+
+bool Sound_PlayInfectedVo(int iClient, Infected nInfected, SoundVo nVoType)
+{
+	char sFilepath[PLATFORM_MAX_PATH];
+	if (Sound_GetInfectedVo(nInfected, nVoType, sFilepath, sizeof(sFilepath)))
+	{
+		EmitSoundToAll(sFilepath, iClient, SNDCHAN_VOICE, SNDLEVEL_SCREAMING);
+		return true;
+	}
+	
+	return false;
 }
 
 bool Sound_PlayInfectedVoToAll(Infected nInfected, SoundVo nVoType)
 {
-	if (!g_aSoundVoInfected[nInfected][nVoType])
-		return false;
-	
-	int iRandom = GetRandomInt(0, g_aSoundVoInfected[nInfected][nVoType].Length - 1);
-	
 	char sFilepath[PLATFORM_MAX_PATH];
-	g_aSoundVoInfected[nInfected][nVoType].GetString(iRandom, sFilepath, sizeof(sFilepath));
-	EmitSoundToAll(sFilepath);
-	return true;
+	if (Sound_GetInfectedVo(nInfected, nVoType, sFilepath, sizeof(sFilepath)))
+	{
+		EmitSoundToAll(sFilepath);
+		return true;
+	}
+	
+	return false;
 }

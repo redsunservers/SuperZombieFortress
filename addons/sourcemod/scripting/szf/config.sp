@@ -10,8 +10,8 @@ enum struct ConfigMelee
 	char sAttrib[256];
 }
 
-ArrayList g_aConfigMelee;
-StringMap g_mConfigReskins;
+static ArrayList g_aConfigMelee;
+static StringMap g_mConfigReskins;
 
 void Config_Init()
 {
@@ -64,6 +64,7 @@ void Config_Refresh()
 	
 	delete kv;
 	
+	delete g_mConfigReskins;
 	g_mConfigReskins = Config_LoadReskins();
 }
 
@@ -487,4 +488,27 @@ KeyValues Config_LoadFile(const char[] sConfigFile, const char [] sConfigSection
 	}
 	
 	return kv;
+}
+
+int Config_GetOriginalItemDefIndex(int iIndex)
+{
+	int iOrigIndex;
+	
+	char sIndex[8];
+	IntToString(iIndex, sIndex, sizeof(sIndex));
+	
+	if (g_mConfigReskins.GetValue(sIndex, iOrigIndex))
+		return iOrigIndex;
+	else
+		return iIndex;
+}
+
+bool Config_GetMeleeByDefIndex(int iIndex, ConfigMelee melee)
+{
+	int iPos = g_aConfigMelee.FindValue(iIndex, ConfigMelee::iIndex);
+	if (iPos == -1)
+		return false;
+	
+	g_aConfigMelee.GetArray(iPos, melee);
+	return true;
 }
