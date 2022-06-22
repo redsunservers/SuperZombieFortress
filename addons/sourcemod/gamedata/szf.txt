@@ -77,8 +77,8 @@
 			}
 			"CTFPlayer::GiveNamedItem"
 			{
-				"linux"		"488"
-				"windows"	"481"
+				"linux"		"489"
+				"windows"	"482"
 			}
 			"CTFJar::TossJarThink"
 			{
