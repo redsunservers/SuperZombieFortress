@@ -283,6 +283,11 @@ public MRESReturn DHook_DoSwingTraceInternalPre(int iMelee, DHookReturn hReturn,
 	if (!g_cvMeleeIgnoreTeammates.BoolValue)
 		return MRES_Ignored;
 	
+	// Ignore weapons with "speed buff ally" attribute
+	float flSpeedBuffAlly = 0.0;
+	if (TF2_WeaponFindAttribute(iMelee, 251, flSpeedBuffAlly) && flSpeedBuffAlly)
+		return MRES_Ignored;
+	
 	// Enable MvM for this function for melee trace hack
 	GameRules_SetProp("m_bPlayingMannVsMachine", true);
 	
@@ -309,6 +314,11 @@ public MRESReturn DHook_DoSwingTraceInternalPre(int iMelee, DHookReturn hReturn,
 public MRESReturn DHook_DoSwingTraceInternalPost(int iMelee, DHookReturn hReturn, DHookParam hParams)
 {
 	if (!g_cvMeleeIgnoreTeammates.BoolValue)
+		return MRES_Ignored;
+	
+	// Ignore weapons with "speed buff ally" attribute
+	float flSpeedBuffAlly = 0.0;
+	if (TF2_WeaponFindAttribute(iMelee, 251, flSpeedBuffAlly) && flSpeedBuffAlly)
 		return MRES_Ignored;
 	
 	// Disable MvM so there are no lingering effects
