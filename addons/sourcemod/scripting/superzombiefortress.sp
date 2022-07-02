@@ -1503,13 +1503,13 @@ void UpdateZombieDamageScale()
 		}
 	}
 	
-	//If progress found, calculate by amount of survivors and zombies
+	//If progress found, calculate add progress to damage scale
 	if (0.0 <= flProgress <= 1.0)
-	{
-		float flExpectedPrecentage = (flProgress * 0.6) + 0.2;
-		float flZombiePrecentage = float(iZombies) / float(iSurvivors + iZombies);
-		g_flZombieDamageScale += (flExpectedPrecentage - flZombiePrecentage) * 0.7;
-	}
+		g_flZombieDamageScale += flProgress;
+	
+	//Lower damage scale as there are less survivors
+	float flSurvivorPrecentage = float(iSurvivors) / float(iSurvivors + iZombies);
+	g_flZombieDamageScale *= flSurvivorPrecentage * 1.25;
 	
 	//Get the amount of zombies killed since last survivor death
 	g_flZombieDamageScale += g_iZombiesKilledSpree * 0.004;
