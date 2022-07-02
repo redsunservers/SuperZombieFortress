@@ -25,7 +25,7 @@
 
 #define BLIND_COLOR			{0, 0, 0, 255}
 #define BLIND_MULTI_SPEED_MIN		0.5
-#define BLIND_HIDEHUD				(HIDEHUD_WEAPONSELECTION|HIDEHUD_HEALTH|HIDEHUD_PLAYERDEAD|HIDEHUD_MISCSTATUS|HIDEHUD_CROSSHAIR|HIDEHUD_BONUS_PROGRESS)
+#define BLIND_HIDEHUD				(HIDEHUD_HEALTH|HIDEHUD_MISCSTATUS|HIDEHUD_CROSSHAIR|HIDEHUD_BONUS_PROGRESS)
 
 enum struct StunInfo
 {
@@ -97,6 +97,7 @@ bool Stun_StartPlayer(int iClient, float flDuration = 6.0)
 	}
 	
 	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD")|BLIND_HIDEHUD);
+	TF2Attrib_SetByName(iClient, "deploy time increased", 2.0);
 	
 	SDKHook(iClient, SDKHook_PostThinkPost, Stun_ClientThink);
 	hTimer = CreateTimer(flDuration, Stun_EndPlayerTimer, GetClientSerial(iClient));
@@ -125,6 +126,8 @@ void Stun_EndPlayer(int iClient)
 	}
 	
 	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD") & ~BLIND_HIDEHUD);
+	TF2Attrib_RemoveByName(iClient, "deploy time increased");
+	
 	TF2_RemoveCondition(iClient, TFCond_LostFooting);
 	SDKUnhook(iClient, SDKHook_PostThinkPost, Stun_ClientThink);
 	SDKCall_SetSpeed(iClient);
