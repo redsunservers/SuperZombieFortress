@@ -106,7 +106,13 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				if (TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged) || (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB))
 					return Plugin_Continue;
 				
-				if (Stun_StartPlayer(iVictim))
+				bool bStunned;
+				if (g_nInfected[iAttacker] == Infected_Stalker)
+					bStunned = Stun_StartPlayer(iVictim, 10.0);
+				else
+					bStunned = Stun_StartPlayer(iVictim);
+				
+				if (bStunned)
 					Forward_OnBackstab(iVictim, iAttacker);
 				
 				flDamage = 1.0;
