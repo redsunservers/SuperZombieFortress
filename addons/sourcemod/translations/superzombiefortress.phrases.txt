@@ -374,7 +374,7 @@
 	
 	"SpecialInfected_Stalker"
 	{
-		"en"		"{green}YOU ARE A STALKER:\n{orange}- If not close to any survivors, you will be cloaked and gain super speed!\n- Your backstabs do more damage."
+		"en"		"{green}YOU ARE A STALKER:\n{orange}- If not close to any survivors, you will be cloaked and gain super speed!\n- Increased the duration of the stun on backstab."
 	}
 	
 	"SpecialInfected_Hunter"
