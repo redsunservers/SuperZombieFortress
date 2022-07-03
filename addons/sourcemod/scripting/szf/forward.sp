@@ -114,10 +114,12 @@ Action Forward_OnWeaponPickupPre(int iClient, int iTarget, WeaponRarity nRarity)
 	return action;
 }
 
-void Forward_OnWeaponCallout(int iClient)
+void Forward_OnWeaponCallout(int iClient, int iTarget, WeaponRarity nRarity)
 {
 	Call_StartForward(g_hForwardWeaponCallout);
 	Call_PushCell(iClient);
+	Call_PushCell(iTarget);
+	Call_PushCell(nRarity);
 	Call_Finish();
 }
 
