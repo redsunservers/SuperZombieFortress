@@ -1508,8 +1508,8 @@ void UpdateZombieDamageScale()
 		g_flZombieDamageScale += flProgress;
 	
 	//Lower damage scale as there are less survivors
-	float flSurvivorPrecentage = float(iSurvivors) / float(iSurvivors + iZombies);
-	g_flZombieDamageScale = (g_flZombieDamageScale * flSurvivorPrecentage * 0.6) + 0.5;
+	float flSurvivorPercentage = float(iSurvivors) / float(iSurvivors + iZombies);
+	g_flZombieDamageScale = (g_flZombieDamageScale * flSurvivorPercentage * 0.6) + 0.5;
 	
 	//Get the amount of zombies killed since last survivor death
 	g_flZombieDamageScale += g_iZombiesKilledSpree * 0.004;
