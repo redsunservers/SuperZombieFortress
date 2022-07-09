@@ -25,7 +25,7 @@ void Forward_AskLoad()
 	g_hForwardBoomerExplode = new GlobalForward("SZF_OnBoomerExplode", ET_Ignore, Param_Cell, Param_Array, Param_Cell);
 	g_hForwardWeaponPickup = new GlobalForward("SZF_OnWeaponPickup", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
 	g_hForwardWeaponPickupPre = new GlobalForward("SZF_ShouldPickupWeapon", ET_Single, Param_Cell, Param_Cell, Param_Cell);
-	g_hForwardWeaponCallout = new GlobalForward("SZF_OnWeaponCallout", ET_Ignore, Param_Cell);
+	g_hForwardWeaponCallout = new GlobalForward("SZF_OnWeaponCallout", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
 	g_hForwardClientName = new GlobalForward("SZF_GetClientName", ET_Ignore, Param_Cell, Param_String, Param_Cell);
 	g_hForwardStartZombie = new GlobalForward("SZF_ShouldStartZombie", ET_Hook, Param_Cell);
 	g_hForwardAllowMusicPlay = new GlobalForward("SZF_ShouldAllowMusicPlay", ET_Hook);
