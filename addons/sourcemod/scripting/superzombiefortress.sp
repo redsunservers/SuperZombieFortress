@@ -19,7 +19,7 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.3.0"
+#define PLUGIN_VERSION				"4.4.0"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
@@ -239,7 +239,6 @@ enum struct ClientClasses
 	float flHorde;
 	float flMaxSpree;
 	float flMaxHorde;
-	float flMoraleValue;
 	bool bGlow;
 	bool bThirdperson;
 	int iColor[4];
@@ -1504,13 +1503,13 @@ void UpdateZombieDamageScale()
 		}
 	}
 	
-	//If progress found, calculate by amount of survivors and zombies
+	//If progress found, calculate add progress to damage scale
 	if (0.0 <= flProgress <= 1.0)
-	{
-		float flExpectedPrecentage = (flProgress * 0.6) + 0.2;
-		float flZombiePrecentage = float(iZombies) / float(iSurvivors + iZombies);
-		g_flZombieDamageScale += (flExpectedPrecentage - flZombiePrecentage) * 0.7;
-	}
+		g_flZombieDamageScale += flProgress;
+	
+	//Lower damage scale as there are less survivors
+	float flSurvivorPercentage = float(iSurvivors) / float(iSurvivors + iZombies);
+	g_flZombieDamageScale = (g_flZombieDamageScale * flSurvivorPercentage * 0.6) + 0.5;
 	
 	//Get the amount of zombies killed since last survivor death
 	g_flZombieDamageScale += g_iZombiesKilledSpree * 0.004;

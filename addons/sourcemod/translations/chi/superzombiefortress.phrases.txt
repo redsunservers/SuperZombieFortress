@@ -338,7 +338,7 @@
 	
 	"SpecialInfected_Stalker"
 	{
-		"chi"		"{green}你是STALKER:\n{orange}- 假如你没靠近幸存者，你会隐身并获得超级加速！\n- 你的背刺伤害更高。"
+		"chi"		"{green}你是STALKER:\n{orange}- 假如你没靠近幸存者，你会隐身并获得超级加速！\n- 增加了背刺眩晕的持续时间。"
 	}
 	
 	"SpecialInfected_Hunter"

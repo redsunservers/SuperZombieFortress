@@ -18,7 +18,7 @@ enum WeaponType
 
 static bool g_bCanPickup[TF_MAXPLAYERS] = {false, ...};
 static bool g_bTriggerEntity[2048] = {true, ...};
-static float g_flLastCallout[TF_MAXPLAYERS] = {0.0, ...};
+static float g_flWeaponCallout[2048][TF_MAXPLAYERS];
 static int g_iAvailableRareCount;
 static ArrayList g_aWeaponsCommon;
 static ArrayList g_aWeaponsUncommon;
@@ -38,7 +38,6 @@ void Weapons_Init()
 void Weapons_ClientDisconnect(int iClient)
 {
 	g_bCanPickup[iClient] = true;
-	g_flLastCallout[iClient] = 0.0;
 }
 
 public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontBroadcast)
@@ -167,10 +166,7 @@ public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadca
 	int iClient = GetClientOfUserId(event.GetInt("userid"));
 	
 	if (IsValidClient(iClient))
-	{
 		g_bCanPickup[iClient] = true;
-		g_flLastCallout[iClient] = 0.0;
-	}
 	
 	return Plugin_Continue;
 }
@@ -314,27 +310,33 @@ bool AttemptGrabItem(int iClient)
 			
 			return true;
 		}
-		else if (nRarity == WeaponRarity_Rare && g_flLastCallout[iClient] + 5.0 < GetGameTime())
+		else if (nRarity == WeaponRarity_Uncommon || nRarity == WeaponRarity_Rare)
 		{
-			char sName[255];
-			TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
+			g_flWeaponCallout[iTarget][iClient] = GetGameTime();
 			
-			for (int i = 1; i <= MaxClients; i++)
+			if (GetWeaponGlowEnt(iTarget) != INVALID_ENT_REFERENCE)	//Glow already here, don't announce again
+				return false;
+			
+			//Create glow outline
+			int iProp = CreateBonemerge(iTarget);
+			SetEntProp(iProp, Prop_Send, "m_bGlowEnabled", true);
+			SDKHook(iProp, SDKHook_SetTransmit, Weapon_SetTransmit);
+			
+			//If rare, show in chat to everyone in team
+			if (nRarity == WeaponRarity_Rare)
 			{
-				if (IsValidLivingSurvivor(i))
+				char sName[255];
+				TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
+				
+				for (int i = 1; i <= MaxClients; i++)
 				{
+					if (!IsValidLivingSurvivor(i))
+						continue;
+					
 					char sBuffer[256];
 					Format(sBuffer, sizeof(sBuffer), "%T", "Weapon_Callout", i, "{limegreen}", "{param3}", "\x01");
 					CPrintToChatTranslation(i, iClient, sBuffer, true, .sParam3 = sName);
 				}
-			}
-			
-			if (GetWeaponGlowEnt(iTarget) == -1)
-			{
-				int iProp = CreateBonemerge(iTarget);
-				SetEntProp(iProp, Prop_Send, "m_bGlowEnabled", true);
-				SDKHook(iProp, SDKHook_SetTransmit, Weapon_SetTransmit);
-				CreateTimer(10.0, Timer_KillEntity, EntIndexToEntRef(iProp), TIMER_FLAG_NO_MAPCHANGE);
 			}
 			
 			AddToCookie(iClient, 1, g_cWeaponsCalled);
@@ -347,9 +349,7 @@ bool AttemptGrabItem(int iClient)
 				data.WriteString("Tutorial_Callout1");
 			}
 			
-			g_flLastCallout[iClient] = GetGameTime();
-			
-			Forward_OnWeaponCallout(iClient);
+			Forward_OnWeaponCallout(iClient, iTarget, nRarity);
 		}
 	}
 	
@@ -662,37 +662,58 @@ void GetModelPath(int iIndex, char[] sModel, int iMaxSize)
 
 int GetWeaponGlowEnt(int iEntity)
 {
-	for (int i = 33; i <= 2048; i++)
+	int iGlow = INVALID_ENT_REFERENCE;
+	while ((iGlow = FindEntityByClassname(iGlow, "tf_taunt_prop")) != INVALID_ENT_REFERENCE)
 	{
-		if (IsValidEntity(i))
+		if (GetEntPropEnt(iGlow, Prop_Data, "m_hEffectEntity") == iEntity)
+			return iEntity;
+	}
+	
+	return INVALID_ENT_REFERENCE;
+}
+
+public Action Weapon_SetTransmit(int iGlow, int iClient)
+{
+	const float flTimeExpire = 10.0;
+	
+	int iWeapon = GetEntPropEnt(iGlow, Prop_Data, "m_hEffectEntity");
+	if (iWeapon == INVALID_ENT_REFERENCE)
+	{
+		//wat
+		RemoveEntity(iGlow);
+		return Plugin_Handled;
+	}
+	
+	//Has it been recently called?
+	bool bGlow;
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (g_flWeaponCallout[iWeapon][i] > GetGameTime() - flTimeExpire)
 		{
-			int iParent = GetEntPropEnt(i, Prop_Data, "m_pParent");
-			if (iParent == iEntity)
-			{
-				//Make sure that we're removing the glow entity.
-				char sName[128];
-				GetEntPropString(i, Prop_Data, "m_iName", sName, sizeof(sName));
-				if (StrEqual(sName, "SZF_WEAPON_GLOW"))
-					return i;
-			}
+			bGlow = true;
+			break;
 		}
 	}
 	
-	return -1;
-}
-
-public Action Weapon_SetTransmit(int iEntity, int iClient)
-{
-	//Only glow to survivors who can pick up this weapon
-	if (IsValidLivingSurvivor(iClient))
+	if (!bGlow)
 	{
-		Weapon wep;
-		GetWeaponFromEntity(wep, iEntity);
-		
-		int iSlot = TF2_GetItemSlot(wep.iIndex, TF2_GetPlayerClass(iClient));
-		if (iSlot >= 0)
-			return Plugin_Continue;
+		//No, time expired, delet the glow
+		RemoveEntity(iGlow);
+		return Plugin_Handled;
 	}
+	
+	if (!IsValidLivingSurvivor(iClient))
+		return Plugin_Handled;
+	
+	//Did client recently called this weapon?
+	if (g_flWeaponCallout[iWeapon][iClient] > GetGameTime() - flTimeExpire)
+		return Plugin_Continue;
+	
+	//Can client pickup this weapon?
+	Weapon wep;
+	GetWeaponFromEntity(wep, iWeapon);
+	if (TF2_GetItemSlot(wep.iIndex, TF2_GetPlayerClass(iClient)) >= 0)
+		return Plugin_Continue;
 	
 	return Plugin_Handled;
 }
