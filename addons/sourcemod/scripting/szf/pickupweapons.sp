@@ -317,21 +317,22 @@ bool AttemptGrabItem(int iClient)
 			if (GetWeaponGlowEnt(iTarget) != INVALID_ENT_REFERENCE)	//Glow already here, don't announce again
 				return false;
 			
+			//Create glow outline
 			int iProp = CreateBonemerge(iTarget);
 			SetEntProp(iProp, Prop_Send, "m_bGlowEnabled", true);
 			SDKHook(iProp, SDKHook_SetTransmit, Weapon_SetTransmit);
 			
-			char sName[255];
-			TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
-			
-			for (int i = 1; i <= MaxClients; i++)
+			//If rare, show in chat to everyone in team
+			if (nRarity == WeaponRarity_Rare)
 			{
-				if (!IsValidLivingSurvivor(i))
-					continue;
+				char sName[255];
+				TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
 				
-				//If rare, show to everyone in team, otherwise only show to caller and whoever can pick up weapon
-				if (i == iClient || nRarity == WeaponRarity_Rare || TF2_GetItemSlot(iIndex, TF2_GetPlayerClass(i)) >= 0)
+				for (int i = 1; i <= MaxClients; i++)
 				{
+					if (!IsValidLivingSurvivor(i))
+						continue;
+					
 					char sBuffer[256];
 					Format(sBuffer, sizeof(sBuffer), "%T", "Weapon_Callout", i, "{limegreen}", "{param3}", "\x01");
 					CPrintToChatTranslation(i, iClient, sBuffer, true, .sParam3 = sName);
