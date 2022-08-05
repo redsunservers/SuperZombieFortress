@@ -405,7 +405,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 				
 				//Kill the weapon glow if it had one.
 				int iGlow = GetWeaponGlowEnt(iTarget);
-				if (iGlow != -1)
+				if (iGlow != INVALID_ENT_REFERENCE)
 					RemoveEntity(iGlow);
 				
 				bKillEntity = false;
@@ -666,7 +666,7 @@ int GetWeaponGlowEnt(int iEntity)
 	while ((iGlow = FindEntityByClassname(iGlow, "tf_taunt_prop")) != INVALID_ENT_REFERENCE)
 	{
 		if (GetEntPropEnt(iGlow, Prop_Data, "m_hEffectEntity") == iEntity)
-			return iEntity;
+			return iGlow;
 	}
 	
 	return INVALID_ENT_REFERENCE;
