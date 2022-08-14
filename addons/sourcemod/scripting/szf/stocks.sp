@@ -25,9 +25,9 @@
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
 
-static char g_sClassFiles[view_as<int>(TFClassType)][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
-static int g_iVoodooIndex[view_as<int>(TFClassType)] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5616};
-static int g_iZombieSoulIndex[view_as<int>(TFClassType)];
+static char g_sClassFiles[view_as<int>(TFClass_Engineer) + 1][16] = { "", "scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer" };
+static int g_iVoodooIndex[view_as<int>(TFClass_Engineer) + 1] =  {-1, 5617, 5625, 5618, 5620, 5622, 5619, 5624, 5623, 5621};
+static int g_iZombieSoulIndex[view_as<int>(TFClass_Engineer) + 1];
 
 ////////////////
 // Math
@@ -152,11 +152,11 @@ stock void AddModelToDownloadsTable(const char[] sModel)
 	}
 }
 
-stock int PrecacheZombieSouls()
+stock void PrecacheZombieSouls()
 {
 	char sPath[64];
 	//Loops through all class types available
-	for (int iClass = 1; iClass < view_as<int>(TFClassType); iClass++)
+	for (int iClass = 1; iClass < view_as<int>(TFClass_Engineer) + 1; iClass++)
 	{
 		Format(sPath, sizeof(sPath), "models/player/items/%s/%s_zombie.mdl", g_sClassFiles[iClass], g_sClassFiles[iClass]);
 		g_iZombieSoulIndex[iClass] = PrecacheModel(sPath);
@@ -191,7 +191,18 @@ stock void AddWeaponVision(int iWeapon, int iFlag)
 	//Get current flag and add into it
 	float flVal = float(TF_VISION_FILTER_NONE);
 	TF2_WeaponFindAttribute(iWeapon, ATTRIB_VISION, flVal);
-	flVal = float(RoundToNearest(flVal)|iFlag);
+	flVal = float(RoundToNearest(flVal) | iFlag);
+	TF2Attrib_SetByDefIndex(iWeapon, ATTRIB_VISION, flVal);
+}
+
+stock void RemoveWeaponVision(int iWeapon, int iFlag)
+{
+	//If have vision, get current flag and remove it
+	float flVal = float(TF_VISION_FILTER_NONE);
+	if (!TF2_WeaponFindAttribute(iWeapon, ATTRIB_VISION, flVal))
+		return;
+	
+	flVal = float(RoundToNearest(flVal) & ~iFlag);
 	TF2Attrib_SetByDefIndex(iWeapon, ATTRIB_VISION, flVal);
 }
 
@@ -206,6 +217,39 @@ stock void PrecacheSound2(const char[] sSoundPath)
 	
 	Format(sBuffer, sizeof(sBuffer), "sound/%s", sBuffer);
 	AddFileToDownloadsTable(sBuffer);
+}
+
+int CreateBonemerge(int iEntity, const char[] sAttachment = NULL_STRING)
+{
+	int iProp = CreateEntityByName("tf_taunt_prop");
+	
+	int iTeam = GetEntProp(iEntity, Prop_Send, "m_iTeamNum");
+	SetEntProp(iProp, Prop_Data, "m_iInitialTeamNum", iTeam);
+	SetEntProp(iProp, Prop_Send, "m_iTeamNum", iTeam);
+	SetEntProp(iProp, Prop_Send, "m_nSkin", GetEntProp(iEntity, Prop_Send, "m_nSkin"));
+	
+	char sModel[PLATFORM_MAX_PATH];
+	GetEntPropString(iEntity, Prop_Data, "m_ModelName", sModel, sizeof(sModel));
+	SetEntityModel(iProp, sModel);
+	
+	DispatchSpawn(iProp);
+	
+	SetEntPropEnt(iProp, Prop_Data, "m_hEffectEntity", iEntity);
+	//SetEntProp(iProp, Prop_Send, "m_fEffects", GetEntProp(iProp, Prop_Send, "m_fEffects")|EF_BONEMERGE|EF_NOSHADOW|EF_NOINTERP);
+	SetEntProp(iProp, Prop_Send, "m_fEffects", EF_BONEMERGE|EF_NOSHADOW|EF_NORECEIVESHADOW|EF_NOINTERP);
+	
+	SetVariantString("!activator");
+	AcceptEntityInput(iProp, "SetParent", iEntity);
+	
+	if (sAttachment[0])
+	{
+		SetVariantString(sAttachment);
+		AcceptEntityInput(iProp, "SetParentAttachmentMaintainOffset");
+	}
+	
+	SetEntityRenderMode(iProp, RENDER_TRANSCOLOR);
+	SetEntityRenderColor(iProp, 0, 0, 0, 0);
+	return iProp;
 }
 
 ////////////////
@@ -263,45 +307,6 @@ stock bool IsValidLivingSurvivor(int iClient)
 stock bool IsValidLivingZombie(int iClient)
 {
 	return IsValidZombie(iClient) && IsPlayerAlive(iClient);
-}
-
-////////////////
-// Morale
-////////////////
-
-stock void AddMorale(int iClient, int iAmount)
-{
-	g_iMorale[iClient] = g_iMorale[iClient] + iAmount;
-	
-	if (g_iMorale[iClient] > 100)
-		g_iMorale[iClient] = 100;
-	
-	if (g_iMorale[iClient] < 0)
-		g_iMorale[iClient] = 0;
-}
-
-stock void AddMoraleAll(int iAmount)
-{
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidLivingSurvivor(iClient))
-			AddMorale(iClient, iAmount);
-}
-
-stock void SetMorale(int iClient, int iAmount)
-{
-	g_iMorale[iClient] = iAmount;
-}
-
-stock void SetMoraleAll(int iAmount)
-{
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidLivingSurvivor(iClient))
-			SetMorale(iClient, iAmount);
-}
-
-stock int GetMorale(int iClient)
-{
-	return g_iMorale[iClient];
 }
 
 ////////////////
@@ -547,6 +552,8 @@ public Action Timer_UpdateClientHud(Handle timer, int serial)
 		event.FireToClient(client);
 		event.Cancel();
 	}
+	
+	return Plugin_Continue;
 }
 
 ////////////////
@@ -638,7 +645,7 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttrib
 		int iSlot = TF2Econ_GetItemLoadoutSlot(iIndex, iClass);	//Uses econ slot
 		Address pItem = SDKCall_GetLoadoutItem(iClient, iClass, iSlot);
 		
-		if (pItem && GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(g_iOffsetItemDefinitionIndex), NumberType_Int16)) == iIndex)
+		if (pItem && Config_GetOriginalItemDefIndex(LoadFromAddress(pItem+view_as<Address>(g_iOffsetItemDefinitionIndex), NumberType_Int16)) == iIndex)
 			iWeapon = SDKCall_GetBaseEntity(SDKCall_GiveNamedItem(iClient, sClassname, iSubType, pItem));
 	}
 	
@@ -755,19 +762,6 @@ stock void CheckClientWeapons(int iClient)
 				TF2_RemoveWearable(iClient, iPowerupBottle);
 		}
 	}
-}
-
-stock int GetOriginalItemDefIndex(int iIndex)
-{
-	int iOrigIndex;
-	
-	char sIndex[8];
-	IntToString(iIndex, sIndex, sizeof(sIndex));
-	
-	if (g_mConfigReskins.GetValue(sIndex, iOrigIndex))
-		return iOrigIndex;
-	else
-		return iIndex;
 }
 
 ////////////////
@@ -960,6 +954,8 @@ public Action Timer_RemoveParticle(Handle hTimer, int iParticle)
 			iParticle = -1;
 		}
 	}
+	
+	return Plugin_Continue;
 }
 
 /******************************************************************************************************/
@@ -1019,6 +1015,8 @@ public Action Timer_KillEntity(Handle hTimer, int iRef)
 	int iEntity = EntRefToEntIndex(iRef);
 	if (IsValidEntity(iEntity))
 		RemoveEntity(iEntity);
+	
+	return Plugin_Continue;
 }
 
 //Yoinked from https://github.com/DFS-Servers/Super-Zombie-Fortress/blob/master/addons/sourcemod/scripting/include/szf_util_base.inc
@@ -1027,7 +1025,7 @@ stock void CPrintToChatTranslation(int iClient, int iCaller, char[] sText, bool 
 	if (bTeam && !IsValidClient(iCaller))
 		return;
 	
-	char sName[80], sMessage[255];
+	char sName[256], sMessage[256];
 	if (0 < iCaller <= MaxClients)
 	{
 		GetClientName2(iCaller, sName, sizeof(sName));
@@ -1072,9 +1070,6 @@ stock void DealDamage(int iAttacker, int iVictim, float flDamage)
 {
 	if (g_flZombieDamageScale < 1.0)
 		flDamage *= g_flZombieDamageScale;
-	
-	if (g_bBackstabbed[iVictim] && flDamage > STUNNED_DAMAGE_CAP)
-		flDamage = STUNNED_DAMAGE_CAP;
 	
 	SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, flDamage, DMG_PREVENT_PHYSICS_FORCE);
 }

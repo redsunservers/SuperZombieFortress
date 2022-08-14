@@ -261,6 +261,21 @@
 		"chi"		"{1}设置 {2} 感染者变成下一个感染者 \"{3}\""
 	}
 	
+	"Command_StunUsage"
+	{
+		"chi"		"{1}用法: sm_stun [目标] [期间]"
+	}
+	
+	"Command_StunNoTarget"
+	{
+		"chi"		"{1}找不到可以击晕的人。"
+	}
+	
+	"Command_StunSet"
+	{
+		"chi"		"{1}惊呆了 {2} 名玩家。"
+	}
+	
 	"Command_MusicEnable"
 	{
 		"chi"		"{1}音乐已开启。"
@@ -323,7 +338,7 @@
 	
 	"SpecialInfected_Stalker"
 	{
-		"chi"		"{green}你是STALKER:\n{orange}- 假如你没靠近幸存者，你会隐身并获得超级加速！\n- 你的背刺伤害更高。"
+		"chi"		"{green}你是STALKER:\n{orange}- 假如你没靠近幸存者，你会隐身并获得超级加速！\n- 增加了背刺眩晕的持续时间。"
 	}
 	
 	"SpecialInfected_Hunter"
@@ -369,6 +384,16 @@
 	"Melee_MarketGardener"
 	{
 		"chi"		"{orange}市场花园铁铲{green}让你火箭跳高度增加25%%。"
+	}
+	
+	"Melee_Eyelander"
+	{
+		"chi"		"{orange}苏格兰长剑{red}会使你的移动速度降低15%%。"
+	}
+	
+	"Melee_ScotsmansSkullcutter"
+	{
+		"chi"		"{orange}苏格兰颅骨切割者{green}会额外获得30%%的伤害加成。"
 	}
 	
 	"Melee_KillingGlovesofBoxing"
@@ -457,7 +482,7 @@
 	
 	"Menu_Overview"
 	{
-		"chi"		"幸存者必须在无尽僵尸潮活下来。\n幸存者死亡后，加入感染者阵营变成感染者。\n感染者要合作击败幸存者。\n幸存者有士气Morale和武器补给，感染者有权限变成特感。"
+		"chi"		"幸存者必须在无尽僵尸潮活下来。\n幸存者死亡后，加入感染者阵营变成感染者。\n感染者要合作击败幸存者。\n幸存者有武器补给，感染者有权限变成特感。"
 	}
 	
 	"Menu_TeamSurvivors"

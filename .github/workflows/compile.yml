@@ -8,13 +8,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
+    strategy:
+      matrix:
+        version: ["1.10", "1.11"]
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v1
       
       - name: Environments
         run: |
-          echo "SM_VERSION=1.10" >> $GITHUB_ENV
+          echo "SM_VERSION=${{ matrix.version }}" >> $GITHUB_ENV
       
       - name: Install
         run: |

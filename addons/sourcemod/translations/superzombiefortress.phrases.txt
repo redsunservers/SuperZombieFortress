@@ -285,6 +285,24 @@
 		"en"		"{1}Set {2} zombies to become next infected \"{3}\""
 	}
 	
+	"Command_StunUsage"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Usage: sm_stun [target] [duration]"
+	}
+	
+	"Command_StunNoTarget"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Could not find anyone to stun."
+	}
+	
+	"Command_StunSet"
+	{
+		"#format"	"{1:s},{2:d}"
+		"en"		"{1}Stunned {2} players."
+	}
+	
 	"Command_MusicEnable"
 	{
 		"#format"	"{1:s}"
@@ -356,7 +374,7 @@
 	
 	"SpecialInfected_Stalker"
 	{
-		"en"		"{green}YOU ARE A STALKER:\n{orange}- If not close to any survivors, you will be cloaked and gain super speed!\n- Your backstabs do more damage."
+		"en"		"{green}YOU ARE A STALKER:\n{orange}- If not close to any survivors, you will be cloaked and gain super speed!\n- Increased the duration of the stun on backstab."
 	}
 	
 	"SpecialInfected_Hunter"
@@ -501,7 +519,7 @@
 	
 	"Menu_Overview"
 	{
-		"en"		"Survivors must survive the endless hoarde of Infected.\nWhen a Survivor dies, they join the Zombie team and play as a Zombie.\nZombies need to work together to take down the survivors.\nSurvivor gain access to morale and weapon pickups, while zombies gain access to special infected."
+		"en"		"Survivors must survive the endless hoarde of Infected.\nWhen a Survivor dies, they join the Zombie team and play as a Zombie.\nZombies need to work together to take down the survivors.\nSurvivor gain access to weapon pickups, while zombies gain access to special infected."
 	}
 	
 	"Menu_TeamSurvivors"

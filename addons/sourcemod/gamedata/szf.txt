@@ -26,7 +26,7 @@
 			{
 				"library"	"server"
 				"linux"		"@_ZN15CTFPlayerShared23DetermineDisguiseWeaponEb"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x1C\x53\x8B\xD9\x56\x33\xF6"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x1C\x53\x8B\xD9\xC7\x45\xFC\x00\x00\x00\x00"
 			}
 			"CGameUI::Deactivate"
 			{
@@ -52,6 +52,11 @@
 				"linux"		"@_ZN9CTFPlayer21TeamFortress_SetSpeedEv"
 				"windows"	"\x55\x8B\xEC\xA1\x2A\x2A\x2A\x2A\x83\xEC\x1C\x53"
 			}
+			"CTFWeaponBaseMelee::DoSwingTraceInternal"
+			{
+				"linux"		"@_ZN18CTFWeaponBaseMelee20DoSwingTraceInternalER10CGameTracebP10CUtlVectorIS0_10CUtlMemoryIS0_iEE"
+				"windows"	"\x53\x8B\xDC\x83\xEC\x08\x83\xE4\xF0\x83\xC4\x04\x55\x8B\x6B\x04\x89\x6C\x24\x04\x8B\xEC\x81\xEC\x38\x05\x00\x00\xA1\x2A\x2A\x2A\x2A"
+			}
 		}
 		"Offsets"
 		{
@@ -62,8 +67,8 @@
 			}
 			"CTeamplayRoundBasedRules::RoundRespawn"
 			{
-				"linux"		"226"
-				"windows"	"224"
+				"linux"		"227"
+				"windows"	"225"
 			}
 			"CTFGameRules::GetCaptureValueForPlayer"
 			{
@@ -72,23 +77,23 @@
 			}
 			"CTFPlayer::GiveNamedItem"
 			{
-				"linux"		"484"
-				"windows"	"477"
+				"linux"		"489"
+				"windows"	"482"
 			}
 			"CTFJar::TossJarThink"
 			{
-				"linux"		"490"
-				"windows"	"483"
+				"linux"		"494"
+				"windows"	"487"
 			}
 			"CBaseEntity::GetBaseEntity"
 			{
-				"windows" 	"5"
 				"linux" 	"6"
+				"windows" 	"5"
 			}
 			"CBaseEntity::GetDefaultItemChargeMeterValue"
 			{
-				"linux"		"191"
-				"windows"	"190"
+				"linux"		"194"
+				"windows"	"193"
 			}
 			"CEconItemView::m_iItemDefinitionIndex"
 			{
@@ -160,6 +165,28 @@
 					"bIgnoreSpecialAbility"
 					{
 						"type"	"bool"
+					}
+				}
+			}
+			"CTFWeaponBaseMelee::DoSwingTraceInternal"
+			{
+				"signature"	"CTFWeaponBaseMelee::DoSwingTraceInternal"
+				"callconv"	"thiscall"
+				"return"	"bool"
+				"this"		"entity"
+				"arguments"
+				{
+					"trace"
+					{
+						"type"	"objectptr"
+					}
+					"bCleave"
+					{
+						"type"	"bool"
+					}
+					"pTargetTraceVector"
+					{
+						"type"	"objectptr"
 					}
 				}
 			}
