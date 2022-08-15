@@ -113,7 +113,7 @@ void Stun_EndPlayer(int iClient)
 	if (IsPlayerAlive(iClient))	//Keep grey screen if dead
 		ClientCommand(iClient, "r_screenoverlay\"\"");
 	
-	if(IsValidEntity(g_StunInfo[iClient].iPreviousFogEnt))
+	if(!IsValidEntity(g_StunInfo[iClient].iPreviousFogEnt))
 		SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", g_StunInfo[iClient].iPreviousFogEnt);
 
 	g_StunInfo[iClient].iPreviousFogEnt = INVALID_ENT_REFERENCE;
