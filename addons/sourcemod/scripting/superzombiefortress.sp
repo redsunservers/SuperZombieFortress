@@ -651,6 +651,8 @@ void GetMapSettings()
 public void OnClientPutInServer(int iClient)
 {
 	g_iDamageZombie[iClient] = 0;
+	g_flTimeStartAsZombie[iClient] = 0.0;
+	g_bWaitingForTeamSwitch[iClient] = false;
 	
 	if (!g_bEnabled)
 		return;
@@ -673,8 +675,6 @@ public void OnClientDisconnect(int iClient)
 	Sound_EndMusic(iClient);
 	DropCarryingItem(iClient);
 	CheckLastSurvivor(iClient);
-	
-	g_bWaitingForTeamSwitch[iClient] = false;
 	
 	Weapons_ClientDisconnect(iClient);
 }
