@@ -535,10 +535,6 @@ static bool g_bHunterIsUsingPounce[TF_MAXPLAYERS];
 
 public void Infected_DoHunterJump(int iClient)
 {
-	char sPath[64];
-	Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(18, 19));
-	EmitSoundToAll(sPath, iClient, SNDLEVEL_AIRCRAFT);
-	
 	g_bHunterIsUsingPounce[iClient] = true;
 	
 	float vecVelocity[3];
@@ -550,6 +546,7 @@ public void Infected_DoHunterJump(int iClient)
 	vecVelocity[1] = Cosine(DegToRad(vecEyeAngles[0])) * Sine(DegToRad(vecEyeAngles[1])) * 920;
 	vecVelocity[2] = 460.0;
 	
+	SetEntProp(iClient, Prop_Send, "m_iAirDash", 1);
 	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 	SDKCall_PlaySpecificSequence(iClient, "pounce_idle_low");
@@ -788,12 +785,11 @@ public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
 ////////////////
 
 static int g_iJockeyTarget[TF_MAXPLAYERS];
+static bool g_bJockeyIsUsingPounce[TF_MAXPLAYERS];
 
 public void Infected_DoJockeyJump(int iClient)
 {
-	char sPath[64];
-	Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(18, 19));
-	EmitSoundToAll(sPath, iClient, SNDLEVEL_AIRCRAFT);
+	g_bJockeyIsUsingPounce[iClient] = true;
 	
 	float vecVelocity[3];
 	float vecEyeAngles[3];
@@ -859,9 +855,12 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 
 public void Infected_OnJockeyTouch(int iClient, int iToucher)
 {
-	//Already pouncing someone and must be in air to pounce
-	if (0 < g_iJockeyTarget[iClient] <= MaxClients || GetEntityFlags(iClient) & FL_ONGROUND || !IsValidLivingSurvivor(iToucher))
+	//Must not already be latched onto someone and be pouncing
+	if (0 < g_iJockeyTarget[iClient] <= MaxClients || !g_bJockeyIsUsingPounce[iClient] || GetEntityFlags(iClient) & FL_ONGROUND || !IsValidLivingSurvivor(iToucher))
+	{
+		g_bJockeyIsUsingPounce[iClient] = false;
 		return;
+	}
 	
 	//Jockey must be higher enough than survivor to pounce it
 	float vecJockeyEye[3], vecTargetEye[3];
@@ -871,6 +870,7 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 	if (vecJockeyEye[2] < vecTargetEye[2] + 20.0)
 		return;
 	
+	g_bJockeyIsUsingPounce[iClient] = false;
 	g_iJockeyTarget[iClient] = iToucher;
 	Shake(iToucher, 3.0, 3.0);
 	
