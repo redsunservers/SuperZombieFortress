@@ -664,6 +664,6 @@
 	
 	"Menu_ClassesInfectedSpecialJockey"
 	{
-		"en"		"The Jockey creeps around, eager to lead survivors to their demise.\n- Using rage will perform a short leap, latching onto a survivor's head when making physical contact.\n- Mostly controls a survivor's movement and deals damage while on top of them."
+		"en"		"The Jockey creeps around, eager to lead survivors to their demise.\n- Using rage will perform a short leap, latching onto a survivor's head when making physical contact.\n- Controls a survivor's movement and deals damage while on top of them."
 	}
 }
