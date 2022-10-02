@@ -383,6 +383,9 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 		AnglesToVelocity(vecAngles, vecVel, 75.0);
 		AddVectors(vecOrigin, vecVel, vecOrigin);
 		
+		//Keep the charge meter at 100.0, so you never really run out of charge
+		SetEntPropFloat(iClient, Prop_Send, "m_flChargeMeter", 100.0);
+		
 		//Force push charger at stupid amount of speed, WEEEEEEEEEEEEEEEEEE
 		const float flSpeed = 520.0;
 		AnglesToVelocity(vecAngles, vecVel, flSpeed);
