@@ -576,6 +576,14 @@ void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 	//Check if the weapon has a filter
 	TFClassType nClassFilter = GetWeaponClassFilter(iEntity);
 	ArrayList aList = GetAllWeaponsWithRarity(nRarity, nClassFilter);
+	
+	if (aList.Length == 0)
+	{
+		//No weapons from given rarity and class, ignore class filter
+		delete aList;
+		aList = GetAllWeaponsWithRarity(nRarity);
+	}
+	
 	int iRandom = GetRandomInt(0, aList.Length - 1);
 	
 	Weapon wep;
