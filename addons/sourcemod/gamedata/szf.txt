@@ -14,7 +14,7 @@
 			{
 				"library"	"server"
 				"linux"		"@_ZN9CTFPlayer20PlaySpecificSequenceEPKc"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x30\x53\x56\x8B\x75\x08\x57\x56\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x8B\xD8\x83\xFB\xFF\x74\x2A\x8B\x35\x2A\x2A\x2A\x2A\x8B\xCE\x8B\x16\xFF\x52\x2A\x8B\x8F\x2A\x2A\x2A\x2A\x53\x6A\x13\x8B\x01\xFF\x50"
+				"windows"	"\x55\x8B\xEC\x53\x56\x8B\x75\x08\x57\x56\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x8B\xD8"
 			}
 			"CTFPlayer::DoAnimationEvent"
 			{
@@ -26,13 +26,13 @@
 			{
 				"library"	"server"
 				"linux"		"@_ZN15CTFPlayerShared23DetermineDisguiseWeaponEb"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x18\x53\x8B\xD9\xC7\x45\xFC\x00\x00\x00\x00"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x1C\x53\x8B\xD9\xC7\x45\xFC\x00\x00\x00\x00"
 			}
 			"CGameUI::Deactivate"
 			{
 				"library"	"server"
 				"linux"		"@_ZN7CGameUI10DeactivateEP11CBaseEntity"
-				"windows"	"\x55\x8B\xEC\x51\x53\x56\x57\x8B\x2A\x8B\x97"
+				"windows"	"\\x55\x8B\xEC\x83\xEC\x08\x53\x8B\xD9\x56\x57\x8B\x83\x44\x05\x00\x00"
 			}
 			"CTFPlayer::GetLoadoutItem"
 			{
@@ -62,28 +62,28 @@
 		{
 			"CTeamplayRoundBasedRules::SetWinningTeam"
 			{
-				"linux"		"161"
-				"windows"	"160"
+				"linux"		"165"
+				"windows"	"164"
 			}
 			"CTeamplayRoundBasedRules::RoundRespawn"
 			{
-				"linux"		"227"
-				"windows"	"225"
+				"linux"		"231"
+				"windows"	"229"
 			}
 			"CTFGameRules::GetCaptureValueForPlayer"
 			{
-				"linux"		"154"
-				"windows"	"153"
+				"linux"		"158"
+				"windows"	"157"
 			}
 			"CTFPlayer::GiveNamedItem"
 			{
-				"linux"		"489"
-				"windows"	"482"
+				"linux"		"493"
+				"windows"	"486"
 			}
 			"CTFJar::TossJarThink"
 			{
-				"linux"		"494"
-				"windows"	"487"
+				"linux"		"497"
+				"windows"	"490"
 			}
 			"CBaseEntity::GetBaseEntity"
 			{
@@ -92,8 +92,8 @@
 			}
 			"CBaseEntity::GetDefaultItemChargeMeterValue"
 			{
-				"linux"		"194"
-				"windows"	"193"
+				"linux"		"197"
+				"windows"	"196"
 			}
 			"CEconItemView::m_iItemDefinitionIndex"
 			{
