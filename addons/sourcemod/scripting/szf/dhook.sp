@@ -157,7 +157,8 @@ public MRESReturn DHook_DetermineDisguiseWeaponPre(Address pPlayerShared, DHookP
 	Address pAddress = view_as<Address>(LoadFromAddress(pPlayerShared + view_as<Address>(g_iOffsetOuter), NumberType_Int32));
 	int iClient = SDKCall_GetBaseEntity(pAddress);
 	
-	int iTarget = GetEntProp(iClient, Prop_Send, "m_iDisguiseTargetIndex");
+	int iOffset = FindSendPropInfo("CTFPlayer", "m_iDisguiseHealth") - 4;	// m_hDisguiseTarget
+	int iTarget = GetEntDataEnt2(iClient, iOffset);
 	if (0 < iTarget <= MaxClients && IsSurvivor(iClient) && view_as<TFTeam>(GetEntProp(iClient, Prop_Send, "m_nDisguiseTeam")) == TFTeam_Zombie)
 	{
 		//Set class and team to whoever target is, so voodoo souls and zombie weapons is shown
