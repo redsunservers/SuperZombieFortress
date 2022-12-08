@@ -437,6 +437,11 @@
 		"en"		"{orange}The Killing Gloves of Boxing {red}gives 5 seconds of minicrits on kill."
 	}
 	
+	"Melee_WarriorsSpirit"
+	{
+		"en"		"{orange}The Warrior's Spirit {red}has its health restored on kill decreased to +25."
+	}
+	
 	"Melee_FistsofSteel"
 	{
 		"en"		"{orange}The Fists of Steel {green}gives 10%% melee resistance while active."

@@ -401,6 +401,11 @@
 		"chi"		"{orange}杀戮拳击手套{red}击杀后获得5秒的迷你爆击。"
 	}
 	
+	"Melee_WarriorsSpirit"
+	{
+		"chi"		"{orange}战士精神{red}杀死后恢复的生命值降至+25。"
+	}
+	
 	"Melee_FistsofSteel"
 	{
 		"chi"		"{orange}钢铁全套{green}部署时获得10%%的近战抗性。"
