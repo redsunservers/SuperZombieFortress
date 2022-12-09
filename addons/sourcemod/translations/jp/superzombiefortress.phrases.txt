@@ -390,6 +390,11 @@
 		"jp"		"{orange}The キリング・グローブ・オブ・ボクシング {red}キル時にミニクリットを5秒与えます。"
 	}
 	
+	"Melee_WarriorsSpirit"
+	{
+		"jp"		"{orange}ウォリアー・スピリット {red}のキル時の体力回復量が+25に減少。"
+	}
+	
 	"Melee_FistsofSteel"
 	{
 		"jp"		"{orange}The フィスツ・オブ・スチール {green}保持されている間、10%%の近接武器耐性を提供します。"
