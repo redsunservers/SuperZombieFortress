@@ -82,8 +82,8 @@
 			}
 			"CTFJar::TossJarThink"
 			{
-				"linux"		"497"
-				"windows"	"490"
+				"linux"		"498"
+				"windows"	"491"
 			}
 			"CBaseEntity::GetBaseEntity"
 			{
