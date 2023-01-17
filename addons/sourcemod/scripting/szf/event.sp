@@ -227,6 +227,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	int iVictim = GetClientOfUserId(event.GetInt("userid"));
 	iKillers[0] = GetClientOfUserId(event.GetInt("attacker"));
 	iKillers[1] = GetClientOfUserId(event.GetInt("assister"));
+	int iInflictor = event.GetInt("inflictor_entindex");
 	bool bDeadRinger = event.GetInt("death_flags") & TF_DEATHFLAG_DEADRINGER != 0;
 	
 	ClientCommand(iVictim, "r_screenoverlay\"\"");
@@ -256,7 +257,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_bSpawnAsSpecialInfected[iKillers[1]] = true;
 	}
 	
-	if (iVictim != iKillers[0] && iKillers[0] == event.GetInt("inflictor_entindex"))
+	if (iVictim != iKillers[0] && iKillers[0] == iInflictor)
 	{
 		int iPos;
 		WeaponClasses weapon;
@@ -271,6 +272,17 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 					event.SetString("weapon", weapon.sIconName);
 			}
 		}
+	}
+	
+	if (iInflictor != INVALID_ENT_REFERENCE && IsClassname(iInflictor, "prop_physics"))
+	{
+		// Could be a tank thorwing debris to set kill icon
+		char sModel[256];
+		GetEntityModel(iInflictor, sModel, sizeof(sModel));
+		
+		Debris debris;
+		if (Config_GetDebrisFromModel(sModel, debris))
+			event.SetString("weapon", debris.sIconName);
 	}
 	
 	g_iMaxHealth[iVictim] = -1;

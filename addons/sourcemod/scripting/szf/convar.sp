@@ -36,6 +36,8 @@ void ConVar_Init()
 	
 	ConVar_Add("spec_freeze_time", -1.0);
 	
+	ConVar_Add("sv_turbophysics", 0.0);
+	
 	ConVar_Add("tf_obj_upgrade_per_hit", 0.0);
 	ConVar_Add("tf_player_movement_restart_freeze", 0.0);
 	ConVar_Add("tf_sentrygun_metal_per_shell", 201.0);

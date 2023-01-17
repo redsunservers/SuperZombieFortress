@@ -573,3 +573,16 @@ void Config_GetRandomDebris(Debris debris)
 	aList.GetArray(iRandom, debris);
 	delete aList;
 }
+
+bool Config_GetDebrisFromModel(const char[] sModel, Debris debris)
+{
+	int iLength = g_aConfigDebris.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		g_aConfigDebris.GetArray(i, debris);
+		if (StrEqual(debris.sModel, sModel))
+			return true;
+	}
+	
+	return false;
+}
