@@ -310,45 +310,6 @@ stock bool IsValidLivingZombie(int iClient)
 }
 
 ////////////////
-// Morale
-////////////////
-
-stock void AddMorale(int iClient, int iAmount)
-{
-	g_iMorale[iClient] = g_iMorale[iClient] + iAmount;
-	
-	if (g_iMorale[iClient] > 100)
-		g_iMorale[iClient] = 100;
-	
-	if (g_iMorale[iClient] < 0)
-		g_iMorale[iClient] = 0;
-}
-
-stock void AddMoraleAll(int iAmount)
-{
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidLivingSurvivor(iClient))
-			AddMorale(iClient, iAmount);
-}
-
-stock void SetMorale(int iClient, int iAmount)
-{
-	g_iMorale[iClient] = iAmount;
-}
-
-stock void SetMoraleAll(int iAmount)
-{
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidLivingSurvivor(iClient))
-			SetMorale(iClient, iAmount);
-}
-
-stock int GetMorale(int iClient)
-{
-	return g_iMorale[iClient];
-}
-
-////////////////
 // Map
 ////////////////
 
@@ -1109,9 +1070,6 @@ stock void DealDamage(int iAttacker, int iVictim, float flDamage)
 {
 	if (g_flZombieDamageScale < 1.0)
 		flDamage *= g_flZombieDamageScale;
-	
-	if (g_bBackstabbed[iVictim] && flDamage > STUNNED_DAMAGE_CAP)
-		flDamage = STUNNED_DAMAGE_CAP;
 	
 	SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, flDamage, DMG_PREVENT_PHYSICS_FORCE);
 }

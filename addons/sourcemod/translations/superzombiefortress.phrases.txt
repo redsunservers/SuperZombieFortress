@@ -24,12 +24,6 @@
 		"en"		"{1}Infected have received extra health and other benefits to ensure game balance at the start of the round."
 	}
 	
-	"Hud_Morale"
-	{
-		"#format"	"{1:d}"
-		"en"		"Morale: {1}/100"
-	}
-	
 	"Frenzy_Start"
 	{
 		"#format"	"{1:s}"
@@ -291,6 +285,24 @@
 		"en"		"{1}Set {2} zombies to become next infected \"{3}\""
 	}
 	
+	"Command_StunUsage"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Usage: sm_stun [target] [duration]"
+	}
+	
+	"Command_StunNoTarget"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Could not find anyone to stun."
+	}
+	
+	"Command_StunSet"
+	{
+		"#format"	"{1:s},{2:d}"
+		"en"		"{1}Stunned {2} players."
+	}
+	
 	"Command_MusicEnable"
 	{
 		"#format"	"{1:s}"
@@ -362,7 +374,7 @@
 	
 	"SpecialInfected_Stalker"
 	{
-		"en"		"{green}YOU ARE A STALKER:\n{orange}- If not close to any survivors, you will be cloaked and gain super speed!\n- Your backstabs do more damage."
+		"en"		"{green}YOU ARE A STALKER:\n{orange}- If not close to any survivors, you will be cloaked and gain super speed!\n- Increased the duration of the stun on backstab."
 	}
 	
 	"SpecialInfected_Hunter"
@@ -423,6 +435,11 @@
 	"Melee_KillingGlovesofBoxing"
 	{
 		"en"		"{orange}The Killing Gloves of Boxing {red}gives 5 seconds of minicrits on kill."
+	}
+	
+	"Melee_WarriorsSpirit"
+	{
+		"en"		"{orange}The Warrior's Spirit {red}has its health restored on kill decreased to +25."
 	}
 	
 	"Melee_FistsofSteel"
@@ -507,7 +524,7 @@
 	
 	"Menu_Overview"
 	{
-		"en"		"Survivors must survive the endless hoarde of Infected.\nWhen a Survivor dies, they join the Zombie team and play as a Zombie.\nZombies need to work together to take down the survivors.\nSurvivor gain access to morale and weapon pickups, while zombies gain access to special infected."
+		"en"		"Survivors must survive the endless hoarde of Infected.\nWhen a Survivor dies, they join the Zombie team and play as a Zombie.\nZombies need to work together to take down the survivors.\nSurvivor gain access to weapon pickups, while zombies gain access to special infected."
 	}
 	
 	"Menu_TeamSurvivors"
@@ -652,6 +669,6 @@
 	
 	"Menu_ClassesInfectedSpecialJockey"
 	{
-		"en"		"The Jockey creeps around, finds survivor head to mock around with it.\n- Using rage allows jockey to pounce into survivors head, but range not as long as hunter\n- Can walk into survivors head and play with it.\nCan't attack, but deals small damage and can mostly control movement while sitting on survivor."
+		"en"		"The Jockey creeps around, eager to lead survivors to their demise.\n- Using rage will perform a short leap, latching onto a survivor's head when making physical contact.\n- Controls a survivor's movement and deals damage while on top of them."
 	}
 }

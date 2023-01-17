@@ -20,11 +20,6 @@
 		"chi"		"{1}感染者获得额外生命值和其他增益来确保开局游戏的平衡。"
 	}
 	
-	"Hud_Morale"
-	{
-		"chi"		"士气: {1}/100"
-	}
-	
 	"Frenzy_Start"
 	{
 		"chi"		"{1}尸潮来袭：他们重生更快并变得更强！"
@@ -266,6 +261,21 @@
 		"chi"		"{1}设置 {2} 感染者变成下一个感染者 \"{3}\""
 	}
 	
+	"Command_StunUsage"
+	{
+		"chi"		"{1}用法: sm_stun [目标] [期间]"
+	}
+	
+	"Command_StunNoTarget"
+	{
+		"chi"		"{1}找不到可以击晕的人。"
+	}
+	
+	"Command_StunSet"
+	{
+		"chi"		"{1}惊呆了 {2} 名玩家。"
+	}
+	
 	"Command_MusicEnable"
 	{
 		"chi"		"{1}音乐已开启。"
@@ -328,7 +338,7 @@
 	
 	"SpecialInfected_Stalker"
 	{
-		"chi"		"{green}你是STALKER:\n{orange}- 假如你没靠近幸存者，你会隐身并获得超级加速！\n- 你的背刺伤害更高。"
+		"chi"		"{green}你是STALKER:\n{orange}- 假如你没靠近幸存者，你会隐身并获得超级加速！\n- 增加了背刺眩晕的持续时间。"
 	}
 	
 	"SpecialInfected_Hunter"
@@ -389,6 +399,11 @@
 	"Melee_KillingGlovesofBoxing"
 	{
 		"chi"		"{orange}杀戮拳击手套{red}击杀后获得5秒的迷你爆击。"
+	}
+	
+	"Melee_WarriorsSpirit"
+	{
+		"chi"		"{orange}战士精神{red}杀死后恢复的生命值降至+25。"
 	}
 	
 	"Melee_FistsofSteel"
@@ -472,7 +487,7 @@
 	
 	"Menu_Overview"
 	{
-		"chi"		"幸存者必须在无尽僵尸潮活下来。\n幸存者死亡后，加入感染者阵营变成感染者。\n感染者要合作击败幸存者。\n幸存者有士气Morale和武器补给，感染者有权限变成特感。"
+		"chi"		"幸存者必须在无尽僵尸潮活下来。\n幸存者死亡后，加入感染者阵营变成感染者。\n感染者要合作击败幸存者。\n幸存者有武器补给，感染者有权限变成特感。"
 	}
 	
 	"Menu_TeamSurvivors"
@@ -617,6 +632,6 @@
 	
 	"Menu_ClassesInfectedSpecialJockey"
 	{
-		"chi"		"Jockey到处爬，寻找幸存者骑上去。\n- 使用愤怒可以让它飞扑，抓住幸存者的头，但与Hunter不同。\n- 可以控制幸存者的头，控制行动。\n不能攻击，但是在控制幸存者的时候可以逐渐造成少量伤害。"
+		"chi"		"Jockey到处爬，寻找幸存者骑上去。\n- 使用愤怒可以让它飞扑，抓住幸存者的头，但与Hunter不同。\n- 可以控制幸存者的头，控制行动。\n- 可以在控制幸存者的同时逐渐造成少量的伤害。"
 	}
 }

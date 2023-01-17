@@ -10,6 +10,10 @@ void Event_Init()
 	HookEvent("teamplay_point_captured", Event_CPCapture);
 	HookEvent("teamplay_point_startcapture", Event_CPCaptureStart);
 	HookEvent("teamplay_broadcast_audio", Event_Broadcast, EventHookMode_Pre);
+	HookEvent("player_death", Event_HideNotice, EventHookMode_Pre);
+	HookEvent("fish_notice", Event_HideNotice, EventHookMode_Pre);
+	HookEvent("fish_notice__arm", Event_HideNotice, EventHookMode_Pre);
+	HookEventEx("slap_notice", Event_HideNotice, EventHookMode_Pre);
 }
 
 public Action Event_SetupEnd(Event event, const char[] name, bool dontBroadcast)
@@ -53,6 +57,8 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 	if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
 		return Plugin_Continue;
 	
+	Stun_EndPlayer(iClient);
+	
 	//Reset overlay
 	ClientCommand(iClient, "r_screenoverlay\"\"");
 	
@@ -64,7 +70,6 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		return Plugin_Continue;
 	}
 	
-	g_bBackstabbed[iClient] = false;
 	g_iKillsThisLife[iClient] = 0;
 	g_iDamageTakenLife[iClient] = 0;
 	g_iDamageDealtLife[iClient] = 0;
@@ -346,9 +351,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_iSurvivorsKilledCounter++;
 		}
 		
-		//reset backstab state
-		g_bBackstabbed[iVictim] = false;
-		
 		//Set zombie time to iVictim as he started playing zombie
 		g_flTimeStartAsZombie[iVictim] = GetGameTime();
 		
@@ -366,71 +368,13 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		if (IsValidSurvivor(iKillers[0]))
 		{
 			g_iZombiesKilledSpree++;
-			g_iZombiesKilledCounter++;
 			g_iZombiesKilledSurvivor[iKillers[0]]++;
 		}
 		
 		for (int i = 0; i < 2; i++)
 		{
 			if (IsValidLivingClient(iKillers[i]))
-			{
-				//Handle ammo kill bonuses.
 				TF2_AddAmmo(iKillers[i], WeaponSlot_Primary, g_ClientClasses[iKillers[i]].iAmmo);
-				
-				//Handle morale bonuses.
-				//+ Each kill adds morale.
-				
-				//Player gets more morale if low morale instead of high morale
-				//Player gets more morale if high zombies, but dont give too much morale if already at high
-				
-				int iMorale = GetMorale(iKillers[i]);
-				
-				if (iMorale < 0)
-					iMorale = 0;
-				else if (iMorale > 100)
-					iMorale = 100;
-				
-				float flPercentage = (float(GetZombieCount()) / (float(GetZombieCount()) + float(GetSurvivorCount())));
-				float flBase;
-				float flMultiplier;
-				
-				//Get the starting morale adds (Tank is calculated in a different way)
-				if(g_nInfected[iVictim] != Infected_Tank)
-				{
-					if (i == 0)	//Main killer
-					{
-						flBase = g_ClientClasses[iVictim].flMoraleValue;
-					}
-					else	//Assist kill
-					{
-						flBase = g_ClientClasses[iVictim].flMoraleValue * 0.66;
-					}
-				}
-				
-				//  0 morale   0% zombies -> 1.0
-				//  0 morale 100% zombies -> 2.0
-				
-				// 50 morale   0% zombies -> 0.5
-				// 50 morale 100% zombies -> 1.0
-				
-				//100 morale   0% zombies -> 0.0
-				//100 morale 100% zombies -> 0.0
-				flMultiplier = (1.0 - (float(iMorale) / 100.0)) * (flPercentage * 2.0);
-				
-				//Multiply base morale by multiplier
-				flBase = flBase * flMultiplier;
-				AddMorale(iKillers[i], RoundToNearest(flBase));
-				
-				//+ Each kill grants a small health bonus and increases current crit bonus.
-				int iHealth = GetClientHealth(iKillers[i]);
-				int iMaxHealth = SDKCall_GetMaxHealth(iKillers[i]);
-				if (iHealth < iMaxHealth)
-				{
-					iHealth += iMorale * 2;
-					iHealth = min(iHealth, iMaxHealth);
-					//SetEntityHealth(iKillers[i], iHealth);
-				}
-			}
 		}
 	}
 	
@@ -528,14 +472,10 @@ public Action Event_CPCapture(Event event, const char[] name, bool dontBroadcast
 			g_iControlPointsInfo[i][1] = 2;
 	}
 	
-	//Control point capture: increase morale
 	for (int iClient = 0; iClient < MaxClients; iClient++)
 	{
 		if (g_iCapturingPoint[iClient] == iCaptureIndex)
-		{
-			AddMorale(iClient, 20);
 			g_iCapturingPoint[iClient] = -1;
-		}
 	}
 	
 	CheckRemainingCP();
@@ -574,6 +514,21 @@ public Action Event_Broadcast(Event event, const char[] name, bool dontBroadcast
 	
 	if (!strcmp(sSound, "Game.YourTeamWon", false) || !strcmp(sSound, "Game.YourTeamLost", false))
 		return Plugin_Handled;
+	
+	return Plugin_Continue;
+}
+
+public Action Event_HideNotice(Event event, const char[] name, bool dontBroadcast)
+{
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	//Don't show notices to stunned players
+	event.BroadcastDisabled = true;
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsClientInGame(iClient) && !Stun_IsPlayerStunned(iClient))
+			event.FireToClient(iClient);
 	
 	return Plugin_Continue;
 }

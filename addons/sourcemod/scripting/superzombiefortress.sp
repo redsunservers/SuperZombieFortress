@@ -19,14 +19,10 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.2.1"
+#define PLUGIN_VERSION				"4.4.0"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
-
-#define BACKSTABDURATION_FULL		5.5
-#define BACKSTABDURATION_REDUCED	3.5
-#define STUNNED_DAMAGE_CAP			10.0
 
 #define ATTRIB_VISION		406
 
@@ -61,6 +57,34 @@
 #define SF_PHYSPROP_ALWAYS_PICK_UP				0x100000		// Physcannon can always pick this up, no matter what mass or constraints may apply.
 #define SF_PHYSPROP_NO_COLLISIONS				0x200000		// Don't enable collisions on spawn
 #define SF_PHYSPROP_IS_GIB						0x400000		// Limit # of active gibs
+
+enum
+{
+	COLLISION_GROUP_NONE  = 0,
+	COLLISION_GROUP_DEBRIS,			// Collides with nothing but world and static stuff
+	COLLISION_GROUP_DEBRIS_TRIGGER, // Same as debris, but hits triggers
+	COLLISION_GROUP_INTERACTIVE_DEBRIS,	// Collides with everything except other interactive debris or debris
+	COLLISION_GROUP_INTERACTIVE,	// Collides with everything except interactive debris or debris
+	COLLISION_GROUP_PLAYER,
+	COLLISION_GROUP_BREAKABLE_GLASS,
+	COLLISION_GROUP_VEHICLE,
+	COLLISION_GROUP_PLAYER_MOVEMENT,  // For HL2, same as Collision_Group_Player, for
+										// TF2, this filters out other players and CBaseObjects
+	COLLISION_GROUP_NPC,			// Generic NPC group
+	COLLISION_GROUP_IN_VEHICLE,		// for any entity inside a vehicle
+	COLLISION_GROUP_WEAPON,			// for any weapons that need collision detection
+	COLLISION_GROUP_VEHICLE_CLIP,	// vehicle clip brush to restrict vehicle movement
+	COLLISION_GROUP_PROJECTILE,		// Projectiles!
+	COLLISION_GROUP_DOOR_BLOCKER,	// Blocks entities not permitted to get near moving doors
+	COLLISION_GROUP_PASSABLE_DOOR,	// Doors that the player shouldn't collide with
+	COLLISION_GROUP_DISSOLVING,		// Things that are dissolving are in this group
+	COLLISION_GROUP_PUSHAWAY,		// Nonsolid on client and server, pushaway in player code
+
+	COLLISION_GROUP_NPC_ACTOR,		// Used so NPCs in scripts ignore the player.
+	COLLISION_GROUP_NPC_SCRIPTED,	// USed for NPCs in scripts that should not collide with each other
+
+	LAST_SHARED_COLLISION_GROUP
+};
 
 enum
 {
@@ -269,7 +293,6 @@ enum struct ClientClasses
 	float flHorde;
 	float flMaxSpree;
 	float flMaxHorde;
-	float flMoraleValue;
 	bool bGlow;
 	bool bThirdperson;
 	int iColor[4];
@@ -366,7 +389,6 @@ bool g_bGiveNamedItemSkip;
 
 float g_flSurvivorsLastDeath = 0.0;
 int g_iSurvivorsKilledCounter;
-int g_iZombiesKilledCounter;
 int g_iZombiesKilledSpree;
 int g_iZombiesKilledSurvivor[TF_MAXPLAYERS];
 
@@ -384,7 +406,6 @@ int g_iSprite; //Smoker beam
 
 //Global Timer Handles
 Handle g_hTimerMain;
-Handle g_hTimerMoraleDecay;
 Handle g_hTimerMainSlow;
 Handle g_hTimerHoarde;
 Handle g_hTimerDataCollect;
@@ -398,6 +419,8 @@ ConVar g_cvTankHealthMin;
 ConVar g_cvTankHealthMax;
 ConVar g_cvTankTime;
 ConVar g_cvTankStab;
+ConVar g_cvJockeyMovementVictim;
+ConVar g_cvJockeyMovementAttacker;
 ConVar g_cvFrenzyChance;
 ConVar g_cvFrenzyTankChance;
 ConVar g_cvStunImmunity;
@@ -406,9 +429,6 @@ ConVar g_cvMeleeIgnoreTeammates;
 float g_flZombieDamageScale = 1.0;
 
 ArrayList g_aFastRespawn;
-
-bool g_bBackstabbed[TF_MAXPLAYERS];
-float g_flBackstabImmunity[TF_MAXPLAYERS];
 
 int g_iDamageZombie[TF_MAXPLAYERS];
 int g_iDamageTakenLife[TF_MAXPLAYERS];
@@ -480,6 +500,7 @@ int g_iOffsetOuter;
 #include "szf/sdkcall.sp"
 #include "szf/sdkhook.sp"
 #include "szf/stocks.sp"
+#include "szf/stun.sp"
 #include "szf/viewmodel.sp"
 
 public Plugin myinfo =
@@ -686,6 +707,8 @@ void GetMapSettings()
 public void OnClientPutInServer(int iClient)
 {
 	g_iDamageZombie[iClient] = 0;
+	g_flTimeStartAsZombie[iClient] = 0.0;
+	g_bWaitingForTeamSwitch[iClient] = false;
 	
 	if (!g_bEnabled)
 		return;
@@ -708,8 +731,6 @@ public void OnClientDisconnect(int iClient)
 	Sound_EndMusic(iClient);
 	DropCarryingItem(iClient);
 	CheckLastSurvivor(iClient);
-	
-	g_bWaitingForTeamSwitch[iClient] = false;
 	
 	Weapons_ClientDisconnect(iClient);
 }
@@ -931,30 +952,6 @@ public Action Timer_Main(Handle hTimer) //1 second
 	return Plugin_Continue;
 }
 
-public Action Timer_MoraleDecay(Handle hTimer) //Timer scales based on how many zombies, slow if low zombies, fast if high zombies
-{
-	if (!g_bEnabled)
-		return Plugin_Stop;
-	
-	AddMoraleAll(-1);
-	
-	float flTimer;
-	if (GetZombieCount() + GetSurvivorCount() != 0)
-	{
-		float flPercentage = (float(GetZombieCount()) / float(GetZombieCount() + GetSurvivorCount()));
-		flTimer = ((1.0 - flPercentage) * 5.0);	//Calculate timer to reduce morale, 5.0 sec if 0% zombies, min 0.5 sec if 90% zombies
-		
-		if (flTimer < 0.5)
-			flTimer = 0.5;
-	}
-	else
-		flTimer = 5.0;
-	
-	g_hTimerMoraleDecay = CreateTimer(flTimer, Timer_MoraleDecay);
-	
-	return Plugin_Continue;
-}
-
 public Action Timer_MainSlow(Handle hTimer) //4 mins
 {
 	if (!g_bEnabled)
@@ -1030,13 +1027,6 @@ public Action Timer_GraceStartPost(Handle hTimer)
 		Sound_PlayMusicToTeam(TFTeam_Survivor, "start");
 	else
 		Sound_PlayMusicToTeam(TFTeam_Survivor, "saferoom");
-	
-	return Plugin_Continue;
-}
-
-public Action Timer_GraceEnd(Handle hTimer)
-{
-	EndGracePeriod();
 	
 	return Plugin_Continue;
 }
@@ -1117,12 +1107,11 @@ void Handle_SurvivorAbilities()
 			//1. Survivor health regeneration.
 			int iHealth = GetClientHealth(iClient);
 			int iMaxHealth = SDKCall_GetMaxHealth(iClient);
-			if (iHealth < iMaxHealth)
+			if (iHealth < iMaxHealth && !TF2_IsPlayerInCondition(iClient, TFCond_Bleeding))	// No regen while in spitter bleed
 			{
 				int iRegen = g_ClientClasses[iClient].iRegen;
 				
 				if (TF2_GetPlayerClass(iClient) == TFClass_Medic && TF2_IsEquipped(iClient, 36)) iRegen--;
-				iRegen += (!g_bSurvival) ? RoundToFloor(fMin(GetMorale(iClient) * 0.166, 4.0)) : 1;
 				iRegen = min(iRegen, iMaxHealth - iHealth);
 				SetEntityHealth(iClient, iHealth + iRegen);
 				
@@ -1132,19 +1121,6 @@ void Handle_SurvivorAbilities()
 				event.FireToClient(iClient);
 				event.Cancel();
 			}
-			
-			//2. Handle survivor morale.
-			if (g_iMorale[iClient] > 100) SetMorale(iClient, 100);
-			int iMorale = GetMorale(iClient);
-			//Decrement morale bonus over time
-			
-			//2.1. Show morale on HUD
-			SetHudTextParams(0.18, 0.71, 1.0, 200 - (iMorale * 2), 255, 200 - (iMorale * 2), 255);
-			ShowHudText(iClient, 3, "%t", "Hud_Morale", iMorale);
-			
-			//2.2. Award buffs if high morale is detected
-			if (iMorale > 50)	//50: defense buff
-				TF2_AddCondition(iClient, TFCond_DefenseBuffed, 1.1);
 		}
 	}
 	
@@ -1191,7 +1167,7 @@ void Handle_ZombieAbilities()
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (IsValidLivingZombie(iClient) && g_nInfected[iClient] != Infected_Tank)
+		if (IsValidLivingZombie(iClient))
 		{
 			iHealth = GetClientHealth(iClient);
 			iMaxHealth = SDKCall_GetMaxHealth(iClient);
@@ -1199,7 +1175,7 @@ void Handle_ZombieAbilities()
 			//1. Handle zombie regeneration.
 			//       Zombies regenerate health based on class and number of nearby
 			//       zombies (hoarde bonus). Zombies decay health when overhealed.
-			if (iHealth < iMaxHealth)
+			if (iHealth < iMaxHealth && g_nInfected[iClient] != Infected_Tank)
 			{
 				int iRegen = g_ClientClasses[iClient].iRegen;
 				
@@ -1342,7 +1318,10 @@ void SZFEnable()
 		ResetClientState(iClient);
 		
 		if (IsClientInGame(iClient))
+		{
 			DHook_HookGiveNamedItem(iClient);
+			SDKHook_HookClient(iClient);
+		}
 	}
 	
 	ConVar_Enable();
@@ -1369,9 +1348,14 @@ void SZFEnable()
 	g_iSprite = PrecacheModel("materials/sprites/laser.vmt");
 	
 	if (GameRules_GetRoundState() < RoundState_Preround)
+	{
 		g_nRoundState = SZFRoundState_Setup;
+	}
 	else	//Plugin late-load while already midgame, restart round
+	{
 		TF2_EndRound(TFTeam_Zombie);
+		g_nRoundState = SZFRoundState_End;
+	}
 	
 	AddNormalSoundHook(SoundHook);
 	
@@ -1381,9 +1365,6 @@ void SZFEnable()
 	//[Re]Enable periodic timers.
 	delete g_hTimerMain;
 	g_hTimerMain = CreateTimer(1.0, Timer_Main, _, TIMER_REPEAT);
-	
-	delete g_hTimerMoraleDecay;
-	g_hTimerMoraleDecay = CreateTimer(1.0, Timer_MoraleDecay);	//Timer inside will call itself for loops
 	
 	delete g_hTimerMainSlow;
 	g_hTimerMainSlow = CreateTimer(240.0, Timer_MainSlow, _, TIMER_REPEAT);
@@ -1409,10 +1390,13 @@ void SZFDisable()
 	
 	g_flTimeProgress = 0.0;
 	
-	for (int iClient = 0; iClient <= MaxClients; iClient++)
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		ResetClientState(iClient);
 		DHook_UnhookGiveNamedItem(iClient);
+		
+		if (IsClientInGame(iClient))
+			SDKHook_UnhookClient(iClient);
 	}
 	
 	ConVar_Disable();
@@ -1425,7 +1409,6 @@ void SZFDisable()
 	
 	//Disable periodic timers.
 	delete g_hTimerMain;
-	delete g_hTimerMoraleDecay;
 	delete g_hTimerMainSlow;
 	delete g_hTimerHoarde;
 	delete g_hTimerDataCollect;
@@ -1443,7 +1426,6 @@ void ResetClientState(int iClient)
 	g_iHorde[iClient] = 0;
 	g_iCapturingPoint[iClient] = -1;
 	g_iRageTimer[iClient] = 0;
-	g_flBackstabImmunity[iClient] = 0.0;
 }
 
 void PrintInfoChat(int iClient)
@@ -1469,7 +1451,7 @@ void SetGlow()
 					bGlow = true;
 				else if (GetClientHealth(iClient) <= 30)
 					bGlow = true;
-				else if (g_bBackstabbed[iClient])
+				else if (Stun_IsPlayerStunned(iClient))
 					bGlow = true;
 			}
 			else if (g_ClientClasses[iClient].bGlow)
@@ -1526,6 +1508,27 @@ void UpdateZombieDamageScale()
 	{
 		flProgress = g_flCapScale;
 	}
+	else if (g_bSurvival)
+	{
+		int iTimer = FindEntityByClassname(INVALID_ENT_REFERENCE, "team_round_timer");
+		if (iTimer != INVALID_ENT_REFERENCE)
+		{
+			float flTimerInitialLength = float(GetEntProp(iTimer, Prop_Send, "m_nTimerInitialLength"));
+			float flTimerEndTime = GetEntPropFloat(iTimer, Prop_Send, "m_flTimerEndTime");
+			float flGameTime = GetGameTime();
+			if (flGameTime > flTimerEndTime)
+			{
+				flProgress = 1.0;
+			}
+			else
+			{
+				float flTimeLeft = flTimerEndTime - flGameTime;
+				flProgress = 1.0 - (flTimeLeft / flTimerInitialLength);
+				if (flProgress < 0.0)
+					flProgress = 0.0;
+			}
+		}
+	}
 	else
 	{
 		//iCurrentCP: +1 if CP currently capping, +2 if CP capped
@@ -1556,42 +1559,31 @@ void UpdateZombieDamageScale()
 		}
 	}
 	
-	//If progress found, calculate by amount of survivors and zombies
+	//If progress found, calculate add progress to damage scale
 	if (0.0 <= flProgress <= 1.0)
-	{
-		float flExpectedPrecentage = (flProgress * 0.6) + 0.2;
-		float flZombiePrecentage = float(iZombies) / float(iSurvivors + iZombies);
-		g_flZombieDamageScale += (flExpectedPrecentage - flZombiePrecentage) * 0.7;
-	}
+		g_flZombieDamageScale += flProgress;
+	
+	//Lower damage scale as there are less survivors
+	float flSurvivorPercentage = float(iSurvivors) / float(iSurvivors + iZombies);
+	g_flZombieDamageScale = (g_flZombieDamageScale * flSurvivorPercentage * 0.6) + 0.5;
 	
 	//Get the amount of zombies killed since last survivor death
-	g_flZombieDamageScale += fMin(0.3, g_iZombiesKilledSpree * 0.003);
-	
-	//Get total amount of zombies killed
-	g_flZombieDamageScale += fMin(0.2, g_iZombiesKilledCounter * 0.0005);
+	g_flZombieDamageScale += g_iZombiesKilledSpree * 0.004;
 	
 	//Zombie rage increases damage
 	if (g_bZombieRage)
-	{
-		g_flZombieDamageScale += 0.1;
-		if (g_flZombieDamageScale < 1.1)
-			g_flZombieDamageScale = 1.1;
-	}
+		g_flZombieDamageScale += 0.15;
 	
-	//In survival, zombie to survivor ratio is also taken to calculate damage.
-	if (g_bSurvival)
-		g_flZombieDamageScale += fMax(0.0, (iSurvivors / iZombies / 30) + 0.08); //28-4 = +0.213, 16-16 = +0.113
-	
-	//If the last point is being captured, set the damage scale to 110% if lower than 110%
-	if (g_bCapturingLastPoint && g_flZombieDamageScale < 1.1 && !g_bSurvival)
-		g_flZombieDamageScale = 1.1;
+	//If the last point is being captured, increase damage scale if lower than 100%
+	if (g_bCapturingLastPoint && g_flZombieDamageScale < 1.0 && !g_bSurvival)
+		g_flZombieDamageScale += (1.0 - g_flZombieDamageScale) * 0.5;
 	
 	//Post-calculation
 	if (g_flZombieDamageScale < 1.0)
-		g_flZombieDamageScale = g_flZombieDamageScale * g_flZombieDamageScale; // TODO: Compiler bug in 1.11 doesn't allow us to use g_flZombieDamageScale *= g_flZombieDamageScale;
+		g_flZombieDamageScale = Pow(g_flZombieDamageScale, 3.0);
 	
-	if (g_flZombieDamageScale < 0.33)
-		g_flZombieDamageScale = 0.33;
+	if (g_flZombieDamageScale < 0.2)
+		g_flZombieDamageScale = 0.2;
 	
 	if (g_flZombieDamageScale > 3.0)
 		g_flZombieDamageScale = 3.0;
@@ -1606,10 +1598,10 @@ void UpdateZombieDamageScale()
 		{
 			//In order:
 			//The damage scale is above 170%
-			//The damage scale is above 120% and the total amount of zombies killed since a survivor died exceeds 20
-			//None of the survivors died in the past 120 seconds
+			//The damage scale is above 120% and either zombies killed since a survivor died exceeds 20 or last capture
+			//None of the survivors died in the past 90 seconds
 			if ((g_flZombieDamageScale >= 1.7)
-			|| (g_flZombieDamageScale >= 1.2 && g_iZombiesKilledSpree >= 20)
+			|| (g_flZombieDamageScale >= 1.2 && (g_iZombiesKilledSpree >= 20 || g_bCapturingLastPoint))
 			|| (g_flSurvivorsLastDeath < flGameTime - 120.0) )
 			{
 				ZombieTank();
@@ -1620,11 +1612,11 @@ void UpdateZombieDamageScale()
 		{
 			//In order:
 			//The damage scale is above 120%
-			//The damage scale is above 80% and the total amount of zombies killed since a survivor died exceeds 12
+			//The damage scale is above 80% and either zombies killed since a survivor died exceeds 12 or last capture
 			//The frenzy chance rng is triggered
 			//None of the survivors died in the past 60 seconds
 			if ( g_flZombieDamageScale >= 1.2
-			|| (g_flZombieDamageScale >= 0.8 && g_iZombiesKilledSpree >= 12)
+			|| (g_flZombieDamageScale >= 0.8 && (g_iZombiesKilledSpree >= 12 || g_bCapturingLastPoint))
 			|| GetRandomInt(0, 100) < g_cvFrenzyChance.IntValue
 			|| (g_flSurvivorsLastDeath < flGameTime - 60.0) )
 			{
@@ -1670,7 +1662,6 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	SetEntityHealth(iLastSurvivor, SDKCall_GetMaxHealth(iLastSurvivor));
 	
 	g_bLastSurvivor = true;
-	SetMorale(iLastSurvivor, 100);
 	
 	char sName[256];
 	GetClientName2(iLastSurvivor, sName, sizeof(sName));
@@ -1778,18 +1769,6 @@ void ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 				{
 					TF2_RespawnPlayer2(iClient);
 					g_flRageRespawnStress += 1.7;	//Add stress time 1.7 sec for every respawn zombies
-				}
-				else if (IsSurvivor(iClient) && IsPlayerAlive(iClient))
-				{
-					//Zombies are enraged, reduce morale
-					int iMorale = GetMorale(iClient);
-					iMorale = RoundToNearest(float(iMorale) * 0.5);	//Half current morale
-					iMorale -= 15;	//Remove 15 extra morale
-					
-					if (iMorale < 0)
-						iMorale = 0;
-					
-					SetMorale(iClient, iMorale);
 				}
 			}
 		}
@@ -2150,7 +2129,6 @@ void ZombieTank(int iCaller = -1)
 	g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
 	g_nNextInfected[iClient] = Infected_Tank;
 	g_flTankCooldown = GetGameTime() + 120.0; //Set new cooldown
-	SetMoraleAll(0); //Tank spawn, reset morale
 }
 
 void DetermineControlPoints()
@@ -2229,9 +2207,8 @@ bool AttemptCarryItem(int iClient)
 		return false;
 	
 	g_iCarryingItem[iClient] = EntIndexToEntRef(iTarget);
-	SetEntProp(iClient, Prop_Send, "m_bDrawViewmodel", 0);
 	AcceptEntityInput(iTarget, "DisableMotion");
-	SetEntProp(iTarget, Prop_Send, "m_nSolidType", 0);
+	SetEntProp(iTarget, Prop_Send, "m_nSolidType", SOLID_NONE);
 	
 	EmitSoundToClient(iClient, "ui/item_paint_can_pickup.wav");
 	PrintHintText(iClient, "%t", "Carry_Pickup");
@@ -2269,9 +2246,7 @@ bool DropCarryingItem(int iClient, bool bDrop = true)
 	if (!IsValidEntity(g_iCarryingItem[iClient]))
 		return false;
 	
-	SetEntProp(iClient, Prop_Send, "m_bDrawViewmodel", 1);
-	
-	SetEntProp(g_iCarryingItem[iClient], Prop_Send, "m_nSolidType", 6);
+	SetEntProp(g_iCarryingItem[iClient], Prop_Send, "m_nSolidType", SOLID_VPHYSICS);
 	AcceptEntityInput(g_iCarryingItem[iClient], "EnableMotion");
 	AcceptEntityInput(g_iCarryingItem[iClient], "FireUser2", iClient, iClient);
 	
@@ -2293,50 +2268,67 @@ bool DropCarryingItem(int iClient, bool bDrop = true)
 	return true;
 }
 
-public Action SoundHook(int iClients[64], int &iLength, char sSound[PLATFORM_MAX_PATH], int &iClient, int &iChannel, float &flVolume, int &iLevel, int &iPitch, int &iFlags)
+public Action SoundHook(int iClients[MAXPLAYERS], int &iNumClients, char sSound[PLATFORM_MAX_PATH], int &iClient, int &iChannel, float &flVolume, int &iLevel, int &iPitch, int &iFlags, char sSoundEntry[PLATFORM_MAX_PATH], int &iSeed)
 {
+	Action action = Plugin_Continue;
+	if (StrContains(sSound, "vo/", false) != -1)
+	{
+		//Don't play any sounds to stunned players
+		for (int i = iNumClients - 1; i >= 0; i--)
+		{
+			if (Stun_IsPlayerStunned(iClients[i]))
+			{
+				for (int j = i; j < iNumClients; j++)
+					iClients[j] = iClients[j+1];
+				
+				iNumClients--;
+				action = Plugin_Changed;
+			}
+		}
+	}
+	
 	if (!IsValidClient(iClient))
-		return Plugin_Continue;
+		return action;
 	
 	if (StrContains(sSound, "vo/", false) != -1 && IsZombie(iClient))
 	{
 		if (StrContains(sSound, "zombie_vo/", false) != -1)
-			return Plugin_Continue; //So rage sounds (for normal & most special infected alike) don't get blocked
+			return action; //So rage sounds (for normal & most special infected alike) don't get blocked
 		
 		if (StrContains(sSound, "_pain", false) != -1)
 		{
 			if (GetClientHealth(iClient) < 50 || StrContains(sSound, "crticial", false) != -1)  //The typo is intended because that's how the soundfiles are named
-				if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Death))
-					return Plugin_Handled;
+				if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Death, sSound, sizeof(sSound)))
+					return Plugin_Changed;
 			
 			if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-				if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Fire))
-					return Plugin_Handled;
+				if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Fire, sSound, sizeof(sSound)))
+					return Plugin_Changed;
 			
-			if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Pain))
-				return Plugin_Handled;
+			if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Pain, sSound, sizeof(sSound)))
+				return Plugin_Changed;
 		}
 		else if (StrContains(sSound, "_laugh", false) != -1 || StrContains(sSound, "_no", false) != -1 || StrContains(sSound, "_yes", false) != -1)
 		{
-			if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Mumbling))
-				return Plugin_Handled;
+			if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Mumbling, sSound, sizeof(sSound)))
+				return Plugin_Changed;
 		}
 		else if (StrContains(sSound, "_go", false) != -1 || StrContains(sSound, "_jarate", false) != -1)
 		{
-			if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Shoved))
-				return Plugin_Handled;
+			if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Shoved, sSound, sizeof(sSound)))
+				return Plugin_Changed;
 		}
 		
 		//Play default vo for whatever infected
-		if (Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Default))
-			return Plugin_Handled;
+		if (Sound_GetInfectedVo(g_nInfected[iClient], SoundVo_Default, sSound, sizeof(sSound)))
+			return Plugin_Changed;
 		
 		//If sound still not found, try normal infected
-		Sound_PlayInfectedVo(iClient, Infected_None, SoundVo_Default);
-		return Plugin_Handled;
+		Sound_GetInfectedVo(Infected_None, SoundVo_Default, sSound, sizeof(sSound));
+		return Plugin_Changed;
 	}
 	
-	return Plugin_Continue;
+	return action;
 }
 
 void SetNextAttack(int iClient, float flDuration = 0.0, bool bMeleeOnly = true)
@@ -2487,54 +2479,6 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 		iButtons &= ~IN_ATTACK;
 		iButtons &= ~IN_ATTACK2;
 	}
-	
-	return Plugin_Continue;
-}
-
-float SetBackstabState(int iClient, float flDuration = BACKSTABDURATION_FULL, float flSlowdown = 0.5)
-{
-	if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient))
-	{
-		float flGameTime = GetGameTime();
-		if (g_flBackstabImmunity[iClient] < flGameTime)
-		{
-			int iSurvivors = GetSurvivorCount();
-			int iZombies = GetZombieCount();
-			
-			//Reduce backstab duration if:
-			//3 or less survivors are left while there are 12 or more zombies
-			//There are 24 or more zombies
-			//Zombie damage scale is 50% or lower
-			//Victim has the defense buff
-			if ( flDuration > BACKSTABDURATION_REDUCED && (
-					( iSurvivors <= 3 && iZombies >= 12 )
-					|| iZombies >= 24
-					|| g_flZombieDamageScale <= 0.5
-					|| TF2_IsPlayerInCondition(iClient, TFCond_DefenseBuffed) ) )
-			{
-				flDuration = BACKSTABDURATION_REDUCED;
-			}
-			
-			TF2_StunPlayer(iClient, flDuration, flSlowdown, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, 0);
-			g_bBackstabbed[iClient] = true;
-			ClientCommand(iClient, "r_screenoverlay\"debug/yuv\"");
-			Sound_PlayMusicToClient(iClient, "backstab", flDuration);
-			CreateTimer(flDuration, RemoveBackstab, iClient); //Removes overlay and backstate state
-		}
-	}
-	return flDuration;
-}
-
-public Action RemoveBackstab(Handle hTimer, int iClient)
-{
-	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient))
-		return Plugin_Continue;
-	
-	g_bBackstabbed[iClient] = false;
-	ClientCommand(iClient, "r_screenoverlay\"\"");
-	
-	TF2_RemoveCondition(iClient, TFCond_Dazed);
-	SDKCall_SetSpeed(iClient);
 	
 	return Plugin_Continue;
 }
