@@ -8,7 +8,10 @@ enum WeaponRarity
 	WeaponRarity_Common,
 	WeaponRarity_Uncommon,
 	WeaponRarity_Rare,
+	WeaponRarity_Static,
 	WeaponRarity_Pickup,
+
+	WeaponRarity_Count,
 };
 
 /**
@@ -93,12 +96,14 @@ forward void SZF_OnBoomerExplode(int iBoomer, int iClients[MAXPLAYERS], int iLen
 forward void SZF_OnWeaponPickup(int iClient, int iWeapon, WeaponRarity rarity);
 
 /**
- * Forward called when survivor called a rare weapon
+ * Forward called when survivor called out a weapon
  *
- * @param	iClient		Client whose called a rare weapon
+ * @param	iClient		Client whose called out a weapon
+ * @param	iWeapon		Weapon entity whose called out
+ * @param	rarity		Rarity of the weapon
  * @noreturn
  */
-forward void SZF_OnWeaponCallout(int iClient);
+forward void SZF_OnWeaponCallout(int iClient, int iWeapon, WeaponRarity rarity);
 
 /**
  * Forward called when plugin need a client name to display in chat to override default name and color

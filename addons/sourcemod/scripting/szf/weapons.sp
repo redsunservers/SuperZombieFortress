@@ -1,7 +1,11 @@
+#define ENT_ONPICKUP	"FireUser1"
+#define ENT_ONKILL		"FireUser2"
+
 typedef Weapon_OnPickup = function bool (int client); //Return false to prevent client from picking up the item.
+typedef Weapon_OnSpawn = function void (int entity);
 
 static ArrayList g_Weapons;
-static ArrayList g_WepIndexesByRarity[view_as<int>(WeaponRarity)]; //Array indexes of g_Weapons array
+static ArrayList g_WepIndexesByRarity[view_as<int>(WeaponRarity_Count)]; //Array indexes of g_Weapons array
 static StringMap g_WeaponsReskin;
 
 enum struct Weapon
@@ -12,13 +16,14 @@ enum struct Weapon
 	int iSkin;
 	char sSound[PLATFORM_MAX_PATH];
 	char sAttribs[256];
-	ArrayList aClassSpecific[view_as<int>(TFClassType)];
+	ArrayList aClassSpecific[view_as<int>(TFClass_Engineer) + 1];
 	int iColor[3];
 	float flHeightOffset;
 	float vecAnglesOffset[3];
 	float vecAnglesConst[3];
 	bool bAnglesConst[3];
-	Weapon_OnPickup callback;
+	Function pickupCallback;
+	Function spawnCallback;
 }
 
 void Weapons_Refresh()
@@ -31,7 +36,7 @@ void Weapons_Refresh()
 			Weapon wep;
 			g_Weapons.GetArray(i, wep);
 			
-			for (TFClassType iClass; iClass < TFClassType; iClass++)
+			for (int iClass; iClass < view_as<int>(TFClass_Engineer) + 1; iClass++)
 				delete wep.aClassSpecific[iClass];
 		}
 		
@@ -47,7 +52,7 @@ void Weapons_Refresh()
 	g_WeaponsReskin = Config_LoadWeaponReskinData();
 	
 	int iLength = g_Weapons.Length;
-	for (int i = 0; i < view_as<int>(WeaponRarity); i++)
+	for (int i = 0; i < view_as<int>(WeaponRarity_Count); i++)
 	{
 		g_WepIndexesByRarity[i] = new ArrayList();
 		
@@ -120,7 +125,7 @@ void GetWeaponFromIndex(Weapon buffer, int iIndex)
 	}
 }
 
-ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity)
+ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, TFClassType nFilter = TFClass_Unknown)
 {
 	ArrayList aList = new ArrayList(sizeof(Weapon));
 	
@@ -130,7 +135,16 @@ ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity)
 		Weapon wep;
 		g_Weapons.GetArray(g_WepIndexesByRarity[iRarity].Get(i), wep);
 		
-		aList.PushArray(wep);
+		if (nFilter == TFClass_Unknown)
+		{
+			aList.PushArray(wep);
+		}
+		else
+		{
+			int iSlot = TF2_GetItemSlot(wep.iIndex, nFilter);
+			if (iSlot >= 0)
+				aList.PushArray(wep);
+		}
 	}
 	
 	return aList;
@@ -167,22 +181,31 @@ void Weapons_ReplaceEntityModel(int iEnt, int iIndex)
 }
 
 // -----------------------------------------------------------
-public bool Weapons_OnPickup_Health(int iClient)
+public void Weapons_OnSpawn_Health(int iEntity)
 {
-	if (GetClientHealth(iClient) < SDKCall_GetMaxHealth(iClient))
-	{
-		SpawnPickup(iClient, "item_healthkit_full");
-		return true;
-	}
+	int iPickup = SpawnPickup(iEntity, "item_healthkit_full", false);
 	
-	return false;
+	SetVariantString("!activator");
+	AcceptEntityInput(iPickup, "SetParent", iEntity);
+	
+	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
+	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
 }
 
-public bool Weapons_OnPickup_Ammo(int iClient)
+public void Weapons_OnSpawn_Ammo(int iEntity)
 {
-	SpawnPickup(iClient, "item_ammopack_full");
+	int iPickup = SpawnPickup(iEntity, "item_ammopack_full", false);
 	
-	return true;
+	SetVariantString("!activator");
+	AcceptEntityInput(iPickup, "SetParent", iEntity);
+	
+	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
+	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
+}
+
+public bool Weapons_OnPickup_Deny(int iClient)
+{
+	return false;
 }
 
 public bool Weapons_OnPickup_Minicrits(int iClient)
@@ -197,4 +220,18 @@ public bool Weapons_OnPickup_Defense(int iClient)
 	TF2_AddCondition(iClient, TFCond_DefenseBuffed, 30.0);
 	
 	return true;
+}
+
+public Action Weapons_PickupTouch(const char[] sOutput, int iCaller, int iActivator, float flDelay)
+{
+	int iParent = GetEntPropEnt(iCaller, Prop_Data, "m_pParent");
+	if (iParent != -1)
+	{
+		AcceptEntityInput(iParent, ENT_ONKILL, iActivator, iActivator);
+		RemoveEntity(iParent);
+	}
+
+	RemoveEntity(iCaller);
+
+	return Plugin_Continue;
 }

@@ -1,3 +1,25 @@
+void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
+{
+	if (StrEqual(sClassname, "prop_dynamic") && g_nRoundState == SZFRoundState_Active)
+	{
+		SDKHook(iEntity, SDKHook_SpawnPost, Prop_SetSpawnedWeapon);
+	}
+	else if (StrContains(sClassname, "item_healthkit") == 0 || StrContains(sClassname, "item_ammopack") == 0 || StrEqual(sClassname, "tf_ammo_pack"))
+	{
+		SDKHook(iEntity, SDKHook_SpawnPost, Pickup_SpawnPost);
+	}
+	else if (StrEqual(sClassname, "tf_gas_manager"))
+	{
+		SDKHook(iEntity, SDKHook_Touch, GasManager_Touch);
+		SDKHook(iEntity, SDKHook_EndTouch, GasManager_EndTouch);
+	}
+	else if (StrEqual(sClassname, "trigger_capture_area"))
+	{
+		SDKHook(iEntity, SDKHook_StartTouch, CaptureArea_StartTouch);
+		SDKHook(iEntity, SDKHook_EndTouch, CaptureArea_EndTouch);
+	}
+}
+
 void SDKHook_HookClient(int iClient)
 {
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_PreThinkPost);
@@ -6,27 +28,16 @@ void SDKHook_HookClient(int iClient)
 	SDKHook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
 }
 
-void SDKHook_HookPickup(int iEntity)
+void SDKHook_UnhookClient(int iClient)
 {
-	SDKHook(iEntity, SDKHook_SpawnPost, Pickup_SpawnPost);
-}
-
-void SDKHook_HookGasManager(int iEntity)
-{
-	SDKHook(iEntity, SDKHook_Touch, GasManager_Touch);
-}
-
-void SDKHook_HookCaptureArea(int iEntity)
-{
-	SDKHook(iEntity, SDKHook_StartTouch, CaptureArea_StartTouch);
-	SDKHook(iEntity, SDKHook_EndTouch, CaptureArea_EndTouch);
+	SDKUnhook(iClient, SDKHook_PreThinkPost, Client_PreThinkPost);
+	SDKUnhook(iClient, SDKHook_Touch, Client_Touch);
+	SDKUnhook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
+	SDKUnhook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
 }
 
 public void Client_PreThinkPost(int iClient)
 {
-	if (!g_bEnabled)
-		return;
-	
 	UpdateClientCarrying(iClient);
 }
 
@@ -39,22 +50,16 @@ public Action Client_Touch(int iClient, int iToucher)
 		Call_PushCell(iToucher);
 		Call_Finish();
 	}
+	
+	return Plugin_Continue;
 }
 
 public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
 {
-	if (!g_bEnabled)
-		return Plugin_Continue;
-	
 	if (!CanRecieveDamage(iVictim))
 		return Plugin_Continue;
 	
 	bool bChanged = false;
-	if (IsValidClient(iVictim) && IsValidClient(iAttacker))
-	{
-		if (GetClientTeam(iVictim) != GetClientTeam(iAttacker))
-			EndGracePeriod();
-	}
 	
 	//Disable fall damage to tank
 	if (g_nInfected[iVictim] == Infected_Tank && iDamageType & DMG_FALL)
@@ -73,19 +78,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			
 			//Damage scaling Survivors
 			if (IsValidSurvivor(iAttacker) && !IsClassname(iInflicter, "obj_sentrygun"))
-			{
-				float flMoraleBonus = fMin(GetMorale(iAttacker) * 0.005, 0.25); //50 morale: 0.25
-				flDamage = flDamage / g_flZombieDamageScale * (1.1 + flMoraleBonus); //Default: 1.1
-			}
-			
-			//If backstabbed
-			if (g_bBackstabbed[iVictim])
-			{
-				if (flDamage > STUNNED_DAMAGE_CAP)
-					flDamage = STUNNED_DAMAGE_CAP;
-				
-				iDamageType &= ~DMG_CRIT;
-			}
+				flDamage /= g_flZombieDamageScale;
 			
 			bChanged = true;
 		}
@@ -109,34 +102,21 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				|| iDamageCustom == TF_CUSTOM_TAUNT_GRENADE
 				|| (TF2_GetPlayerClass(iAttacker) == TFClass_Engineer && GetEntProp(iAttacker, Prop_Send, "m_iNextMeleeCrit") == MELEE_CRIT))
 			{
-				float flGameTime = GetGameTime();
-				if (!g_bBackstabbed[iVictim] && g_flBackstabImmunity[iVictim]<flGameTime)
-				{
-					if (TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged)
-						|| (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB))
-						return Plugin_Continue;
-					
-					if (g_nInfected[iAttacker] == Infected_Stalker)
-						SetEntityHealth(iVictim, GetClientHealth(iVictim) - 50);
-					else
-						SetEntityHealth(iVictim, GetClientHealth(iVictim) - 20);
-					
-					AddMorale(iVictim, -5);
-					float flDuration = SetBackstabState(iVictim, BACKSTABDURATION_FULL, 0.25);
-					SetNextAttack(iAttacker, flGameTime + 1.25);
-					g_flBackstabImmunity[iVictim] = flGameTime + flDuration + g_cvStunImmunity.FloatValue;
-					
-					Forward_OnBackstab(iVictim, iAttacker);
-					
-					flDamage = 1.0;
-					bChanged = true;
-				}
 				
+				if (TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged) || (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB))
+					return Plugin_Continue;
+				
+				bool bStunned;
+				if (g_nInfected[iAttacker] == Infected_Stalker)
+					bStunned = Stun_StartPlayer(iVictim, 10.0);
 				else
-				{
-					flDamage = STUNNED_DAMAGE_CAP;
-					bChanged = true;
-				}
+					bStunned = Stun_StartPlayer(iVictim);
+				
+				if (bStunned)
+					Forward_OnBackstab(iVictim, iAttacker);
+				
+				flDamage = 1.0;
+				bChanged = true;
 			}
 			
 			Sound_PlayInfectedVo(iAttacker, g_nInfected[iAttacker], SoundVo_Attack);
@@ -201,6 +181,9 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		}
 	}
 	
+	if (Stun_IsPlayerStunned(iVictim))
+		Stun_Shake(iVictim, vecForce, flDamage * 8.0);
+	
 	SDKCall_SetSpeed(iVictim);
 	
 	if (bChanged)
@@ -211,9 +194,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 
 public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
 {
-	if (!g_bEnabled)
-		return Plugin_Continue;
-	
 	if (g_iMaxHealth[iClient] > 0)
 	{
 		iMaxHealth = g_iMaxHealth[iClient];
@@ -226,6 +206,12 @@ public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
 		return Plugin_Changed;
 	}
 	
+	return Plugin_Continue;
+}
+
+public Action Prop_SetSpawnedWeapon(int iWeapon)
+{
+	SetWeapon(iWeapon);
 	return Plugin_Continue;
 }
 
@@ -279,10 +265,12 @@ public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
 {
 	int iEntity = EntRefToEntIndex(iRef);
 	if (!IsValidEntity(iEntity))
-		return;
+		return Plugin_Continue;
 	
 	SDKUnhook(iEntity, SDKHook_Touch, Pickup_BlockTouch);
 	SDKHook(iEntity, SDKHook_Touch, Pickup_SandvichTouch);
+	
+	return Plugin_Continue;
 }
 
 public Action Pickup_SandvichTouch(int iEntity, int iToucher)
@@ -342,10 +330,7 @@ public Action GasManager_Touch(int iGasManager, int iClient)
 			int iOwner = GetEntPropEnt(iGasManager, Prop_Send, "m_hOwnerEntity");
 			
 			if (GetClientTeam(iClient) != GetClientTeam(iOwner))
-			{
 				TF2_MakeBleed(iClient, iOwner, 0.5);
-				TF2_StunPlayer(iClient, 0.5, 0.5, TF_STUNFLAG_SLOWDOWN);
-			}
 		}
 		
 		return Plugin_Handled;
@@ -354,11 +339,25 @@ public Action GasManager_Touch(int iGasManager, int iClient)
 	return Plugin_Continue;
 }
 
+public Action GasManager_EndTouch(int iGasManager, int iClient)
+{
+	if (IsValidSurvivor(iClient))
+	{
+		//Add 5 extra secs of bleed after leaving
+		int iOwner = GetEntPropEnt(iGasManager, Prop_Send, "m_hOwnerEntity");
+		
+		if (GetClientTeam(iClient) != GetClientTeam(iOwner))
+		{
+			TF2_RemoveCondition(iClient, TFCond_Bleeding);
+			TF2_MakeBleed(iClient, iOwner, 5.0);
+		}
+	}
+	
+	return Plugin_Continue;
+}
+
 public Action CaptureArea_StartTouch(int iEntity, int iClient)
 {
-	if (!g_bEnabled)
-		return Plugin_Continue;
-	
 	if (!IsClassname(iEntity, "trigger_capture_area"))
 		return Plugin_Continue;
 	
@@ -388,9 +387,6 @@ public Action CaptureArea_StartTouch(int iEntity, int iClient)
 
 public Action CaptureArea_EndTouch(int iEntity, int iClient)
 {
-	if (!g_bEnabled)
-		return Plugin_Continue;
-	
 	if (IsValidClient(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient))
 		g_iCapturingPoint[iClient] = -1;
 	

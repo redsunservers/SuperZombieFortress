@@ -28,11 +28,18 @@ public void Infected_DoNoRage(int iClient)
 static Handle g_hTimerTank[TF_MAXPLAYERS];
 static float g_flTankLifetime[TF_MAXPLAYERS];
 static int g_iTankHealthSubtract[TF_MAXPLAYERS];
-static float g_flTankMoralePool[TF_MAXPLAYERS];
 
 public void Infected_OnTankSpawn(int iClient)
 {
-	//TAAAAANK
+	if (g_flTankLifetime[iClient] < GetGameTime() - 0.5)	//Prevent multiple announces from spawnroom
+	{
+		//TAAAAANK
+		CPrintToChatAll("%t", "Tank_Spawn", "{red}");
+		Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
+		
+		g_iTanksSpawned++;
+	}
+	
 	g_hTimerTank[iClient] = CreateTimer(1.0, Infected_TankTimer, GetClientSerial(iClient), TIMER_REPEAT);
 	g_flTankLifetime[iClient] = GetGameTime();
 	
@@ -44,19 +51,11 @@ public void Infected_OnTankSpawn(int iClient)
 	g_iMaxHealth[iClient] = iHealth;
 	SetEntityHealth(iClient, iHealth);
 	
-	//Set the Morale reward pool for killing the tank
-	g_flTankMoralePool[iClient] = g_ClientClasses[iClient].flMoraleValue * float(iSurvivors + 2);
-	
 	int iSubtract = 0;
 	if (g_cvTankTime.FloatValue > 0.0)
 		iSubtract = max(RoundFloat(float(iHealth) / g_cvTankTime.FloatValue), 3);
 	
 	g_iTankHealthSubtract[iClient] = iSubtract;
-	
-	CPrintToChatAll("%t", "Tank_Spawn", "{red}");
-	Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
-	
-	g_iTanksSpawned++;
 	
 	for (int i = 1; i <= MaxClients; i++)
 	{
@@ -159,6 +158,16 @@ public Action Infected_OnTankAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iD
 	return Plugin_Continue;
 }
 
+public void Infected_OnTankTouch(int iClient, int iToucher)
+{
+	if (IsClassname(iToucher, "func_respawnroom"))
+	{
+		//Reset lifetime so tank don't drain it's health while in spawnroom
+		if (!GetEntProp(iToucher, Prop_Data, "m_bDisabled") && GetEntProp(iToucher, Prop_Send, "m_iTeamNum") == GetClientTeam(iClient))
+			g_flTankLifetime[iClient] = GetGameTime();
+	}
+}
+
 public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 {
 	g_hTimerTank[iVictim] = null;
@@ -195,9 +204,6 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 					iWinner = i;
 				}
 				
-				//Give Morale from the pool according to the percentage of damage dealth
-				float ratio = g_flDamageDealtAgainstTank[i] / float(g_iMaxHealth[i]);
-				AddMorale(i, 10 + RoundToNearest(ratio * g_flTankMoralePool[iVictim]));
 				g_flDamageDealtAgainstTank[i] = 0.0;
 			}
 		}
@@ -373,12 +379,21 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 		GetClientEyeAngles(iClient, vecAngles);
 		
 		//Move origin a bit further so we get a better guess who were colliding with
-		vecAngles[2] = 0.0;
+		vecAngles[0] = 0.0;
 		AnglesToVelocity(vecAngles, vecVel, 75.0);
 		AddVectors(vecOrigin, vecVel, vecOrigin);
 		
+		//Keep the charge meter at 100.0, so you never really run out of charge
+		SetEntPropFloat(iClient, Prop_Send, "m_flChargeMeter", 100.0);
+		
 		//Force push charger at stupid amount of speed, WEEEEEEEEEEEEEEEEEE
-		AnglesToVelocity(vecAngles, vecVel, 520.0);
+		const float flSpeed = 520.0;
+		AnglesToVelocity(vecAngles, vecVel, flSpeed);
+		
+		float vecCurrentVelocity[3];
+		GetEntPropVector(iClient, Prop_Data, "m_vecVelocity", vecCurrentVelocity);
+		vecVel[2] = vecCurrentVelocity[2];
+		
 		TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVel);
 		
 		for (int iVictim = 1; iVictim <= MaxClients; iVictim++)
@@ -389,11 +404,9 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 				GetClientAbsOrigin(iVictim, vecPosClient);
 				if (GetVectorDistance(vecOrigin, vecPosClient) <= 75.0)
 				{
-					if (GetEntityFlags(iVictim) & FL_ONGROUND)
-						vecVel[2] = 260.0;	//Launch survivor slightly up so we can push em more easier
-					else
-						vecVel[2] = 0.0;
+					TF2_AddCondition(iVictim, TFCond_LostFooting, 0.5);	//Allow push victims easier with friction
 					
+					vecVel[2] = 0.0;
 					TeleportEntity(iVictim, NULL_VECTOR, NULL_VECTOR, vecVel);
 					
 					if (!TF2_IsPlayerInCondition(iVictim, TFCond_Bleeding))
@@ -525,12 +538,6 @@ static bool g_bHunterIsUsingPounce[TF_MAXPLAYERS];
 
 public void Infected_DoHunterJump(int iClient)
 {
-	char sPath[64];
-	Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(18, 19));
-	EmitSoundToAll(sPath, iClient, SNDLEVEL_AIRCRAFT);
-	
-	g_bHunterIsUsingPounce[iClient] = true;
-	
 	float vecVelocity[3];
 	float vecEyeAngles[3];
 	
@@ -540,10 +547,24 @@ public void Infected_DoHunterJump(int iClient)
 	vecVelocity[1] = Cosine(DegToRad(vecEyeAngles[0])) * Sine(DegToRad(vecEyeAngles[1])) * 920;
 	vecVelocity[2] = 460.0;
 	
-	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
-	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 	SDKCall_PlaySpecificSequence(iClient, "pounce_idle_low");
 	ViewModel_SetAnimation(iClient, "claw_lunge_layer");
+	
+	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
+	SetEntProp(iClient, Prop_Send, "m_iAirDash", 1);
+	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
+	
+	int iFlags = GetEntityFlags(iClient);
+	iFlags &= ~FL_ONGROUND;
+	SetEntityFlags(iClient, iFlags);
+	
+	g_bHunterIsUsingPounce[iClient] = true;
+}
+
+public void Infected_OnHunterThink(int iClient, int &iButtons)
+{
+	if (GetEntityFlags(iClient) & FL_ONGROUND)
+		g_bHunterIsUsingPounce[iClient] = false;
 }
 
 public Action Infected_OnHunterAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
@@ -568,37 +589,33 @@ public Action Infected_OnHunterAnim(int iClient, PlayerAnimEvent_t &nAnim, int &
 
 public void Infected_OnHunterTouch(int iClient, int iToucher)
 {
-	if (g_bHunterIsUsingPounce[iClient])
+	if (!g_bHunterIsUsingPounce[iClient] || !IsValidLivingSurvivor(iToucher))
+		return;
+	
+	const float flDuration = 5.5;
+	if (Stun_StartPlayer(iToucher, flDuration))
 	{
-		if (GetEntityFlags(iClient) & FL_ONGROUND)
-		{
-			g_bHunterIsUsingPounce[iClient] = false;
-			return;
-		}
+		SetEntityHealth(iToucher, GetClientHealth(iToucher) - 20);
+		SetNextAttack(iClient, GetGameTime() + 0.6);
 		
-		if (IsValidLivingSurvivor(iToucher))
-		{
-			if (!g_bBackstabbed[iToucher])
-			{
-				SetEntityHealth(iToucher, GetClientHealth(iToucher) - 20);
-				
-				SetBackstabState(iToucher, BACKSTABDURATION_FULL, 1.0);
-				SetNextAttack(iClient, GetGameTime() + 0.6);
-				
-				//Teleport hunter inside the target
-				float vecPosClient[3];
-				GetClientAbsOrigin(iToucher, vecPosClient);
-				TeleportEntity(iClient, vecPosClient, NULL_VECTOR, NULL_VECTOR);
-				//Dont allow hunter to move during lock
-				TF2_StunPlayer(iClient, BACKSTABDURATION_FULL, 1.0, TF_STUNFLAG_SLOWDOWN, 0);
-				
-				Forward_OnHunterHit(iClient, iToucher);
-			}
-			
-			g_iRageTimer[iClient] = 21;
-			g_bHunterIsUsingPounce[iClient] = false;
-		}
+		//Teleport hunter inside the target
+		float vecPosClient[3];
+		GetClientAbsOrigin(iToucher, vecPosClient);
+		TeleportEntity(iClient, vecPosClient, NULL_VECTOR, NULL_VECTOR);
+		
+		TF2_StunPlayer(iToucher, flDuration, 0.5, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, 0);
+		TF2_StunPlayer(iClient, flDuration, 1.0, TF_STUNFLAG_SLOWDOWN, 0);
+		
+		Forward_OnHunterHit(iClient, iToucher);
 	}
+	
+	g_bHunterIsUsingPounce[iClient] = false;
+	g_iRageTimer[iClient] = 21;
+}
+
+public void Infected_OnHunterDeath(int iClient, int iKiller, int iAssist)
+{
+	g_bHunterIsUsingPounce[iClient] = false;
 }
 
 ////////////////
@@ -734,8 +751,7 @@ public void Infected_DoSpitterGas(int iClient)
 	SDKCall_PlaySpecificSequence(iClient, "spitter_spitting");
 	ViewModel_SetAnimation(iClient, "spit");
 	
-	SetEntityMoveType(iClient, MOVETYPE_NONE);
-	CreateTimer(2.0, Infected_SpitterTimer, GetClientSerial(iClient));
+	TF2_AddCondition(iClient, TFCond_FreezeInput, 1.0);
 	
 	int iGas = TF2_GetItemInSlot(iClient, WeaponSlot_Secondary);
 	if (iGas > MaxClients)
@@ -774,27 +790,15 @@ public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
 	}
 }
 
-public Action Infected_SpitterTimer(Handle hTimer, int iSerial)
-{
-	int iClient = GetClientFromSerial(iSerial);
-	if (!IsValidLivingZombie(iClient) || g_nInfected[iClient] != Infected_Spitter)
-		return;
-	
-	SetEntityMoveType(iClient, MOVETYPE_WALK);
-}
-
 ////////////////
 // Jockey
 ////////////////
 
+static bool g_bJockeyIsUsingPounce[TF_MAXPLAYERS];
 static int g_iJockeyTarget[TF_MAXPLAYERS];
 
 public void Infected_DoJockeyJump(int iClient)
 {
-	char sPath[64];
-	Format(sPath, sizeof(sPath), "ambient/halloween/male_scream_%d.wav", GetRandomInt(18, 19));
-	EmitSoundToAll(sPath, iClient, SNDLEVEL_AIRCRAFT);
-	
 	float vecVelocity[3];
 	float vecEyeAngles[3];
 	
@@ -804,14 +808,24 @@ public void Infected_DoJockeyJump(int iClient)
 	vecVelocity[1] = Cosine(DegToRad(vecEyeAngles[0])) * Sine(DegToRad(vecEyeAngles[1])) * 690;
 	vecVelocity[2] = 345.0;
 	
-	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
-	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 	SDKCall_PlaySpecificSequence(iClient, "Pounce");
 	ViewModel_SetAnimation(iClient, "lunge");
+	
+	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
+	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
+	
+	int iFlags = GetEntityFlags(iClient);
+	iFlags &= ~FL_ONGROUND;
+	SetEntityFlags(iClient, iFlags);
+	
+	g_bJockeyIsUsingPounce[iClient] = true;
 }
 
 public void Infected_OnJockeyThink(int iClient, int &iButtons)
 {
+	if (GetEntityFlags(iClient) & FL_ONGROUND)
+		g_bJockeyIsUsingPounce[iClient] = false;
+	
 	int iTarget = g_iJockeyTarget[iClient];
 	if (0 < iTarget <= MaxClients)
 	{
@@ -834,8 +848,8 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			GetClientEyeAngles(iTarget, vecTargetEye);
 			vecJockeyEye[2] = 0.0;
 			vecTargetEye[2] = 0.0;
-			AnglesToVelocity(vecJockeyEye, vecJockeyVel, flSpeed * 0.75);
-			AnglesToVelocity(vecTargetEye, vecTargetVel, flSpeed * 0.25);
+			AnglesToVelocity(vecJockeyEye, vecJockeyVel, flSpeed * g_cvJockeyMovementAttacker.FloatValue);
+			AnglesToVelocity(vecTargetEye, vecTargetVel, flSpeed * g_cvJockeyMovementVictim.FloatValue);
 			
 			AddVectors(vecJockeyVel, vecTargetVel, vecFinalVel);
 			TeleportEntity(iTarget, NULL_VECTOR, NULL_VECTOR, vecFinalVel);
@@ -852,15 +866,15 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			g_iJockeyTarget[iClient] = 0;
 			
 			SetEntityMoveType(iClient, MOVETYPE_WALK);
-			SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 5);
+			SetEntProp(iClient, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_PLAYER);
 		}
 	}
 }
 
 public void Infected_OnJockeyTouch(int iClient, int iToucher)
 {
-	//Already pouncing someone and must be in air to pounce
-	if (0 < g_iJockeyTarget[iClient] <= MaxClients || GetEntityFlags(iClient) & FL_ONGROUND || !IsValidLivingSurvivor(iToucher))
+	//Must not already be latched onto someone and be pouncing
+	if (0 < g_iJockeyTarget[iClient] <= MaxClients || !g_bJockeyIsUsingPounce[iClient] || !IsValidLivingSurvivor(iToucher))
 		return;
 	
 	//Jockey must be higher enough than survivor to pounce it
@@ -871,11 +885,12 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 	if (vecJockeyEye[2] < vecTargetEye[2] + 20.0)
 		return;
 	
+	g_bJockeyIsUsingPounce[iClient] = false;
 	g_iJockeyTarget[iClient] = iToucher;
 	Shake(iToucher, 3.0, 3.0);
 	
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
-	SetEntProp(iClient, Prop_Send, "m_CollisionGroup", 2);
+	SetEntProp(iClient, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_DEBRIS_TRIGGER);
 	SDKCall_PlaySpecificSequence(iClient, "jockey_ride");
 }
 
@@ -892,4 +907,10 @@ public Action Infected_OnJockeyAnim(int iClient, PlayerAnimEvent_t &nAnim, int &
 	}
 	
 	return Plugin_Continue;
+}
+
+public void Infected_OnJockeyDeath(int iClient, int iKiller, int iAssist)
+{
+	g_bJockeyIsUsingPounce[iClient] = false;
+	g_iJockeyTarget[iClient] = 0;
 }

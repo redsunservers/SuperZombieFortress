@@ -14,7 +14,7 @@
 			{
 				"library"	"server"
 				"linux"		"@_ZN9CTFPlayer20PlaySpecificSequenceEPKc"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x30\x53\x56\x8B\x75\x08\x57\x56\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x8B\xD8\x83\xFB\xFF\x74\x2A\x8B\x35\x2A\x2A\x2A\x2A\x8B\xCE\x8B\x16\xFF\x52\x2A\x8B\x8F\x2A\x2A\x2A\x2A\x53\x6A\x13\x8B\x01\xFF\x50"
+				"windows"	"\x55\x8B\xEC\x53\x56\x8B\x75\x08\x57\x56\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x8B\xD8"
 			}
 			"CTFPlayer::DoAnimationEvent"
 			{
@@ -26,13 +26,13 @@
 			{
 				"library"	"server"
 				"linux"		"@_ZN15CTFPlayerShared23DetermineDisguiseWeaponEb"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x1C\x53\x8B\xD9\x56\x33\xF6"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x1C\x53\x8B\xD9\xC7\x45\xFC\x00\x00\x00\x00"
 			}
 			"CGameUI::Deactivate"
 			{
 				"library"	"server"
 				"linux"		"@_ZN7CGameUI10DeactivateEP11CBaseEntity"
-				"windows"	"\x55\x8B\xEC\x51\x53\x56\x57\x8B\x2A\x8B\x97"
+				"windows"	"\\x55\x8B\xEC\x83\xEC\x08\x53\x8B\xD9\x56\x57\x8B\x83\x44\x05\x00\x00"
 			}
 			"CTFPlayer::GetLoadoutItem"
 			{
@@ -52,43 +52,48 @@
 				"linux"		"@_ZN9CTFPlayer21TeamFortress_SetSpeedEv"
 				"windows"	"\x55\x8B\xEC\xA1\x2A\x2A\x2A\x2A\x83\xEC\x1C\x53"
 			}
+			"CTFWeaponBaseMelee::DoSwingTraceInternal"
+			{
+				"linux"		"@_ZN18CTFWeaponBaseMelee20DoSwingTraceInternalER10CGameTracebP10CUtlVectorIS0_10CUtlMemoryIS0_iEE"
+				"windows"	"\x53\x8B\xDC\x83\xEC\x08\x83\xE4\xF0\x83\xC4\x04\x55\x8B\x6B\x04\x89\x6C\x24\x04\x8B\xEC\x81\xEC\x38\x05\x00\x00\xA1\x2A\x2A\x2A\x2A"
+			}
 		}
 		"Offsets"
 		{
 			"CTeamplayRoundBasedRules::SetWinningTeam"
 			{
-				"linux"		"161"
-				"windows"	"160"
+				"linux"		"165"
+				"windows"	"164"
 			}
 			"CTeamplayRoundBasedRules::RoundRespawn"
 			{
-				"linux"		"226"
-				"windows"	"224"
+				"linux"		"231"
+				"windows"	"229"
 			}
 			"CTFGameRules::GetCaptureValueForPlayer"
 			{
-				"linux"		"154"
-				"windows"	"153"
+				"linux"		"158"
+				"windows"	"157"
 			}
 			"CTFPlayer::GiveNamedItem"
 			{
-				"linux"		"484"
-				"windows"	"477"
+				"linux"		"493"
+				"windows"	"486"
 			}
 			"CTFJar::TossJarThink"
 			{
-				"linux"		"490"
-				"windows"	"483"
+				"linux"		"498"
+				"windows"	"491"
 			}
 			"CBaseEntity::GetBaseEntity"
 			{
-				"windows" 	"5"
 				"linux" 	"6"
+				"windows" 	"5"
 			}
 			"CBaseEntity::GetDefaultItemChargeMeterValue"
 			{
-				"linux"		"191"
-				"windows"	"190"
+				"linux"		"197"
+				"windows"	"196"
 			}
 			"CEconItemView::m_iItemDefinitionIndex"
 			{
@@ -97,8 +102,8 @@
 			}
 			"CTFPlayerShared::m_pOuter"
 			{
-				"linux"		"400"
-				"windows"	"400"
+				"linux"		"396"
+				"windows"	"396"
 			}
 		}
 		"Functions"
@@ -160,6 +165,28 @@
 					"bIgnoreSpecialAbility"
 					{
 						"type"	"bool"
+					}
+				}
+			}
+			"CTFWeaponBaseMelee::DoSwingTraceInternal"
+			{
+				"signature"	"CTFWeaponBaseMelee::DoSwingTraceInternal"
+				"callconv"	"thiscall"
+				"return"	"bool"
+				"this"		"entity"
+				"arguments"
+				{
+					"trace"
+					{
+						"type"	"objectptr"
+					}
+					"bCleave"
+					{
+						"type"	"bool"
+					}
+					"pTargetTraceVector"
+					{
+						"type"	"objectptr"
 					}
 				}
 			}

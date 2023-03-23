@@ -10,8 +10,8 @@ enum struct ConfigMelee
 	char sAttrib[256];
 }
 
-ArrayList g_aConfigMelee;
-StringMap g_mConfigReskins;
+static ArrayList g_aConfigMelee;
+static StringMap g_mConfigReskins;
 
 void Config_Init()
 {
@@ -64,6 +64,7 @@ void Config_Refresh()
 	
 	delete kv;
 	
+	delete g_mConfigReskins;
 	g_mConfigReskins = Config_LoadReskins();
 }
 
@@ -80,6 +81,7 @@ ArrayList Config_LoadWeaponData()
 		mRarity.SetValue("common", WeaponRarity_Common);
 		mRarity.SetValue("uncommon", WeaponRarity_Uncommon);
 		mRarity.SetValue("rare", WeaponRarity_Rare);
+		mRarity.SetValue("static", WeaponRarity_Static);
 		mRarity.SetValue("pickup", WeaponRarity_Pickup);
 	}
 	
@@ -167,9 +169,11 @@ ArrayList Config_LoadWeaponData()
 					kv.GoBack();
 				}
 				
+				kv.GetString("callback_pickup", sBuffer, sizeof(sBuffer));
+				wep.pickupCallback = GetFunctionByName(null, sBuffer);
 				
-				kv.GetString("callback", sBuffer, sizeof(sBuffer));
-				wep.callback = view_as<Weapon_OnPickup>(GetFunctionByName(null, sBuffer));
+				kv.GetString("callback_spawn", sBuffer, sizeof(sBuffer));
+				wep.spawnCallback = GetFunctionByName(null, sBuffer);
 				
 				int iColor[4];
 				kv.GetColor4("color", iColor);
@@ -253,7 +257,6 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	classes.flHorde = kv.GetFloat("horde", classes.flHorde);
 	classes.flMaxSpree = kv.GetFloat("maxspree", classes.flMaxSpree);
 	classes.flMaxHorde = kv.GetFloat("maxhorde", classes.flMaxHorde);
-	classes.flMoraleValue = kv.GetFloat("moralevalue", classes.flMoraleValue);
 	classes.bGlow = !!kv.GetNum("glow", classes.bGlow);
 	classes.bThirdperson = !!kv.GetNum("thirdperson", classes.bThirdperson);
 	
@@ -418,7 +421,7 @@ StringMap Config_LoadMusic(KeyValues kv)
 	return mMusics;
 }
 
-void Config_LoadInfectedVo(KeyValues kv, ArrayList aSoundVo[view_as<int>(Infected)][view_as<int>(SoundVo)])
+void Config_LoadInfectedVo(KeyValues kv, ArrayList aSoundVo[view_as<int>(Infected_Count)][view_as<int>(SoundVo_Count)])
 {
 	if (kv.GotoFirstSubKey(false))
 	{
@@ -484,4 +487,27 @@ KeyValues Config_LoadFile(const char[] sConfigFile, const char [] sConfigSection
 	}
 	
 	return kv;
+}
+
+int Config_GetOriginalItemDefIndex(int iIndex)
+{
+	int iOrigIndex;
+	
+	char sIndex[8];
+	IntToString(iIndex, sIndex, sizeof(sIndex));
+	
+	if (g_mConfigReskins.GetValue(sIndex, iOrigIndex))
+		return iOrigIndex;
+	else
+		return iIndex;
+}
+
+bool Config_GetMeleeByDefIndex(int iIndex, ConfigMelee melee)
+{
+	int iPos = g_aConfigMelee.FindValue(iIndex, ConfigMelee::iIndex);
+	if (iPos == -1)
+		return false;
+	
+	g_aConfigMelee.GetArray(iPos, melee);
+	return true;
 }
