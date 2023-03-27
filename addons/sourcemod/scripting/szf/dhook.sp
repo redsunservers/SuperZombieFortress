@@ -205,9 +205,6 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 				if (g_bZombieRage)
 					flSpeed += 40.0; //Map-wide zombie enrage event
 				
-				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-					flSpeed += 20.0; //On fire
-				
 				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
 					flSpeed += 20.0; //Screamer effect
 				
@@ -225,7 +222,7 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 			{
 				switch (g_nInfected[iClient])
 				{
-					//Tank: movement speed bonus based on damage taken and ignite speed bonus
+					//Tank: movement speed penalty based on damage taken and dealt
 					case Infected_Tank:
 					{
 						//Reduce speed when tank deals damage to survivors 
@@ -233,9 +230,6 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 						
 						//Reduce speed when tank takes damage from survivors 
 						flSpeed -= fMin(100.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
-						
-						if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-							flSpeed += 40.0; //On fire
 						
 						if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
 							flSpeed -= 30.0; //Jarate'd by sniper
