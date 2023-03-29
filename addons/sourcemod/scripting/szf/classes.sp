@@ -290,15 +290,7 @@ stock int GetZombieClassCount()
 
 stock int GetZombieMeleeIndex(TFClassType nClass)
 {
-	int iPos;
-	WeaponClasses weapon;
-	while (g_ZombieClasses[nClass].GetWeapon(iPos, weapon))
-	{
-		if (TF2Econ_GetItemLoadoutSlot(weapon.iIndex, nClass) == WeaponSlot_Melee)
-			return weapon.iIndex;
-	}
-	
-	return -1;
+	return g_ZombieClasses[nClass].GetWeaponSlotIndex(WeaponSlot_Melee);
 }
 
 stock bool IsValidInfected(Infected nInfected)

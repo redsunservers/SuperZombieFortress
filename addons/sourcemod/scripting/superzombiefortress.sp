@@ -270,6 +270,19 @@ enum struct ClientClasses
 		iPos++;
 		return true;
 	}
+	
+	int GetWeaponSlotIndex(int iSlot)
+	{
+		int iPos;
+		WeaponClasses weapon;
+		while (this.GetWeapon(iPos, weapon))
+		{
+			if (TF2Econ_GetItemDefaultLoadoutSlot(weapon.iIndex) == iSlot)
+				return weapon.iIndex;
+		}
+		
+		return -1;
+	}
 }
 
 ClientClasses g_ClientClasses[TF_MAXPLAYERS];
@@ -720,14 +733,8 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 			case TFCond_Disguising:
 			{
 				// Prevent able to disguise as spy, can't show zombie model of it
-				if (view_as<TFClassType>(GetEntProp(iClient, Prop_Send, "m_nDesiredDisguiseClass")) == TFClass_Spy)
-					TF2_RemovePlayerDisguise(iClient);
-			}
-			case TFCond_Disguised:
-			{
-				// Almost same as above, because YER
-				if (view_as<TFClassType>(GetEntProp(iClient, Prop_Send, "m_nDisguiseClass")) == TFClass_Spy)
-					TF2_RemovePlayerDisguise(iClient);
+				while (view_as<TFClassType>(GetEntProp(iClient, Prop_Send, "m_nDesiredDisguiseClass")) == TFClass_Spy)
+					SetEntProp(iClient, Prop_Send, "m_nDesiredDisguiseClass", GetRandomInt(view_as<int>(TFClass_Scout), view_as<int>(TFClass_Engineer)));
 			}
 			case TFCond_Gas:
 			{
@@ -761,8 +768,6 @@ public void TF2_OnConditionRemoved(int iClient, TFCond nCond)
 		ViewModel_Hide(iClient);
 	else if (nCond == TFCond_Disguised)
 		SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", 0, _, VISION_MODE_ROME);	//Reset disguise model
-	else if (nCond == TFCond_Disguising && TF2_IsPlayerInCondition(iClient, TFCond_Disguised))
-		OnClientDisguise(iClient);
 }
 
 public Action TF2_OnIsHolidayActive(TFHoliday nHoliday, bool &bResult)
@@ -2004,55 +2009,68 @@ void HandleZombieLoadout(int iClient)
 
 void OnClientDisguise(int iClient)
 {
+	if (view_as<TFTeam>(GetEntProp(iClient, Prop_Send, "m_nDisguiseTeam")) != TFTeam_Zombie)
+		return;	// only zombies are zombies, duh
+	
 	TFClassType nClass = view_as<TFClassType>(GetEntProp(iClient, Prop_Send, "m_nDisguiseClass"));
 	if (nClass == TFClass_Unknown)
 		return;
+	
+	if (nClass == TFClass_Spy)
+	{
+		// You are not supposed to be here
+		TF2_RemovePlayerDisguise(iClient);
+		return;
+	}
+	
+	int iIndex = -1;
 	
 	int iOffset = FindSendPropInfo("CTFPlayer", "m_iDisguiseHealth") - 4;	// m_hDisguiseTarget
 	int iTarget = GetEntDataEnt2(iClient, iOffset);
 	if (0 < iTarget <= MaxClients && TF2_GetPlayerClass(iTarget) == nClass)
 	{
-		// We are disgusing as someone, are they special infected?
-		if (g_nInfected[iTarget] != Infected_None)	// Set special infected model
-			SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", GetEntProp(iTarget, Prop_Send, "m_nModelIndex"), _, VISION_MODE_ROME);
+		// We are disgusing as someone, do they have custom model?
+		if (g_ClientClasses[iTarget].sWorldModel[0])
+			SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", PrecacheModel(g_ClientClasses[iTarget].sWorldModel), _, VISION_MODE_ROME);
+		
+		iIndex = g_ClientClasses[iTarget].GetWeaponSlotIndex(WeaponSlot_Melee);
 	}
 	else
 	{
 		// Should be disguising as default class, give zombie weapon and cosmetics
-		
 		int iWearable = CreateVoodooWearable(iClient, nClass);
 		SetEntProp(iWearable, Prop_Send, "m_bDisguiseWearable", true);	// Must be set before equip
 		TF2_EquipWeapon(iClient, iWearable);
 		
-		int iIndex = GetZombieMeleeIndex(nClass);
+		SetEntProp(iClient, Prop_Send, "m_nDisguiseSkinOverride", 1);
 		
-		int iWeapon = GetEntPropEnt(iClient, Prop_Send, "m_hDisguiseWeapon");
-		if (iWeapon != INVALID_ENT_REFERENCE && GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex") != iIndex)
-		{
-			RemoveEntity(iWeapon);
-			iWeapon = INVALID_ENT_REFERENCE;
-		}
+		iIndex = GetZombieMeleeIndex(nClass);
+	}
+	
+	int iWeapon = GetEntPropEnt(iClient, Prop_Send, "m_hDisguiseWeapon");
+	if (iWeapon != INVALID_ENT_REFERENCE && GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex") != iIndex)
+	{
+		RemoveEntity(iWeapon);
+		iWeapon = INVALID_ENT_REFERENCE;
+	}
+	
+	if (iWeapon == INVALID_ENT_REFERENCE)
+	{
+		iWeapon = TF2_CreateWeapon(iClient, iIndex);	// dont want to actually equip it
+		SetEntPropEnt(iWeapon, Prop_Send, "m_hOwner", iClient);
+		SetEntPropEnt(iWeapon, Prop_Send, "m_hOwnerEntity", iClient);
 		
-		if (iWeapon == INVALID_ENT_REFERENCE)
-		{
-			iWeapon = TF2_CreateWeapon(iClient, iIndex);	// dont want to actually equip it
-			SetEntPropEnt(iWeapon, Prop_Send, "m_hOwner", iClient);
-			SetEntPropEnt(iWeapon, Prop_Send, "m_hOwnerEntity", iClient);
-			
-			SetEntityMoveType(iWeapon, MOVETYPE_NONE);
-			SetEntProp(iWeapon, Prop_Send, "m_fEffects", GetEntProp(iWeapon, Prop_Send, "m_fEffects")|EF_BONEMERGE);
-			SetVariantString("!activator");
-			AcceptEntityInput(iWeapon, "SetParent", iClient);
-			
-			SetEntProp(iWeapon, Prop_Send, "m_iState", 2);	// WEAPON_IS_ACTIVE
-			SetEntProp(iWeapon, Prop_Send, "m_bDisguiseWeapon", true);
-			
-			SetEntPropEnt(iClient, Prop_Send, "m_hDisguiseWeapon", iWeapon);
-			
-			// There is CTFWeaponBase::DisguiseWeaponThink not checked, do we need it?
-		}
+		SetEntityMoveType(iWeapon, MOVETYPE_NONE);
+		SetEntProp(iWeapon, Prop_Send, "m_fEffects", GetEntProp(iWeapon, Prop_Send, "m_fEffects")|EF_BONEMERGE);
+		SetVariantString("!activator");
+		AcceptEntityInput(iWeapon, "SetParent", iClient);
 		
-		SetEntProp(iClient, Prop_Send, "m_nDisguiseSkinOverride", 1);	// Tell clientside to use zombie skin
+		SetEntProp(iWeapon, Prop_Send, "m_iState", 2);	// WEAPON_IS_ACTIVE
+		SetEntProp(iWeapon, Prop_Send, "m_bDisguiseWeapon", true);
+		
+		SetEntPropEnt(iClient, Prop_Send, "m_hDisguiseWeapon", iWeapon);
+		
+		// There is CTFWeaponBase::DisguiseWeaponThink not checked, do we need it?
 	}
 }
 
