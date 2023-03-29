@@ -2037,8 +2037,14 @@ void OnClientDisguise(int iClient)
 	}
 	else
 	{
+		// Make sure all wearables is removed, can happen when no disguise target
+		int iWearable = INVALID_ENT_REFERENCE;
+		while ((iWearable = FindEntityByClassname(iWearable, "tf_wearable*")) > MaxClients)
+			if (GetEntPropEnt(iWearable, Prop_Send, "m_hOwnerEntity") == iClient && GetEntProp(iWearable, Prop_Send, "m_bDisguiseWearable"))
+				TF2_RemoveWearable(iClient, iWearable);
+		
 		// Should be disguising as default class, give zombie weapon and cosmetics
-		int iWearable = CreateVoodooWearable(iClient, nClass);
+		iWearable = CreateVoodooWearable(iClient, nClass);
 		SetEntProp(iWearable, Prop_Send, "m_bDisguiseWearable", true);	// Must be set before equip
 		TF2_EquipWeapon(iClient, iWearable);
 		
