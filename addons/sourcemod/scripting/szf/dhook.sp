@@ -22,7 +22,6 @@ void DHook_Init(GameData hSZF)
 	g_aDHookDetours = new ArrayList(sizeof(Detour));
 	
 	DHook_CreateDetour(hSZF, "CTFPlayer::DoAnimationEvent", DHook_DoAnimationEventPre, _);
-	DHook_CreateDetour(hSZF, "CTFPlayerShared::DetermineDisguiseWeapon", DHook_DetermineDisguiseWeaponPre, _);
 	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
 	DHook_CreateDetour(hSZF, "CTFPlayer::TeamFortress_CalculateMaxSpeed", _, DHook_CalculateMaxSpeedPost);
 	DHook_CreateDetour(hSZF, "CTFWeaponBaseMelee::DoSwingTraceInternal", DHook_DoSwingTraceInternalPre, DHook_DoSwingTraceInternalPost);
@@ -150,29 +149,6 @@ public MRESReturn DHook_DoAnimationEventPre(int iClient, DHookParam hParams)
 	}
 	
 	return MRES_Ignored;
-}
-
-public MRESReturn DHook_DetermineDisguiseWeaponPre(Address pPlayerShared, DHookParam hParams)
-{
-	Address pAddress = view_as<Address>(LoadFromAddress(pPlayerShared + view_as<Address>(g_iOffsetOuter), NumberType_Int32));
-	int iClient = SDKCall_GetBaseEntity(pAddress);
-	
-	int iOffset = FindSendPropInfo("CTFPlayer", "m_iDisguiseHealth") - 4;	// m_hDisguiseTarget
-	int iTarget = GetEntDataEnt2(iClient, iOffset);
-	if (0 < iTarget <= MaxClients && IsSurvivor(iClient) && view_as<TFTeam>(GetEntProp(iClient, Prop_Send, "m_nDisguiseTeam")) == TFTeam_Zombie)
-	{
-		//Set class to whoever target is, so voodoo souls and zombie weapons is shown
-		TFClassType nClass = TF2_GetPlayerClass(iClient);
-		if (nClass != TFClass_Unknown)
-			SetEntProp(iClient, Prop_Send, "m_nDisguiseClass", nClass);
-		
-		//Zombies have rome vision, set rome model override to whatever custom model
-		SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", GetEntProp(iTarget, Prop_Send, "m_nModelIndex"), _, VISION_MODE_ROME);
-	}
-	
-	//Never allow force primary, for both survivor and zombie disguise team
-	hParams.Set(1, false);
-	return MRES_ChangedOverride;
 }
 
 public MRESReturn DHook_DeactivatePre(int iThis, DHookParam hParams)

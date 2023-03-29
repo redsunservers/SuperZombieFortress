@@ -6,7 +6,6 @@ static Handle g_hSDKCallGiveNamedItem;
 static Handle g_hSDKCallGetLoadoutItem;
 static Handle g_hSDKCallSetSpeed;
 static Handle g_hSDKCallTossJarThink;
-static Handle g_hSDKCallGetBaseEntity;
 static Handle g_hSDKCallGetDefaultItemChargeMeterValue;
 
 void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
@@ -49,7 +48,7 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_ByValue);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_ByValue);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_ByValue);
-	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_ByValue);
+	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
 	g_hSDKCallGiveNamedItem = EndPrepSDKCall();
 	if (!g_hSDKCallGiveNamedItem)
 		LogError("Failed to create call: CTFPlayer::GiveNamedItem");
@@ -75,13 +74,6 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	g_hSDKCallTossJarThink = EndPrepSDKCall();
 	if (!g_hSDKCallTossJarThink)
 		LogError("Failed to create call: CTFJar::TossJarThink");
-	
-	StartPrepSDKCall(SDKCall_Raw);
-	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CBaseEntity::GetBaseEntity");
-	PrepSDKCall_SetReturnInfo(SDKType_CBaseEntity, SDKPass_Pointer);
-	g_hSDKCallGetBaseEntity = EndPrepSDKCall();
-	if (!g_hSDKCallGetBaseEntity)
-		LogError("Failed to create call: CBaseEntity::GetBaseEntity");
 	
 	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CBaseEntity::GetDefaultItemChargeMeterValue");
@@ -111,12 +103,12 @@ int SDKCall_GetEquippedWearable(int iClient, int iSlot)
 	return SDKCall(g_hSDKCallGetEquippedWearable, iClient, iSlot);
 }
 
-Address SDKCall_GiveNamedItem(int iClient, const char[] sClassname, int iSubType, Address pItem, bool bForce = false, bool bSkipHook = true)
+int SDKCall_GiveNamedItem(int iClient, const char[] sClassname, int iSubType, Address pItem, bool bForce = false, bool bSkipHook = true)
 {
 	g_bGiveNamedItemSkip = bSkipHook;
-	Address pEntity = SDKCall(g_hSDKCallGiveNamedItem, iClient, sClassname, iSubType, pItem, bForce);
+	int iEntity = SDKCall(g_hSDKCallGiveNamedItem, iClient, sClassname, iSubType, pItem, bForce);
 	g_bGiveNamedItemSkip = false;
-	return pEntity;
+	return iEntity;
 }
 
 Address SDKCall_GetLoadoutItem(int iClient, TFClassType iClass, int iSlot)
@@ -132,11 +124,6 @@ void SDKCall_SetSpeed(int iClient)
 void SDKCall_TossJarThink(int iEntity)
 {
 	SDKCall(g_hSDKCallTossJarThink, iEntity);
-}
-
-int SDKCall_GetBaseEntity(Address pEnt)
-{
-	return SDKCall(g_hSDKCallGetBaseEntity, pEnt);
 }
 
 float SDKCall_GetDefaultItemChargeMeterValue(int iWeapon)
