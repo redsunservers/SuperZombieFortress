@@ -22,12 +22,6 @@
 				"linux"		"@_ZN9CTFPlayer16DoAnimationEventE17PlayerAnimEvent_ti"
 				"windows"	"\x55\x8B\xEC\x51\x53\x56\x8B\x35\x2A\x2A\x2A\x2A\x8B\xD9\x8B\xCE"
 			}
-			"CTFPlayerShared::DetermineDisguiseWeapon"
-			{
-				"library"	"server"
-				"linux"		"@_ZN15CTFPlayerShared23DetermineDisguiseWeaponEb"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x1C\x53\x8B\xD9\xC7\x45\xFC\x00\x00\x00\x00"
-			}
 			"CGameUI::Deactivate"
 			{
 				"library"	"server"
@@ -85,11 +79,6 @@
 				"linux"		"498"
 				"windows"	"491"
 			}
-			"CBaseEntity::GetBaseEntity"
-			{
-				"linux" 	"6"
-				"windows" 	"5"
-			}
 			"CBaseEntity::GetDefaultItemChargeMeterValue"
 			{
 				"linux"		"197"
@@ -99,11 +88,6 @@
 			{
 				"linux"		"4"
 				"windows"	"4"
-			}
-			"CTFPlayerShared::m_pOuter"
-			{
-				"linux"		"396"
-				"windows"	"396"
 			}
 		}
 		"Functions"

@@ -19,7 +19,7 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.4.0"
+#define PLUGIN_VERSION				"4.5.0"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
@@ -270,6 +270,19 @@ enum struct ClientClasses
 		iPos++;
 		return true;
 	}
+	
+	int GetWeaponSlotIndex(int iSlot)
+	{
+		int iPos;
+		WeaponClasses weapon;
+		while (this.GetWeapon(iPos, weapon))
+		{
+			if (TF2Econ_GetItemDefaultLoadoutSlot(weapon.iIndex) == iSlot)
+				return weapon.iIndex;
+		}
+		
+		return -1;
+	}
 }
 
 ClientClasses g_ClientClasses[TF_MAXPLAYERS];
@@ -426,7 +439,6 @@ Cookie g_cWeaponsCalled;
 
 //SDK offsets
 int g_iOffsetItemDefinitionIndex;
-int g_iOffsetOuter;
 
 #include "szf/weapons.sp"
 #include "szf/sound.sp"
@@ -516,7 +528,6 @@ public void OnPluginStart()
 	SDKCall_Init(hSDKHooks, hTF2, hSZF);
 	
 	g_iOffsetItemDefinitionIndex = hSZF.GetOffset("CEconItemView::m_iItemDefinitionIndex");
-	g_iOffsetOuter = hSZF.GetOffset("CTFPlayerShared::m_pOuter");
 	
 	delete hSDKHooks;
 	delete hTF2;
@@ -719,6 +730,12 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 	{
 		switch (nCond)
 		{
+			case TFCond_Disguising:
+			{
+				// Prevent able to disguise as spy, can't show zombie model of it
+				while (view_as<TFClassType>(GetEntProp(iClient, Prop_Send, "m_nDesiredDisguiseClass")) == TFClass_Spy)
+					SetEntProp(iClient, Prop_Send, "m_nDesiredDisguiseClass", GetRandomInt(view_as<int>(TFClass_Scout), view_as<int>(TFClass_Engineer)));
+			}
 			case TFCond_Gas:
 			{
 				//Dont give gas cond from spitter
@@ -1987,6 +2004,79 @@ void HandleZombieLoadout(int iClient)
 		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
 		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);	//Allow see Voodoo souls
 		AddWeaponVision(iMelee, TF_VISION_FILTER_ROME);			//Allow see spy's custom model disguise detour fix
+	}
+}
+
+void OnClientDisguise(int iClient)
+{
+	if (view_as<TFTeam>(GetEntProp(iClient, Prop_Send, "m_nDisguiseTeam")) != TFTeam_Zombie)
+		return;	// only zombies are zombies, duh
+	
+	TFClassType nClass = view_as<TFClassType>(GetEntProp(iClient, Prop_Send, "m_nDisguiseClass"));
+	if (nClass == TFClass_Unknown)
+		return;
+	
+	if (nClass == TFClass_Spy)
+	{
+		// You're not supposed to be here
+		TF2_RemovePlayerDisguise(iClient);
+		return;
+	}
+	
+	int iIndex = -1;
+	
+	int iOffset = FindSendPropInfo("CTFPlayer", "m_iDisguiseHealth") - 4;	// m_hDisguiseTarget
+	int iTarget = GetEntDataEnt2(iClient, iOffset);
+	if (0 < iTarget <= MaxClients && TF2_GetPlayerClass(iTarget) == nClass)
+	{
+		// We are disgusing as someone, do they have custom model?
+		if (g_ClientClasses[iTarget].sWorldModel[0])
+			SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", PrecacheModel(g_ClientClasses[iTarget].sWorldModel), _, VISION_MODE_ROME);
+		
+		iIndex = g_ClientClasses[iTarget].GetWeaponSlotIndex(WeaponSlot_Melee);
+	}
+	else
+	{
+		// Make sure all wearables is removed, can happen when no disguise target
+		int iWearable = INVALID_ENT_REFERENCE;
+		while ((iWearable = FindEntityByClassname(iWearable, "tf_wearable*")) > MaxClients)
+			if (GetEntPropEnt(iWearable, Prop_Send, "m_hOwnerEntity") == iClient && GetEntProp(iWearable, Prop_Send, "m_bDisguiseWearable"))
+				TF2_RemoveWearable(iClient, iWearable);
+		
+		// Should be disguising as default class, give zombie weapon and cosmetics
+		iWearable = CreateVoodooWearable(iClient, nClass);
+		SetEntProp(iWearable, Prop_Send, "m_bDisguiseWearable", true);	// Must be set before equip
+		TF2_EquipWeapon(iClient, iWearable);
+		
+		SetEntProp(iClient, Prop_Send, "m_nDisguiseSkinOverride", 1);
+		
+		iIndex = GetZombieMeleeIndex(nClass);
+	}
+	
+	int iWeapon = GetEntPropEnt(iClient, Prop_Send, "m_hDisguiseWeapon");
+	if (iWeapon != INVALID_ENT_REFERENCE && GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex") != iIndex)
+	{
+		RemoveEntity(iWeapon);
+		iWeapon = INVALID_ENT_REFERENCE;
+	}
+	
+	if (iWeapon == INVALID_ENT_REFERENCE)
+	{
+		iWeapon = TF2_CreateWeapon(iClient, iIndex);	// dont want to actually equip it
+		SetEntPropEnt(iWeapon, Prop_Send, "m_hOwner", iClient);
+		SetEntPropEnt(iWeapon, Prop_Send, "m_hOwnerEntity", iClient);
+		
+		SetEntityMoveType(iWeapon, MOVETYPE_NONE);
+		SetEntProp(iWeapon, Prop_Send, "m_fEffects", GetEntProp(iWeapon, Prop_Send, "m_fEffects")|EF_BONEMERGE);
+		SetVariantString("!activator");
+		AcceptEntityInput(iWeapon, "SetParent", iClient);
+		
+		SetEntProp(iWeapon, Prop_Send, "m_iState", 2);	// WEAPON_IS_ACTIVE
+		SetEntProp(iWeapon, Prop_Send, "m_bDisguiseWeapon", true);
+		
+		SetEntPropEnt(iClient, Prop_Send, "m_hDisguiseWeapon", iWeapon);
+		
+		// There is CTFWeaponBase::DisguiseWeaponThink not checked, do we need it?
 	}
 }
 
