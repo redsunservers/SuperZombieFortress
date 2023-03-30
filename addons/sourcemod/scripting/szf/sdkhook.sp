@@ -34,7 +34,7 @@ void SDKHook_HookClient(int iClient)
 
 void SDKHook_UnhookClient(int iClient)
 {
-	SDKHook(iClient, SDKHook_PreThink, Client_PreThink);
+	SDKUnhook(iClient, SDKHook_PreThink, Client_PreThink);
 	SDKUnhook(iClient, SDKHook_PreThinkPost, Client_PreThinkPost);
 	SDKUnhook(iClient, SDKHook_Touch, Client_Touch);
 	SDKUnhook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);

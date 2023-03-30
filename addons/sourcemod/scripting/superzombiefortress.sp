@@ -2018,7 +2018,7 @@ void OnClientDisguise(int iClient)
 	
 	if (nClass == TFClass_Spy)
 	{
-		// You are not supposed to be here
+		// You're not supposed to be here
 		TF2_RemovePlayerDisguise(iClient);
 		return;
 	}
