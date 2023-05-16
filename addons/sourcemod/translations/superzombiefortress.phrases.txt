@@ -18,12 +18,6 @@
 		"en"		"{1}Grace period complete. Survivors can no longer change classes."
 	}
 	
-	"Grace_InfectedBoost"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}Infected have received extra health and other benefits to ensure game balance at the start of the round."
-	}
-	
 	"Frenzy_Start"
 	{
 		"#format"	"{1:s}"
