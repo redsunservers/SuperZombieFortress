@@ -805,30 +805,11 @@ void EndGracePeriod()
 			RemoveEntity(iEntity);
 	}
 	
-	int iSurvivors = GetSurvivorCount();
-	int iZombies = GetZombieCount();
-	
-	//If less than 15% of players are infected, set round start as imbalanced
-	bool bImbalanced = (float(iZombies) / float(iSurvivors + iZombies) <= 0.15);
-	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (IsClientInGame(iClient))
+		if (IsClientInGame(iClient) && g_bWaitingForTeamSwitch[iClient])
 		{
-			if (g_bWaitingForTeamSwitch[iClient])
-				RequestFrame(Frame_PostGracePeriodSpawn, iClient); //A frame later so maps which have post-setup spawn points can adapt to these players
-			
-			//Give a buff to infected if the round is imbalanced
-			if (bImbalanced)
-			{
-				if (IsZombie(iClient) && IsPlayerAlive(iClient))
-				{
-					SetEntityHealth(iClient, 450);
-					g_bSpawnAsSpecialInfected[iClient] = true;
-				}
-				
-				CPrintToChat(iClient, "%t", "Grace_InfectedBoost", (IsZombie(iClient)) ? "{green}" : "{red}");
-			}
+			RequestFrame(Frame_PostGracePeriodSpawn, iClient); //A frame later so maps which have post-setup spawn points can adapt to these players
 		}
 	}
 	
@@ -836,6 +817,8 @@ void EndGracePeriod()
 	g_hTimerProgress = CreateTimer(6.0, Timer_Progress, _, TIMER_REPEAT);
 	
 	float flGameTime = GetGameTime();
+	int iSurvivors = GetSurvivorCount();
+	
 	g_flTankCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before tank spawns will be considered
 	g_flSelectSpecialCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before select special will be considered
 	g_flRageCooldown = flGameTime + 60.0 - fMin(0.0, (iSurvivors-12) * 1.5); //1 min cooldown before frenzy will be considered
