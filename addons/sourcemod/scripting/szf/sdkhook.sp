@@ -152,7 +152,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 					//Don't instantly kill the tank on a backstab
 					if (iDamageCustom == TF_CUSTOM_BACKSTAB)
 					{
-						flDamage = g_iMaxHealth[iVictim]*g_cvTankStab.FloatValue/3.0;
+						flDamage = g_cvTankStab.FloatValue / 3.0;
 						iDamageType |= DMG_CRIT;
 						SetNextAttack(iAttacker, GetGameTime() + 1.25);
 					}
