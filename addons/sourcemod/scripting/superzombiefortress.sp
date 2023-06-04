@@ -24,6 +24,8 @@
 
 #define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
 
+#define MAX_CONTROL_POINTS	8
+
 #define ATTRIB_VISION		406
 
 // Also used in the item schema to define vision filter or vision mode opt in
@@ -409,7 +411,7 @@ int g_iDamageDealtLife[TF_MAXPLAYERS];
 float g_flDamageDealtAgainstTank[TF_MAXPLAYERS];
 bool g_bTankRefreshed;
 
-int g_iControlPointsInfo[20][2];
+int g_iControlPointsInfo[MAX_CONTROL_POINTS][2];
 int g_iControlPoints;
 bool g_bCapturingLastPoint;
 int g_iCarryingItem[TF_MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
