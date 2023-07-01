@@ -142,13 +142,13 @@ public void Infected_DoTankThrow(int iClient)
 		case 2:
 		{
 			SDKCall_PlaySpecificSequence(iClient, "Throw_02");
-			flThrow = 2.3;
+			flThrow = 2.25;
 			flEnd = 3.0;
 		}
 		case 3:
 		{
 			SDKCall_PlaySpecificSequence(iClient, "Throw_03");
-			flThrow = 2.0;
+			flThrow = 2.1;
 			flEnd = 2.6;
 		}
 		case 4:
