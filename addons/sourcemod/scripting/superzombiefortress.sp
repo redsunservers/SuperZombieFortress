@@ -1974,6 +1974,14 @@ void HandleZombieLoadout(int iClient)
 	if (iMelee > MaxClients)
 	{
 		TF2_SwitchActiveWeapon(iClient, iMelee);
+		if (g_ClientClasses[iClient].bViewModelAnim)
+		{
+			// needed for some reason for custom anims
+			if (IsClassname(iMelee, "tf_weapon_fists"))
+				ViewModel_SetAnimation(iClient, "ACT_FISTS_VM_DRAW");
+			else
+				ViewModel_SetAnimation(iClient, "ACT_MELEE_VM_DRAW");
+		}
 		
 		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);	//Allow see Voodoo souls
 		AddWeaponVision(iMelee, TF_VISION_FILTER_ROME);			//Allow see spy's custom model disguise detour fix

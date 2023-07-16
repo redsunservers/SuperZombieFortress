@@ -6,7 +6,7 @@ void ViewModel_UpdateClient(int iClient)
 	}
 	else if (!g_ClientClasses[iClient].bViewModelAnim)
 	{
-		// Create 2 viewmodels for each weapons, one for arms and other for weapons
+		// Create a viewmodel for arm, and another for each weapons
 		
 		// Cleanup any unneeded viewmodels
 		int iArmsModelIndex = GetModelIndex(g_ClientClasses[iClient].sViewModel);
@@ -34,9 +34,11 @@ void ViewModel_UpdateClient(int iClient)
 			RemoveEntity(iWearable);
 		}
 		
+		// Create arm
 		if (ViewModel_Get(iClient, iArmsModelIndex, INVALID_ENT_REFERENCE) == INVALID_ENT_REFERENCE)
 			ViewModels_CreateWearable(iClient, iArmsModelIndex, INVALID_ENT_REFERENCE);
 		
+		// Create weapons
 		for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
 		{
 			int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
@@ -61,10 +63,13 @@ void ViewModel_UpdateClient(int iClient)
 		int iModelIndex = GetModelIndex(g_ClientClasses[iClient].sViewModel);
 		
 		int iWeapon = GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon");
-		SetEntityModel(iWeapon, g_ClientClasses[iClient].sViewModel);
-		SetEntProp(iWeapon, Prop_Send, "m_iViewModelIndex", iModelIndex);
-		SetEntProp(iWeapon, Prop_Send, "m_nCustomViewmodelModelIndex", iModelIndex);
-		AddEntityEffect(iWeapon, EF_NODRAW);
+		if (iWeapon != INVALID_ENT_REFERENCE)
+		{
+			SetEntityModel(iWeapon, g_ClientClasses[iClient].sViewModel);
+			SetEntProp(iWeapon, Prop_Send, "m_iViewModelIndex", iModelIndex);
+			SetEntProp(iWeapon, Prop_Send, "m_nCustomViewmodelModelIndex", iModelIndex);
+			AddEntityEffect(iWeapon, EF_NODRAW);
+		}
 	}
 }
 
