@@ -30,6 +30,7 @@ void SDKHook_HookClient(int iClient)
 	SDKHook(iClient, SDKHook_Touch, Client_Touch);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	SDKHook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
+	SDKHook(iClient, SDKHook_WeaponSwitchPost, Client_WeaponSwitchPost);
 }
 
 void SDKHook_UnhookClient(int iClient)
@@ -39,6 +40,7 @@ void SDKHook_UnhookClient(int iClient)
 	SDKUnhook(iClient, SDKHook_Touch, Client_Touch);
 	SDKUnhook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	SDKUnhook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
+	SDKUnhook(iClient, SDKHook_WeaponSwitchPost, Client_WeaponSwitchPost);
 }
 
 public Action Client_PreThink(int iClient)
@@ -224,6 +226,11 @@ public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
 	}
 	
 	return Plugin_Continue;
+}
+
+public void Client_WeaponSwitchPost(int iClient, int iWeapon)
+{
+	ViewModel_UpdateClient(iClient);
 }
 
 public Action Prop_SetSpawnedWeapon(int iWeapon)

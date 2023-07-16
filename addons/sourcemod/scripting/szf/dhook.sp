@@ -21,7 +21,6 @@ void DHook_Init(GameData hSZF)
 {
 	g_aDHookDetours = new ArrayList(sizeof(Detour));
 	
-	DHook_CreateDetour(hSZF, "CTFPlayer::DoAnimationEvent", DHook_DoAnimationEventPre, _);
 	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
 	DHook_CreateDetour(hSZF, "CTFPlayer::TeamFortress_CalculateMaxSpeed", _, DHook_CalculateMaxSpeedPost);
 	DHook_CreateDetour(hSZF, "CTFWeaponBaseMelee::DoSwingTraceInternal", DHook_DoSwingTraceInternalPre, DHook_DoSwingTraceInternalPost);
@@ -120,35 +119,6 @@ void DHook_Disable()
 			if (!detour.hDetour.Disable(Hook_Post, detour.callbackPost))
 				LogError("Failed to disable post detour: %s", detour.sName);
 	}
-}
-
-public MRESReturn DHook_DoAnimationEventPre(int iClient, DHookParam hParams)
-{
-	if (g_ClientClasses[iClient].callback_anim != INVALID_FUNCTION)
-	{
-		PlayerAnimEvent_t nAnim = hParams.Get(1);
-		int iData = hParams.Get(2);
-		
-		Call_StartFunction(null, g_ClientClasses[iClient].callback_anim);
-		Call_PushCell(iClient);
-		Call_PushCellRef(nAnim);
-		Call_PushCellRef(iData);
-		
-		Action action;
-		Call_Finish(action);
-		
-		if (action >= Plugin_Handled)
-			return MRES_Supercede;
-		
-		if (action == Plugin_Changed)
-		{
-			hParams.Set(1, nAnim);
-			hParams.Set(2, iData);
-			return MRES_ChangedOverride;
-		}
-	}
-	
-	return MRES_Ignored;
 }
 
 public MRESReturn DHook_DeactivatePre(int iThis, DHookParam hParams)

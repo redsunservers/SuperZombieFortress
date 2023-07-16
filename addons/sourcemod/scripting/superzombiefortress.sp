@@ -246,15 +246,13 @@ enum struct ClientClasses
 	char sMenu[64];
 	char sWorldModel[PLATFORM_MAX_PATH];
 	char sViewModel[PLATFORM_MAX_PATH];
-	float vecViewModelAngles[3];
-	float flViewModelHeight;
+	bool bViewModelAnim;
 	char sSoundSpawn[PLATFORM_MAX_PATH];
 	int iRageCooldown;
 	Function callback_spawn;
 	Function callback_rage;
 	Function callback_think;
 	Function callback_touch;
-	Function callback_anim;
 	Function callback_death;
 	
 	//Infected
@@ -765,7 +763,7 @@ public void TF2_OnConditionRemoved(int iClient, TFCond nCond)
 	SDKCall_SetSpeed(iClient);
 	
 	if (nCond == TFCond_Taunting)
-		ViewModel_Hide(iClient);
+		ViewModel_UpdateClient(iClient);	// taunting removes EF_NODRAW from weapon, readd it back
 	else if (nCond == TFCond_Disguised)
 		SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", 0, _, VISION_MODE_ROME);	//Reset disguise model
 }
@@ -1928,9 +1926,6 @@ void HandleSurvivorLoadout(int iClient)
 	SetVariantString("");
 	AcceptEntityInput(iClient, "SetCustomModel");
 	
-	//Remove any existing viewmodels
-	ViewModel_Destroy(iClient);
-	
 	//Prevent Survivors with voodoo-cursed souls
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
@@ -1948,6 +1943,8 @@ void HandleZombieLoadout(int iClient)
 	while (g_ClientClasses[iClient].GetWeapon(iPos, weapon))
 		TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sAttribs);
 	
+	ViewModel_UpdateClient(iClient);
+	
 	if (g_ClientClasses[iClient].sWorldModel[0])
 	{
 		SetVariantString(g_ClientClasses[iClient].sWorldModel);
@@ -1963,14 +1960,6 @@ void HandleZombieLoadout(int iClient)
 		ApplyVoodooCursedSoul(iClient);
 	}
 	
-	ViewModel_Destroy(iClient);
-	
-	if (g_ClientClasses[iClient].sViewModel[0])
-	{
-		ViewModel_Create(iClient, g_ClientClasses[iClient].sViewModel, g_ClientClasses[iClient].vecViewModelAngles, g_ClientClasses[iClient].flViewModelHeight);
-		ViewModel_Hide(iClient);
-	}
-	
 	if (g_ClientClasses[iClient].bThirdperson)
 	{
 		SetEntProp(GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"), Prop_Send, "m_fEffects", EF_NODRAW);
@@ -1984,7 +1973,8 @@ void HandleZombieLoadout(int iClient)
 	int iMelee = TF2_GetItemInSlot(iClient, WeaponSlot_Melee);
 	if (iMelee > MaxClients)
 	{
-		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
+		TF2_SwitchActiveWeapon(iClient, iMelee);
+		
 		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);	//Allow see Voodoo souls
 		AddWeaponVision(iMelee, TF_VISION_FILTER_ROME);			//Allow see spy's custom model disguise detour fix
 	}
