@@ -108,7 +108,7 @@ int ViewModel_Get(int iClient, int iModelIndex, int iWeapon)
 		if (GetEntProp(iWearable, Prop_Send, "m_nModelIndex") != iModelIndex)
 			continue;
 		
-		if (GetEntProp(iWearable, Prop_Send, "m_hWeaponAssociatedWith") != iWeapon)
+		if (GetEntPropEnt(iWearable, Prop_Send, "m_hWeaponAssociatedWith") != iWeapon)
 			continue;
 		
 		return iWearable;
