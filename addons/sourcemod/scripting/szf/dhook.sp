@@ -13,9 +13,9 @@ static DynamicHook g_hDHookRoundRespawn;
 static DynamicHook g_hDHookGetCaptureValueForPlayer;
 static DynamicHook g_hDHookGiveNamedItem;
 
-static TFTeam g_iOldClientTeam[TF_MAXPLAYERS];
+static TFTeam g_iOldClientTeam[MAXPLAYERS];
 
-static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
+static int g_iHookIdGiveNamedItem[MAXPLAYERS];
 
 void DHook_Init(GameData hSZF)
 {

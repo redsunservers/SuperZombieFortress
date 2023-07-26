@@ -1,4 +1,4 @@
-static int g_iViewModelRef[TF_MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
+static int g_iViewModelRef[MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
 
 void ViewModel_Create(int iClient, const char[] sModel, const float vecAnglesOffset[3] = NULL_VECTOR, float flHeight = 0.0)
 {

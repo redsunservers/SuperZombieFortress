@@ -19,10 +19,8 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.5.0"
+#define PLUGIN_VERSION				"4.5.1"
 #define PLUGIN_VERSION_REVISION		"manual"
-
-#define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
 
 #define ATTRIB_VISION		406
 
@@ -285,12 +283,12 @@ enum struct ClientClasses
 	}
 }
 
-ClientClasses g_ClientClasses[TF_MAXPLAYERS];
+ClientClasses g_ClientClasses[MAXPLAYERS];
 
 SZFRoundState g_nRoundState = SZFRoundState_Setup;
 
-Infected g_nInfected[TF_MAXPLAYERS];
-Infected g_nNextInfected[TF_MAXPLAYERS];
+Infected g_nInfected[MAXPLAYERS];
+Infected g_nNextInfected[MAXPLAYERS];
 
 TFTeam TFTeam_Zombie = TFTeam_Blue;
 TFTeam TFTeam_Survivor = TFTeam_Red;
@@ -349,17 +347,17 @@ bool g_bGiveNamedItemSkip;
 float g_flSurvivorsLastDeath = 0.0;
 int g_iSurvivorsKilledCounter;
 int g_iZombiesKilledSpree;
-int g_iZombiesKilledSurvivor[TF_MAXPLAYERS];
+int g_iZombiesKilledSurvivor[MAXPLAYERS];
 
 //Client State
-int g_iMorale[TF_MAXPLAYERS];
-int g_iHorde[TF_MAXPLAYERS];
-int g_iCapturingPoint[TF_MAXPLAYERS];
-int g_iRageTimer[TF_MAXPLAYERS];
+int g_iMorale[MAXPLAYERS];
+int g_iHorde[MAXPLAYERS];
+int g_iCapturingPoint[MAXPLAYERS];
+int g_iRageTimer[MAXPLAYERS];
 
-bool g_bStartedAsZombie[TF_MAXPLAYERS];
-float g_flStopChatSpam[TF_MAXPLAYERS];
-bool g_bWaitingForTeamSwitch[TF_MAXPLAYERS];
+bool g_bStartedAsZombie[MAXPLAYERS];
+float g_flStopChatSpam[MAXPLAYERS];
+bool g_bWaitingForTeamSwitch[MAXPLAYERS];
 
 int g_iSprite; //Smoker beam
 
@@ -389,17 +387,17 @@ float g_flZombieDamageScale = 1.0;
 
 ArrayList g_aFastRespawn;
 
-int g_iDamageZombie[TF_MAXPLAYERS];
-int g_iDamageTakenLife[TF_MAXPLAYERS];
-int g_iDamageDealtLife[TF_MAXPLAYERS];
+int g_iDamageZombie[MAXPLAYERS];
+int g_iDamageTakenLife[MAXPLAYERS];
+int g_iDamageDealtLife[MAXPLAYERS];
 
-float g_flDamageDealtAgainstTank[TF_MAXPLAYERS];
+float g_flDamageDealtAgainstTank[MAXPLAYERS];
 bool g_bTankRefreshed;
 
 int g_iControlPointsInfo[20][2];
 int g_iControlPoints;
 bool g_bCapturingLastPoint;
-int g_iCarryingItem[TF_MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
+int g_iCarryingItem[MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
 
 float g_flTimeProgress;
 
@@ -415,13 +413,13 @@ int g_iTanksSpawned;
 bool g_bZombieRage;
 bool g_bZombieRageAllowRespawn;
 
-bool g_bSpawnAsSpecialInfected[TF_MAXPLAYERS];
-int g_iKillsThisLife[TF_MAXPLAYERS];
-int g_iMaxHealth[TF_MAXPLAYERS];
-bool g_bShouldBacteriaPlay[TF_MAXPLAYERS] = {true, ...};
-bool g_bReplaceRageWithSpecialInfectedSpawn[TF_MAXPLAYERS];
-float g_flTimeStartAsZombie[TF_MAXPLAYERS];
-bool g_bForceZombieStart[TF_MAXPLAYERS];
+bool g_bSpawnAsSpecialInfected[MAXPLAYERS];
+int g_iKillsThisLife[MAXPLAYERS];
+int g_iMaxHealth[MAXPLAYERS];
+bool g_bShouldBacteriaPlay[MAXPLAYERS] = {true, ...};
+bool g_bReplaceRageWithSpecialInfectedSpawn[MAXPLAYERS];
+float g_flTimeStartAsZombie[MAXPLAYERS];
+bool g_bForceZombieStart[MAXPLAYERS];
 
 //Map overwrites
 int g_iMaxRareWeapons;
@@ -1176,7 +1174,7 @@ void Handle_HoardeBonus()
 	int iLength = 0;
 	int[] iClients = new int[MaxClients];
 	int[] iClientsHoardeId = new int[MaxClients];
-	float vecClientsPos[TF_MAXPLAYERS][3];
+	float vecClientsPos[MAXPLAYERS][3];
 	
 	int[] iHoardeSize = new int[MaxClients];
 	

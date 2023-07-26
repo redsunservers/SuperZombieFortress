@@ -90,7 +90,7 @@ public Action Command_ForceInfected(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 	
-	int iTargetList[TF_MAXPLAYERS];
+	int iTargetList[MAXPLAYERS];
 	char sTargetName[MAX_TARGET_LENGTH];
 	bool bIsML;
 	
@@ -145,7 +145,7 @@ public Action Command_Stun(int iClient, int iArgs)
 	char sTarget[32];
 	GetCmdArg(1, sTarget, sizeof(sTarget));
 	
-	int iTargetList[TF_MAXPLAYERS];
+	int iTargetList[MAXPLAYERS];
 	char sTargetName[MAX_TARGET_LENGTH];
 	bool bIsML;
 	
