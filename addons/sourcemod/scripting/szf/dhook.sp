@@ -22,7 +22,6 @@ void DHook_Init(GameData hSZF)
 	g_aDHookDetours = new ArrayList(sizeof(Detour));
 	
 	DHook_CreateDetour(hSZF, "CTFPlayer::DoAnimationEvent", DHook_DoAnimationEventPre, _);
-	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
 	DHook_CreateDetour(hSZF, "CTFPlayer::TeamFortress_CalculateMaxSpeed", _, DHook_CalculateMaxSpeedPost);
 	DHook_CreateDetour(hSZF, "CTFWeaponBaseMelee::DoSwingTraceInternal", DHook_DoSwingTraceInternalPre, DHook_DoSwingTraceInternalPost);
 	
@@ -148,20 +147,6 @@ public MRESReturn DHook_DoAnimationEventPre(int iClient, DHookParam hParams)
 		}
 	}
 	
-	return MRES_Ignored;
-}
-
-public MRESReturn DHook_DeactivatePre(int iThis, DHookParam hParams)
-{
-	// Detour used to prevent a crash with "game_ui" entity
-	// World entity 0 should always be valid
-	// If not, then pass a resource entity like "tf_gamerules"
-	int iEntity = 0;
-	while ((iEntity = FindEntityByClassname(iEntity, "*")) != -1)
-	{
-		hParams.Set(1, GetEntityAddress(iEntity));
-		return MRES_ChangedHandled;
-	}
 	return MRES_Ignored;
 }
 
