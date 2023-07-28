@@ -16,12 +16,6 @@
 				"linux"		"@_ZN9CTFPlayer20PlaySpecificSequenceEPKc"
 				"windows"	"\x55\x8B\xEC\x53\x56\x8B\x75\x08\x57\x56\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x8B\xD8"
 			}
-			"CGameUI::Deactivate"
-			{
-				"library"	"server"
-				"linux"		"@_ZN7CGameUI10DeactivateEP11CBaseEntity"
-				"windows"	"\\x55\x8B\xEC\x83\xEC\x08\x53\x8B\xD9\x56\x57\x8B\x83\x44\x05\x00\x00"
-			}
 			"CTFPlayer::GetLoadoutItem"
 			{
 				"library"	"server"
@@ -97,20 +91,6 @@
 					"bForcePrimary"
 					{
 						"type"	"bool"
-					}
-				}
-			}
-			"CGameUI::Deactivate"
-			{
-				"signature"	"CGameUI::Deactivate"
-				"callconv"	"thiscall"
-				"return"	"void"
-				"this"		"entity"
-				"arguments"
-				{
-					"pActivator"
-					{
-						"type"	"int"
 					}
 				}
 			}

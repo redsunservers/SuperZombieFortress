@@ -13,15 +13,14 @@ static DynamicHook g_hDHookRoundRespawn;
 static DynamicHook g_hDHookGetCaptureValueForPlayer;
 static DynamicHook g_hDHookGiveNamedItem;
 
-static TFTeam g_iOldClientTeam[TF_MAXPLAYERS];
+static TFTeam g_iOldClientTeam[MAXPLAYERS];
 
-static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
+static int g_iHookIdGiveNamedItem[MAXPLAYERS];
 
 void DHook_Init(GameData hSZF)
 {
 	g_aDHookDetours = new ArrayList(sizeof(Detour));
 	
-	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
 	DHook_CreateDetour(hSZF, "CTFPlayer::TeamFortress_CalculateMaxSpeed", _, DHook_CalculateMaxSpeedPost);
 	DHook_CreateDetour(hSZF, "CTFWeaponBaseMelee::DoSwingTraceInternal", DHook_DoSwingTraceInternalPre, DHook_DoSwingTraceInternalPost);
 	
@@ -119,20 +118,6 @@ void DHook_Disable()
 			if (!detour.hDetour.Disable(Hook_Post, detour.callbackPost))
 				LogError("Failed to disable post detour: %s", detour.sName);
 	}
-}
-
-public MRESReturn DHook_DeactivatePre(int iThis, DHookParam hParams)
-{
-	// Detour used to prevent a crash with "game_ui" entity
-	// World entity 0 should always be valid
-	// If not, then pass a resource entity like "tf_gamerules"
-	int iEntity = 0;
-	while ((iEntity = FindEntityByClassname(iEntity, "*")) != -1)
-	{
-		hParams.Set(1, GetEntityAddress(iEntity));
-		return MRES_ChangedHandled;
-	}
-	return MRES_Ignored;
 }
 
 public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
