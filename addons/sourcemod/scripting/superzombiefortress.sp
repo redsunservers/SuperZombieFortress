@@ -1859,6 +1859,7 @@ void HandleSurvivorLoadout(int iClient)
 		return;
 	
 	CheckClientWeapons(iClient);
+	ViewModel_RemoveWearable(iClient);
 	
 	for (int iSlot = WeaponSlot_Melee; iSlot <= WeaponSlot_InvisWatch; iSlot++)
 	{

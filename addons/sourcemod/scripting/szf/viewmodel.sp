@@ -46,8 +46,11 @@ void ViewModel_UpdateClient(int iClient)
 				continue;
 			
 			int iWeaponModelIndex = GetEntProp(iWeapon, Prop_Send, "m_iWorldModelIndex");
-			if (ViewModel_Get(iClient, iWeaponModelIndex, iWeapon) == INVALID_ENT_REFERENCE)
+			int iViewModel = ViewModel_Get(iClient, iWeaponModelIndex, iWeapon);
+			if (iViewModel == INVALID_ENT_REFERENCE)
 				ViewModels_CreateWearable(iClient, iWeaponModelIndex, iWeapon);
+			else
+				RemoveEntityEffect(iViewModel, EF_NODRAW);	// may've been hidden from weapon switching
 		}
 		
 		AddEntityEffect(GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"), EF_NODRAW);
