@@ -104,20 +104,6 @@
 					}
 				}
 			}
-			"CTFPlayerShared::DetermineDisguiseWeapon"
-			{
-				"signature"	"CTFPlayerShared::DetermineDisguiseWeapon"
-				"callconv"	"thiscall"
-				"return"	"void"
-				"this"		"address"
-				"arguments"
-				{
-					"bForcePrimary"
-					{
-						"type"	"bool"
-					}
-				}
-			}
 			"CTFPlayer::TeamFortress_CalculateMaxSpeed"
 			{
 				"signature"	"CTFPlayer::TeamFortress_CalculateMaxSpeed"
