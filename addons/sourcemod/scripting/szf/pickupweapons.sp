@@ -16,9 +16,9 @@ enum WeaponType
 	WeaponType_UncommonSpawn,
 };
 
-static bool g_bCanPickup[TF_MAXPLAYERS] = {false, ...};
+static bool g_bCanPickup[MAXPLAYERS] = {false, ...};
 static bool g_bTriggerEntity[2048] = {true, ...};
-static float g_flWeaponCallout[2048][TF_MAXPLAYERS];
+static float g_flWeaponCallout[2048][MAXPLAYERS];
 static int g_iAvailableRareCount;
 static ArrayList g_aWeaponsCommon;
 static ArrayList g_aWeaponsUncommon;

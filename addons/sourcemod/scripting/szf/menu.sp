@@ -5,7 +5,7 @@ enum MenuSelect
 	MenuSelect_Infected,
 }
 
-static MenuSelect g_nMenuClientSelect[TF_MAXPLAYERS];
+static MenuSelect g_nMenuClientSelect[MAXPLAYERS];
 
 void Menu_DisplayMain(int iClient)
 {

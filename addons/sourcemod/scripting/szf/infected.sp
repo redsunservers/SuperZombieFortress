@@ -25,9 +25,9 @@ public void Infected_DoNoRage(int iClient)
 // Tank
 ////////////////
 
-static Handle g_hTimerTank[TF_MAXPLAYERS];
-static float g_flTankLifetime[TF_MAXPLAYERS];
-static int g_iTankHealthSubtract[TF_MAXPLAYERS];
+static Handle g_hTimerTank[MAXPLAYERS];
+static float g_flTankLifetime[MAXPLAYERS];
+static int g_iTankHealthSubtract[MAXPLAYERS];
 
 public void Infected_OnTankSpawn(int iClient)
 {
@@ -467,8 +467,8 @@ void Infected_DoBoomerExplosion(int iClient, float flRadius)
 // Charger
 ////////////////
 
-static float g_flChargerEndCharge[TF_MAXPLAYERS];
-static bool g_bChargerHitSurvivor[TF_MAXPLAYERS][TF_MAXPLAYERS];
+static float g_flChargerEndCharge[MAXPLAYERS];
+static bool g_bChargerHitSurvivor[MAXPLAYERS][MAXPLAYERS];
 
 public void Infected_OnChargerSpawn(int iClient)
 {
@@ -656,7 +656,7 @@ public void Infected_OnStalkerThink(int iClient, int &iButtons)
 // Hunter
 ////////////////
 
-static bool g_bHunterIsUsingPounce[TF_MAXPLAYERS];
+static bool g_bHunterIsUsingPounce[MAXPLAYERS];
 
 public void Infected_DoHunterJump(int iClient)
 {
@@ -744,8 +744,8 @@ public void Infected_OnHunterDeath(int iClient, int iKiller, int iAssist)
 // Smoker
 ////////////////
 
-static int g_iSmokerBeamHits[TF_MAXPLAYERS];
-static int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
+static int g_iSmokerBeamHits[MAXPLAYERS];
+static int g_iSmokerBeamHitVictim[MAXPLAYERS];
 
 public void Infected_OnSmokerThink(int iClient, int &iButtons)
 {
@@ -916,8 +916,8 @@ public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
 // Jockey
 ////////////////
 
-static bool g_bJockeyIsUsingPounce[TF_MAXPLAYERS];
-static int g_iJockeyTarget[TF_MAXPLAYERS];
+static bool g_bJockeyIsUsingPounce[MAXPLAYERS];
+static int g_iJockeyTarget[MAXPLAYERS];
 
 public void Infected_DoJockeyJump(int iClient)
 {

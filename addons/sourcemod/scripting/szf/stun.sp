@@ -41,7 +41,7 @@ enum struct StunInfo
 	float flCurrentBlinkEnd;
 }
 
-static StunInfo g_StunInfo[TF_MAXPLAYERS];
+static StunInfo g_StunInfo[MAXPLAYERS];
 
 // -----------------------
 // MAIN

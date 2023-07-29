@@ -306,8 +306,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		else
 			Sound_PlayInfectedVo(iVictim, g_nInfected[iVictim], SoundVo_Death);
 		
-		Classes_SetClient(iVictim, Infected_None);
-		
 		//10%
 		if (IsValidSurvivor(iKillers[0]) && !GetRandomInt(0, 9) && g_nRoundState == SZFRoundState_Active)
 			g_bSpawnAsSpecialInfected[iVictim] = true;

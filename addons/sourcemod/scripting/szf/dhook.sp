@@ -13,17 +13,15 @@ static DynamicHook g_hDHookRoundRespawn;
 static DynamicHook g_hDHookGetCaptureValueForPlayer;
 static DynamicHook g_hDHookGiveNamedItem;
 
-static TFTeam g_iOldClientTeam[TF_MAXPLAYERS];
+static TFTeam g_iOldClientTeam[MAXPLAYERS];
 
-static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
+static int g_iHookIdGiveNamedItem[MAXPLAYERS];
 
 void DHook_Init(GameData hSZF)
 {
 	g_aDHookDetours = new ArrayList(sizeof(Detour));
 	
 	DHook_CreateDetour(hSZF, "CTFPlayer::DoAnimationEvent", DHook_DoAnimationEventPre, _);
-	DHook_CreateDetour(hSZF, "CTFPlayerShared::DetermineDisguiseWeapon", DHook_DetermineDisguiseWeaponPre, _);
-	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
 	DHook_CreateDetour(hSZF, "CTFPlayer::TeamFortress_CalculateMaxSpeed", _, DHook_CalculateMaxSpeedPost);
 	DHook_CreateDetour(hSZF, "CTFWeaponBaseMelee::DoSwingTraceInternal", DHook_DoSwingTraceInternalPre, DHook_DoSwingTraceInternalPost);
 	
@@ -152,42 +150,6 @@ public MRESReturn DHook_DoAnimationEventPre(int iClient, DHookParam hParams)
 	return MRES_Ignored;
 }
 
-public MRESReturn DHook_DetermineDisguiseWeaponPre(Address pPlayerShared, DHookParam hParams)
-{
-	Address pAddress = view_as<Address>(LoadFromAddress(pPlayerShared + view_as<Address>(g_iOffsetOuter), NumberType_Int32));
-	int iClient = SDKCall_GetBaseEntity(pAddress);
-	
-	int iOffset = FindSendPropInfo("CTFPlayer", "m_iDisguiseHealth") - 4;	// m_hDisguiseTarget
-	int iTarget = GetEntDataEnt2(iClient, iOffset);
-	if (0 < iTarget <= MaxClients && IsSurvivor(iClient) && view_as<TFTeam>(GetEntProp(iClient, Prop_Send, "m_nDisguiseTeam")) == TFTeam_Zombie)
-	{
-		//Set class and team to whoever target is, so voodoo souls and zombie weapons is shown
-		SetEntProp(iClient, Prop_Send, "m_nDisguiseClass", TF2_GetPlayerClass(iTarget));
-		SetEntProp(iClient, Prop_Send, "m_nDisguiseTeam", TF2_GetClientTeam(iTarget));
-		
-		//Zombies have rome vision, set rome model override to whatever custom model
-		SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", GetEntProp(iTarget, Prop_Send, "m_nModelIndex"), _, VISION_MODE_ROME);
-	}
-	
-	//Never allow force primary, for both survivor and zombie disguise team
-	hParams.Set(1, false);
-	return MRES_ChangedOverride;
-}
-
-public MRESReturn DHook_DeactivatePre(int iThis, DHookParam hParams)
-{
-	// Detour used to prevent a crash with "game_ui" entity
-	// World entity 0 should always be valid
-	// If not, then pass a resource entity like "tf_gamerules"
-	int iEntity = 0;
-	while ((iEntity = FindEntityByClassname(iEntity, "*")) != -1)
-	{
-		hParams.Set(1, GetEntityAddress(iEntity));
-		return MRES_ChangedHandled;
-	}
-	return MRES_Ignored;
-}
-
 public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 {
 	if (IsClientInGame(iClient) && IsPlayerAlive(iClient))
@@ -203,9 +165,6 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 				
 				if (g_bZombieRage)
 					flSpeed += 40.0; //Map-wide zombie enrage event
-				
-				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-					flSpeed += 20.0; //On fire
 				
 				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
 					flSpeed += 20.0; //Screamer effect
@@ -224,7 +183,7 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 			{
 				switch (g_nInfected[iClient])
 				{
-					//Tank: movement speed bonus based on damage taken and ignite speed bonus
+					//Tank: movement speed penalty based on damage taken and dealt
 					case Infected_Tank:
 					{
 						//Reduce speed when tank deals damage to survivors 
@@ -232,9 +191,6 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 						
 						//Reduce speed when tank takes damage from survivors 
 						flSpeed -= fMin(100.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
-						
-						if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-							flSpeed += 40.0; //On fire
 						
 						if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
 							flSpeed -= 30.0; //Jarate'd by sniper
