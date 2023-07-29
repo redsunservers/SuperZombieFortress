@@ -708,11 +708,7 @@ stock int TF2_CreateWeapon(int iClient, int iIndex, const char[] sAttribs = NULL
 	if (IsValidEntity(iWeapon))
 	{
 		//Attribute shittery inbound
-		if (StrEqual(sAttribs, "0"))
-		{
-			SetEntProp(iWeapon, Prop_Send, "m_bOnlyIterateItemViewAttributes", true);
-		}
-		else if (sAttribs[0])
+		if (sAttribs[0])
 		{
 			char sAttribs2[32][32];
 			int iCount = ExplodeString(sAttribs, " ; ", sAttribs2, 32, 32);
