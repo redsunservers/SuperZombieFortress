@@ -91,6 +91,9 @@ int ViewModels_CreateWearable(int iClient, int iModelIndex, int iWeapon)
 	SetEntProp(iWearable, Prop_Send, "m_fEffects", EF_BONEMERGE|EF_BONEMERGE_FASTCULL);
 	SetEntPropEnt(iWearable, Prop_Send, "m_hWeaponAssociatedWith", iWeapon);
 	
+	if (iWeapon != INVALID_ENT_REFERENCE)
+		SetEntPropEnt(iWeapon, Prop_Send, "m_hExtraWearableViewModel", iWearable);
+	
 	SetEntProp(iWearable, Prop_Send, "m_nModelIndex", iModelIndex);
 	DispatchSpawn(iWearable);
 	
