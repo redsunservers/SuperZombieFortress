@@ -1,6 +1,11 @@
 void ViewModel_UpdateClient(int iClient)
 {
-	if (!g_ClientClasses[iClient].sViewModel[0])
+	if (g_ClientClasses[iClient].bThirdperson)
+	{
+		ViewModel_RemoveWearable(iClient);
+		SetEntProp(GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"), Prop_Send, "m_fEffects", EF_NODRAW);
+	}
+	else if (!g_ClientClasses[iClient].sViewModel[0])
 	{
 		ViewModel_RemoveWearable(iClient);
 	}

@@ -1960,10 +1960,7 @@ void HandleZombieLoadout(int iClient)
 	}
 	
 	if (g_ClientClasses[iClient].bThirdperson)
-	{
-		SetEntProp(GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"), Prop_Send, "m_fEffects", EF_NODRAW);
 		RequestFrame(SetThirdperson, GetClientSerial(iClient));
-	}
 	
 	//Reset metal for TF2 to give back correct amount from attribs
 	TF2_SetMetal(iClient, 0);
