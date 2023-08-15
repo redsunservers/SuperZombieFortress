@@ -1,9 +1,24 @@
+char g_sViewModelsArms[][PLATFORM_MAX_PATH] = {
+	"",
+	"models/weapons/c_models/c_scout_arms.mdl",
+	"models/weapons/c_models/c_sniper_arms.mdl",
+	"models/weapons/c_models/c_soldier_arms.mdl",
+	"models/weapons/c_models/c_demo_arms.mdl",
+	"models/weapons/c_models/c_medic_arms.mdl",
+	"models/weapons/c_models/c_heavy_arms.mdl",
+	"models/weapons/c_models/c_pyro_arms.mdl",
+	"models/weapons/c_models/c_spy_arms.mdl",
+	"models/weapons/c_models/c_engineer_arms.mdl",
+};
+
 void ViewModel_UpdateClient(int iClient)
 {
+	int iViewModel = GetEntPropEnt(iClient, Prop_Send, "m_hViewModel");
+	
 	if (g_ClientClasses[iClient].bThirdperson)
 	{
 		ViewModel_RemoveWearable(iClient);
-		SetEntProp(GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"), Prop_Send, "m_fEffects", EF_NODRAW);
+		AddEntityEffect(iViewModel, EF_NODRAW);
 	}
 	else if (!g_ClientClasses[iClient].sViewModel[0])
 	{
@@ -51,20 +66,19 @@ void ViewModel_UpdateClient(int iClient)
 				continue;
 			
 			int iWeaponModelIndex = GetEntProp(iWeapon, Prop_Send, "m_iWorldModelIndex");
-			int iViewModel = ViewModel_Get(iClient, iWeaponModelIndex, iWeapon);
-			if (iViewModel == INVALID_ENT_REFERENCE)
+			iWearable = ViewModel_Get(iClient, iWeaponModelIndex, iWeapon);
+			if (iWearable == INVALID_ENT_REFERENCE)
 				ViewModels_CreateWearable(iClient, iWeaponModelIndex, iWeapon);
 			else
-				RemoveEntityEffect(iViewModel, EF_NODRAW);	// may've been hidden from weapon switching
+				RemoveEntityEffect(iWearable, EF_NODRAW);	// may've been hidden from weapon switching
 		}
 		
-		AddEntityEffect(GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"), EF_NODRAW);
+		AddEntityEffect(iViewModel, EF_NODRAW);
 	}
 	else
 	{
 		ViewModel_RemoveWearable(iClient);
 		
-		int iViewModel = GetEntPropEnt(iClient, Prop_Send, "m_hViewModel");
 		SetEntityModel(iViewModel, g_ClientClasses[iClient].sViewModel);
 		RemoveEntityEffect(iViewModel, EF_NODRAW);
 		
@@ -134,6 +148,30 @@ void ViewModel_RemoveWearable(int iClient)
 	while ((iWearable = FindEntityByClassname(iWearable, "tf_wearable_vm")) != INVALID_ENT_REFERENCE)
 		if (GetEntPropEnt(iWearable, Prop_Send, "m_hOwnerEntity") == iClient)
 			RemoveEntity(iWearable);
+}
+
+void ViewModel_ResetArms(int iClient)
+{
+	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	if (!g_sViewModelsArms[nClass][0])
+		return;
+	
+	int iViewModel = GetEntPropEnt(iClient, Prop_Send, "m_hViewModel");
+	int iModelIndex = GetModelIndex(g_sViewModelsArms[nClass]);
+	
+	SetEntityModel(iViewModel, g_sViewModelsArms[nClass]);
+	SetEntProp(iViewModel, Prop_Send, "m_nModelIndex", iModelIndex);
+	
+	for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
+	{
+		int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
+		if (iWeapon == INVALID_ENT_REFERENCE)
+			continue;
+		
+		SetEntityModel(iWeapon, g_sViewModelsArms[nClass]);
+		SetEntProp(iWeapon, Prop_Send, "m_iViewModelIndex", iModelIndex);
+		SetEntProp(iWeapon, Prop_Send, "m_nCustomViewmodelModelIndex", iModelIndex);
+	}
 }
 
 void ViewModel_SetAnimation(int iClient, const char[] sActivity)
