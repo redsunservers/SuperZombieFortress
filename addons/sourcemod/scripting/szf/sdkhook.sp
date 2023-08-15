@@ -49,10 +49,9 @@ void SDKHook_UnhookClient(int iClient)
 
 public Action Client_Spawn(int iClient)
 {
-	Classes_SetClient(iClient);
-	
 	// Reset arms so generated weapons don't get the wrong viewmodel
 	ViewModel_ResetArms(iClient);
+	Classes_SetClient(iClient);
 	return Plugin_Continue;
 }
 

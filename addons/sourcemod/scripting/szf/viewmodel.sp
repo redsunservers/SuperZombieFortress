@@ -152,6 +152,9 @@ void ViewModel_RemoveWearable(int iClient)
 
 void ViewModel_ResetArms(int iClient)
 {
+	if (!g_ClientClasses[iClient].bViewModelAnim)
+		return;	// No need to set if we didn't override it to begin with
+	
 	TFClassType nClass = TF2_GetPlayerClass(iClient);
 	if (!g_sViewModelsArms[nClass][0])
 		return;
