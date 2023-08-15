@@ -130,34 +130,6 @@ public Action Infected_TankTimer(Handle hTimer, int iSerial)
 	return Plugin_Continue;
 }
 
-public Action Infected_OnTankAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "f_idle");
-		ViewModel_SetAnimation(iClient, "f_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		//One of those anim always get played because of force crit, pick one of those at random
-		//TODO check if all 3 anim exists
-		
-		switch (GetRandomInt(1, 3))
-		{
-			case 1: nAnim = PLAYERANIMEVENT_ATTACK_PRIMARY;
-			case 2: nAnim = PLAYERANIMEVENT_ATTACK_SECONDARY;
-			case 3: nAnim = PLAYERANIMEVENT_ATTACK_GRENADE;
-		}
-		
-		ViewModel_SetAnimation(iClient, "f_swing_crit");
-		return Plugin_Changed;
-	}
-	
-	//TODO check death anim
-	
-	return Plugin_Continue;
-}
-
 public void Infected_OnTankTouch(int iClient, int iToucher)
 {
 	if (IsClassname(iToucher, "func_respawnroom"))
@@ -252,43 +224,6 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 public void Infected_DoBoomerRage(int iClient)
 {
 	Infected_DoBoomerExplosion(iClient, 600.0);
-}
-
-public Action Infected_OnBoomerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "f_idle");
-		ViewModel_SetAnimation(iClient, "f_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		//One of those anim always get played because of no random crit, pick one of those at random
-		//TODO check if all 3 anim exists, and swings with correct anim
-		
-		switch (GetRandomInt(1, 3))
-		{
-			case 1:
-			{
-				nAnim = PLAYERANIMEVENT_ATTACK_PRIMARY;
-				ViewModel_SetAnimation(iClient, "f_swing_left");
-			}
-			case 2:
-			{
-				nAnim = PLAYERANIMEVENT_ATTACK_SECONDARY;
-				ViewModel_SetAnimation(iClient, "f_swing_right");
-			}
-			case 3:
-			{
-				nAnim = PLAYERANIMEVENT_ATTACK_GRENADE;
-				ViewModel_SetAnimation(iClient, "f_swing_crit");
-			}
-		}
-		
-		return Plugin_Changed;
-	}
-	
-	return Plugin_Continue;
 }
 
 public void Infected_OnBoomerDeath(int iClient, int iKiller, int iAssist)
@@ -423,27 +358,6 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 	}
 }
 
-public Action Infected_OnChargerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "b_idle");
-		ViewModel_SetAnimation(iClient, "b_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		switch (GetRandomInt(1, 2))
-		{
-			case 1: ViewModel_SetAnimation(iClient, "b_swing_a");
-			case 2: ViewModel_SetAnimation(iClient, "b_swing_b");
-		}
-		
-		return Plugin_Changed;
-	}
-	
-	return Plugin_Continue;
-}
-
 ////////////////
 // Screamer
 ////////////////
@@ -548,7 +462,7 @@ public void Infected_DoHunterJump(int iClient)
 	vecVelocity[2] = 460.0;
 	
 	SDKCall_PlaySpecificSequence(iClient, "pounce_idle_low");
-	ViewModel_SetAnimation(iClient, "claw_lunge_layer");
+	ViewModel_SetAnimation(iClient, "ACT_VM_LUNGE_LAYER");
 	
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 	SetEntProp(iClient, Prop_Send, "m_iAirDash", 1);
@@ -565,26 +479,6 @@ public void Infected_OnHunterThink(int iClient, int &iButtons)
 {
 	if (GetEntityFlags(iClient) & FL_ONGROUND)
 		g_bHunterIsUsingPounce[iClient] = false;
-}
-
-public Action Infected_OnHunterAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "b_idle");
-		ViewModel_SetAnimation(iClient, "b_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		switch (GetRandomInt(1, 3))
-		{
-			case 1: ViewModel_SetAnimation(iClient, "b_swing_a");
-			case 2: ViewModel_SetAnimation(iClient, "b_swing_b");
-			case 3: ViewModel_SetAnimation(iClient, "b_swing_c");
-		}
-	}
-	
-	return Plugin_Continue;
 }
 
 public void Infected_OnHunterTouch(int iClient, int iToucher)
@@ -637,7 +531,7 @@ public void Infected_OnSmokerThink(int iClient, int &iButtons)
 	}
 	else if (GetEntityMoveType(iClient) == MOVETYPE_NONE)
 	{
-		ViewModel_SetAnimation(iClient, "cough");
+		ViewModel_SetAnimation(iClient, "ACT_VM_COUGH");
 		
 		g_iSmokerBeamHits[iClient] = 0;
 		g_iSmokerBeamHitVictim[iClient] = 0;
@@ -700,7 +594,7 @@ void Infected_DoSmokerBeam(int iClient)
 			g_iSmokerBeamHits[iClient] = 0;
 			
 			SDKCall_PlaySpecificSequence(iClient, "tongue_attack_drag_survivor_idle");
-			ViewModel_SetAnimation(iClient, "tongue");
+			ViewModel_SetAnimation(iClient, "ACT_VM_TONGUE");
 		}
 		
 		//Increase count and if it reaches a threshold, apply damage
@@ -724,24 +618,6 @@ void Infected_DoSmokerBeam(int iClient)
 	delete hTrace;
 }
 
-public Action Infected_OnSmokerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "m_idle");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		switch (GetRandomInt(1, 2))
-		{
-			case 1: ViewModel_SetAnimation(iClient, "m_swing_a");
-			case 2: ViewModel_SetAnimation(iClient, "m_swing_b");
-		}
-	}
-	
-	return Plugin_Continue;
-}
-
 ////////////////
 // Spitter
 ////////////////
@@ -749,28 +625,13 @@ public Action Infected_OnSmokerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &
 public void Infected_DoSpitterGas(int iClient)
 {
 	SDKCall_PlaySpecificSequence(iClient, "spitter_spitting");
-	ViewModel_SetAnimation(iClient, "spit");
+	ViewModel_SetAnimation(iClient, "ACT_VM_VOMIT");
 	
 	TF2_AddCondition(iClient, TFCond_FreezeInput, 1.0);
 	
 	int iGas = TF2_GetItemInSlot(iClient, WeaponSlot_Secondary);
 	if (iGas > MaxClients)
 		SDKCall_TossJarThink(iGas);
-}
-
-public Action Infected_OnSpitterAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "fa_idle");
-		ViewModel_SetAnimation(iClient, "fa_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		ViewModel_SetAnimation(iClient, "fa_swing_a");
-	}
-	
-	return Plugin_Continue;
 }
 
 public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
@@ -809,7 +670,7 @@ public void Infected_DoJockeyJump(int iClient)
 	vecVelocity[2] = 345.0;
 	
 	SDKCall_PlaySpecificSequence(iClient, "Pounce");
-	ViewModel_SetAnimation(iClient, "lunge");
+	ViewModel_SetAnimation(iClient, "ACT_VM_LUNGE");
 	
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
@@ -892,21 +753,6 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
 	SetEntProp(iClient, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_DEBRIS_TRIGGER);
 	SDKCall_PlaySpecificSequence(iClient, "jockey_ride");
-}
-
-public Action Infected_OnJockeyAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "s_idle");
-		ViewModel_SetAnimation(iClient, "s_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		ViewModel_SetAnimation(iClient, "s_swing_a");
-	}
-	
-	return Plugin_Continue;
 }
 
 public void Infected_OnJockeyDeath(int iClient, int iKiller, int iAssist)
