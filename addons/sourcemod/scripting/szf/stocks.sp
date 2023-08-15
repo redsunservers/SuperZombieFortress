@@ -128,6 +128,25 @@ stock int GetReplaceRageWithSpecialInfectedSpawnCount()
 // Models
 ////////////////
 
+//Grabs the entity model by looking in the precache database of the server
+void GetEntityModel(int iEntity, char[] sModel, int iMaxSize, char[] sPropName = "m_nModelIndex")
+{
+	int iIndex = GetEntProp(iEntity, Prop_Send, sPropName);
+	GetModelPath(iIndex, sModel, iMaxSize);
+}
+
+void GetModelPath(int iIndex, char[] sModel, int iMaxSize)
+{
+	int iTable = FindStringTable("modelprecache");
+	ReadStringTable(iTable, iIndex, sModel, iMaxSize);
+}
+
+int GetModelIndex(const char[] sModel)
+{
+	int iTable = FindStringTable("modelprecache");
+	return FindStringIndex(iTable, sModel);
+}
+
 stock void AddModelToDownloadsTable(const char[] sModel)
 {
 	static const char sFileType[][] = {
@@ -500,7 +519,7 @@ stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
 }
 
 ////////////////
-// Entity Name
+// Entities
 ////////////////
 
 stock bool IsClassname(int iEntity, const char[] sClassname)
@@ -513,6 +532,16 @@ stock bool IsClassname(int iEntity, const char[] sClassname)
 	}
 	
 	return false;
+}
+
+stock void AddEntityEffect(int iEntity, int iFlag)
+{
+	SetEntProp(iEntity, Prop_Send, "m_fEffects", GetEntProp(iEntity, Prop_Send, "m_fEffects") | iFlag);
+}
+
+stock void RemoveEntityEffect(int iEntity, int iFlag)
+{
+	SetEntProp(iEntity, Prop_Send, "m_fEffects", GetEntProp(iEntity, Prop_Send, "m_fEffects") & ~iFlag);
 }
 
 ////////////////

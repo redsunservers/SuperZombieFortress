@@ -16,12 +16,6 @@
 				"linux"		"@_ZN9CTFPlayer20PlaySpecificSequenceEPKc"
 				"windows"	"\x55\x8B\xEC\x53\x56\x8B\x75\x08\x57\x56\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x8B\xD8"
 			}
-			"CTFPlayer::DoAnimationEvent"
-			{
-				"library"	"server"
-				"linux"		"@_ZN9CTFPlayer16DoAnimationEventE17PlayerAnimEvent_ti"
-				"windows"	"\x55\x8B\xEC\x51\x53\x56\x8B\x35\x2A\x2A\x2A\x2A\x8B\xD9\x8B\xCE"
-			}
 			"CTFPlayer::GetLoadoutItem"
 			{
 				"library"	"server"
@@ -91,38 +85,6 @@
 		}
 		"Functions"
 		{
-			"CTFPlayer::DoAnimationEvent"
-			{
-				"signature"	"CTFPlayer::DoAnimationEvent"
-				"callconv"	"thiscall"
-				"return"	"void"
-				"this"		"entity"
-				"arguments"
-				{
-					"event"
-					{
-						"type"	"int"
-					}
-					"nData"
-					{
-						"type"	"int"
-					}
-				}
-			}
-			"CTFPlayerShared::DetermineDisguiseWeapon"
-			{
-				"signature"	"CTFPlayerShared::DetermineDisguiseWeapon"
-				"callconv"	"thiscall"
-				"return"	"void"
-				"this"		"address"
-				"arguments"
-				{
-					"bForcePrimary"
-					{
-						"type"	"bool"
-					}
-				}
-			}
 			"CTFPlayer::TeamFortress_CalculateMaxSpeed"
 			{
 				"signature"	"CTFPlayer::TeamFortress_CalculateMaxSpeed"

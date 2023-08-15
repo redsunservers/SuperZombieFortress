@@ -655,19 +655,6 @@ void SetWeaponModel(int iEntity, Weapon wep)
 	TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
 }
 
-//Grabs the entity model by looking in the precache database of the server
-void GetEntityModel(int iEntity, char[] sModel, int iMaxSize, char[] sPropName = "m_nModelIndex")
-{
-	int iIndex = GetEntProp(iEntity, Prop_Send, sPropName);
-	GetModelPath(iIndex, sModel, iMaxSize);
-}
-
-void GetModelPath(int iIndex, char[] sModel, int iMaxSize)
-{
-	int iTable = FindStringTable("modelprecache");
-	ReadStringTable(iTable, iIndex, sModel, iMaxSize);
-}
-
 int GetWeaponGlowEnt(int iEntity)
 {
 	int iGlow = INVALID_ENT_REFERENCE;
