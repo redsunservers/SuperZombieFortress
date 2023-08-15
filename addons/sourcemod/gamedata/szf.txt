@@ -67,6 +67,11 @@
 				"linux"		"498"
 				"windows"	"491"
 			}
+			"CBaseEntity::GetVelocity"
+			{
+				"linux" 	"147"
+				"windows" 	"146"
+			}
 			"CBaseEntity::GetDefaultItemChargeMeterValue"
 			{
 				"linux"		"197"

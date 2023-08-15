@@ -461,6 +461,19 @@ public MRESReturn DHook_RoundRespawnPre()
 public MRESReturn DHook_GetCaptureValueForPlayerPost(DHookReturn hReturn, DHookParam hParams)
 {
 	int iClient = hParams.Get(1);
+	if (IsSurvivor(iClient))
+	{
+		for (int iOther = 1; iOther <= MaxClients; iOther++)
+		{
+			if (IsClientInGame(iOther) && g_nInfected[iOther] == Infected_Tank)
+			{
+				// There an active tank, prevent capture
+				hReturn.Value = 0;
+				return MRES_Supercede;
+			}
+		}
+	}
+	
 	if (TF2_GetPlayerClass(iClient) == TFClass_Scout) //Reduce capture rate for scout
 	{
 		hReturn.Value--;

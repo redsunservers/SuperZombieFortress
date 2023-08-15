@@ -130,6 +130,128 @@ public Action Infected_TankTimer(Handle hTimer, int iSerial)
 	return Plugin_Continue;
 }
 
+public void Infected_DoTankThrow(int iClient)
+{
+	float flThrow, flEnd;
+	
+	SetVariantInt(1);
+	AcceptEntityInput(iClient, "SetForcedTauntCam");
+	
+	switch (GetRandomInt(2, 4))
+	{
+		case 2:
+		{
+			SDKCall_PlaySpecificSequence(iClient, "Throw_02");
+			flThrow = 2.25;
+			flEnd = 3.0;
+		}
+		case 3:
+		{
+			SDKCall_PlaySpecificSequence(iClient, "Throw_03");
+			flThrow = 2.1;
+			flEnd = 2.6;
+		}
+		case 4:
+		{
+			SDKCall_PlaySpecificSequence(iClient, "Throw_04");
+			flThrow = 2.6;
+			flEnd = 3.0;
+		}
+	}
+	
+	TF2_AddCondition(iClient, TFCond_FreezeInput, flEnd);
+	CreateTimer(flEnd, Infected_DebrisTimerEnd, GetClientSerial(iClient));
+	
+	int iDebris = CreateEntityByName("prop_physics_override");
+	
+	Debris debris;
+	Config_GetRandomDebris(debris);
+	SetEntityModel(iDebris, debris.sModel);
+	
+	SetEntProp(iDebris, Prop_Send, "m_nSolidType", SOLID_VPHYSICS);
+	DispatchKeyValueFloat(iDebris, "massScale", 300.0);
+	DispatchKeyValueFloat(iDebris, "modelscale", debris.flScale);
+	
+	SetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity", iClient);
+	SetEntProp(iDebris, Prop_Data, "m_spawnflags", SF_PHYSPROP_START_ASLEEP|SF_PHYSPROP_MOTIONDISABLED);
+	SetEntProp(iDebris, Prop_Data, "m_takedamage", DAMAGE_NO);
+	SetEntProp(iDebris, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_PLAYER);
+	SetEntProp(iDebris, Prop_Send, "m_iTeamNum", GetClientTeam(iClient));
+	
+	int iBonemerge = CreateBonemerge(iClient, "debris");
+	
+	float vecPos[3], vecAngle[3];
+	GetClientAbsOrigin(iClient, vecPos);
+	GetClientAbsAngles(iClient, vecAngle);
+	AddVectors(vecPos, debris.vecOffset, vecPos);
+	AddVectors(vecAngle, debris.vecAngle, vecAngle);
+	TeleportEntity(iBonemerge, vecPos, vecAngle, NULL_VECTOR);
+	
+	SetVariantString("!activator");
+	AcceptEntityInput(iDebris, "SetParent", iBonemerge);
+	SetVariantString("debris");
+	AcceptEntityInput(iDebris, "SetParentAttachment");
+	
+	DispatchSpawn(iDebris);
+	
+	SetEntPropFloat(iDebris, Prop_Data, "m_impactEnergyScale", 0.0);	//After DispatchSpawn, otherwise 1 would be set
+	
+	CreateTimer(flThrow, Infected_DebrisTimer, EntIndexToEntRef(iDebris));
+}
+
+public Action Infected_DebrisTimer(Handle hTimer, int iDebris)
+{
+	if (!IsValidEntity(iDebris))
+		return Plugin_Continue;
+	
+	AcceptEntityInput(iDebris, "ClearParent");
+	AcceptEntityInput(iDebris, "EnableMotion");
+	ActivateEntity(iDebris);	//So physics can scale with modelscale
+	
+	int iBonemerge = GetEntPropEnt(iDebris, Prop_Data, "m_pParent");
+	if (iBonemerge != INVALID_ENT_REFERENCE && IsClassname(iBonemerge, "tf_taunt_prop"))
+		RemoveEntity(iBonemerge);
+	
+	int iClient = GetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity");
+	if (!IsValidClient(iClient))
+		return Plugin_Continue;
+	
+	SDKHook(iDebris, SDKHook_StartTouch, Infected_DebrisStartTouch);
+	
+	float vecAngles[3], vecVel[3];
+	GetClientEyeAngles(iClient, vecAngles);
+	AnglesToVelocity(vecAngles, vecVel, 2000.0);
+	TeleportEntity(iDebris, NULL_VECTOR, NULL_VECTOR, vecVel);
+	
+	return Plugin_Continue;
+}
+
+public Action Infected_DebrisTimerEnd(Handle hTimer, int iSerial)
+{
+	int iClient = GetClientFromSerial(iSerial);
+	if (!IsValidClient(iClient))
+		return Plugin_Continue;
+	
+	SetVariantInt(0);
+	AcceptEntityInput(iClient, "SetForcedTauntCam");
+	
+	return Plugin_Continue;
+}
+
+public Action Infected_DebrisStartTouch(int iDebris, int iToucher)
+{
+	int iClient = GetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity");
+	
+	float vecVelocity[3];
+	SDKCall_GetVelocity(iDebris, vecVelocity);
+	float flSpeed = GetVectorLength(vecVelocity);
+	
+	if (0 < iToucher <= MaxClients && flSpeed >= 100.0)
+		SDKHooks_TakeDamage(iToucher, iDebris, iClient, flSpeed / 4.0);
+	
+	return Plugin_Continue;
+}
+
 public void Infected_OnTankTouch(int iClient, int iToucher)
 {
 	if (IsClassname(iToucher, "func_respawnroom"))

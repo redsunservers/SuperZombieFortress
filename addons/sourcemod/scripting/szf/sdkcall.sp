@@ -6,6 +6,7 @@ static Handle g_hSDKCallGiveNamedItem;
 static Handle g_hSDKCallGetLoadoutItem;
 static Handle g_hSDKCallSetSpeed;
 static Handle g_hSDKCallTossJarThink;
+static Handle g_hSDKCallGetVelocity;
 static Handle g_hSDKCallGetDefaultItemChargeMeterValue;
 
 void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
@@ -76,6 +77,14 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 		LogError("Failed to create call: CTFJar::TossJarThink");
 	
 	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CBaseEntity::GetVelocity");
+	PrepSDKCall_AddParameter(SDKType_Vector, SDKPass_Pointer, VDECODE_FLAG_ALLOWNULL, VENCODE_FLAG_COPYBACK);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer);
+	g_hSDKCallGetVelocity = EndPrepSDKCall();
+	if (!g_hSDKCallGetVelocity)
+		LogError("Failed to create call: CBaseEntity::GetVelocity");
+	
+	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CBaseEntity::GetDefaultItemChargeMeterValue");
 	PrepSDKCall_SetReturnInfo(SDKType_Float, SDKPass_Plain);
 	g_hSDKCallGetDefaultItemChargeMeterValue = EndPrepSDKCall();
@@ -124,6 +133,11 @@ void SDKCall_SetSpeed(int iClient)
 void SDKCall_TossJarThink(int iEntity)
 {
 	SDKCall(g_hSDKCallTossJarThink, iEntity);
+}
+
+void SDKCall_GetVelocity(int iEntity, float vecVelocity[3], Address pAngVelocity = Address_Null)
+{
+	SDKCall(g_hSDKCallGetVelocity, iEntity, vecVelocity, pAngVelocity);
 }
 
 float SDKCall_GetDefaultItemChargeMeterValue(int iWeapon)

@@ -20,6 +20,8 @@ void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 	{
 		SDKHook(iEntity, SDKHook_StartTouch, CaptureArea_StartTouch);
 		SDKHook(iEntity, SDKHook_EndTouch, CaptureArea_EndTouch);
+		SDKHook(iEntity, SDKHook_Think, CaptureArea_Think);
+		SDKHook(iEntity, SDKHook_ThinkPost, CaptureArea_Think);
 	}
 }
 
@@ -169,7 +171,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 					//Don't instantly kill the tank on a backstab
 					if (iDamageCustom == TF_CUSTOM_BACKSTAB)
 					{
-						flDamage = g_iMaxHealth[iVictim]*g_cvTankStab.FloatValue/3.0;
+						flDamage = g_cvTankStab.FloatValue / 3.0;
 						iDamageType |= DMG_CRIT;
 						SetNextAttack(iAttacker, GetGameTime() + 1.25);
 					}
@@ -382,28 +384,12 @@ public Action GasManager_EndTouch(int iGasManager, int iClient)
 
 public Action CaptureArea_StartTouch(int iEntity, int iClient)
 {
-	if (!IsClassname(iEntity, "trigger_capture_area"))
-		return Plugin_Continue;
-	
 	if (IsValidClient(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient))
 	{
-		char sTriggerName[128];
-		GetEntPropString(iEntity, Prop_Data, "m_iszCapPointName", sTriggerName, sizeof(sTriggerName));	//Get trigger cap name
-		
-		int i = -1;
-		while ((i = FindEntityByClassname(i, "team_control_point")) != -1)	//find team_control_point
-		{
-			char sPointName[128];
-			GetEntPropString(i, Prop_Data, "m_iName", sPointName, sizeof(sPointName));
-			if (strcmp(sPointName, sTriggerName, false) == 0)	//Check if trigger cap is the same as team_control_point
-			{
-				int iIndex = GetEntProp(i, Prop_Data, "m_iPointIndex");	//Get his index
-				
-				for (int j = 0; j < g_iControlPoints; j++)
-					if (g_iControlPointsInfo[j][0] == iIndex && g_iControlPointsInfo[j][1] != 2)	//Check if that capture have not already been captured
-						g_iCapturingPoint[iClient] = iIndex;
-			}
-		}
+		int iIndex = GetTriggerCapturePointIndex(iEntity);
+		for (int j = 0; j < g_iControlPoints; j++)
+			if (g_iControlPointsInfo[j][0] == iIndex && g_iControlPointsInfo[j][1] != 2)	//Check if that capture have not already been captured
+				g_iCapturingPoint[iClient] = iIndex;
 	}
 	
 	return Plugin_Continue;
@@ -413,6 +399,24 @@ public Action CaptureArea_EndTouch(int iEntity, int iClient)
 {
 	if (IsValidClient(iClient) && IsPlayerAlive(iClient) && IsSurvivor(iClient))
 		g_iCapturingPoint[iClient] = -1;
+	
+	return Plugin_Continue;
+}
+
+public Action CaptureArea_Think(int iEntity)
+{
+	static int iOffset = -1;
+	if (iOffset == -1)
+		iOffset = FindDataMapInfo(iEntity, "m_flCapTime");
+	
+	float flTimeRemaining = GetEntDataFloat(iEntity, iOffset + 4);	// m_fTimeRemaining
+	if (!flTimeRemaining || flTimeRemaining >= 0.5)
+		return Plugin_Continue;
+	
+	// CP about to be captured, is there anyone waiting to be tank
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsClientInGame(iClient) && g_nNextInfected[iClient] == Infected_Tank)
+			TF2_RespawnPlayer2(iClient);	// Yes, force spawn now
 	
 	return Plugin_Continue;
 }
