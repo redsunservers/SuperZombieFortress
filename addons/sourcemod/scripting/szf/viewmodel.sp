@@ -157,21 +157,9 @@ void ViewModel_ResetArms(int iClient)
 		return;
 	
 	int iViewModel = GetEntPropEnt(iClient, Prop_Send, "m_hViewModel");
-	int iModelIndex = GetModelIndex(g_sViewModelsArms[nClass]);
+	if (iViewModel != INVALID_ENT_REFERENCE)
+		SetEntityModel(iViewModel, g_sViewModelsArms[nClass]);
 	
-	SetEntityModel(iViewModel, g_sViewModelsArms[nClass]);
-	SetEntProp(iViewModel, Prop_Send, "m_nModelIndex", iModelIndex);
-	
-	for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
-	{
-		int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
-		if (iWeapon == INVALID_ENT_REFERENCE)
-			continue;
-		
-		SetEntityModel(iWeapon, g_sViewModelsArms[nClass]);
-		SetEntProp(iWeapon, Prop_Send, "m_iViewModelIndex", iModelIndex);
-		SetEntProp(iWeapon, Prop_Send, "m_nCustomViewmodelModelIndex", iModelIndex);
-	}
 }
 
 void ViewModel_SetAnimation(int iClient, const char[] sActivity)

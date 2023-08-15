@@ -19,7 +19,7 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.6.0"
+#define PLUGIN_VERSION				"4.6.1"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define MAX_CONTROL_POINTS	8
@@ -2520,9 +2520,6 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 
 Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
 {
-	// Reset arms so generated weapons don't get the wrong viewmodel
-	ViewModel_ResetArms(iClient);
-	
 	if (g_bGiveNamedItemSkip || TF2_IsPlayerInCondition(iClient, TFCond_Disguised))
 		return Plugin_Continue;
 	

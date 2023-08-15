@@ -27,6 +27,7 @@ void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 
 void SDKHook_HookClient(int iClient)
 {
+	SDKHook(iClient, SDKHook_Spawn, Client_Spawn);
 	SDKHook(iClient, SDKHook_PreThink, Client_PreThink);
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_PreThinkPost);
 	SDKHook(iClient, SDKHook_Touch, Client_Touch);
@@ -37,12 +38,22 @@ void SDKHook_HookClient(int iClient)
 
 void SDKHook_UnhookClient(int iClient)
 {
+	SDKUnhook(iClient, SDKHook_Spawn, Client_Spawn);
 	SDKUnhook(iClient, SDKHook_PreThink, Client_PreThink);
 	SDKUnhook(iClient, SDKHook_PreThinkPost, Client_PreThinkPost);
 	SDKUnhook(iClient, SDKHook_Touch, Client_Touch);
 	SDKUnhook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	SDKUnhook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
 	SDKUnhook(iClient, SDKHook_WeaponSwitchPost, Client_WeaponSwitchPost);
+}
+
+public Action Client_Spawn(int iClient)
+{
+	Classes_SetClient(iClient);
+	
+	// Reset arms so generated weapons don't get the wrong viewmodel
+	ViewModel_ResetArms(iClient);
+	return Plugin_Continue;
 }
 
 public Action Client_PreThink(int iClient)
