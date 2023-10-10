@@ -23,6 +23,10 @@ void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 		SDKHook(iEntity, SDKHook_Think, CaptureArea_Think);
 		SDKHook(iEntity, SDKHook_ThinkPost, CaptureArea_Think);
 	}
+	else if (StrEqual(sClassname, "team_round_timer"))
+	{
+		SDKHook(iEntity, SDKHook_Spawn, Timer_Spawn);
+	}
 }
 
 void SDKHook_HookClient(int iClient)
@@ -428,5 +432,16 @@ public Action CaptureArea_Think(int iEntity)
 		if (IsClientInGame(iClient) && g_nNextInfected[iClient] == Infected_Tank)
 			TF2_RespawnPlayer2(iClient);	// Yes, force spawn now
 	
+	return Plugin_Continue;
+}
+
+public Action Timer_Spawn(int iTimer)
+{
+	int iDuration = g_cvZITimer.IntValue;
+	if (!IsMapZI() || iDuration == 0)
+		return Plugin_Continue;
+	
+	SetEntProp(iTimer, Prop_Send, "m_nTimerInitialLength", iDuration);
+	SetEntProp(iTimer, Prop_Send, "m_nTimerMaxLength", iDuration);
 	return Plugin_Continue;
 }

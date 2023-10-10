@@ -15,6 +15,9 @@ void ConVar_Init()
 	
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Force enable SZF for next map.", _, true, 0.0, true, 1.0);
 	g_cvRatio = CreateConVar("sm_szf_ratio", "0.78", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
+	g_cvZITimer = CreateConVar("sm_szf_zi_timer", "300", "Time in seconds for a round in ZI maps, 0 for map's own timer", _, true, 0.0);
+	g_cvGargoyleSpawnMin = CreateConVar("sm_szf_gargoyle_spawn_min", "40", "Min amount of time it takes to spawn all Gargoyle", _, true, 0.0);
+	g_cvGargoyleSpawnMax = CreateConVar("sm_szf_gargoyle_spawn_max", "180", "Max amount of time it takes to spawn all Gargoyle", _, true, 0.0);
 	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "400", "Amount of health the Tank gets per alive survivor", _, true, 10.0);
 	g_cvTankHealthMin = CreateConVar("sm_szf_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with", _, true, 0.0);
 	g_cvTankHealthMax = CreateConVar("sm_szf_tank_health_max", "6000", "Maximum amount of health the Tank can spawn with", _, true, 0.0);

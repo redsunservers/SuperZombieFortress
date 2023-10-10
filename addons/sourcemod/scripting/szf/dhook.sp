@@ -128,7 +128,11 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 		
 		if (IsZombie(iClient))
 		{
-			if (g_nInfected[iClient] == Infected_None)
+			if (g_nRoundState == SZFRoundState_Grace && IsMapZI())
+			{
+				flSpeed = 1.0;
+			}
+			else if (g_nInfected[iClient] == Infected_None)
 			{
 				//Movement speed increase
 				flSpeed += fMin(g_ClientClasses[iClient].flMaxSpree, g_ClientClasses[iClient].flSpree * g_iZombiesKilledSpree) + fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);

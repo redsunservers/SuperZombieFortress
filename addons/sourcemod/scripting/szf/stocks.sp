@@ -343,11 +343,23 @@ stock bool IsValidLivingZombie(int iClient)
 
 stock bool IsMapSZF()
 {
-	char sMap[8];
+	char sMap[PLATFORM_MAX_PATH];
 	GetCurrentMap(sMap, sizeof(sMap));
 	GetMapDisplayName(sMap, sMap, sizeof(sMap));
 	
 	if (StrContains(sMap, "zf_") == 0 || StrContains(sMap, "szf_") == 0)
+		return true;
+	
+	return false;
+}
+
+stock bool IsMapZI()
+{
+	char sMap[PLATFORM_MAX_PATH];
+	GetCurrentMap(sMap, sizeof(sMap));
+	GetMapDisplayName(sMap, sMap, sizeof(sMap));
+	
+	if (StrContains(sMap, "zi_") == 0)
 		return true;
 	
 	return false;
@@ -897,7 +909,7 @@ stock int GetClientPointVisible(int iClient, float flDistance = 100.0)
 	GetClientEyePosition(iClient, vecOrigin);
 	GetClientEyeAngles(iClient, vecAngles);
 	
-	Handle hTrace = TR_TraceRayFilterEx(vecOrigin, vecAngles, MASK_ALL, RayType_Infinite, Trace_DontHitEntity, iClient);
+	Handle hTrace = TR_TraceRayFilterEx(vecOrigin, vecAngles, MASK_SHOT, RayType_Infinite, Trace_DontHitEntity, iClient);
 	TR_GetEndPosition(vecEndOrigin, hTrace);
 	
 	int iReturn = -1;

@@ -45,7 +45,6 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
-	int iEntity = -1;
 	g_iAvailableRareCount = g_iMaxRareWeapons;
 	
 	delete g_aWeaponsCommon;
@@ -56,8 +55,17 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	g_aWeaponsUncommon = GetAllWeaponsWithRarity(WeaponRarity_Uncommon);
 	g_aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
 	
-	while ((iEntity = FindEntityByClassname(iEntity, "prop_dynamic")) != -1)
-		SetWeapon(iEntity);
+	if (IsMapZI())
+	{
+		Placement_Reset();
+		Placement_CreateSpawns();
+	}
+	else
+	{
+		int iEntity = INVALID_ENT_REFERENCE;
+		while ((iEntity = FindEntityByClassname(iEntity, "prop_dynamic")) != INVALID_ENT_REFERENCE)
+			SetWeapon(iEntity);
+	}
 	
 	return Plugin_Continue;
 }

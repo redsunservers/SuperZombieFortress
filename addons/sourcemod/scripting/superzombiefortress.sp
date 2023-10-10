@@ -135,6 +135,23 @@ enum SolidType_t
 	SOLID_LAST,
 };
 
+enum SolidFlags_t
+{
+	FSOLID_CUSTOMRAYTEST		= 0x0001,	// Ignore solid type + always call into the entity for ray tests
+	FSOLID_CUSTOMBOXTEST		= 0x0002,	// Ignore solid type + always call into the entity for swept box tests
+	FSOLID_NOT_SOLID			= 0x0004,	// Are we currently not solid?
+	FSOLID_TRIGGER				= 0x0008,	// This is something may be collideable but fires touch functions
+											// even when it's not collideable (when the FSOLID_NOT_SOLID flag is set)
+	FSOLID_NOT_STANDABLE		= 0x0010,	// You can't stand on this
+	FSOLID_VOLUME_CONTENTS		= 0x0020,	// Contains volumetric contents (like water)
+	FSOLID_FORCE_WORLD_ALIGNED	= 0x0040,	// Forces the collision rep to be world-aligned even if it's SOLID_BSP or SOLID_VPHYSICS
+	FSOLID_USE_TRIGGER_BOUNDS	= 0x0080,	// Uses a special trigger bounds separate from the normal OBB
+	FSOLID_ROOT_PARENT_ALIGNED	= 0x0100,	// Collisions are defined in root parent's local coordinate space
+	FSOLID_TRIGGER_TOUCH_DEBRIS	= 0x0200,	// This trigger will touch debris objects
+
+	FSOLID_MAX_BITS	= 10
+};
+
 // Spectator Movement modes
 enum
 {
@@ -376,7 +393,6 @@ int g_iZombiesKilledSpree;
 int g_iZombiesKilledSurvivor[MAXPLAYERS];
 
 //Client State
-int g_iMorale[MAXPLAYERS];
 int g_iHorde[MAXPLAYERS];
 int g_iCapturingPoint[MAXPLAYERS];
 int g_iRageTimer[MAXPLAYERS];
@@ -397,6 +413,9 @@ Handle g_hTimerProgress;
 //Cvar Handles
 ConVar g_cvForceOn;
 ConVar g_cvRatio;
+ConVar g_cvZITimer;
+ConVar g_cvGargoyleSpawnMin;
+ConVar g_cvGargoyleSpawnMax;
 ConVar g_cvTankHealth;
 ConVar g_cvTankHealthMin;
 ConVar g_cvTankHealthMax;
@@ -475,6 +494,7 @@ int g_iOffsetItemDefinitionIndex;
 #include "szf/dhook.sp"
 #include "szf/event.sp"
 #include "szf/forward.sp"
+#include "szf/gargoyle.sp"
 #include "szf/infected.sp"
 #include "szf/menu.sp"
 #include "szf/native.sp"
@@ -484,6 +504,7 @@ int g_iOffsetItemDefinitionIndex;
 #include "szf/stocks.sp"
 #include "szf/stun.sp"
 #include "szf/viewmodel.sp"
+#include "szf/weaponsplacement.sp"
 
 public Plugin myinfo =
 {
@@ -562,12 +583,28 @@ public void OnPluginStart()
 	Console_Init();
 	ConVar_Init();
 	Event_Init();
+	Gargoyle_Init();
 	Weapons_Init();
 	
 	//Incase of late-load
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 		if (IsClientInGame(iClient))
 			OnClientPutInServer(iClient);
+	
+	if (IsMapZI())
+	{
+		int iEntity = INVALID_ENT_REFERENCE;
+		while ((iEntity = FindEntityByClassname(iEntity, "*")) != INVALID_ENT_REFERENCE)
+		{
+			SetVariantString("AddThinkToEnt(this, null);");
+			AcceptEntityInput(iEntity, "RunScriptCode");
+			
+			AcceptEntityInput(iEntity, "TerminateScriptScope");	// TODO just infection scope
+		}
+		
+		SetVariantString("ClearGameEventCallbacks();");
+		AcceptEntityInput(0, "RunScriptCode");
+	}
 }
 
 public void OnLibraryAdded(const char[] sName)
@@ -632,7 +669,7 @@ public void OnClientCookiesCached(int iClient)
 
 public void OnConfigsExecuted()
 {
-	if (IsMapSZF() || g_cvForceOn.BoolValue)
+	if (IsMapSZF() || IsMapZI() || g_cvForceOn.BoolValue)
 	{
 		SZFEnable();
 		GetMapSettings();
@@ -650,6 +687,9 @@ public void OnMapEnd()
 
 void GetMapSettings()
 {
+	if (IsMapZI())
+		g_bSurvival = true;
+	
 	int iEntity = -1;
 	while ((iEntity = FindEntityByClassname(iEntity, "info_target")) != -1)
 	{
@@ -718,6 +758,9 @@ public void OnClientDisconnect(int iClient)
 
 public void OnEntityCreated(int iEntity, const char[] sClassname)
 {
+	if (StrEqual(sClassname, "logic_script") && IsMapZI())	// TODO only block the main infection script, don't want to block any other scripts, and plugin load midgame?
+		RemoveEntity(iEntity);
+	
 	if (!g_bEnabled)
 		return;
 	
@@ -840,6 +883,21 @@ void EndGracePeriod()
 	g_flTimeProgress = 0.0;
 	g_hTimerProgress = CreateTimer(6.0, Timer_Progress, _, TIMER_REPEAT);
 	
+	if (IsMapZI())
+	{
+		int iTimer = FindEntityByClassname(INVALID_ENT_REFERENCE, "team_round_timer");
+		if (iTimer != INVALID_ENT_REFERENCE)
+		{
+			float flDuration = float(GetEntProp(iTimer, Prop_Send, "m_nTimerInitialLength"));
+			CreateTimer(flDuration * 0.3, Placement_TimerCreateSpawns, 100);
+			CreateTimer(flDuration * 0.6, Placement_TimerCreateSpawns, 150);
+		}
+		
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
+			if (IsValidZombie(iClient))
+				TF2_AddCondition(iClient, TFCond_SpeedBuffAlly, 0.0);
+	}
+	
 	float flGameTime = GetGameTime();
 	int iSurvivors = GetSurvivorCount();
 	
@@ -880,10 +938,14 @@ public Action Timer_Main(Handle hTimer) //1 second
 	Handle_SurvivorAbilities();
 	Handle_ZombieAbilities();
 	UpdateZombieDamageScale();
+	
+	Gargoyle_Timer();
 	Sound_Timer();
 	
 	if (g_bZombieRage)
 		SetTeamRespawnTime(TFTeam_Zombie, 0.0);
+	else if (g_bSurvival)
+		SetTeamRespawnTime(TFTeam_Zombie, 3.0);
 	else
 		SetTeamRespawnTime(TFTeam_Zombie, fMax(6.0, 12.0 / fMax(0.6, g_flZombieDamageScale) - g_iZombiesKilledSpree * 0.02));
 	
@@ -1077,11 +1139,17 @@ void Handle_SurvivorAbilities()
 			//1. Survivor health regeneration.
 			int iHealth = GetClientHealth(iClient);
 			int iMaxHealth = SDKCall_GetMaxHealth(iClient);
-			if (iHealth < iMaxHealth && !TF2_IsPlayerInCondition(iClient, TFCond_Bleeding))	// No regen while in spitter bleed
+			if (iHealth < iMaxHealth)	// No regen while in spitter bleed
 			{
 				int iRegen = g_ClientClasses[iClient].iRegen;
 				
-				if (TF2_GetPlayerClass(iClient) == TFClass_Medic && TF2_IsEquipped(iClient, 36)) iRegen--;
+				if (TF2_GetPlayerClass(iClient) == TFClass_Medic && TF2_IsEquipped(iClient, 36))
+					iRegen--;
+				
+				// No regen if survival, or in spitter bleed
+				if (iRegen > 0 && (g_bSurvival || TF2_IsPlayerInCondition(iClient, TFCond_Bleeding)))
+					iRegen = 0;
+				
 				iRegen = min(iRegen, iMaxHealth - iHealth);
 				SetEntityHealth(iClient, iHealth + iRegen);
 				
@@ -1317,6 +1385,8 @@ void SZFEnable()
 	//Smoker beam
 	g_iSprite = PrecacheModel("materials/sprites/laser.vmt");
 	
+	Gargoyle_Precache();
+	
 	if (GameRules_GetRoundState() < RoundState_Preround)
 	{
 		g_nRoundState = SZFRoundState_Setup;
@@ -1392,7 +1462,6 @@ void SZFDisable()
 
 void ResetClientState(int iClient)
 {
-	g_iMorale[iClient] = 0;
 	g_iHorde[iClient] = 0;
 	g_iCapturingPoint[iClient] = -1;
 	g_iRageTimer[iClient] = 0;
@@ -1537,8 +1606,12 @@ void UpdateZombieDamageScale()
 	float flSurvivorPercentage = float(iSurvivors) / float(iSurvivors + iZombies);
 	g_flZombieDamageScale = (g_flZombieDamageScale * flSurvivorPercentage * 0.6) + 0.5;
 	
-	//Get the amount of zombies killed since last survivor death
-	g_flZombieDamageScale += g_iZombiesKilledSpree * 0.004;
+	//Scale based on gargoyle count in map
+	g_flZombieDamageScale += Gargoyle_GetScaling();
+	
+	//Increase by amount of zombies killed since last survivor death
+	if (!g_bSurvival)
+		g_flZombieDamageScale += g_iZombiesKilledSpree * 0.004;
 	
 	//Zombie rage increases damage
 	if (g_bZombieRage)
@@ -1558,8 +1631,8 @@ void UpdateZombieDamageScale()
 	if (g_flZombieDamageScale > 3.0)
 		g_flZombieDamageScale = 3.0;
 	
-	//Not survival, no rage and no active tank
-	if (!g_bSurvival && !g_bZombieRage && !ZombiesTankComing() && !ZombiesHaveTank())
+	//No rage and no active tank
+	if (!g_bZombieRage && !ZombiesTankComing() && !ZombiesHaveTank())
 	{
 		float flGameTime = GetGameTime();
 
