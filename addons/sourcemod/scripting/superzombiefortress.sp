@@ -1455,7 +1455,7 @@ void CheckZombieBypass(int iClient)
 		g_bForceZombieStart[iClient] = true;
 		
 		char sAuthId[64];
-		GetClientAuthId(iClient, AuthId_Engine, sAuthId, sizeof(sAuthId));
+		GetClientAuthId(iClient, AuthId_Steam2, sAuthId, sizeof(sAuthId));
 		
 		ArrayStack aStack = new ArrayStack(64);
 		aStack.PushString(sAuthId);
