@@ -709,7 +709,7 @@ public void OnClientDisconnect(int iClient)
 	if (!g_bEnabled)
 		return;
 	
-	RequestFrame(CheckZombieBypass, iClient);
+	CheckZombieBypass(iClient);
 	
 	Sound_EndMusic(iClient);
 	DropCarryingItem(iClient);
@@ -1437,9 +1437,10 @@ void SetGlow()
 	}
 }
 
-public void Frame_CheckZombieBypass(int iClient)
+void Frame_CheckZombieBypass(int iSerial)
 {
-	if (GetClientTeam(iClient) <= 1)
+	int iClient = GetClientFromSerial(iSerial);
+	if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
 		CheckZombieBypass(iClient);
 }
 
@@ -1450,13 +1451,32 @@ void CheckZombieBypass(int iClient)
 	
 	//4 Checks
 	if ((g_flTimeStartAsZombie[iClient] != 0.0)						//Check if client is currently playing as zombie (if it 0.0, it means he have not played as zombie yet this round)
-		&& (g_flTimeStartAsZombie[iClient] > GetGameTime() - 90.0)	//Check if client have been playing zombie less than 90 seconds
-		&& (float(iZombies) / float(iSurvivors + iZombies) <= 0.6)	//Check if less than 60% of players is zombie
+		&& (g_flTimeStartAsZombie[iClient] > GetGameTime() - 60.0)	//Check if client have been playing zombie less than 60 seconds
+		&& (float(iZombies) / float(iSurvivors + iZombies) <= 0.5)	//Check if less than 50% of players is zombie
 		&& (g_nRoundState != SZFRoundState_End))								//Check if round did not end or map changing
 	{
 		g_bForceZombieStart[iClient] = true;
-		SetClientCookie(iClient, g_cForceZombieStart, "1");
+		
+		char sAuthId[64];
+		GetClientAuthId(iClient, AuthId_Steam2, sAuthId, sizeof(sAuthId));
+		
+		ArrayStack aStack = new ArrayStack(64);
+		aStack.PushString(sAuthId);
+		RequestFrame(Frame_SetForceZombieStart, aStack);
 	}
+}
+
+void Frame_SetForceZombieStart(ArrayStack aStack)
+{
+	char sAuthId[64];
+	aStack.PopString(sAuthId, sizeof(sAuthId));
+	delete aStack;
+	
+	// Check that round is still ongoing, client may've force disconnected from mapchange
+	if (g_nRoundState == SZFRoundState_Setup || g_nRoundState == SZFRoundState_End)
+		return;
+	
+	g_cForceZombieStart.SetByAuthId(sAuthId, "1");
 }
 
 int GetRoundPlayedAsZombie(int iClient)
