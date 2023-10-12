@@ -381,9 +381,11 @@ int g_iHorde[MAXPLAYERS];
 int g_iCapturingPoint[MAXPLAYERS];
 int g_iRageTimer[MAXPLAYERS];
 
-bool g_bStartedAsZombie[MAXPLAYERS];
 float g_flStopChatSpam[MAXPLAYERS];
 bool g_bWaitingForTeamSwitch[MAXPLAYERS];
+
+StringMap g_mRoundPlayedAsZombie;
+int g_iRoundPlayedCount;
 
 int g_iSprite; //Smoker beam
 
@@ -865,6 +867,7 @@ public void Frame_PostGracePeriodSpawn(int iClient)
 	}
 	
 	g_bWaitingForTeamSwitch[iClient] = false;
+	SetClientStartedAsZombie(iClient);	// Client pretty much will play a whole round as zombie
 }
 
 ////////////////////////////////////////////////////////////
@@ -1474,6 +1477,54 @@ void Frame_SetForceZombieStart(ArrayStack aStack)
 		return;
 	
 	g_cForceZombieStart.SetByAuthId(sAuthId, "1");
+}
+
+int GetRoundPlayedAsZombie(int iClient)
+{
+	if (!g_mRoundPlayedAsZombie)
+		return 0;
+	
+	char sSteamId[64];
+	if (IsFakeClient(iClient))
+		IntToString(GetClientUserId(iClient), sSteamId, sizeof(sSteamId));
+	else
+		GetClientAuthId(iClient, AuthId_SteamID64, sSteamId, sizeof(sSteamId));
+	
+	int iValue;
+	g_mRoundPlayedAsZombie.GetValue(sSteamId, iValue);
+	return iValue;
+}
+
+void SetClientStartedAsZombie(int iClient)
+{
+	if (!g_mRoundPlayedAsZombie)
+		g_mRoundPlayedAsZombie = new StringMap();
+	
+	char sSteamId[64];
+	if (IsFakeClient(iClient))
+		IntToString(GetClientUserId(iClient), sSteamId, sizeof(sSteamId));
+	else
+		GetClientAuthId(iClient, AuthId_SteamID64, sSteamId, sizeof(sSteamId));
+	
+	g_mRoundPlayedAsZombie.SetValue(sSteamId, g_iRoundPlayedCount);
+}
+
+bool ClientStartedAsZombie(int iClient)
+{
+	return GetRoundPlayedAsZombie(iClient) == g_iRoundPlayedCount;
+}
+
+int Sort_LastPlayedZombie(int iClient1, int iClient2, const int[] iClients, Handle hData)
+{
+	int iRound1 = GetRoundPlayedAsZombie(iClient1);
+	int iRound2 = GetRoundPlayedAsZombie(iClient2);
+	
+	if (iRound1 > iRound2)
+		return -1;
+	else if (iRound1 < iRound2)
+		return 1;
+	else
+		return 0;
 }
 
 void UpdateZombieDamageScale()

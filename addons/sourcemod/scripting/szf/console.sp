@@ -65,7 +65,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 			}
 			
 			//...as a spectator who didn't start as an infected, set them as infected after grace period ends, after warning them.
-			if (nTeam <= TFTeam_Spectator && !g_bStartedAsZombie[iClient])
+			if (nTeam <= TFTeam_Spectator && !ClientStartedAsZombie(iClient))
 			{
 				if (!g_bWaitingForTeamSwitch[iClient])
 				{
@@ -100,7 +100,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 			if (nTeam <= TFTeam_Spectator && !g_bWaitingForTeamSwitch[iClient])
 			{
 				//However, if they started as infected, they can spawn as infected again, normally.
-				if (g_bStartedAsZombie[iClient])
+				if (ClientStartedAsZombie(iClient))
 				{
 					TF2_ChangeClientTeam(iClient, TFTeam_Zombie);
 					ShowVGUIPanel(iClient, sZomVgui);
