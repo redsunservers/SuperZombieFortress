@@ -335,6 +335,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	}
 	
 	g_nRoundState = SZFRoundState_Grace;
+	g_iRoundPlayedCount++;
 	
 	CPrintToChatAll("%t", "Grace_Start", "{green}");
 	
@@ -356,8 +357,8 @@ public MRESReturn DHook_RoundRespawnPre()
 		}
 	}
 	
-	//Randomize, sort players
-	SortIntegers(iClients, iLength, Sort_Random);
+	SortIntegers(iClients, iLength, Sort_Random);	//Randomize player list
+	SortCustom1D(iClients, iLength, Sort_LastPlayedZombie);	//Order by round last played as zombie
 	
 	//Calculate team counts. At least one survivor must exist.
 	iSurvivorCount = RoundToFloor(iLength * g_cvRatio.FloatValue);
@@ -376,37 +377,21 @@ public MRESReturn DHook_RoundRespawnPre()
 		{
 			Action action = Forward_ShouldStartZombie(iClient);
 			
-			if (action == Plugin_Handled)
+			if (action == Plugin_Handled || g_bForceZombieStart[iClient])
 			{
-				//Zombie
-				SpawnClient(iClient, TFTeam_Zombie, false);
-				nClientTeam[iClient] = TFTeam_Zombie;
-				g_bStartedAsZombie[iClient] = true;
-				g_flTimeStartAsZombie[iClient] = GetGameTime();
-			}
-			else if (g_bForceZombieStart[iClient])
-			{
-				//If they attempted to skip playing as zombie last time, force him to be in zombie team
-				CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}");
-				g_bForceZombieStart[iClient] = false;
-				SetClientCookie(iClient, g_cForceZombieStart, "0");
+				if (action != Plugin_Handled)
+				{
+					//If they attempted to skip playing as zombie last time, force him to be in zombie team
+					CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}");
+					g_bForceZombieStart[iClient] = false;
+					SetClientCookie(iClient, g_cForceZombieStart, "0");
+				}
 				
 				//Zombie
 				SpawnClient(iClient, TFTeam_Zombie, false);
 				nClientTeam[iClient] = TFTeam_Zombie;
-				g_bStartedAsZombie[iClient] = true;
 				g_flTimeStartAsZombie[iClient] = GetGameTime();
-			}
-			else if (g_bStartedAsZombie[iClient])
-			{
-				//Players who started as zombie last time is forced to be survivors
-				
-				//Survivor
-				SpawnClient(iClient, TFTeam_Survivor, false);
-				nClientTeam[iClient] = TFTeam_Survivor;
-				g_bStartedAsZombie[iClient] = false;
-				g_iStartSurvivors++;
-				iSurvivorCount--;
+				SetClientStartedAsZombie(iClient);
 			}
 		}
 	}
@@ -424,7 +409,6 @@ public MRESReturn DHook_RoundRespawnPre()
 				//Survivor
 				SpawnClient(iClient, TFTeam_Survivor, false);
 				nClientTeam[iClient] = TFTeam_Survivor;
-				g_bStartedAsZombie[iClient] = false;
 				g_iStartSurvivors++;
 				iSurvivorCount--;
 			}
@@ -433,8 +417,8 @@ public MRESReturn DHook_RoundRespawnPre()
 				//Zombie
 				SpawnClient(iClient, TFTeam_Zombie, false);
 				nClientTeam[iClient] = TFTeam_Zombie;
-				g_bStartedAsZombie[iClient] = true;
 				g_flTimeStartAsZombie[iClient] = GetGameTime();
+				SetClientStartedAsZombie(iClient);
 			}
 		}
 	}
