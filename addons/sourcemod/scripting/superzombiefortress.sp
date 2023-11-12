@@ -801,9 +801,9 @@ public Action TF2_OnIsHolidayActive(TFHoliday nHoliday, bool &bResult)
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
-	//Force enable full moon to allow zombie voodoo soul to work
-	//Shouldnt use TFHoliday_Halloween because of souls and halloween taunt
-	if (nHoliday == TFHoliday_FullMoon || nHoliday == TFHoliday_HalloweenOrFullMoon || nHoliday == TFHoliday_HalloweenOrFullMoonOrValentines)
+	//Force enable a holiday to allow zombie voodoo soul to work
+	//Shouldnt touch any other holidays as it may affect unneeded changes
+	if (nHoliday == TFHoliday_HalloweenOrFullMoon)
 	{
 		bResult = true;
 		return Plugin_Changed;
