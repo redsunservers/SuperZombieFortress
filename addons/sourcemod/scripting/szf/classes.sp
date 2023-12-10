@@ -110,7 +110,7 @@ bool Classes_LoadTeam(KeyValues kv, const char[] sKey, ClientClasses classes[vie
 	}
 	
 	//Clear classes and set default value
-	for (int i; i < sizeof(classes); i++)
+	for (int i = 1; i < sizeof(classes); i++)
 	{
 		delete classes[i].aWeapons;
 		classes[i] = class;
