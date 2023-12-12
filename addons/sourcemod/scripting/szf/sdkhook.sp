@@ -338,13 +338,14 @@ public Action Pickup_SandvichTouch(int iEntity, int iToucher)
 	return Plugin_Continue;
 }
 
-public void Timer_ResetLunchboxesTouched(Handle hTimer, int iUserId)
+public Action Timer_ResetLunchboxesTouched(Handle hTimer, int iUserId)
 {
 	int iClient = GetClientOfUserId(iUserId);
 	if (iClient == 0)
-		return;
+		return Plugin_Continue;
 	
 	g_nLunchboxesTouched[iClient]--;
+	return Plugin_Continue;
 }
 
 public Action Pickup_BananaTouch(int iEntity, int iToucher)
