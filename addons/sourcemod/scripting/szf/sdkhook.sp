@@ -1,5 +1,6 @@
 static int g_iOffsetDisguiseCompleteTime;
 static float g_flDisguiseCompleteTime;
+static int g_nLunchboxesTouched[MAXPLAYERS + 1];
 
 void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 {
@@ -34,6 +35,8 @@ void SDKHook_HookClient(int iClient)
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	SDKHook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
 	SDKHook(iClient, SDKHook_WeaponSwitchPost, Client_WeaponSwitchPost);
+	
+	g_nLunchboxesTouched[iClient] = 0;
 }
 
 void SDKHook_UnhookClient(int iClient)
@@ -324,12 +327,24 @@ public Action Pickup_SandvichTouch(int iEntity, int iToucher)
 	{
 		//Kill it and deal damage
 		RemoveEntity(iEntity);
-		DealDamage(iOwner, iToucher, 55.0);
+		
+		//Make stacking less effective
+		DealDamage(iOwner, iToucher, 50.0 / float(++g_nLunchboxesTouched[iToucher]));
+		CreateTimer(1.0, Timer_ResetLunchboxesTouched, GetClientUserId(iToucher));
 		
 		return Plugin_Handled;
 	}
 	
 	return Plugin_Continue;
+}
+
+public void Timer_ResetLunchboxesTouched(Handle hTimer, int iUserId)
+{
+	int iClient = GetClientOfUserId(iUserId);
+	if (iClient == 0)
+		return;
+	
+	g_nLunchboxesTouched[iClient]--;
 }
 
 public Action Pickup_BananaTouch(int iEntity, int iToucher)
