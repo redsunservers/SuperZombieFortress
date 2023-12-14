@@ -175,7 +175,7 @@ public void Infected_DoTankThrow(int iClient)
 	SetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity", iClient);
 	SetEntProp(iDebris, Prop_Data, "m_spawnflags", SF_PHYSPROP_START_ASLEEP|SF_PHYSPROP_MOTIONDISABLED);
 	SetEntProp(iDebris, Prop_Data, "m_takedamage", DAMAGE_NO);
-	SetEntProp(iDebris, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_PLAYER);
+	SetEntityCollisionGroup(iDebris, COLLISION_GROUP_PLAYER);
 	SetEntProp(iDebris, Prop_Send, "m_iTeamNum", GetClientTeam(iClient));
 	
 	int iBonemerge = CreateBonemerge(iClient, "debris");
