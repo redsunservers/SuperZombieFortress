@@ -1,6 +1,6 @@
 static int g_iOffsetDisguiseCompleteTime;
 static float g_flDisguiseCompleteTime;
-static int g_nLunchboxesTouched[MAXPLAYERS + 1];
+static bool g_bLunchboxTouched[MAXPLAYERS + 1];
 
 void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 {
@@ -36,7 +36,7 @@ void SDKHook_HookClient(int iClient)
 	SDKHook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
 	SDKHook(iClient, SDKHook_WeaponSwitchPost, Client_WeaponSwitchPost);
 	
-	g_nLunchboxesTouched[iClient] = 0;
+	g_bLunchboxTouched[iClient] = false;
 }
 
 void SDKHook_UnhookClient(int iClient)
@@ -323,14 +323,18 @@ public Action Pickup_SandvichTouch(int iEntity, int iToucher)
 	if (iOwner == iToucher || g_nInfected[iToucher] == Infected_Tank)
 		return Plugin_Handled;
 	
+	//Don't stack lunchbox damages
+	if (g_bLunchboxTouched[iToucher])
+		return Plugin_Handled;
+	
 	if (IsSurvivor(iToucher))
 	{
 		//Kill it and deal damage
 		RemoveEntity(iEntity);
+		DealDamage(iOwner, iToucher, 55.0);
 		
-		//Make stacking less effective
-		DealDamage(iOwner, iToucher, 50.0 / float(++g_nLunchboxesTouched[iToucher]));
-		CreateTimer(1.0, Timer_ResetLunchboxesTouched, GetClientUserId(iToucher));
+		g_bLunchboxTouched[iToucher] = true;
+		CreateTimer(2.0, Timer_ResetLunchboxTouched, GetClientUserId(iToucher));
 		
 		return Plugin_Handled;
 	}
@@ -338,13 +342,13 @@ public Action Pickup_SandvichTouch(int iEntity, int iToucher)
 	return Plugin_Continue;
 }
 
-public Action Timer_ResetLunchboxesTouched(Handle hTimer, int iUserId)
+public Action Timer_ResetLunchboxTouched(Handle hTimer, int iUserId)
 {
 	int iClient = GetClientOfUserId(iUserId);
 	if (iClient == 0)
 		return Plugin_Continue;
 	
-	g_nLunchboxesTouched[iClient]--;
+	g_bLunchboxTouched[iClient] = false;
 	return Plugin_Continue;
 }
 
@@ -358,6 +362,10 @@ public Action Pickup_BananaTouch(int iEntity, int iToucher)
 	if (g_nInfected[iToucher] == Infected_Tank)
 		return Plugin_Handled;
 	
+	//Don't stack lunchbox damages
+	if (g_bLunchboxTouched[iToucher])
+		return Plugin_Handled;
+	
 	if (IsSurvivor(iToucher))
 	{
 		int iOwner = GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity");
@@ -365,6 +373,9 @@ public Action Pickup_BananaTouch(int iEntity, int iToucher)
 		//Kill it and deal damage
 		RemoveEntity(iEntity);
 		DealDamage(iOwner, iToucher, 30.0);
+		
+		g_bLunchboxTouched[iToucher] = true;
+		CreateTimer(1.0, Timer_ResetLunchboxTouched, GetClientUserId(iToucher));
 		
 		return Plugin_Handled;
 	}
