@@ -249,10 +249,41 @@ public Action Infected_DebrisStartTouch(int iDebris, int iToucher)
 	return Plugin_Continue;
 }
 
+public void Infected_OnTankThink(int iClient)
+{
+	if (!IsPlayerAlive(iClient))
+		return;
+	
+	// Force tank to block any CP being captured
+	int iTrigger = INVALID_ENT_REFERENCE;
+	while ((iTrigger = FindEntityByClassname(iTrigger, "trigger_capture_area")) != INVALID_ENT_REFERENCE)
+	{
+		static int iOffset = -1;
+		if (iOffset == -1)
+			iOffset = FindDataMapInfo(iTrigger, "m_flCapTime");
+		
+		TFTeam nCapturingTeam = view_as<TFTeam>(GetEntData(iTrigger, iOffset - 12));	// m_nCapturingTeam
+		float flTimeRemaining = GetEntDataFloat(iTrigger, iOffset + 4);	// m_fTimeRemaining
+		
+		if (nCapturingTeam != TFTeam_Survivor || flTimeRemaining == 0.0)
+			continue;
+		
+		// Filter usually have red-team only, we want tank to bypass the filter
+		int iFilter = GetEntPropEnt(iTrigger, Prop_Data, "m_hFilter");
+		SetEntPropEnt(iTrigger, Prop_Data, "m_hFilter", INVALID_ENT_REFERENCE);
+		AcceptEntityInput(iTrigger, "StartTouch", iClient, iClient);
+		SetEntPropEnt(iTrigger, Prop_Data, "m_hFilter", iFilter);
+	}
+}
+
 public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 {
 	g_hTimerTank[iVictim] = null;
 	g_iDamageZombie[iVictim] = 0;
+	
+	int iTrigger = INVALID_ENT_REFERENCE;
+	while ((iTrigger = FindEntityByClassname(iTrigger, "trigger_capture_area")) != INVALID_ENT_REFERENCE)
+		AcceptEntityInput(iTrigger, "EndTouch", iVictim, iVictim);
 	
 	if (0 < iKiller <= MaxClients && IsClientInGame(iKiller))
 	{

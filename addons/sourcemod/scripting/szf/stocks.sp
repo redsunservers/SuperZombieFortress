@@ -365,7 +365,7 @@ stock void FireRelay(const char[] sInput, const char[] sTargetName1, const char[
 	}
 }
 
-stock int GetTriggerCapturePointIndex(int iTrigger)
+stock int GetCapturePointFromTrigger(int iTrigger)
 {
 	char sTriggerName[128];
 	GetEntPropString(iTrigger, Prop_Data, "m_iszCapPointName", sTriggerName, sizeof(sTriggerName));	//Get trigger cap name
@@ -376,7 +376,7 @@ stock int GetTriggerCapturePointIndex(int iTrigger)
 		char sPointName[128];
 		GetEntPropString(iCP, Prop_Data, "m_iName", sPointName, sizeof(sPointName));
 		if (strcmp(sPointName, sTriggerName, false) == 0)	//Check if trigger cap is the same as team_control_point
-			return GetEntProp(iCP, Prop_Data, "m_iPointIndex");	//Get his index
+			return iCP;	//Get his index
 	}
 	
 	return -1;
