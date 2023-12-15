@@ -31,14 +31,11 @@ static int g_iTankHealthSubtract[MAXPLAYERS];
 
 public void Infected_OnTankSpawn(int iClient)
 {
-	if (g_flTankLifetime[iClient] < GetGameTime() - 0.5)	//Prevent multiple announces from spawnroom
-	{
-		//TAAAAANK
-		CPrintToChatAll("%t", "Tank_Spawn", "{red}");
-		Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
-		
-		g_iTanksSpawned++;
-	}
+	//TAAAAANK
+	CPrintToChatAll("%t", "Tank_Spawn", "{red}");
+	Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
+	
+	g_iTanksSpawned++;
 	
 	g_hTimerTank[iClient] = CreateTimer(1.0, Infected_TankTimer, GetClientSerial(iClient), TIMER_REPEAT);
 	g_flTankLifetime[iClient] = GetGameTime();

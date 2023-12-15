@@ -158,6 +158,9 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 	
 	if (IsZombie(iClient))
 	{
+		if (g_nInfected[iClient] != Infected_None)
+			return Plugin_Handled;
+		
 		//Check if the player selected a valid zombie class
 		if (IsValidZombieClass(TF2_GetClass(sArg)))
 		{
