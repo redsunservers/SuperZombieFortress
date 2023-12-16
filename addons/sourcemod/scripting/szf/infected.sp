@@ -867,7 +867,7 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			g_iJockeyTarget[iClient] = 0;
 			
 			SetEntityMoveType(iClient, MOVETYPE_WALK);
-			SetEntProp(iClient, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_PLAYER);
+			SetEntityCollisionGroup(iClient, COLLISION_GROUP_PLAYER);
 		}
 	}
 }
@@ -891,7 +891,7 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 	Shake(iToucher, 3.0, 3.0);
 	
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
-	SetEntProp(iClient, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_DEBRIS_TRIGGER);
+	SetEntityCollisionGroup(iClient, COLLISION_GROUP_DEBRIS_TRIGGER);
 	SDKCall_PlaySpecificSequence(iClient, "jockey_ride");
 }
 
