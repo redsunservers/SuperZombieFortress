@@ -154,7 +154,6 @@ stock void AddModelToDownloadsTable(const char[] sModel)
 		"dx90.vtx",
 		"mdl",
 		"phy",
-		"sw.vtx",
 		"vvd",
 	};
 	
