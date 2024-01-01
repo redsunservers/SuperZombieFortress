@@ -28,6 +28,7 @@ public void Infected_DoNoRage(int iClient)
 static Handle g_hTimerTank[MAXPLAYERS];
 static float g_flTankLifetime[MAXPLAYERS];
 static int g_iTankHealthSubtract[MAXPLAYERS];
+static int g_iTankDebris[MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
 
 public void Infected_OnTankSpawn(int iClient)
 {
@@ -39,6 +40,7 @@ public void Infected_OnTankSpawn(int iClient)
 	
 	g_hTimerTank[iClient] = CreateTimer(1.0, Infected_TankTimer, GetClientSerial(iClient), TIMER_REPEAT);
 	g_flTankLifetime[iClient] = GetGameTime();
+	g_iTankDebris[iClient] = INVALID_ENT_REFERENCE;
 	
 	int iSurvivors = GetSurvivorCount();
 	int iHealth = g_cvTankHealth.IntValue * iSurvivors;
@@ -193,13 +195,29 @@ public void Infected_DoTankThrow(int iClient)
 	
 	SetEntPropFloat(iDebris, Prop_Data, "m_impactEnergyScale", 0.0);	//After DispatchSpawn, otherwise 1 would be set
 	
-	CreateTimer(flThrow, Infected_DebrisTimer, EntIndexToEntRef(iDebris));
+	g_iTankDebris[iClient] = EntIndexToEntRef(iDebris);
+	
+	CreateTimer(flThrow, Infected_DebrisTimer, GetClientSerial(iClient));
 }
 
-public Action Infected_DebrisTimer(Handle hTimer, int iDebris)
+public Action Infected_DebrisTimer(Handle hTimer, int iSerial)
 {
-	if (!IsValidEntity(iDebris))
+	int iClient = GetClientFromSerial(iSerial);
+	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient))
 		return Plugin_Continue;
+	
+	Infected_ActivateDebris(iClient, true);
+	
+	return Plugin_Continue;
+}
+
+void Infected_ActivateDebris(int iClient, bool bVel)
+{
+	int iDebris = g_iTankDebris[iClient];
+	g_iTankDebris[iClient] = INVALID_ENT_REFERENCE;
+	
+	if (!IsValidEntity(iDebris))
+		return;
 	
 	AcceptEntityInput(iDebris, "ClearParent");
 	AcceptEntityInput(iDebris, "EnableMotion");
@@ -209,18 +227,15 @@ public Action Infected_DebrisTimer(Handle hTimer, int iDebris)
 	if (iBonemerge != INVALID_ENT_REFERENCE && IsClassname(iBonemerge, "tf_taunt_prop"))
 		RemoveEntity(iBonemerge);
 	
-	int iClient = GetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity");
-	if (!IsValidClient(iClient))
-		return Plugin_Continue;
-	
 	SDKHook(iDebris, SDKHook_StartTouch, Infected_DebrisStartTouch);
 	
-	float vecAngles[3], vecVel[3];
-	GetClientEyeAngles(iClient, vecAngles);
-	AnglesToVelocity(vecAngles, vecVel, 2000.0);
-	TeleportEntity(iDebris, NULL_VECTOR, NULL_VECTOR, vecVel);
-	
-	return Plugin_Continue;
+	if (bVel)
+	{
+		float vecAngles[3], vecVel[3];
+		GetClientEyeAngles(iClient, vecAngles);
+		AnglesToVelocity(vecAngles, vecVel, 2000.0);
+		TeleportEntity(iDebris, NULL_VECTOR, NULL_VECTOR, vecVel);
+	}
 }
 
 public Action Infected_DebrisTimerEnd(Handle hTimer, int iSerial)
@@ -288,6 +303,8 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 {
 	g_hTimerTank[iVictim] = null;
 	g_iDamageZombie[iVictim] = 0;
+	
+	Infected_ActivateDebris(iVictim, false);	// Drop debris if tank were to hold one
 	
 	int iTrigger = INVALID_ENT_REFERENCE;
 	while ((iTrigger = FindEntityByClassname(iTrigger, "trigger_capture_area")) != INVALID_ENT_REFERENCE)
