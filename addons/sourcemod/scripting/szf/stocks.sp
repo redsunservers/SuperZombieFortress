@@ -375,10 +375,10 @@ stock int GetCapturePointFromTrigger(int iTrigger)
 		char sPointName[128];
 		GetEntPropString(iCP, Prop_Data, "m_iName", sPointName, sizeof(sPointName));
 		if (strcmp(sPointName, sTriggerName, false) == 0)	//Check if trigger cap is the same as team_control_point
-			return iCP;	//Get his index
+			return iCP;
 	}
 	
-	return -1;
+	return INVALID_ENT_REFERENCE;
 }
 
 ////////////////

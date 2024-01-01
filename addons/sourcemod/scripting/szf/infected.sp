@@ -264,8 +264,16 @@ public void Infected_OnTankThink(int iClient)
 		
 		TFTeam nCapturingTeam = view_as<TFTeam>(GetEntData(iTrigger, iOffset - 12));	// m_nCapturingTeam
 		float flTimeRemaining = GetEntDataFloat(iTrigger, iOffset + 4);	// m_fTimeRemaining
-		
 		if (nCapturingTeam != TFTeam_Survivor || flTimeRemaining == 0.0)
+			continue;
+		
+		// Stop blocking CP if survivor captures has expired, as otherwise Tank would keep hogging the capture progress
+		int iCP = GetCapturePointFromTrigger(iTrigger);
+		int iIndex = GetEntProp(iCP, Prop_Data, "m_iPointIndex");
+		int iResource = FindEntityByClassname(INVALID_ENT_REFERENCE, "tf_objective_resource");
+		int iRequiredCappers = GetEntProp(iResource, Prop_Send, "m_iTeamReqCappers", _, (iIndex + (view_as<int>(TFTeam_Survivor) * MAX_CONTROL_POINTS)));
+		float flTimeToCap = GetEntPropFloat(iTrigger, Prop_Data, "m_flCapTime") * 2.0 * float(iRequiredCappers);
+		if (flTimeToCap < flTimeRemaining)
 			continue;
 		
 		// Filter usually have red-team only, we want tank to bypass the filter

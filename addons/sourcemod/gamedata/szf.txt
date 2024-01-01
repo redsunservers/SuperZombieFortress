@@ -42,7 +42,17 @@
 		}
 		"Offsets"
 		{
-			"CTeamplayRoundBasedRules::SetWinningTeam"
+			"CTeamplayRules::GetCaptureValueForPlayer"
+			{
+				"linux"		"158"
+				"windows"	"157"
+			}
+			"CTeamplayRules::TeamMayCapturePoint"
+			{
+				"linux"		"159"
+				"windows"	"158"
+			}
+			"CTeamplayRules::SetWinningTeam"
 			{
 				"linux"		"165"
 				"windows"	"164"
@@ -51,11 +61,6 @@
 			{
 				"linux"		"231"
 				"windows"	"229"
-			}
-			"CTFGameRules::GetCaptureValueForPlayer"
-			{
-				"linux"		"158"
-				"windows"	"157"
 			}
 			"CTFPlayer::GiveNamedItem"
 			{
@@ -121,9 +126,41 @@
 					}
 				}
 			}
-			"CTeamplayRoundBasedRules::SetWinningTeam"
+			"CTeamplayRules::GetCaptureValueForPlayer"
 			{
-				"offset"	"CTeamplayRoundBasedRules::SetWinningTeam"
+				"offset"	"CTeamplayRules::GetCaptureValueForPlayer"
+				"hooktype"	"gamerules"
+				"return"	"int"
+				"this"		"ignore"
+				"arguments"
+				{
+					"pPlayer"
+					{
+						"type"	"cbaseentity"
+					}
+				}
+			}
+			"CTeamplayRules::TeamMayCapturePoint"
+			{
+				"offset"	"CTeamplayRules::TeamMayCapturePoint"
+				"hooktype"	"gamerules"
+				"return"	"bool"
+				"this"		"ignore"
+				"arguments"
+				{
+					"iTeam"
+					{
+						"type"	"int"
+					}
+					"iPointIndex"
+					{
+						"type"	"int"
+					}
+				}
+			}
+			"CTeamplayRules::SetWinningTeam"
+			{
+				"offset"	"CTeamplayRules::SetWinningTeam"
 				"hooktype"	"gamerules"
 				"return"	"void"
 				"this"		"ignore"
@@ -161,20 +198,6 @@
 				"hooktype"	"gamerules"
 				"return"	"void"
 				"this"		"ignore"
-			}
-			"CTFGameRules::GetCaptureValueForPlayer"
-			{
-				"offset"	"CTFGameRules::GetCaptureValueForPlayer"
-				"hooktype"	"gamerules"
-				"return"	"int"
-				"this"		"ignore"
-				"arguments"
-				{
-					"pPlayer"
-					{
-						"type"	"cbaseentity"
-					}
-				}
 			}
 			"CTFPlayer::GiveNamedItem"
 			{

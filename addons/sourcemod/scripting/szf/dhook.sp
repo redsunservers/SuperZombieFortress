@@ -8,9 +8,10 @@ enum struct Detour
 
 static ArrayList g_aDHookDetours;
 
+static DynamicHook g_hDHookGetCaptureValueForPlayer;
+static DynamicHook g_hDHookTeamMayCapturePoint;
 static DynamicHook g_hDHookSetWinningTeam;
 static DynamicHook g_hDHookRoundRespawn;
-static DynamicHook g_hDHookGetCaptureValueForPlayer;
 static DynamicHook g_hDHookGiveNamedItem;
 
 static TFTeam g_iOldClientTeam[MAXPLAYERS];
@@ -24,9 +25,10 @@ void DHook_Init(GameData hSZF)
 	DHook_CreateDetour(hSZF, "CTFPlayer::TeamFortress_CalculateMaxSpeed", _, DHook_CalculateMaxSpeedPost);
 	DHook_CreateDetour(hSZF, "CTFWeaponBaseMelee::DoSwingTraceInternal", DHook_DoSwingTraceInternalPre, DHook_DoSwingTraceInternalPost);
 	
-	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
+	g_hDHookGetCaptureValueForPlayer = DHook_CreateVirtual(hSZF, "CTeamplayRules::GetCaptureValueForPlayer");
+	g_hDHookTeamMayCapturePoint = DHook_CreateVirtual(hSZF, "CTeamplayRules::TeamMayCapturePoint");
+	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
-	g_hDHookGetCaptureValueForPlayer = DHook_CreateVirtual(hSZF, "CTFGameRules::GetCaptureValueForPlayer");
 	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
 }
 
@@ -97,9 +99,10 @@ void DHook_Enable()
 				LogError("Failed to enable post detour: %s", detour.sName);
 	}
 	
+	g_hDHookGetCaptureValueForPlayer.HookGamerules(Hook_Post, DHook_GetCaptureValueForPlayerPost);
+	g_hDHookTeamMayCapturePoint.HookGamerules(Hook_Post, DHook_TeamMayCapturePointPost);
 	g_hDHookSetWinningTeam.HookGamerules(Hook_Pre, DHook_SetWinningTeamPre);
 	g_hDHookRoundRespawn.HookGamerules(Hook_Pre, DHook_RoundRespawnPre);
-	g_hDHookGetCaptureValueForPlayer.HookGamerules(Hook_Post, DHook_GetCaptureValueForPlayerPost);
 }
 
 void DHook_Disable()
@@ -300,6 +303,38 @@ public void DHook_OnGiveNamedItemRemoved(int iHookId)
 	}
 }
 
+public MRESReturn DHook_GetCaptureValueForPlayerPost(DHookReturn hReturn, DHookParam hParams)
+{
+	int iClient = hParams.Get(1);
+	
+	if (TF2_GetPlayerClass(iClient) == TFClass_Scout) //Reduce capture rate for scout
+	{
+		hReturn.Value--;
+		return MRES_Supercede;
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHook_TeamMayCapturePointPost(DHookReturn hReturn, DHookParam hParams)
+{
+	TFTeam nTeam = hParams.Get(1);
+	if (nTeam != TFTeam_Zombie)
+		return MRES_Ignored;
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (IsClientInGame(iClient) && g_nInfected[iClient] == Infected_Tank)
+		{
+			// Allow tank to "capture" CP, but really just blocking cap progress
+			hReturn.Value = true;
+			return MRES_Supercede;
+		}
+	}
+	
+	return MRES_Ignored;
+}
+
 public MRESReturn DHook_SetWinningTeamPre(DHookParam hParams)
 {
 	hParams.Set(4, false);	// always return false to bSwitchTeams
@@ -438,19 +473,6 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	SetGlow();
 	UpdateZombieDamageScale();
-	
-	return MRES_Ignored;
-}
-
-public MRESReturn DHook_GetCaptureValueForPlayerPost(DHookReturn hReturn, DHookParam hParams)
-{
-	int iClient = hParams.Get(1);
-	
-	if (TF2_GetPlayerClass(iClient) == TFClass_Scout) //Reduce capture rate for scout
-	{
-		hReturn.Value--;
-		return MRES_Supercede;
-	}
 	
 	return MRES_Ignored;
 }
