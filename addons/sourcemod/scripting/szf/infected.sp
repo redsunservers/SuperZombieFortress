@@ -236,6 +236,10 @@ void Infected_ActivateDebris(int iClient, bool bVel)
 		AnglesToVelocity(vecAngles, vecVel, 2000.0);
 		TeleportEntity(iDebris, NULL_VECTOR, NULL_VECTOR, vecVel);
 	}
+	
+	float flLifetime = g_cvTankDebrisLifetime.FloatValue;
+	if (flLifetime > 0.0)
+		CreateTimer(flLifetime, Timer_KillEntity, iDebris);
 }
 
 public Action Infected_DebrisTimerEnd(Handle hTimer, int iSerial)

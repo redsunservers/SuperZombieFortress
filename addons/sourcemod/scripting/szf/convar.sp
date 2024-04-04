@@ -15,17 +15,18 @@ void ConVar_Init()
 	
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Force enable SZF for next map.", _, true, 0.0, true, 1.0);
 	g_cvRatio = CreateConVar("sm_szf_ratio", "0.78", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
-	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "400", "Amount of health the Tank gets per alive survivor", _, true, 10.0);
-	g_cvTankHealthMin = CreateConVar("sm_szf_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with", _, true, 0.0);
-	g_cvTankHealthMax = CreateConVar("sm_szf_tank_health_max", "6000", "Maximum amount of health the Tank can spawn with", _, true, 0.0);
+	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "400", "Amount of health the Tank gets per alive survivor.", _, true, 10.0);
+	g_cvTankHealthMin = CreateConVar("sm_szf_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with.", _, true, 0.0);
+	g_cvTankHealthMax = CreateConVar("sm_szf_tank_health_max", "6000", "Maximum amount of health the Tank can spawn with.", _, true, 0.0);
 	g_cvTankTime = CreateConVar("sm_szf_tank_time", "30.0", "Adjusts the damage the Tank takes per second. 0 to disable.", _, true, 0.0);
-	g_cvTankStab = CreateConVar("sm_szf_tank_stab", "500", "Flat Damage dealt to the Tank from a backstab", _, true, 0.0);
-	g_cvJockeyMovementVictim = CreateConVar("sm_szf_jockey_movement_victim", "0.25", "Percentage of movement speed applied to victim from jockey grab", _, true, 0.0);
-	g_cvJockeyMovementAttacker = CreateConVar("sm_szf_jockey_movement_attacker", "0.75", "Percentage of movement speed applied to jockey during grab", _, true, 0.0);
-	g_cvFrenzyChance = CreateConVar("sm_szf_frenzy_chance", "0.0", "% Chance of a random frenzy", _, true, 0.0);
-	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy", _, true, 0.0);
-	g_cvStunImmunity = CreateConVar("sm_szf_stun_immunity", "0.0", "How long until the survivor can be stunned again", _, true, 0.0);
-	g_cvMeleeIgnoreTeammates = CreateConVar("sm_szf_melee_ignores_teammates", "1.0", "<0/1> If enabled, melee hits will ignore teammates", _, true, 0.0, true, 1.0);
+	g_cvTankStab = CreateConVar("sm_szf_tank_stab", "500", "Flat Damage dealt to the Tank from a backstab.", _, true, 0.0);
+	g_cvTankDebrisLifetime = CreateConVar("sm_szf_tank_debris_lifetime", "20.0", "Amount of time (in seconds) it takes for debris thrown by Tanks to despawn. Use 0 to prevent despawning.", _, true, 0.0);
+	g_cvJockeyMovementVictim = CreateConVar("sm_szf_jockey_movement_victim", "0.25", "Percentage of movement speed applied to victim from jockey grab.", _, true, 0.0);
+	g_cvJockeyMovementAttacker = CreateConVar("sm_szf_jockey_movement_attacker", "0.75", "Percentage of movement speed applied to jockey during grab.", _, true, 0.0);
+	g_cvFrenzyChance = CreateConVar("sm_szf_frenzy_chance", "0.0", "% Chance of a random frenzy.", _, true, 0.0);
+	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy.", _, true, 0.0);
+	g_cvStunImmunity = CreateConVar("sm_szf_stun_immunity", "0.0", "How long until the survivor can be stunned again.", _, true, 0.0);
+	g_cvMeleeIgnoreTeammates = CreateConVar("sm_szf_melee_ignores_teammates", "1.0", "<0/1> If enabled, melee hits will ignore teammates.", _, true, 0.0, true, 1.0);
 	
 	g_aConVar = new ArrayList(sizeof(ConVarInfo));
 	
