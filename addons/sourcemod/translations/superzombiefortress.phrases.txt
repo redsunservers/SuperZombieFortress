@@ -353,7 +353,7 @@
 	
 	"SpecialInfected_Tank"
 	{
-		"en"		"{green}YOU ARE A TANK:\n{orange}- A nearly-unstoppable force.\n- Call 'MEDIC!' to pick up and THROW DEBRIS ahead of you, hurting EVERYONE in its path!"
+		"en"		"{green}YOU ARE A TANK:\n{orange}- A nearly-unstoppable force.\n- Call 'MEDIC!' to pick up and THROW DEBRIS ahead of you, hurting EVERYONE in its path! {yellow}(5 second cooldown)"
 	}
 	
 	"SpecialInfected_Boomer"
