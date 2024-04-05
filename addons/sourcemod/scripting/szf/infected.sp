@@ -176,6 +176,7 @@ public void Infected_DoTankThrow(int iClient)
 	SetEntProp(iDebris, Prop_Data, "m_takedamage", DAMAGE_NO);
 	SetEntityCollisionGroup(iDebris, COLLISION_GROUP_PLAYER);
 	SetEntProp(iDebris, Prop_Send, "m_iTeamNum", GetClientTeam(iClient));
+	SetEntityRenderMode(iDebris, RENDER_TRANSCOLOR);
 	
 	int iBonemerge = CreateBonemerge(iClient, "debris");
 	
@@ -237,9 +238,11 @@ void Infected_ActivateDebris(int iClient, bool bVel)
 		TeleportEntity(iDebris, NULL_VECTOR, NULL_VECTOR, vecVel);
 	}
 	
+	CreateTimer(1.0, Infected_DebrisTimerMoving, iDebris, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+
 	float flLifetime = g_cvTankDebrisLifetime.FloatValue;
 	if (flLifetime > 0.0)
-		CreateTimer(flLifetime, Timer_KillEntity, iDebris);
+		CreateTimer(flLifetime, Infected_DebrisTimerFadeOutStart, iDebris);
 }
 
 public Action Infected_DebrisTimerEnd(Handle hTimer, int iSerial)
@@ -252,6 +255,50 @@ public Action Infected_DebrisTimerEnd(Handle hTimer, int iSerial)
 	AcceptEntityInput(iClient, "SetForcedTauntCam");
 	
 	return Plugin_Continue;
+}
+
+public Action Infected_DebrisTimerMoving(Handle hTimer, int iDebris)
+{
+	if (!IsValidEntity(iDebris))
+		return Plugin_Stop;
+	
+	if (GetEntProp(iDebris, Prop_Send, "m_bAwake"))
+		return Plugin_Continue;
+	
+	SetEntityCollisionGroup(iDebris, COLLISION_GROUP_DEBRIS);
+	SetEntityMoveType(iDebris, MOVETYPE_NONE);
+	
+	return Plugin_Stop;
+}
+
+public Action Infected_DebrisTimerFadeOutStart(Handle hTimer, int iDebris)
+{
+	if (!IsValidEntity(iDebris))
+		return Plugin_Stop;
+	
+	SetEntityCollisionGroup(iDebris, COLLISION_GROUP_DEBRIS);
+	RequestFrame(Infected_DebrisFrameFadeOut, iDebris);
+	
+	return Plugin_Continue;
+}
+
+void Infected_DebrisFrameFadeOut(int iDebris)
+{
+	if (!IsValidEntity(iDebris))
+		return;
+	
+	int iColor[4];
+	GetEntityRenderColor(iDebris, iColor[0], iColor[1], iColor[2], iColor[3]);
+	
+	int iAlpha = iColor[3] - 10;
+	if (iAlpha <= 0)
+	{
+		RemoveEntity(iDebris);
+		return;
+	}
+	
+	SetEntityRenderColor(iDebris, .a = iAlpha);
+	RequestFrame(Infected_DebrisFrameFadeOut, iDebris);
 }
 
 public Action Infected_DebrisStartTouch(int iDebris, int iToucher)
