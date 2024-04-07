@@ -404,6 +404,7 @@ ConVar g_cvTankHealthMin;
 ConVar g_cvTankHealthMax;
 ConVar g_cvTankTime;
 ConVar g_cvTankStab;
+ConVar g_cvTankDebrisLifetime;
 ConVar g_cvJockeyMovementVictim;
 ConVar g_cvJockeyMovementAttacker;
 ConVar g_cvFrenzyChance;

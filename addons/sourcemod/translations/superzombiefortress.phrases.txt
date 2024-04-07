@@ -351,6 +351,11 @@
 		"en"		"{1}Survivors can't change classes during a round"
 	}
 	
+	"SpecialInfected_Tank"
+	{
+		"en"		"{green}YOU ARE A TANK:\n{orange}- A nearly-unstoppable force.\n- Call 'MEDIC!' to pick up and THROW DEBRIS ahead of you, hurting EVERYONE in its path! {yellow}(5 second cooldown)"
+	}
+	
 	"SpecialInfected_Boomer"
 	{
 		"en"		"{green}YOU ARE A BOOMER:\n{orange}- Call 'MEDIC!' to EXPLODE and JARATE nearby enemies!\n- You also explode upon dying, coating the killer and assister in JARATE."
