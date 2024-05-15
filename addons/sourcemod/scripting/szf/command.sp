@@ -7,6 +7,7 @@ void Command_Init()
 	
 	RegAdminCmd("sm_tank", Command_ZombieTank, ADMFLAG_CHANGEMAP, "(Try to) call a tank.");
 	RegAdminCmd("sm_rage", Command_ZombieRage, ADMFLAG_CHANGEMAP, "(Try to) call a frenzy.");
+	RegAdminCmd("sm_frenzy", Command_ZombieRage, ADMFLAG_CHANGEMAP, "(Try to) call a frenzy.");
 	RegAdminCmd("sm_infected", Command_ForceInfected, ADMFLAG_CHANGEMAP, "Force someone to become infected on next spawn.");
 	RegAdminCmd("sm_szfreload", Command_ReloadConfigs, ADMFLAG_RCON, "Reload SZF configs.");
 	RegAdminCmd("sm_stun", Command_Stun, ADMFLAG_RCON, "SZF Stun player.");
