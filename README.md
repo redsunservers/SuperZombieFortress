@@ -2,7 +2,16 @@
 
 Custom Team Fortress 2 Gamemode, inspired by Left 4 Dead.
 
-There's 2 teams, Survivors (RED) and Zombies (BLU). The Survivors start with melee weapons and must survive for x amount of time while collecting weapons/ammo that are found around the map.
+There's 2 teams, Survivors (RED) and Zombies (BLU). The Survivors start with melee weapons and must complete objectives while collecting weapons/ammo that are found around the map.  
+The objectives are determined by the map, so there can be a large amount of variation in the goal for the survivors.  
+
+<ins>Some commonly seen objectives are as follows:</ins>
+* surviving for x amount of time
+* gathering items
+* traversing through the map to the end
+* defeating bosses
+* capturing control points
+   
 
 The Zombie team starts off with a percent of the total amount of players, and must kill and infect all of the survivors before x amount of time runs out. To counteract the imbalance between melee-only and the ranged weapons that the survivors have, zombies can also "mutate" into special infected. On every kill, the zombie gains a special infected point, which is factored into spawning as a special infected after death.
 
