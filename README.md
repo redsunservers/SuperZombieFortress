@@ -2,18 +2,11 @@
 
 Custom Team Fortress 2 Gamemode, inspired by Left 4 Dead.
 
-There's 2 teams, Survivors (RED) and Zombies (BLU). The Survivors start with melee weapons and must complete objectives while collecting weapons/ammo that are found around the map.  
-The objectives are determined by the map, so there can be a large amount of variation in the goal for the survivors.  
+There's 2 teams, Survivors (RED) and Zombies (BLU). The Survivors start with melee weapons and must complete the map while collecting weapons that are found around the map.
 
-<ins>Some commonly seen objectives are as follows:</ins>
-* surviving for x amount of time
-* gathering items
-* traversing through the map to the end
-* defeating bosses
-* capturing control points
-   
+Many map requires survivors to capture all control points, but some maps have it's own way to complete it, like surviving until time runs out, gathering and placing items, and defeating bosses.
 
-The Zombie team starts off with a percent of the total amount of players, and must kill and infect all of the survivors before x amount of time runs out. To counteract the imbalance between melee-only and the ranged weapons that the survivors have, zombies can also "mutate" into special infected. On every kill, the zombie gains a special infected point, which is factored into spawning as a special infected after death.
+The Zombie team starts off with a percent of the total amount of players, and must kill and infect all of the survivors with only melee weapons before they complete the map. Zombies can also become special infected with its own special abilities to tackle aganist survivors.
 
 Plugin originally based off [MekuCube's 1.05 version](https://forums.alliedmods.net/showthread.php?p=1467101) back in 2011 for Slag Gaming, which eventually was abandoned.
 [redsun.tf](https://redsun.tf/) has been updating this plugin since 2016, with many balance changes and bugfixes for 2.0 (private) and 3.0 (public) versions.
