@@ -19,10 +19,10 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.4.0"
+#define PLUGIN_VERSION				"4.6.5"
 #define PLUGIN_VERSION_REVISION		"manual"
 
-#define TF_MAXPLAYERS		34	//32 clients + 1 for 0/world/console + 1 for replay/SourceTV
+#define MAX_CONTROL_POINTS	8
 
 #define ATTRIB_VISION		406
 
@@ -31,6 +31,32 @@
 #define TF_VISION_FILTER_PYRO		(1<<0)	// 1
 #define TF_VISION_FILTER_HALLOWEEN	(1<<1)	// 2
 #define TF_VISION_FILTER_ROME		(1<<2)	// 4
+
+// settings for m_takedamage
+#define DAMAGE_NO				0
+#define DAMAGE_EVENTS_ONLY		1		// Call damage functions, but don't modify health
+#define DAMAGE_YES				2
+#define DAMAGE_AIM				3
+
+// Phys prop spawnflags
+#define SF_PHYSPROP_START_ASLEEP				0x000001
+#define SF_PHYSPROP_DONT_TAKE_PHYSICS_DAMAGE	0x000002		// this prop can't be damaged by physics collisions
+#define SF_PHYSPROP_DEBRIS						0x000004
+#define SF_PHYSPROP_MOTIONDISABLED				0x000008		// motion disabled at startup (flag only valid in spawn - motion can be enabled via input)
+#define SF_PHYSPROP_TOUCH						0x000010		// can be 'crashed through' by running player (plate glass)
+#define SF_PHYSPROP_PRESSURE					0x000020		// can be broken by a player standing on it
+#define SF_PHYSPROP_ENABLE_ON_PHYSCANNON		0x000040		// enable motion only if the player grabs it with the physcannon
+#define SF_PHYSPROP_NO_ROTORWASH_PUSH			0x000080		// The rotorwash doesn't push these
+#define SF_PHYSPROP_ENABLE_PICKUP_OUTPUT		0x000100		// If set, allow the player to +USE this for the purposes of generating an output
+#define SF_PHYSPROP_PREVENT_PICKUP				0x000200		// If set, prevent +USE/Physcannon pickup of this prop
+#define SF_PHYSPROP_PREVENT_PLAYER_TOUCH_ENABLE	0x000400		// If set, the player will not cause the object to enable its motion when bumped into
+#define SF_PHYSPROP_HAS_ATTACHED_RAGDOLLS		0x000800		// Need to remove attached ragdolls on enable motion/etc
+#define SF_PHYSPROP_FORCE_TOUCH_TRIGGERS		0x001000		// Override normal debris behavior and respond to triggers anyway
+#define SF_PHYSPROP_FORCE_SERVER_SIDE			0x002000		// Force multiplayer physics object to be serverside
+#define SF_PHYSPROP_RADIUS_PICKUP				0x004000		// For Xbox, makes small objects easier to pick up by allowing them to be found 
+#define SF_PHYSPROP_ALWAYS_PICK_UP				0x100000		// Physcannon can always pick this up, no matter what mass or constraints may apply.
+#define SF_PHYSPROP_NO_COLLISIONS				0x200000		// Don't enable collisions on spawn
+#define SF_PHYSPROP_IS_GIB						0x400000		// Limit # of active gibs
 
 enum
 {
@@ -246,15 +272,13 @@ enum struct ClientClasses
 	char sMenu[64];
 	char sWorldModel[PLATFORM_MAX_PATH];
 	char sViewModel[PLATFORM_MAX_PATH];
-	float vecViewModelAngles[3];
-	float flViewModelHeight;
+	bool bViewModelAnim;
 	char sSoundSpawn[PLATFORM_MAX_PATH];
 	int iRageCooldown;
 	Function callback_spawn;
 	Function callback_rage;
 	Function callback_think;
 	Function callback_touch;
-	Function callback_anim;
 	Function callback_death;
 	
 	//Infected
@@ -270,14 +294,27 @@ enum struct ClientClasses
 		iPos++;
 		return true;
 	}
+	
+	int GetWeaponSlotIndex(int iSlot)
+	{
+		int iPos;
+		WeaponClasses weapon;
+		while (this.GetWeapon(iPos, weapon))
+		{
+			if (TF2Econ_GetItemDefaultLoadoutSlot(weapon.iIndex) == iSlot)
+				return weapon.iIndex;
+		}
+		
+		return -1;
+	}
 }
 
-ClientClasses g_ClientClasses[TF_MAXPLAYERS];
+ClientClasses g_ClientClasses[MAXPLAYERS];
 
 SZFRoundState g_nRoundState = SZFRoundState_Setup;
 
-Infected g_nInfected[TF_MAXPLAYERS];
-Infected g_nNextInfected[TF_MAXPLAYERS];
+Infected g_nInfected[MAXPLAYERS];
+Infected g_nNextInfected[MAXPLAYERS];
 
 TFTeam TFTeam_Zombie = TFTeam_Blue;
 TFTeam TFTeam_Survivor = TFTeam_Red;
@@ -336,17 +373,19 @@ bool g_bGiveNamedItemSkip;
 float g_flSurvivorsLastDeath = 0.0;
 int g_iSurvivorsKilledCounter;
 int g_iZombiesKilledSpree;
-int g_iZombiesKilledSurvivor[TF_MAXPLAYERS];
+int g_iZombiesKilledSurvivor[MAXPLAYERS];
 
 //Client State
-int g_iMorale[TF_MAXPLAYERS];
-int g_iHorde[TF_MAXPLAYERS];
-int g_iCapturingPoint[TF_MAXPLAYERS];
-int g_iRageTimer[TF_MAXPLAYERS];
+int g_iMorale[MAXPLAYERS];
+int g_iHorde[MAXPLAYERS];
+int g_iCapturingPoint[MAXPLAYERS];
+int g_iRageTimer[MAXPLAYERS];
 
-bool g_bStartedAsZombie[TF_MAXPLAYERS];
-float g_flStopChatSpam[TF_MAXPLAYERS];
-bool g_bWaitingForTeamSwitch[TF_MAXPLAYERS];
+float g_flStopChatSpam[MAXPLAYERS];
+bool g_bWaitingForTeamSwitch[MAXPLAYERS];
+
+StringMap g_mRoundPlayedAsZombie;
+int g_iRoundPlayedCount;
 
 int g_iSprite; //Smoker beam
 
@@ -365,6 +404,7 @@ ConVar g_cvTankHealthMin;
 ConVar g_cvTankHealthMax;
 ConVar g_cvTankTime;
 ConVar g_cvTankStab;
+ConVar g_cvTankDebrisLifetime;
 ConVar g_cvJockeyMovementVictim;
 ConVar g_cvJockeyMovementAttacker;
 ConVar g_cvFrenzyChance;
@@ -376,17 +416,17 @@ float g_flZombieDamageScale = 1.0;
 
 ArrayList g_aFastRespawn;
 
-int g_iDamageZombie[TF_MAXPLAYERS];
-int g_iDamageTakenLife[TF_MAXPLAYERS];
-int g_iDamageDealtLife[TF_MAXPLAYERS];
+int g_iDamageZombie[MAXPLAYERS];
+int g_iDamageTakenLife[MAXPLAYERS];
+int g_iDamageDealtLife[MAXPLAYERS];
 
-float g_flDamageDealtAgainstTank[TF_MAXPLAYERS];
+float g_flDamageDealtAgainstTank[MAXPLAYERS];
 bool g_bTankRefreshed;
 
-int g_iControlPointsInfo[20][2];
+int g_iControlPointsInfo[MAX_CONTROL_POINTS][2];
 int g_iControlPoints;
 bool g_bCapturingLastPoint;
-int g_iCarryingItem[TF_MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
+int g_iCarryingItem[MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
 
 float g_flTimeProgress;
 
@@ -402,13 +442,13 @@ int g_iTanksSpawned;
 bool g_bZombieRage;
 bool g_bZombieRageAllowRespawn;
 
-bool g_bSpawnAsSpecialInfected[TF_MAXPLAYERS];
-int g_iKillsThisLife[TF_MAXPLAYERS];
-int g_iMaxHealth[TF_MAXPLAYERS];
-bool g_bShouldBacteriaPlay[TF_MAXPLAYERS] = {true, ...};
-bool g_bReplaceRageWithSpecialInfectedSpawn[TF_MAXPLAYERS];
-float g_flTimeStartAsZombie[TF_MAXPLAYERS];
-bool g_bForceZombieStart[TF_MAXPLAYERS];
+bool g_bSpawnAsSpecialInfected[MAXPLAYERS];
+int g_iKillsThisLife[MAXPLAYERS];
+int g_iMaxHealth[MAXPLAYERS];
+bool g_bShouldBacteriaPlay[MAXPLAYERS] = {true, ...};
+bool g_bReplaceRageWithSpecialInfectedSpawn[MAXPLAYERS];
+float g_flTimeStartAsZombie[MAXPLAYERS];
+bool g_bForceZombieStart[MAXPLAYERS];
 
 //Map overwrites
 int g_iMaxRareWeapons;
@@ -426,7 +466,6 @@ Cookie g_cWeaponsCalled;
 
 //SDK offsets
 int g_iOffsetItemDefinitionIndex;
-int g_iOffsetOuter;
 
 #include "szf/weapons.sp"
 #include "szf/sound.sp"
@@ -516,7 +555,6 @@ public void OnPluginStart()
 	SDKCall_Init(hSDKHooks, hTF2, hSZF);
 	
 	g_iOffsetItemDefinitionIndex = hSZF.GetOffset("CEconItemView::m_iItemDefinitionIndex");
-	g_iOffsetOuter = hSZF.GetOffset("CTFPlayerShared::m_pOuter");
 	
 	delete hSDKHooks;
 	delete hTF2;
@@ -672,7 +710,7 @@ public void OnClientDisconnect(int iClient)
 	if (!g_bEnabled)
 		return;
 	
-	RequestFrame(CheckZombieBypass, iClient);
+	CheckZombieBypass(iClient);
 	
 	Sound_EndMusic(iClient);
 	DropCarryingItem(iClient);
@@ -719,6 +757,12 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 	{
 		switch (nCond)
 		{
+			case TFCond_Disguising:
+			{
+				// Prevent able to disguise as spy, can't show zombie model of it
+				while (view_as<TFClassType>(GetEntProp(iClient, Prop_Send, "m_nDesiredDisguiseClass")) == TFClass_Spy)
+					SetEntProp(iClient, Prop_Send, "m_nDesiredDisguiseClass", GetRandomInt(view_as<int>(TFClass_Scout), view_as<int>(TFClass_Engineer)));
+			}
 			case TFCond_Gas:
 			{
 				//Dont give gas cond from spitter
@@ -748,7 +792,7 @@ public void TF2_OnConditionRemoved(int iClient, TFCond nCond)
 	SDKCall_SetSpeed(iClient);
 	
 	if (nCond == TFCond_Taunting)
-		ViewModel_Hide(iClient);
+		ViewModel_UpdateClient(iClient);	// taunting removes EF_NODRAW from weapon, readd it back
 	else if (nCond == TFCond_Disguised)
 		SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", 0, _, VISION_MODE_ROME);	//Reset disguise model
 }
@@ -758,9 +802,9 @@ public Action TF2_OnIsHolidayActive(TFHoliday nHoliday, bool &bResult)
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
-	//Force enable full moon to allow zombie voodoo soul to work
-	//Shouldnt use TFHoliday_Halloween because of souls and halloween taunt
-	if (nHoliday == TFHoliday_FullMoon || nHoliday == TFHoliday_HalloweenOrFullMoon || nHoliday == TFHoliday_HalloweenOrFullMoonOrValentines)
+	//Force enable a holiday to allow zombie voodoo soul to work
+	//Shouldnt touch any other holidays as it may affect unneeded changes
+	if (nHoliday == TFHoliday_HalloweenOrFullMoon)
 	{
 		bResult = true;
 		return Plugin_Changed;
@@ -788,30 +832,11 @@ void EndGracePeriod()
 			RemoveEntity(iEntity);
 	}
 	
-	int iSurvivors = GetSurvivorCount();
-	int iZombies = GetZombieCount();
-	
-	//If less than 15% of players are infected, set round start as imbalanced
-	bool bImbalanced = (float(iZombies) / float(iSurvivors + iZombies) <= 0.15);
-	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (IsClientInGame(iClient))
+		if (IsClientInGame(iClient) && g_bWaitingForTeamSwitch[iClient])
 		{
-			if (g_bWaitingForTeamSwitch[iClient])
-				RequestFrame(Frame_PostGracePeriodSpawn, iClient); //A frame later so maps which have post-setup spawn points can adapt to these players
-			
-			//Give a buff to infected if the round is imbalanced
-			if (bImbalanced)
-			{
-				if (IsZombie(iClient) && IsPlayerAlive(iClient))
-				{
-					SetEntityHealth(iClient, 450);
-					g_bSpawnAsSpecialInfected[iClient] = true;
-				}
-				
-				CPrintToChat(iClient, "%t", "Grace_InfectedBoost", (IsZombie(iClient)) ? "{green}" : "{red}");
-			}
+			RequestFrame(Frame_PostGracePeriodSpawn, iClient); //A frame later so maps which have post-setup spawn points can adapt to these players
 		}
 	}
 	
@@ -819,6 +844,8 @@ void EndGracePeriod()
 	g_hTimerProgress = CreateTimer(6.0, Timer_Progress, _, TIMER_REPEAT);
 	
 	float flGameTime = GetGameTime();
+	int iSurvivors = GetSurvivorCount();
+	
 	g_flTankCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before tank spawns will be considered
 	g_flSelectSpecialCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before select special will be considered
 	g_flRageCooldown = flGameTime + 60.0 - fMin(0.0, (iSurvivors-12) * 1.5); //1 min cooldown before frenzy will be considered
@@ -841,6 +868,7 @@ public void Frame_PostGracePeriodSpawn(int iClient)
 	}
 	
 	g_bWaitingForTeamSwitch[iClient] = false;
+	SetClientStartedAsZombie(iClient);	// Client pretty much will play a whole round as zombie
 }
 
 ////////////////////////////////////////////////////////////
@@ -1176,7 +1204,7 @@ void Handle_HoardeBonus()
 	int iLength = 0;
 	int[] iClients = new int[MaxClients];
 	int[] iClientsHoardeId = new int[MaxClients];
-	float vecClientsPos[TF_MAXPLAYERS][3];
+	float vecClientsPos[MAXPLAYERS][3];
 	
 	int[] iHoardeSize = new int[MaxClients];
 	
@@ -1410,9 +1438,10 @@ void SetGlow()
 	}
 }
 
-public void Frame_CheckZombieBypass(int iClient)
+void Frame_CheckZombieBypass(int iSerial)
 {
-	if (GetClientTeam(iClient) <= 1)
+	int iClient = GetClientFromSerial(iSerial);
+	if (TF2_GetClientTeam(iClient) <= TFTeam_Spectator)
 		CheckZombieBypass(iClient);
 }
 
@@ -1423,13 +1452,80 @@ void CheckZombieBypass(int iClient)
 	
 	//4 Checks
 	if ((g_flTimeStartAsZombie[iClient] != 0.0)						//Check if client is currently playing as zombie (if it 0.0, it means he have not played as zombie yet this round)
-		&& (g_flTimeStartAsZombie[iClient] > GetGameTime() - 90.0)	//Check if client have been playing zombie less than 90 seconds
-		&& (float(iZombies) / float(iSurvivors + iZombies) <= 0.6)	//Check if less than 60% of players is zombie
+		&& (g_flTimeStartAsZombie[iClient] > GetGameTime() - 60.0)	//Check if client have been playing zombie less than 60 seconds
+		&& (float(iZombies) / float(iSurvivors + iZombies) <= 0.5)	//Check if less than 50% of players is zombie
 		&& (g_nRoundState != SZFRoundState_End))								//Check if round did not end or map changing
 	{
 		g_bForceZombieStart[iClient] = true;
-		SetClientCookie(iClient, g_cForceZombieStart, "1");
+		
+		char sAuthId[64];
+		GetClientAuthId(iClient, AuthId_Steam2, sAuthId, sizeof(sAuthId));
+		
+		ArrayStack aStack = new ArrayStack(64);
+		aStack.PushString(sAuthId);
+		RequestFrame(Frame_SetForceZombieStart, aStack);
 	}
+}
+
+void Frame_SetForceZombieStart(ArrayStack aStack)
+{
+	char sAuthId[64];
+	aStack.PopString(sAuthId, sizeof(sAuthId));
+	delete aStack;
+	
+	// Check that round is still ongoing, client may've force disconnected from mapchange
+	if (g_nRoundState == SZFRoundState_Setup || g_nRoundState == SZFRoundState_End)
+		return;
+	
+	g_cForceZombieStart.SetByAuthId(sAuthId, "1");
+}
+
+int GetRoundPlayedAsZombie(int iClient)
+{
+	if (!g_mRoundPlayedAsZombie)
+		return 0;
+	
+	char sSteamId[64];
+	if (IsFakeClient(iClient))
+		IntToString(GetClientUserId(iClient), sSteamId, sizeof(sSteamId));
+	else
+		GetClientAuthId(iClient, AuthId_SteamID64, sSteamId, sizeof(sSteamId));
+	
+	int iValue;
+	g_mRoundPlayedAsZombie.GetValue(sSteamId, iValue);
+	return iValue;
+}
+
+void SetClientStartedAsZombie(int iClient)
+{
+	if (!g_mRoundPlayedAsZombie)
+		g_mRoundPlayedAsZombie = new StringMap();
+	
+	char sSteamId[64];
+	if (IsFakeClient(iClient))
+		IntToString(GetClientUserId(iClient), sSteamId, sizeof(sSteamId));
+	else
+		GetClientAuthId(iClient, AuthId_SteamID64, sSteamId, sizeof(sSteamId));
+	
+	g_mRoundPlayedAsZombie.SetValue(sSteamId, g_iRoundPlayedCount);
+}
+
+bool ClientStartedAsZombie(int iClient)
+{
+	return GetRoundPlayedAsZombie(iClient) == g_iRoundPlayedCount;
+}
+
+int Sort_LastPlayedZombie(int iClient1, int iClient2, const int[] iClients, Handle hData)
+{
+	int iRound1 = GetRoundPlayedAsZombie(iClient1);
+	int iRound2 = GetRoundPlayedAsZombie(iClient2);
+	
+	if (iRound1 > iRound2)
+		return -1;
+	else if (iRound1 < iRound2)
+		return 1;
+	else
+		return 0;
 }
 
 void UpdateZombieDamageScale()
@@ -1863,6 +1959,7 @@ void HandleSurvivorLoadout(int iClient)
 		return;
 	
 	CheckClientWeapons(iClient);
+	ViewModel_RemoveWearable(iClient);
 	
 	for (int iSlot = WeaponSlot_Melee; iSlot <= WeaponSlot_InvisWatch; iSlot++)
 	{
@@ -1928,9 +2025,6 @@ void HandleSurvivorLoadout(int iClient)
 	SetVariantString("");
 	AcceptEntityInput(iClient, "SetCustomModel");
 	
-	//Remove any existing viewmodels
-	ViewModel_Destroy(iClient);
-	
 	//Prevent Survivors with voodoo-cursed souls
 	SetEntProp(iClient, Prop_Send, "m_bForcedSkin", 0);
 	SetEntProp(iClient, Prop_Send, "m_nForcedSkin", 0);
@@ -1948,6 +2042,8 @@ void HandleZombieLoadout(int iClient)
 	while (g_ClientClasses[iClient].GetWeapon(iPos, weapon))
 		TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sAttribs);
 	
+	ViewModel_UpdateClient(iClient);
+	
 	if (g_ClientClasses[iClient].sWorldModel[0])
 	{
 		SetVariantString(g_ClientClasses[iClient].sWorldModel);
@@ -1963,19 +2059,8 @@ void HandleZombieLoadout(int iClient)
 		ApplyVoodooCursedSoul(iClient);
 	}
 	
-	ViewModel_Destroy(iClient);
-	
-	if (g_ClientClasses[iClient].sViewModel[0])
-	{
-		ViewModel_Create(iClient, g_ClientClasses[iClient].sViewModel, g_ClientClasses[iClient].vecViewModelAngles, g_ClientClasses[iClient].flViewModelHeight);
-		ViewModel_Hide(iClient);
-	}
-	
 	if (g_ClientClasses[iClient].bThirdperson)
-	{
-		SetEntProp(GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"), Prop_Send, "m_fEffects", EF_NODRAW);
 		RequestFrame(SetThirdperson, GetClientSerial(iClient));
-	}
 	
 	//Reset metal for TF2 to give back correct amount from attribs
 	TF2_SetMetal(iClient, 0);
@@ -1984,9 +2069,85 @@ void HandleZombieLoadout(int iClient)
 	int iMelee = TF2_GetItemInSlot(iClient, WeaponSlot_Melee);
 	if (iMelee > MaxClients)
 	{
-		SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iMelee);
+		TF2_SwitchActiveWeapon(iClient, iMelee);
+		if (g_ClientClasses[iClient].bViewModelAnim)	// needed for some reason for custom anims
+			ViewModel_SetAnimation(iClient, "ACT_FISTS_VM_DRAW");
+		
 		AddWeaponVision(iMelee, TF_VISION_FILTER_HALLOWEEN);	//Allow see Voodoo souls
 		AddWeaponVision(iMelee, TF_VISION_FILTER_ROME);			//Allow see spy's custom model disguise detour fix
+	}
+}
+
+void OnClientDisguise(int iClient)
+{
+	if (view_as<TFTeam>(GetEntProp(iClient, Prop_Send, "m_nDisguiseTeam")) != TFTeam_Zombie)
+		return;	// only zombies are zombies, duh
+	
+	TFClassType nClass = view_as<TFClassType>(GetEntProp(iClient, Prop_Send, "m_nDisguiseClass"));
+	if (nClass == TFClass_Unknown)
+		return;
+	
+	if (nClass == TFClass_Spy)
+	{
+		// You're not supposed to be here
+		TF2_RemovePlayerDisguise(iClient);
+		return;
+	}
+	
+	int iIndex = -1;
+	
+	int iOffset = FindSendPropInfo("CTFPlayer", "m_iDisguiseHealth") - 4;	// m_hDisguiseTarget
+	int iTarget = GetEntDataEnt2(iClient, iOffset);
+	if (0 < iTarget <= MaxClients && TF2_GetPlayerClass(iTarget) == nClass)
+	{
+		// We are disgusing as someone, do they have custom model?
+		if (g_ClientClasses[iTarget].sWorldModel[0])
+			SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", PrecacheModel(g_ClientClasses[iTarget].sWorldModel), _, VISION_MODE_ROME);
+		
+		iIndex = g_ClientClasses[iTarget].GetWeaponSlotIndex(WeaponSlot_Melee);
+	}
+	else
+	{
+		// Make sure all wearables is removed, can happen when no disguise target
+		int iWearable = INVALID_ENT_REFERENCE;
+		while ((iWearable = FindEntityByClassname(iWearable, "tf_wearable*")) > MaxClients)
+			if (GetEntPropEnt(iWearable, Prop_Send, "m_hOwnerEntity") == iClient && GetEntProp(iWearable, Prop_Send, "m_bDisguiseWearable"))
+				TF2_RemoveWearable(iClient, iWearable);
+		
+		// Should be disguising as default class, give zombie weapon and cosmetics
+		iWearable = CreateVoodooWearable(iClient, nClass);
+		SetEntProp(iWearable, Prop_Send, "m_bDisguiseWearable", true);	// Must be set before equip
+		TF2_EquipWeapon(iClient, iWearable);
+		
+		SetEntProp(iClient, Prop_Send, "m_nDisguiseSkinOverride", 1);
+		
+		iIndex = GetZombieMeleeIndex(nClass);
+	}
+	
+	int iWeapon = GetEntPropEnt(iClient, Prop_Send, "m_hDisguiseWeapon");
+	if (iWeapon != INVALID_ENT_REFERENCE && GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex") != iIndex)
+	{
+		RemoveEntity(iWeapon);
+		iWeapon = INVALID_ENT_REFERENCE;
+	}
+	
+	if (iWeapon == INVALID_ENT_REFERENCE)
+	{
+		iWeapon = TF2_CreateWeapon(iClient, iIndex);	// dont want to actually equip it
+		SetEntPropEnt(iWeapon, Prop_Send, "m_hOwner", iClient);
+		SetEntPropEnt(iWeapon, Prop_Send, "m_hOwnerEntity", iClient);
+		
+		SetEntityMoveType(iWeapon, MOVETYPE_NONE);
+		SetEntProp(iWeapon, Prop_Send, "m_fEffects", GetEntProp(iWeapon, Prop_Send, "m_fEffects")|EF_BONEMERGE);
+		SetVariantString("!activator");
+		AcceptEntityInput(iWeapon, "SetParent", iClient);
+		
+		SetEntProp(iWeapon, Prop_Send, "m_iState", 2);	// WEAPON_IS_ACTIVE
+		SetEntProp(iWeapon, Prop_Send, "m_bDisguiseWeapon", true);
+		
+		SetEntPropEnt(iClient, Prop_Send, "m_hDisguiseWeapon", iWeapon);
+		
+		// There is CTFWeaponBase::DisguiseWeaponThink not checked, do we need it?
 	}
 }
 

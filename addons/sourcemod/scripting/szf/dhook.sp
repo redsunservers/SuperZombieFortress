@@ -8,28 +8,27 @@ enum struct Detour
 
 static ArrayList g_aDHookDetours;
 
+static DynamicHook g_hDHookGetCaptureValueForPlayer;
+static DynamicHook g_hDHookTeamMayCapturePoint;
 static DynamicHook g_hDHookSetWinningTeam;
 static DynamicHook g_hDHookRoundRespawn;
-static DynamicHook g_hDHookGetCaptureValueForPlayer;
 static DynamicHook g_hDHookGiveNamedItem;
 
-static TFTeam g_iOldClientTeam[TF_MAXPLAYERS];
+static TFTeam g_iOldClientTeam[MAXPLAYERS];
 
-static int g_iHookIdGiveNamedItem[TF_MAXPLAYERS];
+static int g_iHookIdGiveNamedItem[MAXPLAYERS];
 
 void DHook_Init(GameData hSZF)
 {
 	g_aDHookDetours = new ArrayList(sizeof(Detour));
 	
-	DHook_CreateDetour(hSZF, "CTFPlayer::DoAnimationEvent", DHook_DoAnimationEventPre, _);
-	DHook_CreateDetour(hSZF, "CTFPlayerShared::DetermineDisguiseWeapon", DHook_DetermineDisguiseWeaponPre, _);
-	DHook_CreateDetour(hSZF, "CGameUI::Deactivate", DHook_DeactivatePre, _);
 	DHook_CreateDetour(hSZF, "CTFPlayer::TeamFortress_CalculateMaxSpeed", _, DHook_CalculateMaxSpeedPost);
 	DHook_CreateDetour(hSZF, "CTFWeaponBaseMelee::DoSwingTraceInternal", DHook_DoSwingTraceInternalPre, DHook_DoSwingTraceInternalPost);
 	
-	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::SetWinningTeam");
+	g_hDHookGetCaptureValueForPlayer = DHook_CreateVirtual(hSZF, "CTeamplayRules::GetCaptureValueForPlayer");
+	g_hDHookTeamMayCapturePoint = DHook_CreateVirtual(hSZF, "CTeamplayRules::TeamMayCapturePoint");
+	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
-	g_hDHookGetCaptureValueForPlayer = DHook_CreateVirtual(hSZF, "CTFGameRules::GetCaptureValueForPlayer");
 	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
 }
 
@@ -100,9 +99,10 @@ void DHook_Enable()
 				LogError("Failed to enable post detour: %s", detour.sName);
 	}
 	
+	g_hDHookGetCaptureValueForPlayer.HookGamerules(Hook_Post, DHook_GetCaptureValueForPlayerPost);
+	g_hDHookTeamMayCapturePoint.HookGamerules(Hook_Post, DHook_TeamMayCapturePointPost);
 	g_hDHookSetWinningTeam.HookGamerules(Hook_Pre, DHook_SetWinningTeamPre);
 	g_hDHookRoundRespawn.HookGamerules(Hook_Pre, DHook_RoundRespawnPre);
-	g_hDHookGetCaptureValueForPlayer.HookGamerules(Hook_Post, DHook_GetCaptureValueForPlayerPost);
 }
 
 void DHook_Disable()
@@ -123,72 +123,6 @@ void DHook_Disable()
 	}
 }
 
-public MRESReturn DHook_DoAnimationEventPre(int iClient, DHookParam hParams)
-{
-	if (g_ClientClasses[iClient].callback_anim != INVALID_FUNCTION)
-	{
-		PlayerAnimEvent_t nAnim = hParams.Get(1);
-		int iData = hParams.Get(2);
-		
-		Call_StartFunction(null, g_ClientClasses[iClient].callback_anim);
-		Call_PushCell(iClient);
-		Call_PushCellRef(nAnim);
-		Call_PushCellRef(iData);
-		
-		Action action;
-		Call_Finish(action);
-		
-		if (action >= Plugin_Handled)
-			return MRES_Supercede;
-		
-		if (action == Plugin_Changed)
-		{
-			hParams.Set(1, nAnim);
-			hParams.Set(2, iData);
-			return MRES_ChangedOverride;
-		}
-	}
-	
-	return MRES_Ignored;
-}
-
-public MRESReturn DHook_DetermineDisguiseWeaponPre(Address pPlayerShared, DHookParam hParams)
-{
-	Address pAddress = view_as<Address>(LoadFromAddress(pPlayerShared + view_as<Address>(g_iOffsetOuter), NumberType_Int32));
-	int iClient = SDKCall_GetBaseEntity(pAddress);
-	
-	int iOffset = FindSendPropInfo("CTFPlayer", "m_iDisguiseHealth") - 4;	// m_hDisguiseTarget
-	int iTarget = GetEntDataEnt2(iClient, iOffset);
-	if (0 < iTarget <= MaxClients && IsSurvivor(iClient) && view_as<TFTeam>(GetEntProp(iClient, Prop_Send, "m_nDisguiseTeam")) == TFTeam_Zombie)
-	{
-		//Set class to whoever target is, so voodoo souls and zombie weapons is shown
-		TFClassType nClass = TF2_GetPlayerClass(iClient);
-		if (nClass != TFClass_Unknown)
-			SetEntProp(iClient, Prop_Send, "m_nDisguiseClass", nClass);
-		
-		//Zombies have rome vision, set rome model override to whatever custom model
-		SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", GetEntProp(iTarget, Prop_Send, "m_nModelIndex"), _, VISION_MODE_ROME);
-	}
-	
-	//Never allow force primary, for both survivor and zombie disguise team
-	hParams.Set(1, false);
-	return MRES_ChangedOverride;
-}
-
-public MRESReturn DHook_DeactivatePre(int iThis, DHookParam hParams)
-{
-	// Detour used to prevent a crash with "game_ui" entity
-	// World entity 0 should always be valid
-	// If not, then pass a resource entity like "tf_gamerules"
-	int iEntity = 0;
-	while ((iEntity = FindEntityByClassname(iEntity, "*")) != -1)
-	{
-		hParams.Set(1, GetEntityAddress(iEntity));
-		return MRES_ChangedHandled;
-	}
-	return MRES_Ignored;
-}
-
 public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 {
 	if (IsClientInGame(iClient) && IsPlayerAlive(iClient))
@@ -204,9 +138,6 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 				
 				if (g_bZombieRage)
 					flSpeed += 40.0; //Map-wide zombie enrage event
-				
-				if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-					flSpeed += 20.0; //On fire
 				
 				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
 					flSpeed += 20.0; //Screamer effect
@@ -225,7 +156,7 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 			{
 				switch (g_nInfected[iClient])
 				{
-					//Tank: movement speed bonus based on damage taken and ignite speed bonus
+					//Tank: movement speed penalty based on damage taken and dealt
 					case Infected_Tank:
 					{
 						//Reduce speed when tank deals damage to survivors 
@@ -233,9 +164,6 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 						
 						//Reduce speed when tank takes damage from survivors 
 						flSpeed -= fMin(100.0, (float(g_iDamageTakenLife[iClient]) / 10.0));
-						
-						if (TF2_IsPlayerInCondition(iClient, TFCond_OnFire))
-							flSpeed += 40.0; //On fire
 						
 						if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
 							flSpeed -= 30.0; //Jarate'd by sniper
@@ -375,6 +303,38 @@ public void DHook_OnGiveNamedItemRemoved(int iHookId)
 	}
 }
 
+public MRESReturn DHook_GetCaptureValueForPlayerPost(DHookReturn hReturn, DHookParam hParams)
+{
+	int iClient = hParams.Get(1);
+	
+	if (TF2_GetPlayerClass(iClient) == TFClass_Scout) //Reduce capture rate for scout
+	{
+		hReturn.Value--;
+		return MRES_Supercede;
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHook_TeamMayCapturePointPost(DHookReturn hReturn, DHookParam hParams)
+{
+	TFTeam nTeam = hParams.Get(1);
+	if (nTeam != TFTeam_Zombie)
+		return MRES_Ignored;
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (IsClientInGame(iClient) && g_nInfected[iClient] == Infected_Tank)
+		{
+			// Allow tank to "capture" CP, but really just blocking cap progress
+			hReturn.Value = true;
+			return MRES_Supercede;
+		}
+	}
+	
+	return MRES_Ignored;
+}
+
 public MRESReturn DHook_SetWinningTeamPre(DHookParam hParams)
 {
 	hParams.Set(4, false);	// always return false to bSwitchTeams
@@ -410,6 +370,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	}
 	
 	g_nRoundState = SZFRoundState_Grace;
+	g_iRoundPlayedCount++;
 	
 	CPrintToChatAll("%t", "Grace_Start", "{green}");
 	
@@ -431,8 +392,8 @@ public MRESReturn DHook_RoundRespawnPre()
 		}
 	}
 	
-	//Randomize, sort players
-	SortIntegers(iClients, iLength, Sort_Random);
+	SortIntegers(iClients, iLength, Sort_Random);	//Randomize player list
+	SortCustom1D(iClients, iLength, Sort_LastPlayedZombie);	//Order by round last played as zombie
 	
 	//Calculate team counts. At least one survivor must exist.
 	iSurvivorCount = RoundToFloor(iLength * g_cvRatio.FloatValue);
@@ -451,37 +412,21 @@ public MRESReturn DHook_RoundRespawnPre()
 		{
 			Action action = Forward_ShouldStartZombie(iClient);
 			
-			if (action == Plugin_Handled)
+			if (action == Plugin_Handled || g_bForceZombieStart[iClient])
 			{
-				//Zombie
-				SpawnClient(iClient, TFTeam_Zombie, false);
-				nClientTeam[iClient] = TFTeam_Zombie;
-				g_bStartedAsZombie[iClient] = true;
-				g_flTimeStartAsZombie[iClient] = GetGameTime();
-			}
-			else if (g_bForceZombieStart[iClient])
-			{
-				//If they attempted to skip playing as zombie last time, force him to be in zombie team
-				CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}");
-				g_bForceZombieStart[iClient] = false;
-				SetClientCookie(iClient, g_cForceZombieStart, "0");
+				if (action != Plugin_Handled)
+				{
+					//If they attempted to skip playing as zombie last time, force him to be in zombie team
+					CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}");
+					g_bForceZombieStart[iClient] = false;
+					SetClientCookie(iClient, g_cForceZombieStart, "0");
+				}
 				
 				//Zombie
 				SpawnClient(iClient, TFTeam_Zombie, false);
 				nClientTeam[iClient] = TFTeam_Zombie;
-				g_bStartedAsZombie[iClient] = true;
 				g_flTimeStartAsZombie[iClient] = GetGameTime();
-			}
-			else if (g_bStartedAsZombie[iClient])
-			{
-				//Players who started as zombie last time is forced to be survivors
-				
-				//Survivor
-				SpawnClient(iClient, TFTeam_Survivor, false);
-				nClientTeam[iClient] = TFTeam_Survivor;
-				g_bStartedAsZombie[iClient] = false;
-				g_iStartSurvivors++;
-				iSurvivorCount--;
+				SetClientStartedAsZombie(iClient);
 			}
 		}
 	}
@@ -499,7 +444,6 @@ public MRESReturn DHook_RoundRespawnPre()
 				//Survivor
 				SpawnClient(iClient, TFTeam_Survivor, false);
 				nClientTeam[iClient] = TFTeam_Survivor;
-				g_bStartedAsZombie[iClient] = false;
 				g_iStartSurvivors++;
 				iSurvivorCount--;
 			}
@@ -508,8 +452,8 @@ public MRESReturn DHook_RoundRespawnPre()
 				//Zombie
 				SpawnClient(iClient, TFTeam_Zombie, false);
 				nClientTeam[iClient] = TFTeam_Zombie;
-				g_bStartedAsZombie[iClient] = true;
 				g_flTimeStartAsZombie[iClient] = GetGameTime();
+				SetClientStartedAsZombie(iClient);
 			}
 		}
 	}
@@ -529,18 +473,6 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	SetGlow();
 	UpdateZombieDamageScale();
-	
-	return MRES_Ignored;
-}
-
-public MRESReturn DHook_GetCaptureValueForPlayerPost(DHookReturn hReturn, DHookParam hParams)
-{
-	int iClient = hParams.Get(1);
-	if (TF2_GetPlayerClass(iClient) == TFClass_Scout) //Reduce capture rate for scout
-	{
-		hReturn.Value--;
-		return MRES_Supercede;
-	}
 	
 	return MRES_Ignored;
 }

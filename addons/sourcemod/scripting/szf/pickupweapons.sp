@@ -16,9 +16,9 @@ enum WeaponType
 	WeaponType_UncommonSpawn,
 };
 
-static bool g_bCanPickup[TF_MAXPLAYERS] = {false, ...};
+static bool g_bCanPickup[MAXPLAYERS] = {false, ...};
 static bool g_bTriggerEntity[2048] = {true, ...};
-static float g_flWeaponCallout[2048][TF_MAXPLAYERS];
+static float g_flWeaponCallout[2048][MAXPLAYERS];
 static int g_iAvailableRareCount;
 static ArrayList g_aWeaponsCommon;
 static ArrayList g_aWeaponsUncommon;
@@ -145,7 +145,7 @@ public void SetWeapon(int iEntity)
 	}
 		
 		
-	SetEntProp(iEntity, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_DEBRIS_TRIGGER);
+	SetEntityCollisionGroup(iEntity, COLLISION_GROUP_DEBRIS_TRIGGER);
 	AcceptEntityInput(iEntity, "DisableShadow");
 	AcceptEntityInput(iEntity, "EnableCollision");
 	
@@ -653,19 +653,6 @@ void SetWeaponModel(int iEntity, Weapon wep)
 	}
 	
 	TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
-}
-
-//Grabs the entity model by looking in the precache database of the server
-void GetEntityModel(int iEntity, char[] sModel, int iMaxSize, char[] sPropName = "m_nModelIndex")
-{
-	int iIndex = GetEntProp(iEntity, Prop_Send, sPropName);
-	GetModelPath(iIndex, sModel, iMaxSize);
-}
-
-void GetModelPath(int iIndex, char[] sModel, int iMaxSize)
-{
-	int iTable = FindStringTable("modelprecache");
-	ReadStringTable(iTable, iIndex, sModel, iMaxSize);
 }
 
 int GetWeaponGlowEnt(int iEntity)

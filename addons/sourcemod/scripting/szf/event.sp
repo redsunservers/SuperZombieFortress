@@ -227,14 +227,12 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	int iVictim = GetClientOfUserId(event.GetInt("userid"));
 	iKillers[0] = GetClientOfUserId(event.GetInt("attacker"));
 	iKillers[1] = GetClientOfUserId(event.GetInt("assister"));
+	int iInflictor = event.GetInt("inflictor_entindex");
 	bool bDeadRinger = event.GetInt("death_flags") & TF_DEATHFLAG_DEADRINGER != 0;
 	
 	ClientCommand(iVictim, "r_screenoverlay\"\"");
 	
 	DropCarryingItem(iVictim);
-	
-	if (!bDeadRinger)
-		ViewModel_Destroy(iVictim);
 	
 	//Handle bonuses
 	if (!bDeadRinger && IsValidZombie(iKillers[0]) && iKillers[0] != iVictim)
@@ -256,7 +254,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			g_bSpawnAsSpecialInfected[iKillers[1]] = true;
 	}
 	
-	if (iVictim != iKillers[0] && iKillers[0] == event.GetInt("inflictor_entindex"))
+	if (iVictim != iKillers[0] && iKillers[0] == iInflictor)
 	{
 		int iPos;
 		WeaponClasses weapon;
@@ -271,6 +269,17 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 					event.SetString("weapon", weapon.sIconName);
 			}
 		}
+	}
+	
+	if (iInflictor != INVALID_ENT_REFERENCE && IsClassname(iInflictor, "prop_physics"))
+	{
+		// Could be a tank thorwing debris to set kill icon
+		char sModel[256];
+		GetEntityModel(iInflictor, sModel, sizeof(sModel));
+		
+		Debris debris;
+		if (Config_GetDebrisFromModel(sModel, debris))
+			event.SetString("weapon", debris.sIconName);
 	}
 	
 	g_iMaxHealth[iVictim] = -1;
@@ -293,8 +302,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Death);
 		else
 			Sound_PlayInfectedVo(iVictim, g_nInfected[iVictim], SoundVo_Death);
-		
-		Classes_SetClient(iVictim, Infected_None);
 		
 		//10%
 		if (IsValidSurvivor(iKillers[0]) && !GetRandomInt(0, 9) && g_nRoundState == SZFRoundState_Active)
@@ -328,7 +335,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		}
 		
 		//Check for spec bypass from AFK manager
-		RequestFrame(Frame_CheckZombieBypass, iVictim);
+		RequestFrame(Frame_CheckZombieBypass, GetClientSerial(iVictim));
 	}
 	
 	//Instant respawn outside of the actual gameplay

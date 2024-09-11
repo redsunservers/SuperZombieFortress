@@ -27,7 +27,6 @@ void Classes_Refresh()
 	g_DefaultClasses.callback_rage = INVALID_FUNCTION;
 	g_DefaultClasses.callback_think = INVALID_FUNCTION;
 	g_DefaultClasses.callback_touch = INVALID_FUNCTION;
-	g_DefaultClasses.callback_anim = INVALID_FUNCTION;
 	g_DefaultClasses.callback_death = INVALID_FUNCTION;
 	
 	g_iSurvivorClassCount = 0;
@@ -111,7 +110,7 @@ bool Classes_LoadTeam(KeyValues kv, const char[] sKey, ClientClasses classes[vie
 	}
 	
 	//Clear classes and set default value
-	for (int i; i < sizeof(classes); i++)
+	for (int i = 1; i < sizeof(classes); i++)
 	{
 		delete classes[i].aWeapons;
 		classes[i] = class;
@@ -193,23 +192,29 @@ bool Classes_LoadInfected(KeyValues kv, const char[] sKey, ClientClasses classes
 
 void Classes_Precache()
 {
+	for (TFClassType nClass = TFClass_Scout; nClass <= TFClass_Engineer; nClass++)
+		Classes_PrecacheClass(g_ZombieClasses[nClass]);
+	
 	for (Infected nInfected; nInfected < Infected_Count; nInfected++)
+		Classes_PrecacheClass(g_InfectedClasses[nInfected]);
+}
+
+void Classes_PrecacheClass(ClientClasses class)
+{
+	if (class.sWorldModel[0])
 	{
-		if (g_InfectedClasses[nInfected].sWorldModel[0])
-		{
-			PrecacheModel(g_InfectedClasses[nInfected].sWorldModel);
-			AddModelToDownloadsTable(g_InfectedClasses[nInfected].sWorldModel);
-		}
-		
-		if (g_InfectedClasses[nInfected].sViewModel[0])
-		{
-			PrecacheModel(g_InfectedClasses[nInfected].sViewModel);
-			AddModelToDownloadsTable(g_InfectedClasses[nInfected].sViewModel);
-		}
-		
-		if (g_InfectedClasses[nInfected].sSoundSpawn[0])
-			PrecacheSound2(g_InfectedClasses[nInfected].sSoundSpawn);
+		PrecacheModel(class.sWorldModel);
+		AddModelToDownloadsTable(class.sWorldModel);
 	}
+	
+	if (class.sViewModel[0])
+	{
+		PrecacheModel(class.sViewModel);
+		AddModelToDownloadsTable(class.sViewModel);
+	}
+	
+	if (class.sSoundSpawn[0])
+		PrecacheSound2(class.sSoundSpawn);
 }
 
 void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), TFClassType iClass = TFClass_Unknown)
@@ -286,6 +291,11 @@ stock TFClassType GetRandomZombieClass()
 stock int GetZombieClassCount()
 {
 	return g_iZombieClassCount;
+}
+
+stock int GetZombieMeleeIndex(TFClassType nClass)
+{
+	return g_ZombieClasses[nClass].GetWeaponSlotIndex(WeaponSlot_Melee);
 }
 
 stock bool IsValidInfected(Infected nInfected)

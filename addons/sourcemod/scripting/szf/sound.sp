@@ -53,11 +53,11 @@ enum SoundVo
 static StringMap g_mSoundMusic;
 static ArrayList g_aSoundVoInfected[view_as<int>(Infected_Count)][view_as<int>(SoundVo_Count)];
 
-static SoundFilepath g_SoundFilepath[TF_MAXPLAYERS];
-static SoundMusic g_SoundMusic[TF_MAXPLAYERS];
-static Handle g_hSoundMusicTimer[TF_MAXPLAYERS];
+static SoundFilepath g_SoundFilepath[MAXPLAYERS];
+static SoundMusic g_SoundMusic[MAXPLAYERS];
+static Handle g_hSoundMusicTimer[MAXPLAYERS];
 
-bool g_bNoMusicForClient[TF_MAXPLAYERS];
+bool g_bNoMusicForClient[MAXPLAYERS];
 
 void Sound_Refresh()
 {

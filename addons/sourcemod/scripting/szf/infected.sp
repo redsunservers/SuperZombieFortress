@@ -25,23 +25,22 @@ public void Infected_DoNoRage(int iClient)
 // Tank
 ////////////////
 
-static Handle g_hTimerTank[TF_MAXPLAYERS];
-static float g_flTankLifetime[TF_MAXPLAYERS];
-static int g_iTankHealthSubtract[TF_MAXPLAYERS];
+static Handle g_hTimerTank[MAXPLAYERS];
+static float g_flTankLifetime[MAXPLAYERS];
+static int g_iTankHealthSubtract[MAXPLAYERS];
+static int g_iTankDebris[MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
 
 public void Infected_OnTankSpawn(int iClient)
 {
-	if (g_flTankLifetime[iClient] < GetGameTime() - 0.5)	//Prevent multiple announces from spawnroom
-	{
-		//TAAAAANK
-		CPrintToChatAll("%t", "Tank_Spawn", "{red}");
-		Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
-		
-		g_iTanksSpawned++;
-	}
+	//TAAAAANK
+	CPrintToChatAll("%t", "Tank_Spawn", "{red}");
+	Sound_PlayInfectedVoToAll(Infected_Tank, SoundVo_Fire);
+	
+	g_iTanksSpawned++;
 	
 	g_hTimerTank[iClient] = CreateTimer(1.0, Infected_TankTimer, GetClientSerial(iClient), TIMER_REPEAT);
 	g_flTankLifetime[iClient] = GetGameTime();
+	g_iTankDebris[iClient] = INVALID_ENT_REFERENCE;
 	
 	int iSurvivors = GetSurvivorCount();
 	int iHealth = g_cvTankHealth.IntValue * iSurvivors;
@@ -130,41 +129,224 @@ public Action Infected_TankTimer(Handle hTimer, int iSerial)
 	return Plugin_Continue;
 }
 
-public Action Infected_OnTankAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
+public void Infected_DoTankThrow(int iClient)
 {
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
+	float flThrow, flEnd;
+	
+	SetVariantInt(1);
+	AcceptEntityInput(iClient, "SetForcedTauntCam");
+	
+	switch (GetRandomInt(2, 4))
 	{
-		ViewModel_SetDefaultAnimation(iClient, "f_idle");
-		ViewModel_SetAnimation(iClient, "f_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		//One of those anim always get played because of force crit, pick one of those at random
-		//TODO check if all 3 anim exists
-		
-		switch (GetRandomInt(1, 3))
+		case 2:
 		{
-			case 1: nAnim = PLAYERANIMEVENT_ATTACK_PRIMARY;
-			case 2: nAnim = PLAYERANIMEVENT_ATTACK_SECONDARY;
-			case 3: nAnim = PLAYERANIMEVENT_ATTACK_GRENADE;
+			SDKCall_PlaySpecificSequence(iClient, "Throw_02");
+			flThrow = 2.25;
+			flEnd = 3.0;
 		}
-		
-		ViewModel_SetAnimation(iClient, "f_swing_crit");
-		return Plugin_Changed;
+		case 3:
+		{
+			SDKCall_PlaySpecificSequence(iClient, "Throw_03");
+			flThrow = 2.1;
+			flEnd = 2.6;
+		}
+		case 4:
+		{
+			SDKCall_PlaySpecificSequence(iClient, "Throw_04");
+			flThrow = 2.6;
+			flEnd = 3.0;
+		}
 	}
 	
-	//TODO check death anim
+	TF2_AddCondition(iClient, TFCond_FreezeInput, flEnd);
+	CreateTimer(flEnd, Infected_DebrisTimerEnd, GetClientSerial(iClient));
+	
+	int iDebris = CreateEntityByName("prop_physics_override");
+	
+	Debris debris;
+	Config_GetRandomDebris(debris);
+	SetEntityModel(iDebris, debris.sModel);
+	
+	SetEntProp(iDebris, Prop_Send, "m_nSolidType", SOLID_VPHYSICS);
+	DispatchKeyValueFloat(iDebris, "massScale", 300.0);
+	DispatchKeyValueFloat(iDebris, "modelscale", debris.flScale);
+	
+	SetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity", iClient);
+	SetEntProp(iDebris, Prop_Data, "m_spawnflags", SF_PHYSPROP_START_ASLEEP|SF_PHYSPROP_MOTIONDISABLED);
+	SetEntProp(iDebris, Prop_Data, "m_takedamage", DAMAGE_NO);
+	SetEntityCollisionGroup(iDebris, COLLISION_GROUP_PLAYER);
+	SetEntProp(iDebris, Prop_Send, "m_iTeamNum", GetClientTeam(iClient));
+	SetEntityRenderMode(iDebris, RENDER_TRANSCOLOR);
+	
+	int iBonemerge = CreateBonemerge(iClient, "debris");
+	
+	float vecPos[3], vecAngle[3];
+	GetClientAbsOrigin(iClient, vecPos);
+	GetClientAbsAngles(iClient, vecAngle);
+	AddVectors(vecPos, debris.vecOffset, vecPos);
+	AddVectors(vecAngle, debris.vecAngle, vecAngle);
+	TeleportEntity(iBonemerge, vecPos, vecAngle, NULL_VECTOR);
+	
+	SetVariantString("!activator");
+	AcceptEntityInput(iDebris, "SetParent", iBonemerge);
+	SetVariantString("debris");
+	AcceptEntityInput(iDebris, "SetParentAttachment");
+	
+	DispatchSpawn(iDebris);
+	
+	SetEntPropFloat(iDebris, Prop_Data, "m_impactEnergyScale", 0.0);	//After DispatchSpawn, otherwise 1 would be set
+	
+	g_iTankDebris[iClient] = EntIndexToEntRef(iDebris);
+	
+	CreateTimer(flThrow, Infected_DebrisTimer, GetClientSerial(iClient));
+}
+
+public Action Infected_DebrisTimer(Handle hTimer, int iSerial)
+{
+	int iClient = GetClientFromSerial(iSerial);
+	if (!IsValidClient(iClient) || !IsPlayerAlive(iClient))
+		return Plugin_Continue;
+	
+	Infected_ActivateDebris(iClient, true);
 	
 	return Plugin_Continue;
 }
 
-public void Infected_OnTankTouch(int iClient, int iToucher)
+void Infected_ActivateDebris(int iClient, bool bVel)
 {
-	if (IsClassname(iToucher, "func_respawnroom"))
+	int iDebris = g_iTankDebris[iClient];
+	g_iTankDebris[iClient] = INVALID_ENT_REFERENCE;
+	
+	if (!IsValidEntity(iDebris))
+		return;
+	
+	AcceptEntityInput(iDebris, "ClearParent");
+	AcceptEntityInput(iDebris, "EnableMotion");
+	ActivateEntity(iDebris);	//So physics can scale with modelscale
+	
+	int iBonemerge = GetEntPropEnt(iDebris, Prop_Data, "m_pParent");
+	if (iBonemerge != INVALID_ENT_REFERENCE && IsClassname(iBonemerge, "tf_taunt_prop"))
+		RemoveEntity(iBonemerge);
+	
+	SDKHook(iDebris, SDKHook_StartTouch, Infected_DebrisStartTouch);
+	
+	if (bVel)
 	{
-		//Reset lifetime so tank don't drain it's health while in spawnroom
-		if (!GetEntProp(iToucher, Prop_Data, "m_bDisabled") && GetEntProp(iToucher, Prop_Send, "m_iTeamNum") == GetClientTeam(iClient))
-			g_flTankLifetime[iClient] = GetGameTime();
+		float vecAngles[3], vecVel[3];
+		GetClientEyeAngles(iClient, vecAngles);
+		AnglesToVelocity(vecAngles, vecVel, 2000.0);
+		TeleportEntity(iDebris, NULL_VECTOR, NULL_VECTOR, vecVel);
+	}
+	
+	CreateTimer(1.0, Infected_DebrisTimerMoving, iDebris, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+
+	float flLifetime = g_cvTankDebrisLifetime.FloatValue;
+	if (flLifetime > 0.0)
+		CreateTimer(flLifetime, Infected_DebrisTimerFadeOutStart, iDebris);
+}
+
+public Action Infected_DebrisTimerEnd(Handle hTimer, int iSerial)
+{
+	int iClient = GetClientFromSerial(iSerial);
+	if (!IsValidClient(iClient))
+		return Plugin_Continue;
+	
+	SetVariantInt(0);
+	AcceptEntityInput(iClient, "SetForcedTauntCam");
+	
+	return Plugin_Continue;
+}
+
+public Action Infected_DebrisTimerMoving(Handle hTimer, int iDebris)
+{
+	if (!IsValidEntity(iDebris))
+		return Plugin_Stop;
+	
+	if (GetEntProp(iDebris, Prop_Send, "m_bAwake"))
+		return Plugin_Continue;
+	
+	SetEntityCollisionGroup(iDebris, COLLISION_GROUP_DEBRIS);
+	SetEntityMoveType(iDebris, MOVETYPE_NONE);
+	
+	return Plugin_Stop;
+}
+
+public Action Infected_DebrisTimerFadeOutStart(Handle hTimer, int iDebris)
+{
+	if (!IsValidEntity(iDebris))
+		return Plugin_Stop;
+	
+	SetEntityCollisionGroup(iDebris, COLLISION_GROUP_DEBRIS);
+	RequestFrame(Infected_DebrisFrameFadeOut, iDebris);
+	
+	return Plugin_Continue;
+}
+
+void Infected_DebrisFrameFadeOut(int iDebris)
+{
+	if (!IsValidEntity(iDebris))
+		return;
+	
+	int iColor[4];
+	GetEntityRenderColor(iDebris, iColor[0], iColor[1], iColor[2], iColor[3]);
+	
+	int iAlpha = iColor[3] - 10;
+	if (iAlpha <= 0)
+	{
+		RemoveEntity(iDebris);
+		return;
+	}
+	
+	SetEntityRenderColor(iDebris, .a = iAlpha);
+	RequestFrame(Infected_DebrisFrameFadeOut, iDebris);
+}
+
+public Action Infected_DebrisStartTouch(int iDebris, int iToucher)
+{
+	int iClient = GetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity");
+	
+	float vecVelocity[3];
+	SDKCall_GetVelocity(iDebris, vecVelocity);
+	float flSpeed = GetVectorLength(vecVelocity);
+	
+	if (0 < iToucher <= MaxClients && flSpeed >= 100.0)
+		SDKHooks_TakeDamage(iToucher, iDebris, iClient, flSpeed / 4.0);
+	
+	return Plugin_Continue;
+}
+
+public void Infected_OnTankThink(int iClient)
+{
+	if (!IsPlayerAlive(iClient))
+		return;
+	
+	// Force tank to block any CP being captured
+	int iTrigger = INVALID_ENT_REFERENCE;
+	while ((iTrigger = FindEntityByClassname(iTrigger, "trigger_capture_area")) != INVALID_ENT_REFERENCE)
+	{
+		static int iOffset = -1;
+		if (iOffset == -1)
+			iOffset = FindDataMapInfo(iTrigger, "m_flCapTime");
+		
+		TFTeam nCapturingTeam = view_as<TFTeam>(GetEntData(iTrigger, iOffset - 12));	// m_nCapturingTeam
+		float flTimeRemaining = GetEntDataFloat(iTrigger, iOffset + 4);	// m_fTimeRemaining
+		if (nCapturingTeam != TFTeam_Survivor || flTimeRemaining == 0.0)
+			continue;
+		
+		// Stop blocking CP if survivor captures has expired, as otherwise Tank would keep hogging the capture progress
+		int iCP = GetCapturePointFromTrigger(iTrigger);
+		int iIndex = GetEntProp(iCP, Prop_Data, "m_iPointIndex");
+		int iResource = FindEntityByClassname(INVALID_ENT_REFERENCE, "tf_objective_resource");
+		int iRequiredCappers = GetEntProp(iResource, Prop_Send, "m_iTeamReqCappers", _, (iIndex + (view_as<int>(TFTeam_Survivor) * MAX_CONTROL_POINTS)));
+		float flTimeToCap = GetEntPropFloat(iTrigger, Prop_Data, "m_flCapTime") * 2.0 * float(iRequiredCappers);
+		if (flTimeToCap < flTimeRemaining)
+			continue;
+		
+		// Filter usually have red-team only, we want tank to bypass the filter
+		int iFilter = GetEntPropEnt(iTrigger, Prop_Data, "m_hFilter");
+		SetEntPropEnt(iTrigger, Prop_Data, "m_hFilter", INVALID_ENT_REFERENCE);
+		AcceptEntityInput(iTrigger, "StartTouch", iClient, iClient);
+		SetEntPropEnt(iTrigger, Prop_Data, "m_hFilter", iFilter);
 	}
 }
 
@@ -172,6 +354,12 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 {
 	g_hTimerTank[iVictim] = null;
 	g_iDamageZombie[iVictim] = 0;
+	
+	Infected_ActivateDebris(iVictim, false);	// Drop debris if tank were to hold one
+	
+	int iTrigger = INVALID_ENT_REFERENCE;
+	while ((iTrigger = FindEntityByClassname(iTrigger, "trigger_capture_area")) != INVALID_ENT_REFERENCE)
+		AcceptEntityInput(iTrigger, "EndTouch", iVictim, iVictim);
 	
 	if (0 < iKiller <= MaxClients && IsClientInGame(iKiller))
 	{
@@ -254,43 +442,6 @@ public void Infected_DoBoomerRage(int iClient)
 	Infected_DoBoomerExplosion(iClient, 600.0);
 }
 
-public Action Infected_OnBoomerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "f_idle");
-		ViewModel_SetAnimation(iClient, "f_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		//One of those anim always get played because of no random crit, pick one of those at random
-		//TODO check if all 3 anim exists, and swings with correct anim
-		
-		switch (GetRandomInt(1, 3))
-		{
-			case 1:
-			{
-				nAnim = PLAYERANIMEVENT_ATTACK_PRIMARY;
-				ViewModel_SetAnimation(iClient, "f_swing_left");
-			}
-			case 2:
-			{
-				nAnim = PLAYERANIMEVENT_ATTACK_SECONDARY;
-				ViewModel_SetAnimation(iClient, "f_swing_right");
-			}
-			case 3:
-			{
-				nAnim = PLAYERANIMEVENT_ATTACK_GRENADE;
-				ViewModel_SetAnimation(iClient, "f_swing_crit");
-			}
-		}
-		
-		return Plugin_Changed;
-	}
-	
-	return Plugin_Continue;
-}
-
 public void Infected_OnBoomerDeath(int iClient, int iKiller, int iAssist)
 {
 	Infected_DoBoomerExplosion(iClient, 400.0);
@@ -345,8 +496,8 @@ void Infected_DoBoomerExplosion(int iClient, float flRadius)
 // Charger
 ////////////////
 
-static float g_flChargerEndCharge[TF_MAXPLAYERS];
-static bool g_bChargerHitSurvivor[TF_MAXPLAYERS][TF_MAXPLAYERS];
+static float g_flChargerEndCharge[MAXPLAYERS];
+static bool g_bChargerHitSurvivor[MAXPLAYERS][MAXPLAYERS];
 
 public void Infected_OnChargerSpawn(int iClient)
 {
@@ -421,27 +572,6 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 			}
 		}
 	}
-}
-
-public Action Infected_OnChargerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "b_idle");
-		ViewModel_SetAnimation(iClient, "b_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		switch (GetRandomInt(1, 2))
-		{
-			case 1: ViewModel_SetAnimation(iClient, "b_swing_a");
-			case 2: ViewModel_SetAnimation(iClient, "b_swing_b");
-		}
-		
-		return Plugin_Changed;
-	}
-	
-	return Plugin_Continue;
 }
 
 ////////////////
@@ -534,7 +664,7 @@ public void Infected_OnStalkerThink(int iClient, int &iButtons)
 // Hunter
 ////////////////
 
-static bool g_bHunterIsUsingPounce[TF_MAXPLAYERS];
+static bool g_bHunterIsUsingPounce[MAXPLAYERS];
 
 public void Infected_DoHunterJump(int iClient)
 {
@@ -548,7 +678,7 @@ public void Infected_DoHunterJump(int iClient)
 	vecVelocity[2] = 460.0;
 	
 	SDKCall_PlaySpecificSequence(iClient, "pounce_idle_low");
-	ViewModel_SetAnimation(iClient, "claw_lunge_layer");
+	ViewModel_SetAnimation(iClient, "ACT_VM_LUNGE_LAYER");
 	
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 	SetEntProp(iClient, Prop_Send, "m_iAirDash", 1);
@@ -565,26 +695,6 @@ public void Infected_OnHunterThink(int iClient, int &iButtons)
 {
 	if (GetEntityFlags(iClient) & FL_ONGROUND)
 		g_bHunterIsUsingPounce[iClient] = false;
-}
-
-public Action Infected_OnHunterAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "b_idle");
-		ViewModel_SetAnimation(iClient, "b_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		switch (GetRandomInt(1, 3))
-		{
-			case 1: ViewModel_SetAnimation(iClient, "b_swing_a");
-			case 2: ViewModel_SetAnimation(iClient, "b_swing_b");
-			case 3: ViewModel_SetAnimation(iClient, "b_swing_c");
-		}
-	}
-	
-	return Plugin_Continue;
 }
 
 public void Infected_OnHunterTouch(int iClient, int iToucher)
@@ -622,8 +732,8 @@ public void Infected_OnHunterDeath(int iClient, int iKiller, int iAssist)
 // Smoker
 ////////////////
 
-static int g_iSmokerBeamHits[TF_MAXPLAYERS];
-static int g_iSmokerBeamHitVictim[TF_MAXPLAYERS];
+static int g_iSmokerBeamHits[MAXPLAYERS];
+static int g_iSmokerBeamHitVictim[MAXPLAYERS];
 
 public void Infected_OnSmokerThink(int iClient, int &iButtons)
 {
@@ -637,7 +747,7 @@ public void Infected_OnSmokerThink(int iClient, int &iButtons)
 	}
 	else if (GetEntityMoveType(iClient) == MOVETYPE_NONE)
 	{
-		ViewModel_SetAnimation(iClient, "cough");
+		ViewModel_SetAnimation(iClient, "ACT_VM_COUGH");
 		
 		g_iSmokerBeamHits[iClient] = 0;
 		g_iSmokerBeamHitVictim[iClient] = 0;
@@ -700,7 +810,7 @@ void Infected_DoSmokerBeam(int iClient)
 			g_iSmokerBeamHits[iClient] = 0;
 			
 			SDKCall_PlaySpecificSequence(iClient, "tongue_attack_drag_survivor_idle");
-			ViewModel_SetAnimation(iClient, "tongue");
+			ViewModel_SetAnimation(iClient, "ACT_VM_TONGUE");
 		}
 		
 		//Increase count and if it reaches a threshold, apply damage
@@ -724,24 +834,6 @@ void Infected_DoSmokerBeam(int iClient)
 	delete hTrace;
 }
 
-public Action Infected_OnSmokerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "m_idle");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		switch (GetRandomInt(1, 2))
-		{
-			case 1: ViewModel_SetAnimation(iClient, "m_swing_a");
-			case 2: ViewModel_SetAnimation(iClient, "m_swing_b");
-		}
-	}
-	
-	return Plugin_Continue;
-}
-
 ////////////////
 // Spitter
 ////////////////
@@ -749,28 +841,13 @@ public Action Infected_OnSmokerAnim(int iClient, PlayerAnimEvent_t &nAnim, int &
 public void Infected_DoSpitterGas(int iClient)
 {
 	SDKCall_PlaySpecificSequence(iClient, "spitter_spitting");
-	ViewModel_SetAnimation(iClient, "spit");
+	ViewModel_SetAnimation(iClient, "ACT_VM_VOMIT");
 	
 	TF2_AddCondition(iClient, TFCond_FreezeInput, 1.0);
 	
 	int iGas = TF2_GetItemInSlot(iClient, WeaponSlot_Secondary);
 	if (iGas > MaxClients)
 		SDKCall_TossJarThink(iGas);
-}
-
-public Action Infected_OnSpitterAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "fa_idle");
-		ViewModel_SetAnimation(iClient, "fa_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		ViewModel_SetAnimation(iClient, "fa_swing_a");
-	}
-	
-	return Plugin_Continue;
 }
 
 public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
@@ -794,8 +871,8 @@ public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
 // Jockey
 ////////////////
 
-static bool g_bJockeyIsUsingPounce[TF_MAXPLAYERS];
-static int g_iJockeyTarget[TF_MAXPLAYERS];
+static bool g_bJockeyIsUsingPounce[MAXPLAYERS];
+static int g_iJockeyTarget[MAXPLAYERS];
 
 public void Infected_DoJockeyJump(int iClient)
 {
@@ -809,7 +886,7 @@ public void Infected_DoJockeyJump(int iClient)
 	vecVelocity[2] = 345.0;
 	
 	SDKCall_PlaySpecificSequence(iClient, "Pounce");
-	ViewModel_SetAnimation(iClient, "lunge");
+	ViewModel_SetAnimation(iClient, "ACT_VM_LUNGE");
 	
 	TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 	SetEntProp(iClient, Prop_Send, "m_bJumping", true);
@@ -866,7 +943,7 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			g_iJockeyTarget[iClient] = 0;
 			
 			SetEntityMoveType(iClient, MOVETYPE_WALK);
-			SetEntProp(iClient, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_PLAYER);
+			SetEntityCollisionGroup(iClient, COLLISION_GROUP_PLAYER);
 		}
 	}
 }
@@ -890,23 +967,8 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 	Shake(iToucher, 3.0, 3.0);
 	
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
-	SetEntProp(iClient, Prop_Send, "m_CollisionGroup", COLLISION_GROUP_DEBRIS_TRIGGER);
+	SetEntityCollisionGroup(iClient, COLLISION_GROUP_DEBRIS_TRIGGER);
 	SDKCall_PlaySpecificSequence(iClient, "jockey_ride");
-}
-
-public Action Infected_OnJockeyAnim(int iClient, PlayerAnimEvent_t &nAnim, int &iData)
-{
-	if (nAnim == PLAYERANIMEVENT_SPAWN)
-	{
-		ViewModel_SetDefaultAnimation(iClient, "s_idle");
-		ViewModel_SetAnimation(iClient, "s_draw");
-	}
-	else if (nAnim == PLAYERANIMEVENT_ATTACK_PRIMARY || nAnim == PLAYERANIMEVENT_ATTACK_SECONDARY || nAnim == PLAYERANIMEVENT_ATTACK_GRENADE)
-	{
-		ViewModel_SetAnimation(iClient, "s_swing_a");
-	}
-	
-	return Plugin_Continue;
 }
 
 public void Infected_OnJockeyDeath(int iClient, int iKiller, int iAssist)

@@ -1,5 +1,6 @@
 #define CONFIG_WEAPONS       "configs/szf/weapons.cfg"
 #define CONFIG_RESKINS       "configs/szf/reskins.cfg"
+#define CONFIG_DEBRIS        "configs/szf/debris.cfg"
 
 enum struct ConfigMelee
 {
@@ -10,8 +11,19 @@ enum struct ConfigMelee
 	char sAttrib[256];
 }
 
+enum struct Debris
+{
+	char sModel[PLATFORM_MAX_PATH];
+	float flScale;
+	float vecOffset[3];
+	float vecAngle[3];
+	char sIconName[64];
+	float flChance;
+}
+
 static ArrayList g_aConfigMelee;
 static StringMap g_mConfigReskins;
+static ArrayList g_aConfigDebris;
 
 void Config_Init()
 {
@@ -66,6 +78,9 @@ void Config_Refresh()
 	
 	delete g_mConfigReskins;
 	g_mConfigReskins = Config_LoadReskins();
+	
+	delete g_aConfigDebris;
+	g_aConfigDebris = Config_LoadDebris();
 }
 
 ArrayList Config_LoadWeaponData()
@@ -270,15 +285,13 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	kv.GetString("menu", classes.sMenu, sizeof(classes.sMenu));
 	kv.GetString("worldmodel", classes.sWorldModel, sizeof(classes.sWorldModel), classes.sWorldModel);
 	kv.GetString("viewmodel", classes.sViewModel, sizeof(classes.sViewModel), classes.sViewModel);
-	kv.GetVector("viewmodel_angles", classes.vecViewModelAngles, classes.vecViewModelAngles);
-	classes.flViewModelHeight = kv.GetFloat("viewmodel_height", classes.flViewModelHeight);
+	classes.bViewModelAnim = !!kv.GetNum("viewmodel_anim", classes.bViewModelAnim);
 	kv.GetString("sound_spawn", classes.sSoundSpawn, sizeof(classes.sSoundSpawn), classes.sSoundSpawn);
 	classes.iRageCooldown = kv.GetNum("ragecooldown", classes.iRageCooldown);
 	classes.callback_spawn = Config_GetFunction(kv, "callback_spawn", classes.callback_spawn);
 	classes.callback_rage = Config_GetFunction(kv, "callback_rage", classes.callback_rage);
 	classes.callback_think = Config_GetFunction(kv, "callback_think", classes.callback_think);
 	classes.callback_touch = Config_GetFunction(kv, "callback_touch", classes.callback_touch);
-	classes.callback_anim = Config_GetFunction(kv, "callback_anim", classes.callback_anim);
 	classes.callback_death = Config_GetFunction(kv, "callback_death", classes.callback_death);
 	
 	return true;
@@ -356,6 +369,37 @@ StringMap Config_LoadReskins()
 	delete kv;
 	return mReskins;
 }
+
+ArrayList Config_LoadDebris()
+{
+	KeyValues kv = Config_LoadFile(CONFIG_DEBRIS, "Debris");
+	if (kv == null)
+		return null;
+	
+	ArrayList aDebris = new ArrayList(sizeof(Debris));
+	
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			Debris debris;
+			kv.GetSectionName(debris.sModel, sizeof(debris.sModel));
+			debris.flScale = kv.GetFloat("scale", 1.0);
+			kv.GetVector("offset", debris.vecOffset);
+			kv.GetVector("angle", debris.vecAngle);
+			kv.GetString("iconname", debris.sIconName, sizeof(debris.sIconName));
+			debris.flChance = kv.GetFloat("chance", 1.0);
+			
+			aDebris.PushArray(debris);
+			PrecacheModel(debris.sModel);
+		}
+		while (kv.GotoNextKey(false));
+	}
+	
+	delete kv;
+	return aDebris;
+}
+
 
 StringMap Config_LoadMusic(KeyValues kv)
 {
@@ -510,4 +554,33 @@ bool Config_GetMeleeByDefIndex(int iIndex, ConfigMelee melee)
 	
 	g_aConfigMelee.GetArray(iPos, melee);
 	return true;
+}
+
+void Config_GetRandomDebris(Debris debris)
+{
+	ArrayList aList = new ArrayList(sizeof(Debris));
+	int iLength = g_aConfigDebris.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		g_aConfigDebris.GetArray(i, debris);
+		if (debris.flChance > GetRandomFloat(0.0, 1.0))
+			aList.PushArray(debris);
+	}
+	
+	int iRandom = GetRandomInt(0, aList.Length - 1);
+	aList.GetArray(iRandom, debris);
+	delete aList;
+}
+
+bool Config_GetDebrisFromModel(const char[] sModel, Debris debris)
+{
+	int iLength = g_aConfigDebris.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		g_aConfigDebris.GetArray(i, debris);
+		if (StrEqual(debris.sModel, sModel))
+			return true;
+	}
+	
+	return false;
 }
