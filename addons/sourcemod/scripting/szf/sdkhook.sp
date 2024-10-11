@@ -387,7 +387,8 @@ public Action GasManager_Touch(int iGasManager, int iClient)
 {
 	if (IsValidSurvivor(iClient))
 	{
-		if (!TF2_IsPlayerInCondition(iClient, TFCond_Bleeding))
+		// There a case that user can have gas effect before TF2_OnConditionAdded is called, wait for it to be gone
+		if (!TF2_IsPlayerInCondition(iClient, TFCond_Bleeding) && !TF2_IsPlayerInCondition(iClient, TFCond_Gas))
 		{
 			//Deal bleed instead of gas
 			int iOwner = GetEntPropEnt(iGasManager, Prop_Send, "m_hOwnerEntity");
