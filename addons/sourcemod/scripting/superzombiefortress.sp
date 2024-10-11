@@ -19,7 +19,7 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.6.5"
+#define PLUGIN_VERSION				"4.6.6"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define MAX_CONTROL_POINTS	8
@@ -728,6 +728,34 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	
 	if (StrEqual(sClassname, "tf_dropped_weapon") || StrEqual(sClassname, "item_powerup_rune"))	//Never allow dropped weapon and rune dropped from survivors
 		RemoveEntity(iEntity);
+}
+
+public void OnEntityDestroyed(int iEntity)
+{
+	if (!g_bEnabled)
+		return;
+	
+	char sClassname[256];
+	GetEntityClassname(iEntity, sClassname, sizeof(sClassname));
+	if (StrEqual(sClassname, "tf_gas_manager"))
+	{
+		// Gas manager don't call EndTouch on delete, we'll have to manually call it
+		
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
+		{
+			if (!IsValidLivingSurvivor(iClient))
+				continue;
+			
+			float vecOrigin[3], vecMins[3], vecMaxs[3];
+			GetClientAbsOrigin(iClient, vecOrigin);
+			GetClientMins(iClient, vecMins);
+			GetClientMaxs(iClient, vecMaxs);
+			
+			TR_ClipRayHullToEntity(vecOrigin, vecOrigin, vecMins, vecMaxs, MASK_PLAYERSOLID, iEntity);
+			if (TR_DidHit())
+				GasManager_EndTouch(iEntity, iClient);
+		}
+	}
 }
 
 public void TF2_OnWaitingForPlayersStart()
