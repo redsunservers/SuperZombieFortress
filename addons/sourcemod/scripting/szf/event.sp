@@ -271,6 +271,10 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		}
 	}
 	
+	// Spitter bleed
+	if (IsValidZombie(iKillers[0]) && g_nInfected[iKillers[0]] == Infected_Spitter && event.GetInt("customkill") == TF_CUSTOM_BLEEDING)
+		event.SetString("weapon", "infection_acid_puddle");
+	
 	if (iInflictor != INVALID_ENT_REFERENCE && IsClassname(iInflictor, "prop_physics"))
 	{
 		// Could be a tank thorwing debris to set kill icon
