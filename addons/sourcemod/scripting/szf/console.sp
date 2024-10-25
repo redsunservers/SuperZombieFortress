@@ -310,5 +310,9 @@ public Action Console_Build(int iClient, const char[] sCommand, int iArgs)
 	if (nObjectType != TFObject_Dispenser && nObjectType != TFObject_Sentry)
 		return Plugin_Handled;
 	
+	// Dispenser have m_bCarried set to 1 to disable healing, but also allowed to build multiples, which we want to prevent that
+	if (TF2_GetBuilding(iClient, nObjectType) != INVALID_ENT_REFERENCE)
+		return Plugin_Handled;
+	
 	return Plugin_Continue;
 }

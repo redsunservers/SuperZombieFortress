@@ -812,6 +812,22 @@ stock void CheckClientWeapons(int iClient)
 	}
 }
 
+stock int TF2_GetBuilding(int iClient, TFObjectType nType, TFObjectMode nMode = TFObjectMode_None)
+{
+	int iBuilding = MaxClients+1;
+	while ((iBuilding = FindEntityByClassname(iBuilding, "obj_*")) > MaxClients)
+	{
+		if (GetEntPropEnt(iBuilding, Prop_Send, "m_hBuilder") == iClient
+			&& view_as<TFObjectType>(GetEntProp(iBuilding, Prop_Send, "m_iObjectType")) == nType
+			&& view_as<TFObjectMode>(GetEntProp(iBuilding, Prop_Send, "m_iObjectMode")) == nMode)
+		{
+			return iBuilding;
+		}
+	}
+	
+	return INVALID_ENT_REFERENCE;
+}
+
 ////////////////
 // Cookie
 ////////////////
