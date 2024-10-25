@@ -1,26 +1,3 @@
-//Scout
-#define WEAPON_BFB 772
-
-//Soldier
-#define WEAPON_ESCAPEPLAN 775
-
-//Pyro
-#define WEAPON_POWERJACK 214
-
-//Demoman
-#define WEAPON_SKULLCUTTER 172
-#define WEAPON_CLAIDHEAMHMOR 327
-#define WEAPON_PERSIAN 404
-
-//Heavy
-#define WEAPON_GRU 239
-#define WEAPON_FGRU 1084
-#define WEAPON_BREADBITE 1110
-#define WEAPON_EVICTIONNOTICE 426
-
-//Medic
-#define WEAPON_OVERDOSE 412
-
 //Zombie Soul related indexes
 #define SKIN_ZOMBIE			5
 #define SKIN_ZOMBIE_SPY		SKIN_ZOMBIE + 18
