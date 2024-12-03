@@ -1115,7 +1115,7 @@ stock void SayText2(int[] iClients, int iLength, int iEntity, bool bChat, const 
 	BfWrite bf = UserMessageToBfWrite(StartMessage("SayText2", iClients, iLength, USERMSG_RELIABLE|USERMSG_BLOCKHOOKS)); 
 	
 	bf.WriteByte(iEntity);
-	bf.WriteByte(true);
+	bf.WriteByte(bChat);
 	
 	bf.WriteString(sMessage); 
 	
