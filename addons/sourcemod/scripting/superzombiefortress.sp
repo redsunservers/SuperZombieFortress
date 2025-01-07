@@ -732,7 +732,7 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 
 public void OnEntityDestroyed(int iEntity)
 {
-	if (!g_bEnabled)
+	if (!g_bEnabled || iEntity == INVALID_ENT_REFERENCE)
 		return;
 	
 	char sClassname[256];
