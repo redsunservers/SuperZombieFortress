@@ -44,23 +44,23 @@
 		{
 			"CTeamplayRules::GetCaptureValueForPlayer"
 			{
-				"linux"		"158"
-				"windows"	"157"
-			}
-			"CTeamplayRules::TeamMayCapturePoint"
-			{
 				"linux"		"159"
 				"windows"	"158"
 			}
+			"CTeamplayRules::TeamMayCapturePoint"
+			{
+				"linux"		"160"
+				"windows"	"159"
+			}
 			"CTeamplayRules::SetWinningTeam"
 			{
-				"linux"		"165"
-				"windows"	"164"
+				"linux"		"166"
+				"windows"	"165"
 			}
 			"CTeamplayRoundBasedRules::RoundRespawn"
 			{
-				"linux"		"231"
-				"windows"	"229"
+				"linux"		"232"
+				"windows"	"230"
 			}
 			"CTFPlayer::GiveNamedItem"
 			{
