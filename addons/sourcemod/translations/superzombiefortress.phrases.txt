@@ -677,58 +677,16 @@
 		"en"		"The Jockey creeps around, eager to lead survivors to their demise.\n- Using rage will perform a short leap, latching onto a survivor's head when making physical contact.\n- Controls a survivor's movement and deals damage while on top of them."
 	}
 	
-	"Time_YearAgo"
-	{
-		// "#format"	"{1:d}"
-		"en"		"a year ago"
-	}
-	
-	"Time_YearsAgo"
-	{
-		"#format"	"{1:d}"
-		"en"		"{1} years ago"
-	}
-	
-	"Time_MonthAgo"
-	{
-		// "#format"	"{1:d}"
-		"en"		"a month ago"
-	}
-	
 	"Time_MonthsAgo"
 	{
 		"#format"	"{1:d}"
 		"en"		"{1} months ago"
 	}
 	
-	"Time_WeekAgo"
-	{
-		// "#format"	"{1:d}"
-		"en"		"a week ago"
-	}
-	
-	"Time_WeeksAgo"
-	{
-		"#format"	"{1:d}"
-		"en"		"{1} weeks ago"
-	}
-	
-	"Time_DayAgo"
-	{
-		// "#format"	"{1:d}"
-		"en"		"yesterday"
-	}
-	
 	"Time_DaysAgo"
 	{
 		"#format"	"{1:d}"
 		"en"		"{1} days ago"
-	}
-	
-	"Time_HourAgo"
-	{
-		// "#format"	"{1:d}"
-		"en"		"an hour ago"
 	}
 	
 	"Time_HoursAgo"

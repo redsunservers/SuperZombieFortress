@@ -29,9 +29,7 @@
 #define SECONDS_PER_MINUTE	60
 #define SECONDS_PER_HOUR	3600
 #define SECONDS_PER_DAY		86400
-#define SECONDS_PER_WEEK	604800
 #define SECONDS_PER_MONTH	2629743
-#define SECONDS_PER_YEAR	31556926
 
 // Also used in the item schema to define vision filter or vision mode opt in
 #define TF_VISION_FILTER_NONE		0
@@ -383,7 +381,6 @@ int g_iSurvivorsKilledCounter;
 int g_iZombiesKilledSpree;
 int g_iZombiesKilledSurvivor[MAXPLAYERS + 1];
 
-char g_sMapName[128];
 int g_iRoundTimestamp;
 
 //Client State
@@ -662,11 +659,6 @@ public void OnConfigsExecuted()
 
 public void OnMapStart()
 {
-	char sMapName[128];
-	GetCurrentMap(sMapName, sizeof(sMapName));
-	GetMapDisplayName(sMapName, sMapName, sizeof(sMapName));
-	strcopy(g_sMapName, sizeof(g_sMapName), sMapName);
-	
 	g_iRoundTimestamp = GetTime();
 }
 
@@ -1263,7 +1255,7 @@ void Handle_HoardeBonus()
 	int iLength = 0;
 	int[] iClients = new int[MaxClients];
 	int[] iClientsHoardeId = new int[MaxClients];
-	float vecClientsPos[MAXPLAYERS + 1][3];
+	float vecClientsPos[MAXPLAYERS][3];
 	
 	int[] iHoardeSize = new int[MaxClients];
 	
@@ -1519,7 +1511,7 @@ void CheckZombieBypass(int iClient)
 		&& (g_nRoundState != SZFRoundState_End))								//Check if round did not end or map changing
 	{
 		g_iForceZombieStartTimestamp[iClient] = GetTime();
-		strcopy(g_sForceZombieStartMapName[iClient], sizeof(g_sForceZombieStartMapName[]), g_sMapName);
+		GetCurrentMapDisplayName(g_sForceZombieStartMapName[iClient], sizeof(g_sForceZombieStartMapName[]));
 		
 		char sAuthId[64];
 		GetClientAuthId(iClient, AuthId_Steam2, sAuthId, sizeof(sAuthId));
@@ -1540,11 +1532,13 @@ void Frame_SetForceZombieStart(ArrayStack aStack)
 	if (g_nRoundState == SZFRoundState_Setup || g_nRoundState == SZFRoundState_End)
 		return;
 	
-	char sTimestamp[256];
-	FormatEx(sTimestamp, sizeof(sTimestamp), "%d", GetTime()); // Doesn't need to be the same timestamp as the one assigned for the client ent index, just roughly matching is good enough
+	char sBuffer[128];
+	FormatEx(sBuffer, sizeof(sBuffer), "%d", GetTime()); // Doesn't need to be the same timestamp as the one assigned for the client ent index, just roughly matching is good enough
 	
-	g_cForceZombieStartTimestamp.SetByAuthId(sAuthId, sTimestamp);
-	g_cForceZombieStartMapName.SetByAuthId(sAuthId, g_sMapName);
+	g_cForceZombieStartTimestamp.SetByAuthId(sAuthId, sBuffer);
+	
+	GetCurrentMapDisplayName(sBuffer, sizeof(sBuffer));
+	g_cForceZombieStartMapName.SetByAuthId(sAuthId, sBuffer);
 }
 
 int GetRoundPlayedAsZombie(int iClient)
@@ -2766,50 +2760,20 @@ bool GetVaguePeriodOfTimeFromTimestamp(char[] sBuffer, int iLength, int iTimesta
 	if (iTimePeriod < 0)
 		return false;
 	
-	if (iTimePeriod / SECONDS_PER_YEAR > 0)
-	{
-		int iYears = iTimePeriod / SECONDS_PER_YEAR;
-		
-		if (iYears == 1)
-			FormatEx(sBuffer, iLength, "%t", "Time_YearAgo", iYears);
-		else
-			FormatEx(sBuffer, iLength, "%t", "Time_YearsAgo", iYears);
-	}
-	else if (iTimePeriod / SECONDS_PER_MONTH > 0)
+	if (iTimePeriod / SECONDS_PER_MONTH > 1)
 	{
 		int iMonths = iTimePeriod / SECONDS_PER_MONTH;
-		
-		if (iMonths == 1)
-			FormatEx(sBuffer, iLength, "%t", "Time_MonthAgo", iMonths);
-		else
-			FormatEx(sBuffer, iLength, "%t", "Time_MonthsAgo", iMonths);
+		FormatEx(sBuffer, iLength, "%t", "Time_MonthsAgo", iMonths);
 	}
-	else if (iTimePeriod / SECONDS_PER_WEEK > 0)
-	{
-		int iWeeks = iTimePeriod / SECONDS_PER_WEEK;
-		
-		if (iWeeks == 1)
-			FormatEx(sBuffer, iLength, "%t", "Time_WeekAgo", iWeeks);
-		else
-			FormatEx(sBuffer, iLength, "%t", "Time_WeeksAgo", iWeeks);
-	}
-	else if (iTimePeriod / SECONDS_PER_DAY > 0)
+	else if (iTimePeriod / SECONDS_PER_DAY > 1)
 	{
 		int iDays = iTimePeriod / SECONDS_PER_DAY;
-		
-		if (iDays == 1)
-			FormatEx(sBuffer, iLength, "%t", "Time_DayAgo", iDays);
-		else
-			FormatEx(sBuffer, iLength, "%t", "Time_DaysAgo", iDays);
+		FormatEx(sBuffer, iLength, "%t", "Time_DaysAgo", iDays);
 	}
-	else if (iTimePeriod / SECONDS_PER_HOUR > 0)
+	else if (iTimePeriod / SECONDS_PER_HOUR > 1)
 	{
 		int iHours = iTimePeriod / SECONDS_PER_HOUR;
-		
-		if (iHours == 1)
-			FormatEx(sBuffer, iLength, "%t", "Time_HourAgo", iHours);
-		else
-			FormatEx(sBuffer, iLength, "%t", "Time_HoursAgo", iHours);
+		FormatEx(sBuffer, iLength, "%t", "Time_HoursAgo", iHours);
 	}
 	else if (iTimePeriod / SECONDS_PER_MINUTE > 0)
 	{
