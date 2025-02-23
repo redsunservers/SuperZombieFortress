@@ -107,10 +107,16 @@
 		"en"		"{1}All special infected seems to be in a cooldown..."
 	}
 	
-	"Infected_ForceStart"
+	"Infected_ForceStart_LastRound"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}You have been forcibly set to infected team due to attempting to skip playing as a infected."
+		"en"		"{1}You have been forcibly set to the Infected team because you avoided participating in the last round."
+	}
+	
+	"Infected_ForceStart"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"en"		"{1}You have been forcibly set to the Infected team because you avoided participating in a previous {2} session, {3}."
 	}
 	
 	"Infected_CallMedic"
@@ -669,5 +675,82 @@
 	"Menu_ClassesInfectedSpecialJockey"
 	{
 		"en"		"The Jockey creeps around, eager to lead survivors to their demise.\n- Using rage will perform a short leap, latching onto a survivor's head when making physical contact.\n- Controls a survivor's movement and deals damage while on top of them."
+	}
+	
+	"Time_YearAgo"
+	{
+		// "#format"	"{1:d}"
+		"en"		"a year ago"
+	}
+	
+	"Time_YearsAgo"
+	{
+		"#format"	"{1:d}"
+		"en"		"{1} years ago"
+	}
+	
+	"Time_MonthAgo"
+	{
+		// "#format"	"{1:d}"
+		"en"		"a month ago"
+	}
+	
+	"Time_MonthsAgo"
+	{
+		"#format"	"{1:d}"
+		"en"		"{1} months ago"
+	}
+	
+	"Time_WeekAgo"
+	{
+		// "#format"	"{1:d}"
+		"en"		"a week ago"
+	}
+	
+	"Time_WeeksAgo"
+	{
+		"#format"	"{1:d}"
+		"en"		"{1} weeks ago"
+	}
+	
+	"Time_DayAgo"
+	{
+		// "#format"	"{1:d}"
+		"en"		"yesterday"
+	}
+	
+	"Time_DaysAgo"
+	{
+		"#format"	"{1:d}"
+		"en"		"{1} days ago"
+	}
+	
+	"Time_HourAgo"
+	{
+		// "#format"	"{1:d}"
+		"en"		"an hour ago"
+	}
+	
+	"Time_HoursAgo"
+	{
+		"#format"	"{1:d}"
+		"en"		"{1} hours ago"
+	}
+	
+	"Time_MinuteAgo"
+	{
+		// "#format"	"{1:d}"
+		"en"		"a minute ago"
+	}
+	
+	"Time_MinutesAgo"
+	{
+		"#format"	"{1:d}"
+		"en"		"{1} minutes ago"
+	}
+	
+	"Time_LessThanAMinuteAgo"
+	{
+		"en"		"less than a minute ago"
 	}
 }

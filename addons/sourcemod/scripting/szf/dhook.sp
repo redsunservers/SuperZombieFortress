@@ -412,14 +412,28 @@ public MRESReturn DHook_RoundRespawnPre()
 		{
 			Action action = Forward_ShouldStartZombie(iClient);
 			
-			if (action == Plugin_Handled || g_bForceZombieStart[iClient])
+			if (action == Plugin_Handled || (g_iForceZombieStartTimestamp[iClient] > 0 && g_cvPunishAvoidingPlayers.BoolValue))
 			{
 				if (action != Plugin_Handled)
 				{
-					//If they attempted to skip playing as zombie last time, force him to be in zombie team
-					CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}");
-					g_bForceZombieStart[iClient] = false;
-					SetClientCookie(iClient, g_cForceZombieStart, "0");
+					// If they attempted to skip playing as zombie last time, force them to be in the zombie team
+					if (g_iForceZombieStartTimestamp[iClient] > g_iRoundTimestamp)
+					{
+						CPrintToChat(iClient, "%t", "Infected_ForceStart_LastRound", "{red}");
+					}
+					else
+					{
+						char sDuration[256];
+						GetVaguePeriodOfTimeFromTimestamp(sDuration, sizeof(sDuration), g_iForceZombieStartTimestamp[iClient]);
+						
+						CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}",  g_sForceZombieStartMapName[iClient], sDuration);
+					}
+					
+					g_iForceZombieStartTimestamp[iClient] = 0;
+					g_sForceZombieStartMapName[iClient] = "";
+					
+					g_cForceZombieStartTimestamp.SetInt(iClient, 0);
+					g_cForceZombieStartMapName.Set(iClient, "");
 				}
 				
 				//Zombie
@@ -467,6 +481,8 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	g_flTimeProgress = 0.0;
 	g_hTimerProgress = null;
+	
+	g_iRoundTimestamp = GetTime();
 	
 	//Handle grace period timers.
 	CreateTimer(0.5, Timer_GraceStartPost, TIMER_FLAG_NO_MAPCHANGE);

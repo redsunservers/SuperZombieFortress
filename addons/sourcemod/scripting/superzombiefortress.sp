@@ -26,6 +26,13 @@
 
 #define ATTRIB_VISION		406
 
+#define SECONDS_PER_MINUTE	60
+#define SECONDS_PER_HOUR	3600
+#define SECONDS_PER_DAY		86400
+#define SECONDS_PER_WEEK	604800
+#define SECONDS_PER_MONTH	2629743
+#define SECONDS_PER_YEAR	31556926
+
 // Also used in the item schema to define vision filter or vision mode opt in
 #define TF_VISION_FILTER_NONE		0
 #define TF_VISION_FILTER_PYRO		(1<<0)	// 1
@@ -309,12 +316,12 @@ enum struct ClientClasses
 	}
 }
 
-ClientClasses g_ClientClasses[MAXPLAYERS];
+ClientClasses g_ClientClasses[MAXPLAYERS + 1];
 
 SZFRoundState g_nRoundState = SZFRoundState_Setup;
 
-Infected g_nInfected[MAXPLAYERS];
-Infected g_nNextInfected[MAXPLAYERS];
+Infected g_nInfected[MAXPLAYERS + 1];
+Infected g_nNextInfected[MAXPLAYERS + 1];
 
 TFTeam TFTeam_Zombie = TFTeam_Blue;
 TFTeam TFTeam_Survivor = TFTeam_Red;
@@ -361,7 +368,8 @@ char g_sInfectedNames[view_as<int>(Infected_Count)][] = {
 Cookie g_cFirstTimeSurvivor;
 Cookie g_cFirstTimeZombie;
 Cookie g_cNoMusicForPlayer;
-Cookie g_cForceZombieStart;
+Cookie g_cForceZombieStartMapName;
+Cookie g_cForceZombieStartTimestamp;
 
 //Global State
 bool g_bEnabled;
@@ -373,16 +381,19 @@ bool g_bGiveNamedItemSkip;
 float g_flSurvivorsLastDeath = 0.0;
 int g_iSurvivorsKilledCounter;
 int g_iZombiesKilledSpree;
-int g_iZombiesKilledSurvivor[MAXPLAYERS];
+int g_iZombiesKilledSurvivor[MAXPLAYERS + 1];
+
+char g_sMapName[128];
+int g_iRoundTimestamp;
 
 //Client State
-int g_iMorale[MAXPLAYERS];
-int g_iHorde[MAXPLAYERS];
-int g_iCapturingPoint[MAXPLAYERS];
-int g_iRageTimer[MAXPLAYERS];
+int g_iMorale[MAXPLAYERS + 1];
+int g_iHorde[MAXPLAYERS + 1];
+int g_iCapturingPoint[MAXPLAYERS + 1];
+int g_iRageTimer[MAXPLAYERS + 1];
 
-float g_flStopChatSpam[MAXPLAYERS];
-bool g_bWaitingForTeamSwitch[MAXPLAYERS];
+float g_flStopChatSpam[MAXPLAYERS + 1];
+bool g_bWaitingForTeamSwitch[MAXPLAYERS + 1];
 
 StringMap g_mRoundPlayedAsZombie;
 int g_iRoundPlayedCount;
@@ -411,22 +422,23 @@ ConVar g_cvFrenzyChance;
 ConVar g_cvFrenzyTankChance;
 ConVar g_cvStunImmunity;
 ConVar g_cvMeleeIgnoreTeammates;
+ConVar g_cvPunishAvoidingPlayers;
 
 float g_flZombieDamageScale = 1.0;
 
 ArrayList g_aFastRespawn;
 
-int g_iDamageZombie[MAXPLAYERS];
-int g_iDamageTakenLife[MAXPLAYERS];
-int g_iDamageDealtLife[MAXPLAYERS];
+int g_iDamageZombie[MAXPLAYERS + 1];
+int g_iDamageTakenLife[MAXPLAYERS + 1];
+int g_iDamageDealtLife[MAXPLAYERS + 1];
 
-float g_flDamageDealtAgainstTank[MAXPLAYERS];
+float g_flDamageDealtAgainstTank[MAXPLAYERS + 1];
 bool g_bTankRefreshed;
 
 int g_iControlPointsInfo[MAX_CONTROL_POINTS][2];
 int g_iControlPoints;
 bool g_bCapturingLastPoint;
-int g_iCarryingItem[MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
+int g_iCarryingItem[MAXPLAYERS + 1] = {INVALID_ENT_REFERENCE, ...};
 
 float g_flTimeProgress;
 
@@ -442,13 +454,15 @@ int g_iTanksSpawned;
 bool g_bZombieRage;
 bool g_bZombieRageAllowRespawn;
 
-bool g_bSpawnAsSpecialInfected[MAXPLAYERS];
-int g_iKillsThisLife[MAXPLAYERS];
-int g_iMaxHealth[MAXPLAYERS];
-bool g_bShouldBacteriaPlay[MAXPLAYERS] = {true, ...};
-bool g_bReplaceRageWithSpecialInfectedSpawn[MAXPLAYERS];
-float g_flTimeStartAsZombie[MAXPLAYERS];
-bool g_bForceZombieStart[MAXPLAYERS];
+bool g_bSpawnAsSpecialInfected[MAXPLAYERS + 1];
+int g_iKillsThisLife[MAXPLAYERS + 1];
+int g_iMaxHealth[MAXPLAYERS + 1];
+bool g_bShouldBacteriaPlay[MAXPLAYERS + 1] = {true, ...};
+bool g_bReplaceRageWithSpecialInfectedSpawn[MAXPLAYERS + 1];
+float g_flTimeStartAsZombie[MAXPLAYERS + 1];
+
+char g_sForceZombieStartMapName[MAXPLAYERS + 1][64];
+int g_iForceZombieStartTimestamp[MAXPLAYERS + 1];
 
 //Map overwrites
 int g_iMaxRareWeapons;
@@ -535,7 +549,9 @@ public void OnPluginStart()
 	g_cFirstTimeZombie = new Cookie("szf_firsttimezombie", "is this the flowey map?", CookieAccess_Protected);
 	g_cFirstTimeSurvivor = new Cookie("szf_firsttimesurvivor2", "is this the flowey map?", CookieAccess_Protected);
 	g_cNoMusicForPlayer = new Cookie("szf_musicpreference", "is this the flowey map?", CookieAccess_Protected);
-	g_cForceZombieStart = new Cookie("szf_forcezombiestart", "is this the flowey map?", CookieAccess_Protected);
+	
+	g_cForceZombieStartTimestamp = new Cookie("szf_forcezombiestart_timestamp", "Timestamp of when the player was detected skipping playing on the Infected team.", CookieAccess_Protected);
+	g_cForceZombieStartMapName = new Cookie("szf_forcezombiestart_mapname", "Name of the map that the player was detected skipping playing on the Infected team on.", CookieAccess_Protected);
 	
 	g_bTF2Items = LibraryExists("TF2Items");
 	
@@ -621,16 +637,10 @@ public void OnPluginEnd()
 
 public void OnClientCookiesCached(int iClient)
 {
-	char sValue[8];
-	int iValue;
+	g_bNoMusicForClient[iClient] = g_cNoMusicForPlayer.GetInt(iClient) != 0;
 	
-	GetClientCookie(iClient, g_cNoMusicForPlayer, sValue, sizeof(sValue));
-	iValue = StringToInt(sValue);
-	g_bNoMusicForClient[iClient] = view_as<bool>(iValue);
-	
-	GetClientCookie(iClient, g_cForceZombieStart, sValue, sizeof(sValue));
-	iValue = StringToInt(sValue);
-	g_bForceZombieStart[iClient] = view_as<bool>(iValue);
+	g_iForceZombieStartTimestamp[iClient] = g_cForceZombieStartTimestamp.GetInt(iClient);
+	g_cForceZombieStartMapName.Get(iClient, g_sForceZombieStartMapName[iClient], sizeof(g_sForceZombieStartMapName[]));
 }
 
 public void OnConfigsExecuted()
@@ -640,6 +650,16 @@ public void OnConfigsExecuted()
 		SZFEnable();
 		GetMapSettings();
 	}
+}
+
+public void OnMapStart()
+{
+	char sMapName[128];
+	GetCurrentMap(sMapName, sizeof(sMapName));
+	GetMapDisplayName(sMapName, sMapName, sizeof(sMapName));
+	strcopy(g_sMapName, sizeof(g_sMapName), sMapName);
+	
+	g_iRoundTimestamp = GetTime();
 }
 
 public void OnMapEnd()
@@ -693,6 +713,9 @@ public void OnClientPutInServer(int iClient)
 	g_iDamageZombie[iClient] = 0;
 	g_flTimeStartAsZombie[iClient] = 0.0;
 	g_bWaitingForTeamSwitch[iClient] = false;
+	
+	if (AreClientCookiesCached(iClient))
+		OnClientCookiesCached(iClient);
 	
 	if (!g_bEnabled)
 		return;
@@ -1232,7 +1255,7 @@ void Handle_HoardeBonus()
 	int iLength = 0;
 	int[] iClients = new int[MaxClients];
 	int[] iClientsHoardeId = new int[MaxClients];
-	float vecClientsPos[MAXPLAYERS][3];
+	float vecClientsPos[MAXPLAYERS + 1][3];
 	
 	int[] iHoardeSize = new int[MaxClients];
 	
@@ -1475,6 +1498,9 @@ void Frame_CheckZombieBypass(int iSerial)
 
 void CheckZombieBypass(int iClient)
 {
+	if (!g_cvPunishAvoidingPlayers.BoolValue)
+		return;
+	
 	int iSurvivors = GetSurvivorCount();
 	int iZombies = GetZombieCount();
 	
@@ -1484,7 +1510,8 @@ void CheckZombieBypass(int iClient)
 		&& (float(iZombies) / float(iSurvivors + iZombies) <= 0.5)	//Check if less than 50% of players is zombie
 		&& (g_nRoundState != SZFRoundState_End))								//Check if round did not end or map changing
 	{
-		g_bForceZombieStart[iClient] = true;
+		g_iForceZombieStartTimestamp[iClient] = GetTime();
+		strcopy(g_sForceZombieStartMapName[iClient], sizeof(g_sForceZombieStartMapName[]), g_sMapName);
 		
 		char sAuthId[64];
 		GetClientAuthId(iClient, AuthId_Steam2, sAuthId, sizeof(sAuthId));
@@ -1505,7 +1532,11 @@ void Frame_SetForceZombieStart(ArrayStack aStack)
 	if (g_nRoundState == SZFRoundState_Setup || g_nRoundState == SZFRoundState_End)
 		return;
 	
-	g_cForceZombieStart.SetByAuthId(sAuthId, "1");
+	char sTimestamp[256];
+	FormatEx(sTimestamp, sizeof(sTimestamp), "%d", GetTime()); // Doesn't need to be the same timestamp as the one assigned for the client ent index, just roughly matching is good enough
+	
+	g_cForceZombieStartTimestamp.SetByAuthId(sAuthId, sTimestamp);
+	g_cForceZombieStartMapName.SetByAuthId(sAuthId, g_sMapName);
 }
 
 int GetRoundPlayedAsZombie(int iClient)
@@ -2403,7 +2434,7 @@ bool DropCarryingItem(int iClient, bool bDrop = true)
 	return true;
 }
 
-public Action SoundHook(int iClients[MAXPLAYERS], int &iNumClients, char sSound[PLATFORM_MAX_PATH], int &iClient, int &iChannel, float &flVolume, int &iLevel, int &iPitch, int &iFlags, char sSoundEntry[PLATFORM_MAX_PATH], int &iSeed)
+Action SoundHook(int iClients[MAXPLAYERS], int &iNumClients, char sSound[PLATFORM_MAX_PATH], int &iClient, int &iChannel, float &flVolume, int &iLevel, int &iPitch, int &iFlags, char sSoundEntry[PLATFORM_MAX_PATH], int &iSeed)
 {
 	Action action = Plugin_Continue;
 	if (StrContains(sSound, "vo/", false) != -1)
@@ -2718,4 +2749,73 @@ public Action TF2Items_OnGiveNamedItem(int iClient, char[] sClassname, int iInde
 		return Plugin_Continue;
 	
 	return OnGiveNamedItem(iClient, sClassname, iIndex);
+}
+
+
+bool GetVaguePeriodOfTimeFromTimestamp(char[] sBuffer, int iLength, int iTimestamp)
+{
+	int iTimePeriod = GetTime() - iTimestamp;
+	if (iTimePeriod < 0)
+		return false;
+	
+	if (iTimePeriod / SECONDS_PER_YEAR > 0)
+	{
+		int iYears = iTimePeriod / SECONDS_PER_YEAR;
+		
+		if (iYears == 1)
+			FormatEx(sBuffer, iLength, "%t", "Time_YearAgo", iYears);
+		else
+			FormatEx(sBuffer, iLength, "%t", "Time_YearsAgo", iYears);
+	}
+	else if (iTimePeriod / SECONDS_PER_MONTH > 0)
+	{
+		int iMonths = iTimePeriod / SECONDS_PER_MONTH;
+		
+		if (iMonths == 1)
+			FormatEx(sBuffer, iLength, "%t", "Time_MonthAgo", iMonths);
+		else
+			FormatEx(sBuffer, iLength, "%t", "Time_MonthsAgo", iMonths);
+	}
+	else if (iTimePeriod / SECONDS_PER_WEEK > 0)
+	{
+		int iWeeks = iTimePeriod / SECONDS_PER_WEEK;
+		
+		if (iWeeks == 1)
+			FormatEx(sBuffer, iLength, "%t", "Time_WeekAgo", iWeeks);
+		else
+			FormatEx(sBuffer, iLength, "%t", "Time_WeeksAgo", iWeeks);
+	}
+	else if (iTimePeriod / SECONDS_PER_DAY > 0)
+	{
+		int iDays = iTimePeriod / SECONDS_PER_DAY;
+		
+		if (iDays == 1)
+			FormatEx(sBuffer, iLength, "%t", "Time_DayAgo", iDays);
+		else
+			FormatEx(sBuffer, iLength, "%t", "Time_DaysAgo", iDays);
+	}
+	else if (iTimePeriod / SECONDS_PER_HOUR > 0)
+	{
+		int iHours = iTimePeriod / SECONDS_PER_HOUR;
+		
+		if (iHours == 1)
+			FormatEx(sBuffer, iLength, "%t", "Time_HourAgo", iHours);
+		else
+			FormatEx(sBuffer, iLength, "%t", "Time_HoursAgo", iHours);
+	}
+	else if (iTimePeriod / SECONDS_PER_MINUTE > 0)
+	{
+		int iMinutes = iTimePeriod / SECONDS_PER_MINUTE;
+		
+		if (iMinutes == 1)
+			FormatEx(sBuffer, iLength, "%t", "Time_MinuteAgo", iMinutes);
+		else
+			FormatEx(sBuffer, iLength, "%t", "Time_MinutesAgo", iMinutes);
+	}
+	else
+	{
+		FormatEx(sBuffer, iLength, "%t", "Time_LessThanAMinuteAgo");
+	}
+	
+	return true;
 }
