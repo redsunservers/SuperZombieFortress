@@ -637,9 +637,17 @@ public void OnPluginEnd()
 
 public void OnClientCookiesCached(int iClient)
 {
-	g_bNoMusicForClient[iClient] = g_cNoMusicForPlayer.GetInt(iClient) != 0;
+	char sValue[32];
+	int iValue;
 	
-	g_iForceZombieStartTimestamp[iClient] = g_cForceZombieStartTimestamp.GetInt(iClient);
+	g_cNoMusicForPlayer.Get(iClient, sValue, sizeof(sValue));
+	iValue = StringToInt(sValue);
+	g_bNoMusicForClient[iClient] = iValue != 0;
+	
+	g_cForceZombieStartTimestamp.Get(iClient, sValue, sizeof(sValue));
+	iValue = StringToInt(sValue);
+	g_iForceZombieStartTimestamp[iClient] = iValue;
+	
 	g_cForceZombieStartMapName.Get(iClient, g_sForceZombieStartMapName[iClient], sizeof(g_sForceZombieStartMapName[]));
 }
 

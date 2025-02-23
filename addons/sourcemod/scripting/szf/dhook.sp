@@ -432,7 +432,7 @@ public MRESReturn DHook_RoundRespawnPre()
 					g_iForceZombieStartTimestamp[iClient] = 0;
 					g_sForceZombieStartMapName[iClient] = "";
 					
-					g_cForceZombieStartTimestamp.SetInt(iClient, 0);
+					g_cForceZombieStartTimestamp.Set(iClient, "0");
 					g_cForceZombieStartMapName.Set(iClient, "");
 				}
 				
