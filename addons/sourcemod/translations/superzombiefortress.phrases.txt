@@ -116,7 +116,7 @@
 	"Infected_ForceStart"
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
-		"en"		"{1}You have been forcibly set to the Infected team because you avoided participating in a previous {2} session, {3}."
+		"en"		"{1}You have been forcibly set to the Infected team because you avoided participating when playing on {2}, {3}."
 	}
 	
 	"Infected_CallMedic"
