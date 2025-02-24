@@ -358,6 +358,12 @@ stock int GetCapturePointFromTrigger(int iTrigger)
 	return INVALID_ENT_REFERENCE;
 }
 
+stock void GetCurrentMapDisplayName(char[] sBuffer, int iLength)
+{
+	GetCurrentMap(sBuffer, iLength);
+	GetMapDisplayName(sBuffer, sBuffer, iLength);
+}
+
 ////////////////
 // Round
 ////////////////
