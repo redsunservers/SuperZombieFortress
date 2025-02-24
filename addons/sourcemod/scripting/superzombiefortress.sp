@@ -2754,7 +2754,7 @@ public Action TF2Items_OnGiveNamedItem(int iClient, char[] sClassname, int iInde
 }
 
 
-bool GetVaguePeriodOfTimeFromTimestamp(char[] sBuffer, int iLength, int iTimestamp)
+bool GetVaguePeriodOfTimeFromTimestamp(char[] sBuffer, int iLength, int iTimestamp, int iClient = LANG_SERVER)
 {
 	int iTimePeriod = GetTime() - iTimestamp;
 	if (iTimePeriod < 0)
@@ -2763,30 +2763,30 @@ bool GetVaguePeriodOfTimeFromTimestamp(char[] sBuffer, int iLength, int iTimesta
 	if (iTimePeriod / SECONDS_PER_MONTH > 1)
 	{
 		int iMonths = iTimePeriod / SECONDS_PER_MONTH;
-		FormatEx(sBuffer, iLength, "%t", "Time_MonthsAgo", iMonths);
+		FormatEx(sBuffer, iLength, "%T", "Time_MonthsAgo", iClient, iMonths);
 	}
 	else if (iTimePeriod / SECONDS_PER_DAY > 1)
 	{
 		int iDays = iTimePeriod / SECONDS_PER_DAY;
-		FormatEx(sBuffer, iLength, "%t", "Time_DaysAgo", iDays);
+		FormatEx(sBuffer, iLength, "%T", "Time_DaysAgo", iClient, iDays);
 	}
 	else if (iTimePeriod / SECONDS_PER_HOUR > 1)
 	{
 		int iHours = iTimePeriod / SECONDS_PER_HOUR;
-		FormatEx(sBuffer, iLength, "%t", "Time_HoursAgo", iHours);
+		FormatEx(sBuffer, iLength, "%T", "Time_HoursAgo", iClient, iHours);
 	}
 	else if (iTimePeriod / SECONDS_PER_MINUTE > 0)
 	{
 		int iMinutes = iTimePeriod / SECONDS_PER_MINUTE;
 		
 		if (iMinutes == 1)
-			FormatEx(sBuffer, iLength, "%t", "Time_MinuteAgo", iMinutes);
+			FormatEx(sBuffer, iLength, "%T", "Time_MinuteAgo", iClient, iMinutes);
 		else
-			FormatEx(sBuffer, iLength, "%t", "Time_MinutesAgo", iMinutes);
+			FormatEx(sBuffer, iLength, "%T", "Time_MinutesAgo", iClient, iMinutes);
 	}
 	else
 	{
-		FormatEx(sBuffer, iLength, "%t", "Time_LessThanAMinuteAgo");
+		FormatEx(sBuffer, iLength, "%T", "Time_LessThanAMinuteAgo", iClient);
 	}
 	
 	return true;

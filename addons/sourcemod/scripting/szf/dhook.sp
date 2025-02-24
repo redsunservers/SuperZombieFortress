@@ -424,7 +424,7 @@ public MRESReturn DHook_RoundRespawnPre()
 					else
 					{
 						char sDuration[256];
-						GetVaguePeriodOfTimeFromTimestamp(sDuration, sizeof(sDuration), g_iForceZombieStartTimestamp[iClient]);
+						GetVaguePeriodOfTimeFromTimestamp(sDuration, sizeof(sDuration), g_iForceZombieStartTimestamp[iClient], iClient);
 						
 						CPrintToChat(iClient, "%t", "Infected_ForceStart", "{red}",  g_sForceZombieStartMapName[iClient], sDuration);
 					}
