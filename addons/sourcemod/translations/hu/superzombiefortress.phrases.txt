@@ -1,0 +1,714 @@
+"Phrases"
+{
+	"Welcome"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"hu"		"{1}Üdvözlünk a Super Zombie Fortress-ben.\nA játék útmutatót megnyithatod a {2}/szf{3} paranccsal."
+	}
+	
+	"Grace_Start"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Kegyelmi időszak elkezdődött. A túlélők class-t válthatnak."
+	}
+	
+	"Grace_End"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Kegyelmi időszak véget ért. A túlélők már nem válthatnak class-t."
+	}
+	
+	"Frenzy_Start"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}A zombik őrjöngenek: gyorsabban újraélednek és erősebbek!"
+	}
+	
+	"Frenzy_End"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}A zombik pihennek..."
+	}
+	
+	"Tank_Chosen"
+	{
+		"#format"	"{1:s},{2:s}"
+		"hu"		"{1} {2}kiválasztva lett, hogy TANK legyen!"
+	}
+	
+	"Tank_Called"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Tank meghívva."
+	}
+	
+	"Tank_Spawn"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Közeledik a TAAAANK!"
+	}
+	
+	"Tank_Died"
+	{
+		"#format"	"{1:N},{2:N},{3:d}"
+		"hu"		"A Tank '{1}' meghalt\nLegtöbb sebzés: {2} ({3})"
+	}
+	
+	"Tank_Multi_Died"
+	{
+		"#format"	"{1:d},{2:N},{3:d}"
+		"hu"		"{1} tank meghalt\nLegtöbb sebzés: {2} ({3})"
+	}
+	
+	"Carry_Pickup"
+	{
+		"hu"		"Kiálts 'MEDIC!'-et a tárgy eldobásához!\nTámadhatsz miközben tárgyat tartasz."
+	}
+	
+	"Weapon_Pickup"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"hu"		"Felvettem egy {1}{2}{3}!"
+	}
+	
+	"Weapon_Callout"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"hu"		"{1}{2} {3}itt!"
+	}
+	
+	"Survivor_Last"
+	{
+		"#format"	"{1:s},{2:s}"
+		"hu"		"{1}{2} az utolsó túlélő!"
+	}
+	
+	"Infected_Zombify"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Meghaltál és zombivá váltál..."
+	}
+	
+	"Infected_SelectedRespawn"
+	{
+		"#format"	"{1:s},{2:s}"
+		"hu"		"{1}Kiválasztottak, hogy Speciális Fertőzött legyél! {2}Kiálts 'MEDIC!'-et, hogy újraéledj egyként, vagy válj azzá halálodkor."
+	}
+	
+	"Infected_UsedQuickRespawn"
+	{
+		"#format"	"{1:s},{2:s},{3:s},{4:s}"
+		"hu"		"(CSAPAT) {1}{2} : Használtam a {3}gyors újraéledést speciális fertőzöttként{4}!"
+	}
+	
+	"Infected_AllInCooldown"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Úgy tűnik, minden speciális fertőzött várakozási időben van..."
+	}
+	
+	"Infected_ForceStart_LastRound"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Kényszerítve lettél a Fertőzött csapatba, mert elkerülted a részvételt az előző körben."
+	}
+	
+	"Infected_ForceStart"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"hu"		"{1}Kényszerítve lettél a Fertőzött csapatba, mert elkerülted a részvételt, amikor {2}, {3} játszottál."
+	}
+	
+	"Infected_CallMedic"
+	{
+		"hu"		"Kiálts 'MEDIC!'-et, hogy speciális fertőzöttként újraéledj!"
+	}
+	
+	"Infected_RageReady"
+	{
+		"hu"		"Düh készen áll!"
+	}
+	
+	"Infected_RageReadyInSec"
+	{
+		"#format"	"{1:d}"
+		"hu"		"Düh {1} másodperc múlva lesz kész!"
+	}
+	
+	"Infected_CantUseRage"
+	{
+		"hu"		"Nem lehet aktiválni a Dühöt!"
+	}
+	
+	"Infected_RageUsed"
+	{
+		"hu"		"Düh aktiválva!"
+	}
+	
+	"Tutorial_SurvivorStart1"
+	{
+		"hu"		"Üdvözlünk a Super Zombie Fortress-ben!"
+	}
+	
+	"Tutorial_SurvivorStart2"
+	{
+		"hu"		"Jelenleg Túlélőként játszol."
+	}
+	
+	"Tutorial_SurvivorStart3"
+	{
+		"hu"		"Túlélőként a célod a pálya feladatának teljesítése."
+	}
+	
+	"Tutorial_SurvivorStart4"
+	{
+		"hu"		"Talán észrevetted, hogy nincsenek fegyvereid."
+	}
+	
+	"Tutorial_SurvivorStart5"
+	{
+		"hu"		"Fegyvereket felvehetsz, ha Medic-et hívsz vagy elsődleges támadás gombot megnyomod."
+	}
+	
+	"Tutorial_SurvivorStart6"
+	{
+		"hu"		"Vannak normál fertőzöttek, de speciális fertőzöttek is, vigyázz rájuk!"
+	}
+	
+	"Tutorial_SurvivorStart7"
+	{
+		"hu"		"További információkat találhatsz, ha beírod a '/szf' parancsot a chatbe."
+	}
+	
+	"Tutorial_SurvivorStart8"
+	{
+		"hu"		"Élvezd a match-et és sok szerencsét odakint!"
+	}
+	
+	"Tutorial_ZombieStart1"
+	{
+		"hu"		"Üdvözlünk a Super Zombie Fortress-ben!"
+	}
+	
+	"Tutorial_ZombieStart2"
+	{
+		"hu"		"Jelenleg Zombiként játszol."
+	}
+	
+	"Tutorial_ZombieStart3"
+	{
+		"hu"		"Zombiként a célod a Túlélők megölése."
+	}
+	
+	"Tutorial_ZombieStart4"
+	{
+		"hu"		"Te és csapattársaid kiválaszthatók lehetnek, hogy később speciális fertőzötté váljatok."
+	}
+	
+	"Tutorial_ZombieStart5"
+	{
+		"hu"		"Emellett egy tank is megjelenhet később a match-ben."
+	}
+	
+	"Tutorial_ZombieStart6"
+	{
+		"hu"		"További információkat találhatsz, ha beírod a '/szf' parancsot a chatbe."
+	}
+	
+	"Tutorial_ZombieStart7"
+	{
+		"hu"		"Élvezd a match-et és kapd el őket!"
+	}
+	
+	"Tutorial_PickupCommon1"
+	{
+		"hu"		"Felvettél egy fegyvert."
+	}
+	
+	"Tutorial_PickupCommon2"
+	{
+		"hu"		"Fegyverek megszerzése kulcsfontosságú a túléléshez."
+	}
+	
+	"Tutorial_PickupRare1"
+	{
+		"hu"		"Felvettél egy nagyon hatékony fegyvert."
+	}
+	
+	"Tutorial_PickupRare2"
+	{
+		"hu"		"Néhány fegyvernek alacsonyabb az előfordulási esélye, mint ennek."
+	}
+	
+	"Tutorial_Callout1"
+	{
+		"hu"		"Konkrét fegyverek kikiáltása lehetővé teszi más csapattársak számára, hogy felvegyék a fegyvert."
+	}
+	
+	"Tutorial_TankSpawn1"
+	{
+		"hu"		"Ne hagyd, hogy a Tank közel kerüljön hozzád, támadásai nagyon halálosak."
+	}
+	
+	"Tutorial_TankSpawn2"
+	{
+		"hu"		"Fuss és lődd a Tankot, ez lelassítja és megöli."
+	}
+	
+	"Command_InfectedUsage"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Használat: sm_infected [cél] [fertőzött]"
+	}
+	
+	"Command_InfectedNoInfected"
+	{
+		"#format"	"{1:s},{2:s}"
+		"hu"		"{1}Nem található fertőzött \"{2}\""
+	}
+	
+	"Command_InfectedNoTarget"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Nem található senki a következő fertőzött beállításához."
+	}
+	
+	"Command_InfectedNoZombie"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Nem található zombi a következő fertőzött beállításához."
+	}
+	
+	"Command_InfectedSet"
+	{
+		"#format"	"{1:s},{2:d},{3:s}"
+		"hu"		"{1}{2} zombi beállítva, hogy következő \"{3}\" fertőzött legyen"
+	}
+	
+	"Command_StunUsage"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Használat: sm_stun [cél] [időtartam]"
+	}
+	
+	"Command_StunNoTarget"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Nem található senki, akit elkábíthatnánk."
+	}
+	
+	"Command_StunSet"
+	{
+		"#format"	"{1:s},{2:d}"
+		"hu"		"{1}{2} játékos elkábítva."
+	}
+	
+	"Command_MusicEnable"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Zene engedélyezve."
+	}
+	
+	"Command_MusicDisable"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Zene letiltva."
+	}
+	
+	"JoinTeam_CantSwitchGrace"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Nem válthatsz az ellenfél csapatába a kegyelmi időszak alatt."
+	}
+	
+	"JoinTeam_WillJoinInfectedGrace"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Csatlakozni fogsz a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
+	}
+	
+	"JoinTeam_CancelGraceEnd"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Már nem fogsz automatikusan csatlakozni a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
+	}
+	
+	"JoinTeam_CantJoinSurvivorGrace"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}Nem csatlakozhatsz a Túlélő csapathoz most. Csatlakozni fogsz a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
+	}
+	
+	"JoinClass_ValidZombies"
+	{
+		"#format"	"{1:s},{2:s}"
+		"hu"		"{1}Érvényes zombik:{2}."
+	}
+	
+	"JoinClass_ValidSurvivors"
+	{
+		"#format"	"{1:s},{2:s}"
+		"hu"		"{1}Érvényes túlélők:{2}."
+	}
+	
+	"JoinClass_SurvivorsCantChange"
+	{
+		"#format"	"{1:s}"
+		"hu"		"{1}A túlélők nem válthatnak class-t a kör alatt"
+	}
+	
+	"SpecialInfected_Tank"
+	{
+		"hu"		"{green}TE EGY TANK VAGY:\n{orange}- Egy szinte megállíthatatlan bestia.\n- Kiálts 'MEDIC!'-et, hogy felvegyél és dobj előre egy TÖRMELÉKET, ami MINDENKIT megsebez az útjában! {yellow}(5 másodperc várakozási idő)"
+	}
+	
+	"SpecialInfected_Boomer"
+	{
+		"hu"		"{green}TE EGY BOOMER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy FELROBBANJ és JARATE-tel borítsd a közeli ellenfeleket!\n- Halálkor is felrobbansz, JARATE-tel borítva a gyilkost és segítőjét."
+	}
+	
+	"SpecialInfected_Charger"
+	{
+		"hu"		"{green}TE EGY CHARGER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ROHAMOZZ! {yellow}(16 másodperc várakozási idő)"
+	}
+	
+	"SpecialInfected_Screamer"
+	{
+		"hu"		"{green}TE EGY SCREAMER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ÖSSZEGYŰJTSD A SZÖVETSÉGES ZOMBIKAT! {yellow}(21 másodperc várakozási idő){orange}\n- A közeledben álló zombik erősebbek."
+	}
+	
+	"SpecialInfected_Stalker"
+	{
+		"hu"		"{green}TE EGY STALKER VAGY:\n{orange}- Ha nem vagy közel túlélőkhöz, láthatatlan leszel és szuper sebességet kapsz!\n- Megnövelt a hátbaszúrás kábítási időtartama."
+	}
+	
+	"SpecialInfected_Hunter"
+	{
+		"hu"		"{green}TE EGY HUNTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy UGORJ és RÁVESD MAGAD AZ ELLENSÉGES TÚLÉLŐKRE! {yellow}(3 másodperc várakozási idő mellé és 21 találat esetén)"
+	}
+	
+	"SpecialInfected_Smoker"
+	{
+		"hu"		"{green}TE EGY SMOKER VAGY:\n{orange}- Jobb kattintással tüzelj egy sugarat az ellenséges játékosokra és húzd őket magad felé! {yellow}(nincs várakozási idő)"
+	}
+	
+	"SpecialInfected_Spitter"
+	{
+		"hu"		"{green}TE EGY SPITTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy GÁZT dobj a túlélők csoportjára, sebzést okozva! {yellow}(16 másodperc várakozási idő)"
+	}
+	
+	"SpecialInfected_Jockey"
+	{
+		"hu"		"{green}TE EGY JOCKEY VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy RÁUGORJ a TÚLÉLŐKRE és irányítsd a mozgásukat! {yellow}(6 másodperc várakozási idő)"
+	}
+
+	"Melee_Atomizer"
+	{
+		"hu"		"{orange}Az Atomizer {green}visszalöki az ellenfeleket. {red}A tripla ugrás és a levegőben lévő minikritikus találatok le vannak tiltva."
+	}
+	
+	"Melee_CandyCane"
+	{
+		"hu"		"{orange}A Candy Cane {red}miatt 10%%-kal több sebzést szenvedsz."
+	}
+	
+	"Melee_PainTrain"
+	{
+		"hu"		"{orange}A Pain Train {red}miatt 10%%-kal több sebzést szenvedsz."
+	}
+	
+	"Melee_HalfZatochi"
+	{
+		"hu"		"{orange}A Half-Zatoichi {red}csökkenti a maximális életerődet, amíg aktív."
+	}
+	
+	"Melee_MarketGardener"
+	{
+		"hu"		"{orange}A Market Gardener {green}25%%-kal magasabbra enged rocket jump-olni."
+	}
+	
+	"Melee_Eyelander"
+	{
+		"hu"		"{orange}Az Eyelander {red}15%%-kal lassabban mozogsz."
+	}
+	
+	"Melee_ScotsmansSkullcutter"
+	{
+		"hu"		"{orange}A Scotsman's Skullcutter {green}sebzésbónusza 30%%-ra növekedett."
+	}
+	
+	"Melee_KillingGlovesofBoxing"
+	{
+		"hu"		"{orange}A Killing Gloves of Boxing {red}5 másodperc minikritikus találatot ad ölés után."
+	}
+	
+	"Melee_WarriorsSpirit"
+	{
+		"hu"		"{orange}A Warrior's Spirit {red}ölésenkénti életerő-visszaállítása +25-re csökkent."
+	}
+	
+	"Melee_FistsofSteel"
+	{
+		"hu"		"{orange}A Fists of Steel {green}10%% közelharci ellenállást ad, amíg aktív."
+	}
+	
+	"Melee_EurekaEffect"
+	{
+		"hu"		"{orange}A Eureka Effect {green}időszakosan regenerálja a fémet. {red}A teleportálás le van tiltva."
+	}
+	
+	"Melee_Ubersaw"
+	{
+		"hu"		"{orange}Az Ubersaw {red}10%% übert ad találatonként."
+	}
+
+	"Melee_VitaSaw"
+	{
+		"hu"		"{orange}A Vita-Saw {green}15%%-kal növeli az über sebességét"
+	}
+	
+	"Melee_Amputator"
+	{
+		"hu"		"{orange}Az Amputator {red}nem gyógyít, amikor taunt-olsz."
+	}
+	
+	"Melee_TribalmansShiv"
+	{
+		"hu"		"{orange}A Tribalman's Shiv {green}sebzésbüntetése 20%%-ra csökkent."
+	}
+	
+	"PDA_DeadRinger"
+	{
+		"hu"		"{orange}A Dead Ringer {red}nem növeli a láthatatlanság időtartamát."
+	}
+	"PDA_CloakAndDagger"
+	{
+		"hu"		"{orange}A Cloak and Dagger {red}le van tiltva."
+	}
+	
+	"Menu_MainTitle"
+	{
+		"#format"	"{1:s},{2:s}"
+		"hu"		"Super Zombie Fortress - {1}.{2}"
+	}
+	
+	"Menu_MainOverview"
+	{
+		"hu"		"Áttekintés"
+	}
+	
+	"Menu_MainTeamSurvivor"
+	{
+		"hu"		"Csapat: Túlélők"
+	}
+	
+	"Menu_MainTeamZombie"
+	{
+		"hu"		"Csapat: Fertőzöttek"
+	}
+	
+	"Menu_MainClassesSurvivor"
+	{
+		"hu"		"Class-ok: Túlélők"
+	}
+	
+	"Menu_MainClassesZombie"
+	{
+		"hu"		"Class-ok: Fertőzöttek"
+	}
+	
+	"Menu_MainClassesInfected"
+	{
+		"hu"		"Class-ok: Fertőzöttek (Speciális)"
+	}
+	
+	"Menu_MainBack"
+	{
+		"hu"		"Vissza"
+	}
+	
+	"Menu_Overview"
+	{
+		"hu"		"A túlélőknek túl kell élniük a Fertőzöttek végtelen hordáját.\nAmikor egy Túlélő meghal, csatlakozik a Zombi csapathoz és Zombiként játszik.\nA zombiknak együtt kell működniük, hogy legyőzzék a túlélőket.\nA túlélők fegyvereket vehetnek fel, míg a zombik speciális fertőzöttekké válhatnak."
+	}
+	
+	"Menu_TeamSurvivors"
+	{
+		"hu"		"A túlélők regenerálódást és kis sebzésbónuszt kapnak a Morál alapján.\nA Morál növekszik a célok teljesítésével és fertőzöttek megölésével, de idővel és negatív eseményekkel csökken.\nA túlélők csak közelharci fegyverrel kezdenek, és fegyvereket vesznek fel (a 'MEDIC!' hívással, 'egér1' vagy 'egér2' gombbal), ahogy haladnak a pályán."
+	}
+	
+	"Menu_TeamZombie"
+	{
+		"hu"		"A fertőzöttek bónuszokat kapnak, ha hordaként együtt maradnak, és dühönghetnek, ami növeli az életerőt vagy aktiválja a speciális képességeket speciális fertőzöttként.\nA düh használatához kiálts 'Medic-et', használat után várakozási idő van.\nLehetőséged lehet újraéledni speciális fertőzöttként a 'Medic' használatával."
+	}
+	
+	"Menu_ClassesSurvivorsScout"
+	{
+		"hu"		"25 extra maximális életerővel rendelkezik.\nÖlésenként 2 elsődleges lőszert kap, ez meghaladhatja a fegyver szokásos maximális kapacitását."
+	}
+	
+	"Menu_ClassesSurvivorsSoldier"
+	{
+		"hu"		"Ölésenként 1 elsődleges lőszert kap, ez meghaladhatja a fegyver szokásos maximális kapacitását."
+	}
+	
+	"Menu_ClassesSurvivorsPyro"
+	{
+		"hu"		"Az égő zombik gyorsabban mozognak.\nA lángszóró lőszere 100-ra korlátozva."
+	}
+	
+	"Menu_ClassesSurvivorsDemoman"
+	{
+		"hu"		"Ölésenként 1 elsődleges lőszert kap, ez meghaladhatja a fegyver szokásos maximális kapacitását."
+	}
+	
+	"Menu_ClassesSurvivorsHeavy"
+	{
+		"hu"		"A gépfegyver lőszere 100-ra korlátozva."
+	}
+	
+	"Menu_ClassesSurvivorsEngineer"
+	{
+		"hu"		"PDA-kkal kezd.\nCsak őrtornyokat és adagolókat építhet, és nem fejleszthetők.\nAz őrtorony lőszere korlátozott, idővel fogy és nem tölthető újra.\nAz adagolók falként működnek, magasabb életerővel, mint általában, de nem töltenek újra lőszert."
+	}
+	
+	"Menu_ClassesSurvivorsMedic"
+	{
+		"hu"		"A Medigun gyógyítási sebessége csökkentett."
+	}
+	
+	"Menu_ClassesSurvivorsSniper"
+	{
+		"hu"		"Az SMG-t nem kell újratölteni.\nA Jarate lelassítja a Fertőzötteket.\n25 extra maximális életerővel rendelkezik.\nÖlésenként 2 elsődleges lőszert kap, ez meghaladhatja a fegyver szokásos maximális kapacitását."
+	}
+	
+	"Menu_ClassesSurvivorsSpy"
+	{
+		"hu"		"Láthatatlanná tevő órákkal és álcázó készlettel kezd.\nÖlésenként 2 elsődleges lőszert kap, ez meghaladhatja a fegyver szokásos maximális kapacitását."
+	}
+	
+	"Menu_ClassesInfectedScout"
+	{
+		"hu"		"Sandman-nel rendelkezik a túlélők lelassításához.\nKépes italokat használni a másodlagos fegyverhelyen használatra."
+	}
+	
+	"Menu_ClassesInfectedSoldier"
+	{
+		"hu"		"Kevesebbet kap a mozgási sebesség és életerő-regenerálódás bónuszokból, amikor hordában van.\nKépes zászlókat használni a másodlagos fegyverhelyen használatra."
+	}
+	
+	"Menu_ClassesInfectedPyro"
+	{
+		"hu"		"Sharpened Volcano Fragment-tel rendelkezik a túlélők meggyújtásához.\nAz utóégés sebzése csökkentett.\nKevesebbet kap a mozgási sebesség és életerő-regenerálódás bónuszokból, amikor hordában van."
+	}
+	
+	"Menu_ClassesInfectedDemoman"
+	{
+		"hu"		"Eyelander-rel rendelkezik a túlélők nagy távolságból történő sebzéséhez.\nKevesebbet kap a mozgási sebesség és életerő-regenerálódás bónuszokból, amikor hordában van."
+	}
+	
+	"Menu_ClassesInfectedHeavy"
+	{
+		"hu"		"Kevesebbet kap a mozgási sebesség és életerő-regenerálódás bónuszokból, amikor hordában van.\nKépes ételeket használni a másodlagos fegyverhelyen használatra, és sebezni a túlélőket."
+	}
+	
+	"Menu_ClassesInfectedEngineer"
+	{
+		"hu"		"A Gunslinger harmadik kritikus ütése elkábítja a túlélőt csökkentett sebzéssel.\nCsak mini-őrtornyokat és adagolókat építhet, és nem fejleszthetők.\nAz őrtorony lőszere korlátozott, idővel fogy és nem tölthető újra."
+	}
+	
+	"Menu_ClassesInfectedMedic"
+	{
+		"hu"		"Amputator-ral rendelkezik a közeli fertőzöttek gyógyításához gúnyolódáskor.\nKevesebbet kap az életerő-regenerálódás bónuszokból, amikor hordában van."
+	}
+	
+	"Menu_ClassesInfectedSniper"
+	{
+		"hu"		"Bushwacka-val rendelkezik a minikritikus hatás alatt álló túlélők kritikus sebzéséhez.\nKépes viseleti tárgyakat tartani a másodlagos fegyverhelyen használatra."
+	}
+	
+	"Menu_ClassesInfectedSpy"
+	{
+		"hu"		"A hátbaszúrások 'megijesztik' az áldozatot, lelassítva és letiltva a fegyverhasználatot néhány másodpercre.\nA túlélők kis ellenállással rendelkeznek hátbaszúráskor."
+	}
+	
+	"Menu_ClassesInfectedSpecialTank"
+	{
+		"hu"		"Mint az egyik legerősebb és legbrutálisabb fertőzött, képes gyorsan legyőzni egy gyanútlan túlélőcsapatot.\n- A Tanknak rengeteg életereje van, amit idővel elveszít.\n- A Tank teljesen ellenáll a hátralökésnek.\n- A Tank kezdetben gyors, de lelassul, ha a túlélők sebzik.\n- A Tank bizonyos feltételek teljesülésekor jelenik meg."
+	}
+	
+	"Menu_ClassesInfectedSpecialBoomer"
+	{
+		"hu"		"Undorító, mocskos és nem fél ezt megosztani a szerencsétlen túlélőkkel.\n- Őrjöngéskor a Boomer felrobban, és a közelében lévő túlélőket Jarate-tel borítja be.\n- Halálakor is felrobban, de gyengébben és kisebb hatótávolsággal."
+	}
+	
+	"Menu_ClassesInfectedSpecialCharger"
+	{
+		"hu"		"Belső dühe és őrülete miatt nem törődik azzal, hogyan használja a testét, amíg magával vihet valakit.\n- Az őrjöngést használva a Charger képes a túlélők mozgását blokkolni és folyamatosan tolni őket a területen."
+	}
+	
+	"Menu_ClassesInfectedSpecialScreamer"
+	{
+		"hu"		"A Screamer a horda irányítója, biztosítja, hogy a zombik mindent megtegyenek a túlélők legyőzéséért.\n- Őrjöngéskor a Screamer fülsértő kiáltással buzdítja a zombikat, növelve erejüket.\n- A Screamer motiválja a közelében lévő zombikat, növelve hatékonyságukat."
+	}
+	
+	"Menu_ClassesInfectedSpecialStalker"
+	{
+		"hu"		"A Stalker rejtőzködő, képes közel kerülni a túlélőkhöz és egy szempillantás alatt eltűnni.\n- A Stalker mindig láthatatlan, ha nincs túlélő a közelében.\n- A hátbaszúrások 50 sebzést okoznak a túlélőknek, ami 2,5-szer erősebb, mint egy normál hátbaszúrás."
+	}
+	
+	"Menu_ClassesInfectedSpecialHunter"
+	{
+		"hu"		"A Hunter gyors lény, rendkívül mozgékony, könnyen átjut a pálya akadályain.\n- Őrjöngéskor ugrást hajt végre, amely lecsaphat az ellenségre, ha ugrás közben fizikai kapcsolatba kerül vele.\n- Lecsapáskor 'beleragadsz' az ellenségbe, ami nagyon veszélyessé tesz, ha az ellenfél egyedül van."
+	}
+	
+	"Menu_ClassesInfectedSpecialSmoker"
+	{
+		"hu"		"A Smoker a mérgező sugarára támaszkodik, amely sebzi a túlélőket és maga felé húzza őket.\n- A húzóerő annál erősebb, minél kevesebb életereje van az áldozatnak.\n- Nem tud őrjöngeni."
+	}
+	
+	"Menu_ClassesInfectedSpecialSpitter"
+	{
+		"hu"		"A Spitter hosszú nyaka tele van undorító gázzal, amit a túlélők nem bírnak elviselni.\n- Őrjöngéskor a Spitter megdermed, és a földre köp, ami sebzi a közelben lévő túlélőket.\n- Halálakor is gázt bocsát ki.\n- Ez nagyobb fenyegetést jelent a kis helyiségben összegyűlt túlélőkre."
+	}
+	
+	"Menu_ClassesInfectedSpecialJockey"
+	{
+		"hu"		"A Jockey lopakodva jár, alig várja, hogy a túlélőket vesztükbe vezesse.\n- Őrjöngéskor rövid ugrást hajt végre, és a túlélő fejére tapad, ha fizikai kapcsolatba kerül vele.\n- Irányítja a túlélő mozgását és sebzést okoz, miközben rajta ül."
+	}
+	
+	"Time_MonthsAgo"
+	{
+		"#format"	"{1:d}"
+		"hu"		"{1} hónappal ezelőtt"
+	}
+	
+	"Time_DaysAgo"
+	{
+		"#format"	"{1:d}"
+		"hu"		"{1} nappal ezelőtt"
+	}
+	
+	"Time_HoursAgo"
+	{
+		"#format"	"{1:d}"
+		"hu"		"{1} órával ezelőtt"
+	}
+	
+	"Time_MinuteAgo"
+	{
+		// "#format"	"{1:d}"
+		"hu"		"egy perccel ezelőtt"
+	}
+	
+	"Time_MinutesAgo"
+	{
+		"#format"	"{1:d}"
+		"hu"		"{1} perccel ezelőtt"
+	}
+	
+	"Time_LessThanAMinuteAgo"
+	{
+		"hu"		"kevesebb mint egy perce"
+	}
+}
