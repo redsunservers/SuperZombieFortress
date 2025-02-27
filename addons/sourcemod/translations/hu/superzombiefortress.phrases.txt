@@ -2,61 +2,51 @@
 {
 	"Welcome"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
 		"hu"		"{1}Üdvözlünk a Super Zombie Fortress-ben.\nA játék útmutatót megnyithatod a {2}/szf{3} paranccsal."
 	}
 	
 	"Grace_Start"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Kegyelmi időszak elkezdődött. A túlélők class-t válthatnak."
 	}
 	
 	"Grace_End"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Kegyelmi időszak véget ért. A túlélők már nem válthatnak class-t."
 	}
 	
 	"Frenzy_Start"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}A zombik őrjöngenek: gyorsabban újraélednek és erősebbek!"
 	}
 	
 	"Frenzy_End"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}A zombik pihennek..."
 	}
 	
 	"Tank_Chosen"
 	{
-		"#format"	"{1:s},{2:s}"
 		"hu"		"{1} {2}kiválasztva lett, hogy TANK legyen!"
 	}
 	
 	"Tank_Called"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Tank meghívva."
 	}
 	
 	"Tank_Spawn"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Közeledik a TAAAANK!"
 	}
 	
 	"Tank_Died"
 	{
-		"#format"	"{1:N},{2:N},{3:d}"
 		"hu"		"A Tank '{1}' meghalt\nLegtöbb sebzés: {2} ({3})"
 	}
 	
 	"Tank_Multi_Died"
 	{
-		"#format"	"{1:d},{2:N},{3:d}"
 		"hu"		"{1} tank meghalt\nLegtöbb sebzés: {2} ({3})"
 	}
 	
@@ -67,55 +57,46 @@
 	
 	"Weapon_Pickup"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
 		"hu"		"Felvettem egy {1}{2}{3}!"
 	}
 	
 	"Weapon_Callout"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
 		"hu"		"{1}{2} {3}itt!"
 	}
 	
 	"Survivor_Last"
 	{
-		"#format"	"{1:s},{2:s}"
 		"hu"		"{1}{2} az utolsó túlélő!"
 	}
 	
 	"Infected_Zombify"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Meghaltál és zombivá váltál..."
 	}
 	
 	"Infected_SelectedRespawn"
 	{
-		"#format"	"{1:s},{2:s}"
 		"hu"		"{1}Kiválasztottak, hogy Speciális Fertőzött legyél! {2}Kiálts 'MEDIC!'-et, hogy újraéledj egyként, vagy válj azzá halálodkor."
 	}
 	
 	"Infected_UsedQuickRespawn"
 	{
-		"#format"	"{1:s},{2:s},{3:s},{4:s}"
 		"hu"		"(CSAPAT) {1}{2} : Használtam a {3}gyors újraéledést speciális fertőzöttként{4}!"
 	}
 	
 	"Infected_AllInCooldown"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Úgy tűnik, minden speciális fertőzött várakozási időben van..."
 	}
 	
 	"Infected_ForceStart_LastRound"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Kényszerítve lettél a Fertőzött csapatba, mert elkerülted a részvételt az előző körben."
 	}
 	
 	"Infected_ForceStart"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
 		"hu"		"{1}Kényszerítve lettél a Fertőzött csapatba, mert elkerülted a részvételt, amikor {2}, {3} játszottál."
 	}
 	
@@ -131,7 +112,6 @@
 	
 	"Infected_RageReadyInSec"
 	{
-		"#format"	"{1:d}"
 		"hu"		"Düh {1} másodperc múlva lesz kész!"
 	}
 	
@@ -257,103 +237,86 @@
 	
 	"Command_InfectedUsage"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Használat: sm_infected [cél] [fertőzött]"
 	}
 	
 	"Command_InfectedNoInfected"
 	{
-		"#format"	"{1:s},{2:s}"
 		"hu"		"{1}Nem található fertőzött \"{2}\""
 	}
 	
 	"Command_InfectedNoTarget"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Nem található senki a következő fertőzött beállításához."
 	}
 	
 	"Command_InfectedNoZombie"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Nem található zombi a következő fertőzött beállításához."
 	}
 	
 	"Command_InfectedSet"
 	{
-		"#format"	"{1:s},{2:d},{3:s}"
 		"hu"		"{1}{2} zombi beállítva, hogy következő \"{3}\" fertőzött legyen"
 	}
 	
 	"Command_StunUsage"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Használat: sm_stun [cél] [időtartam]"
 	}
 	
 	"Command_StunNoTarget"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Nem található senki, akit elkábíthatnánk."
 	}
 	
 	"Command_StunSet"
 	{
-		"#format"	"{1:s},{2:d}"
 		"hu"		"{1}{2} játékos elkábítva."
 	}
 	
 	"Command_MusicEnable"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Zene engedélyezve."
 	}
 	
 	"Command_MusicDisable"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Zene letiltva."
 	}
 	
 	"JoinTeam_CantSwitchGrace"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Nem válthatsz az ellenfél csapatába a kegyelmi időszak alatt."
 	}
 	
 	"JoinTeam_WillJoinInfectedGrace"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Csatlakozni fogsz a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
 	}
 	
 	"JoinTeam_CancelGraceEnd"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Már nem fogsz automatikusan csatlakozni a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
 	}
 	
 	"JoinTeam_CantJoinSurvivorGrace"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}Nem csatlakozhatsz a Túlélő csapathoz most. Csatlakozni fogsz a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
 	}
 	
 	"JoinClass_ValidZombies"
 	{
-		"#format"	"{1:s},{2:s}"
 		"hu"		"{1}Érvényes zombik:{2}."
 	}
 	
 	"JoinClass_ValidSurvivors"
 	{
-		"#format"	"{1:s},{2:s}"
 		"hu"		"{1}Érvényes túlélők:{2}."
 	}
 	
 	"JoinClass_SurvivorsCantChange"
 	{
-		"#format"	"{1:s}"
 		"hu"		"{1}A túlélők nem válthatnak class-t a kör alatt"
 	}
 	
@@ -488,7 +451,6 @@
 	
 	"Menu_MainTitle"
 	{
-		"#format"	"{1:s},{2:s}"
 		"hu"		"Super Zombie Fortress - {1}.{2}"
 	}
 	
@@ -679,31 +641,26 @@
 	
 	"Time_MonthsAgo"
 	{
-		"#format"	"{1:d}"
 		"hu"		"{1} hónappal ezelőtt"
 	}
 	
 	"Time_DaysAgo"
 	{
-		"#format"	"{1:d}"
 		"hu"		"{1} nappal ezelőtt"
 	}
 	
 	"Time_HoursAgo"
 	{
-		"#format"	"{1:d}"
 		"hu"		"{1} órával ezelőtt"
 	}
 	
 	"Time_MinuteAgo"
 	{
-		// "#format"	"{1:d}"
 		"hu"		"egy perccel ezelőtt"
 	}
 	
 	"Time_MinutesAgo"
 	{
-		"#format"	"{1:d}"
 		"hu"		"{1} perccel ezelőtt"
 	}
 	
