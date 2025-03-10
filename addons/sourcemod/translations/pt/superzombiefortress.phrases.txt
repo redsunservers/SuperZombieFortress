@@ -2,61 +2,51 @@
 {
 	"Welcome"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
 		"pt"		"{1}Bem-vindo ao Super Zombie Fortress. (Traduzido por DGB)\nVocê pode abrir o menu de instruções usando {2}/szf{3}."
 	}
 	
 	"Grace_Start"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}O período de preparação começou. Os sobreviventes podem mudar de classe."
 	}
 	
 	"Grace_End"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}O período de preparação terminou. Os sobreviventes não podem mais mudar de classe."
 	}
 	
 	"Frenzy_Start"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Os zumbis estão frenéticos: eles reaparecem mais rápido e são mais poderosos!"
 	}
 	
 	"Frenzy_End"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Os zumbis estão descansando..."
 	}
 	
 	"Tank_Chosen"
 	{
-		"#format"	"{1:s},{2:s}"
 		"pt"		"{1} {2}foi escolhido para se tornar o TANK!"
 	}
 	
 	"Tank_Called"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Chamou o tank."
 	}
 	
 	"Tank_Spawn"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}TAAAAANK chegando!"
 	}
 	
 	"Tank_Died"
 	{
-		"#format"	"{1:N},{2:N},{3:d}"
 		"pt"		"O Tank '{1}' morreu\nMais dano causado: {2} ({3})"
 	}
 	
 	"Tank_Multi_Died"
 	{
-		"#format"	"{1:d},{2:N},{3:d}"
 		"pt"		"{1} tanks morreram\nMais dano causado: {2} ({3})"
 	}
 	
@@ -67,49 +57,41 @@
 	
 	"Weapon_Pickup"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
 		"pt"		"Eu peguei um(a) {1}{2}{3}!"
 	}
 	
 	"Weapon_Callout"
 	{
-		"#format"	"{1:s},{2:s},{3:s}"
 		"pt"		"{1}{2} {3}aqui!"
 	}
 	
 	"Survivor_Last"
 	{
-		"#format"	"{1:s},{2:s}"
 		"pt"		"{1}{2} é o último sobrevivente!"
 	}
 	
 	"Infected_Zombify"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Você morreu e se transformou em um zumbi..."
 	}
 	
 	"Infected_SelectedRespawn"
 	{
-		"#format"	"{1:s},{2:s}"
 		"pt"		"{1}Você foi selecionado para se tornar um Infectado Especial! {2}Chame 'MEDIC!' para reaparecer como um ou se tornar um ao morrer."
 	}
 	
 	"Infected_UsedQuickRespawn"
 	{
-		"#format"	"{1:s},{2:s},{3:s},{4:s}"
 		"pt"		"(EQUIPE) {1}{2} : Eu usei meu {3}reaparecimento rápido como infectado especial{4}!"
 	}
 	
 	"Infected_AllInCooldown"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Todos os infectados especiais parecem estar em recarga..."
 	}
 	
 	"Infected_ForceStart"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Você foi forçado a entrar na equipe dos infectados por tentar evitar jogar como um infectado."
 	}
 	
@@ -125,7 +107,6 @@
 	
 	"Infected_RageReadyInSec"
 	{
-		"#format"	"{1:d}"
 		"pt"		"A Fúria estará pronta em {1} segundos!"
 	}
 	
@@ -276,73 +257,61 @@
 	
 	"Command_StunUsage"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Usage: sm_stun [target] [duration]"
 	}
 	
 	"Command_StunNoTarget"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Could not find anyone to stun."
 	}
 	
 	"Command_StunSet"
 	{
-		"#format"	"{1:s},{2:d}"
 		"pt"		"{1}Stunned {2} players."
 	}
 	
 	"Command_MusicEnable"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Música foi ativada."
 	}
 	
 	"Command_MusicDisable"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Música foi desativada."
 	}
 	
 	"JoinTeam_CantSwitchGrace"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Você não pode mudar para o time oposto durante o período de graça."
 	}
 	
 	"JoinTeam_WillJoinInfectedGrace"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Você entrará no time dos Infectados quando o período de graça terminar."
 	}
 	
 	"JoinTeam_CancelGraceEnd"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Você não entrará mais automaticamente no time dos Infectados quando o período de graça terminar."
 	}
 	
 	"JoinTeam_CantJoinSurvivorGrace"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Não é possível entrar no time dos Sobreviventes neste momento. Você entrará no time dos Infectados quando o período de tolerância terminar."
 	}
 
 	"JoinClass_ValidZombies"
 	{
-		"#format"	"{1:s},{2:s}"
 		"pt"		"{1}Zumbis válidos:{2}."
 	}
 
 	"JoinClass_ValidSurvivors"
 	{
-		"#format"	"{1:s},{2:s}"
 		"pt"		"{1}Sobreviventes válidos:{2}."
 	}
 
 	"JoinClass_SurvivorsCantChange"
 	{
-		"#format"	"{1:s}"
 		"pt"		"{1}Os sobreviventes não podem mudar de classe durante uma rodada."
 	}
 
@@ -478,7 +447,6 @@
 	
 	"Menu_MainTitle"
 	{
-		"#format"	"{1:s},{2:s}"
 		"pt"		"Super Zombie Fortress - {1}.{2}"
 	}
 
