@@ -1,0 +1,669 @@
+"Phrases"
+{
+	"Welcome"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"pt"		"{1}Bem-vindo ao Super Zombie Fortress. (Traduzido por DGB)\nVocê pode abrir o menu de instruções usando {2}/szf{3}."
+	}
+	
+	"Grace_Start"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}O período de preparação começou. Os sobreviventes podem mudar de classe."
+	}
+	
+	"Grace_End"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}O período de preparação terminou. Os sobreviventes não podem mais mudar de classe."
+	}
+	
+	"Frenzy_Start"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Os zumbis estão frenéticos: eles reaparecem mais rápido e são mais poderosos!"
+	}
+	
+	"Frenzy_End"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Os zumbis estão descansando..."
+	}
+	
+	"Tank_Chosen"
+	{
+		"#format"	"{1:s},{2:s}"
+		"pt"		"{1} {2}foi escolhido para se tornar o TANK!"
+	}
+	
+	"Tank_Called"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Chamou o tank."
+	}
+	
+	"Tank_Spawn"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}TAAAAANK chegando!"
+	}
+	
+	"Tank_Died"
+	{
+		"#format"	"{1:N},{2:N},{3:d}"
+		"pt"		"O Tank '{1}' morreu\nMais dano causado: {2} ({3})"
+	}
+	
+	"Tank_Multi_Died"
+	{
+		"#format"	"{1:d},{2:N},{3:d}"
+		"pt"		"{1} tanks morreram\nMais dano causado: {2} ({3})"
+	}
+	
+	"Carry_Pickup"
+	{
+		"pt"		"Chame 'MEDIC!' para soltar seu item!\nVocê pode atacar enquanto carrega um item."
+	}
+	
+	"Weapon_Pickup"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"pt"		"Eu peguei um(a) {1}{2}{3}!"
+	}
+	
+	"Weapon_Callout"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"pt"		"{1}{2} {3}aqui!"
+	}
+	
+	"Survivor_Last"
+	{
+		"#format"	"{1:s},{2:s}"
+		"pt"		"{1}{2} é o último sobrevivente!"
+	}
+	
+	"Infected_Zombify"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Você morreu e se transformou em um zumbi..."
+	}
+	
+	"Infected_SelectedRespawn"
+	{
+		"#format"	"{1:s},{2:s}"
+		"pt"		"{1}Você foi selecionado para se tornar um Infectado Especial! {2}Chame 'MEDIC!' para reaparecer como um ou se tornar um ao morrer."
+	}
+	
+	"Infected_UsedQuickRespawn"
+	{
+		"#format"	"{1:s},{2:s},{3:s},{4:s}"
+		"pt"		"(EQUIPE) {1}{2} : Eu usei meu {3}reaparecimento rápido como infectado especial{4}!"
+	}
+	
+	"Infected_AllInCooldown"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Todos os infectados especiais parecem estar em recarga..."
+	}
+	
+	"Infected_ForceStart"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Você foi forçado a entrar na equipe dos infectados por tentar evitar jogar como um infectado."
+	}
+	
+	"Infected_CallMedic"
+	{
+		"pt"		"Chame 'MEDIC!' para reaparecer como um infectado especial!"
+	}
+	
+	"Infected_RageReady"
+	{
+		"pt"		"A Fúria está pronta!"
+	}
+	
+	"Infected_RageReadyInSec"
+	{
+		"#format"	"{1:d}"
+		"pt"		"A Fúria estará pronta em {1} segundos!"
+	}
+	
+	"Infected_CantUseRage"
+	{
+		"pt"		"Não é possível ativar a Fúria!"
+	}
+	
+	"Infected_RageUsed"
+	{
+		"pt"		"Fúria ativada!"
+	}
+	
+	"Tutorial_SurvivorStart1"
+	{
+		"pt"		"Bem-vindo ao Super Zombie Fortress!"
+	}
+	
+	"Tutorial_SurvivorStart2"
+	{
+		"pt"		"Você está atualmente jogando como Sobrevivente."
+	}
+	
+	"Tutorial_SurvivorStart3"
+	{
+		"pt"		"Como Sobrevivente, seu objetivo é completar o objetivo do mapa."
+	}
+	
+	"Tutorial_SurvivorStart4"
+	{
+		"pt"		"Você deve ter notado que não tem nenhuma arma."
+	}
+	
+	"Tutorial_SurvivorStart5"
+	{
+		"pt"		"Mas não se preocupe, você pode pegar armas caidas ao redor do mapa chamando por médico ou atacando-as."
+	}
+	
+	"Tutorial_SurvivorStart6"
+	{
+		"pt"		"Existem infectados normais e infectados especiais, então tome cuidado!"
+	}
+	
+	"Tutorial_SurvivorStart7"
+	{
+		"pt"		"Você pode verificar mais informações digitando '/szf' no chat."
+	}
+	
+	"Tutorial_SurvivorStart8"
+	{
+		"pt"		"Aproveite a rodada e boa sorte lá fora!"
+	}
+	
+	"Tutorial_ZombieStart1"
+	{
+		"pt"		"Bem-vindo ao Super Zombie Fortress!"
+	}
+	
+	"Tutorial_ZombieStart2"
+	{
+		"pt"		"Você está jogando como Zumbi."
+	}
+	
+	"Tutorial_ZombieStart3"
+	{
+		"pt"		"Como Zumbi, seu objetivo é matar os Sobreviventes."
+	}
+	
+	"Tutorial_ZombieStart4"
+	{
+		"pt"		"Você e sua equipe podem ser selecionados para se tornarem infectados especiais mais tarde."
+	}
+	
+	"Tutorial_ZombieStart5"
+	{
+		"pt"		"Além disso, um tanque pode aparecer mais tarde na rodada."
+	}
+	
+	"Tutorial_ZombieStart6"
+	{
+		"pt"		"Você pode verificar mais informações digitando '/szf' no chat."
+	}
+	
+	"Tutorial_ZombieStart7"
+	{
+		"pt"		"Aproveite a rodada e pegue-os!"
+	}
+	
+	"Tutorial_PickupCommon1"
+	{
+		"pt"		"Você pegou uma arma!"
+	}
+	
+	"Tutorial_PickupCommon2"
+	{
+		"pt"		"Encontrar armas é crucial para garantir sua sobrevivência."
+	}
+	
+	"Tutorial_PickupRare1"
+	{
+		"pt"		"Você pegou uma arma muito eficaz."
+	}
+	
+	"Tutorial_PickupRare2"
+	{
+		"pt"		"Algumas armas têm menos chance de aparecer, como esta."
+	}
+	
+	"Tutorial_Callout1"
+	{
+		"pt"		"Chamar atenção para armas específicas permite que outros colegas de equipe as peguem."
+	}
+	
+	"Tutorial_TankSpawn1"
+	{
+		"pt"		"Não deixe o Tanque se aproximar de você, seus ataques são muito letais."
+	}
+	
+	"Tutorial_TankSpawn2"
+	{
+		"pt"		"Corra e atire no Tanque, isso irá desacelerá-lo e matá-lo."
+	}
+	
+	"Command_InfectedUsage"
+	{
+    		"pt" "{1}Uso: sm_infected [alvo] [infectado]"
+	}
+
+	"Command_InfectedNoInfected"
+	{
+    		"pt" "{1}Não foi possível encontrar o infectado \"{2}\""
+	}
+
+	"Command_InfectedNoTarget"
+	{
+   		"pt" "{1}Não foi possível encontrar ninguém para definir como o próximo infectado."
+	}
+
+	"Command_InfectedNoZombie"
+	{
+   		"pt" "{1}Não foi possível encontrar zumbis para definir como o próximo infectado."
+	}
+
+	"Command_InfectedSet"
+	{
+    		"pt" "{1}Definiu {2} zumbis para se tornarem o próximo infectado \"{3}\""
+	}
+	
+	"Command_StunUsage"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Usage: sm_stun [target] [duration]"
+	}
+	
+	"Command_StunNoTarget"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Could not find anyone to stun."
+	}
+	
+	"Command_StunSet"
+	{
+		"#format"	"{1:s},{2:d}"
+		"pt"		"{1}Stunned {2} players."
+	}
+	
+	"Command_MusicEnable"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Música foi ativada."
+	}
+	
+	"Command_MusicDisable"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Música foi desativada."
+	}
+	
+	"JoinTeam_CantSwitchGrace"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Você não pode mudar para o time oposto durante o período de graça."
+	}
+	
+	"JoinTeam_WillJoinInfectedGrace"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Você entrará no time dos Infectados quando o período de graça terminar."
+	}
+	
+	"JoinTeam_CancelGraceEnd"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Você não entrará mais automaticamente no time dos Infectados quando o período de graça terminar."
+	}
+	
+	"JoinTeam_CantJoinSurvivorGrace"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Não é possível entrar no time dos Sobreviventes neste momento. Você entrará no time dos Infectados quando o período de tolerância terminar."
+	}
+
+	"JoinClass_ValidZombies"
+	{
+		"#format"	"{1:s},{2:s}"
+		"pt"		"{1}Zumbis válidos:{2}."
+	}
+
+	"JoinClass_ValidSurvivors"
+	{
+		"#format"	"{1:s},{2:s}"
+		"pt"		"{1}Sobreviventes válidos:{2}."
+	}
+
+	"JoinClass_SurvivorsCantChange"
+	{
+		"#format"	"{1:s}"
+		"pt"		"{1}Os sobreviventes não podem mudar de classe durante uma rodada."
+	}
+
+	"SpecialInfected_Tank"
+	{
+		"pt"		"{green}VOCÊ É UM TANK:\n{orange}- Uma força quase imparável.\n- Grite 'MEDIC!' para pegar e ARREMESSAR DESTROÇOS à sua frente, ferindo TODOS no caminho! {yellow}(Recarga de 5 segundos)"
+	}
+
+	"SpecialInfected_Boomer"
+	{
+		"pt"		"{green}VOCÊ É UM BOOMER:\n{orange}- Grite 'MEDIC!' para EXPLODIR e COBRIR os inimigos próximos em JARATE!\n- Você também explode ao morrer, cobrindo o assassino e o ajudante em JARATE."
+	}
+
+	"SpecialInfected_Charger"
+	{
+		"pt"		"{green}VOCÊ É UM CHARGER:\n{orange}- Grite 'MEDIC!' para CARREGAR! {yellow}(Recarga de 16 segundos)"
+	}
+
+	"SpecialInfected_Screamer"
+	{
+		"pt"		"{green}VOCÊ É UM SCREAMER:\n{orange}- Grite 'MEDIC!' para REUNIR ZUMBIS ALIADOS! {yellow}(Recarga de 21 segundos){orange}\n- Zumbis próximos a você ficam mais poderosos."
+	}
+
+	"SpecialInfected_Stalker"
+	{
+		"pt"		"{green}VOCÊ É UM STALKER:\n{orange}- Se não estiver perto de sobreviventes, você ficará invisível e ganhará super velocidade!\n- Aumenta a duração do atordoamento em ataques pelas costas."
+	}
+
+	"SpecialInfected_Hunter"
+	{
+		"pt"		"{green}VOCÊ É UM HUNTER:\n{orange}- Grite 'MEDIC!' para SALTAR e ATACAR SOBREVIVENTES! {yellow}(Recarga de 3 segundos ao errar & 21 segundos ao acertar)"
+	}
+
+	"SpecialInfected_Smoker"
+	{
+		"pt"		"{green}VOCÊ É UM SMOKER:\n{orange}- Clique com o botão direito para disparar um raio que puxa os sobreviventes para você! {yellow}(Sem recarga)"
+	}
+
+	"SpecialInfected_Spitter"
+	{
+		"pt"		"{green}VOCÊ É UM SPITTER:\n{orange}- Grite 'MEDIC!' para lançar seu GÁS em um grupo de sobreviventes para causar dano! {yellow}(Recarga de 16 segundos)"
+	}
+
+	"SpecialInfected_Jockey"
+	{
+		"pt"		"{green}VOCÊ É UM JOCKEY:\n{orange}- Grite 'MEDIC!' para SALTAR nos SOBREVIVENTES e controlar seus movimentos! {yellow}(Recarga de 6 segundos)"
+	}
+
+	"Melee_Atomizer"
+	{
+		"pt"		"{orange}O Atomizer {green}empurra os inimigos para trás. {red}Triplo salto e minicrits no ar estão desativados."
+	}
+
+	"Melee_CandyCane"
+	{
+		"pt"		"{orange}O Candy Cane {red}faz você receber 10%% de dano adicional."
+	}
+
+	"Melee_PainTrain"
+	{
+		"pt"		"{orange}O Pain Train {red}faz você receber 10%% de dano adicional."
+	}
+
+	"Melee_HalfZatochi"
+	{
+		"pt"		"{orange}O Half-Zatoichi {red}drena sua saúde máxima enquanto ativo."
+	}
+
+	"Melee_MarketGardener"
+	{
+		"pt"		"{orange}O Market Gardener {green}faz você saltar 25%% mais alto com foguetes."
+	}
+
+	"Melee_Eyelander"
+	{
+		"pt"		"{orange}O Eyelander {red}faz você se mover 15%% mais devagar."
+	}
+
+	"Melee_ScotsmansSkullcutter"
+	{
+		"pt"		"{orange}O Scotsman's Skullcutter {green}tem seu bônus de dano aumentado para 30%%."
+	}
+
+	"Melee_KillingGlovesofBoxing"
+	{
+	        "pt"		"{orange}As Killing Gloves of Boxing {red}dão 5 segundos de minicrits ao matar."
+	}
+
+	"Melee_WarriorsSpirit"
+	{
+		"pt"		"{orange}O Warrior's Spirit {red}tem sua saúde restaurada ao matar reduzida para +25."
+	}
+
+	"Melee_FistsofSteel"
+	{
+		"pt"		"{orange}Os Fists of Steel {green}dão 10%% de resistência a ataques corpo a corpo enquanto ativos."
+	}
+
+	"Melee_EurekaEffect"
+	{
+		"pt"		"{orange}O Eureka Effect {green}regenera metal periodicamente. {red}Teletransporte está desativado."
+	}
+
+	"Melee_Ubersaw"
+	{
+		"pt"		"{orange}O Ubersaw {red}dá 10%% de uber ao acertar."
+	}
+
+	"Melee_VitaSaw"
+	{
+		"pt"		"{orange}O Vita-Saw {green}aumenta a taxa de uber em 15%%."
+	}
+
+	"Melee_Amputator"
+	{
+		"pt"		"{orange}O Amputator {red}não cura em área ao usar o gesto de cura."
+	}
+
+	"Melee_TribalmansShiv"
+	{
+		"pt"		"{orange}O Tribalman's Shiv {green}reduziu sua penalidade de dano para 20%%."
+	}
+
+	"PDA_DeadRinger"
+	{
+		"pt"		"{orange}O Dead Ringer {red}não possui duração de camuflagem aumentada."
+	}
+
+	"PDA_CloakAndDagger"
+	{
+		"pt"		"{orange}O Cloak and Dagger {red}está desativado."
+	}
+	
+	"Menu_MainTitle"
+	{
+		"#format"	"{1:s},{2:s}"
+		"pt"		"Super Zombie Fortress - {1}.{2}"
+	}
+
+	"Menu_MainOverview"
+	{
+		"pt"		"Visão Geral"
+	}
+
+	"Menu_MainTeamSurvivor"
+	{
+		"pt"		"Time: Sobreviventes"
+	}
+
+	"Menu_MainTeamZombie"
+	{
+		"pt"		"Time: Infectados"
+	}
+
+	"Menu_MainClassesSurvivor"
+	{
+		"pt"		"Classes: Sobreviventes"
+	}
+
+	"Menu_MainClassesZombie"
+	{
+		"pt"		"Classes: Infectados"
+	}
+
+	"Menu_MainClassesInfected"
+	{
+		"pt"		"Classes: Infectados (Especiais)"
+	}
+
+	"Menu_MainBack"
+	{
+		"pt"		"Voltar"
+	}
+
+	"Menu_Overview"
+	{
+		"pt"		"Os Sobreviventes devem resistir à horda interminável de Infectados.\nQuando um Sobrevivente morre, ele se junta ao time dos Zumbis e joga como um Zumbi.\nZumbis precisam trabalhar juntos para derrotar os sobreviventes.\nSobreviventes têm acesso a armas no mapa, enquanto os zumbis têm acesso a infectados especiais."
+	}
+
+	"Menu_TeamSurvivors"
+	{
+		"pt"		"Os Sobreviventes ganham regeneração e um pequeno bônus de dano baseado em Moral.\nA Moral é obtida ao completar objetivos e matar infectados, mas também diminui com o tempo e com eventos negativos.\nOs Sobreviventes começam apenas com uma arma corpo-a-corpo e pegam armas (usando 'CHAMAR MÉDICO!', 'mouse1' ou 'mouse2') à medida que avançam pelo mapa."
+	}
+
+	"Menu_TeamZombie"
+	{
+		"pt"		"Os Infectados ganham bônus quando estão juntos como uma horda e podem entrar em fúria, aumentando a vida ou ativando habilidades especiais como infectados especiais.\nA fúria é usada chamando um 'médico' e tem um tempo de recarga após o uso.\nVocê pode ter a opção de renascer como um infectado especial usando 'médico'."
+	}
+
+	"Menu_ClassesSurvivorsScout"
+	{
+		"pt"		"Possui 25 de vida máxima adicional.\nGanha 2 munições primárias por kill, podendo ultrapassar a capacidade máxima usual de sua arma."
+	}
+
+	"Menu_ClassesSurvivorsSoldier"
+	{
+		"pt"		"Ganha 1 munição primária por kill, podendo ultrapassar a capacidade máxima usual de sua arma."
+	}
+
+	"Menu_ClassesSurvivorsPyro"
+	{
+		"pt"		"Zumbis em chamas se movem mais rápido.\nA munição do lança-chamas é limitada a 100."
+	}
+
+	"Menu_ClassesSurvivorsDemoman"
+	{
+		"pt"		"Ganha 1 munição primária por kill, podendo ultrapassar a capacidade máxima usual de sua arma."
+	}
+
+	"Menu_ClassesSurvivorsHeavy"
+	{
+		"pt"		"A munição da metralhadora giratória é limitada a 100."
+	}
+
+	"Menu_ClassesSurvivorsEngineer"
+	{
+		"pt"		"Começa com PDAs.\nSó pode construir torres e dispensadores, que não podem ser melhorados.\nA munição das torres é limitada, decai e não pode ser reabastecida.\nDispensadores atuam como paredes, com vida maior que o usual, mas sem reabastecimento de munição."
+	}
+
+	"Menu_ClassesSurvivorsMedic"
+	{
+		"pt"		"A arma de cura tem uma penalidade na taxa de cura."
+	}
+
+	"Menu_ClassesSurvivorsSniper"
+	{
+		"pt"		"A SMG não precisa recarregar.\nO Jarate reduz a velocidade dos Infectados.\nPossui 25 de vida máxima adicional.\nGanha 2 munições primárias por kill, podendo ultrapassar a capacidade máxima usual de sua arma."
+	}
+
+	"Menu_ClassesSurvivorsSpy"
+	{
+		"pt"		"Começa com relógios de invisibilidade e kit de disfarce.\nGanha 2 munições primárias por kill, podendo ultrapassar a capacidade máxima usual de sua arma."
+	}
+
+	"Menu_ClassesInfectedScout"
+	{
+		"pt"		"Possui Sandman para desacelerar os sobreviventes.\nPode usar bebidas no slot secundário."
+	}
+
+	"Menu_ClassesInfectedSoldier"
+	{
+		"pt"		"Recebe menos benefícios de bônus de velocidade de movimento e regeneração de vida enquanto em uma horda.\nPode usar banners no slot secundário."
+	}
+
+	"Menu_ClassesInfectedPyro"
+	{
+		"pt"		"Possui o Fragmento Vulcânico Afiado para incendiar sobreviventes.\nO dano de queimadura é reduzido.\nRecebe menos benefícios de bônus de velocidade de movimento e regeneração de vida enquanto em uma horda."
+	}
+
+	"Menu_ClassesInfectedDemoman"
+	{
+		"pt"		"Possui Eyelander para causar dano a sobreviventes de longa distância.\nRecebe menos benefícios de bônus de velocidade de movimento e regeneração de vida enquanto em uma horda."
+	}
+
+	"Menu_ClassesInfectedHeavy"
+	{
+		"pt"		"Recebe menos benefícios de bônus de velocidade de movimento e regeneração de vida enquanto em uma horda.\nPode usar comidas no slot secundário para usar e causar dano aos sobreviventes."
+	}
+
+	"Menu_ClassesInfectedEngineer"
+	{
+		"pt"		"O terceiro soco crítico com Gunslinger atordoa o sobrevivente, mas com dano reduzido.\nSó pode construir mini-torres e dispensadores, que não podem ser melhorados.\nA munição das torres é limitada, decai e não pode ser reabastecida."
+	}
+
+	"Menu_ClassesInfectedMedic"
+	{
+		"pt"		"Possui Amputador para curar infectados próximos ao realizar uma provocação.\nRecebe menos benefícios de regeneração de vida enquanto em uma horda."
+	}
+
+	"Menu_ClassesInfectedSniper"
+	{
+		"pt"		"Possui Bushwacka para causar dano crítico em sobreviventes sob efeito de mini-crítico.\nPode usar vestíveis no slot secundário."
+	}
+
+	"Menu_ClassesInfectedSpy"
+	{
+		"pt"		"Backstabs colocam a vítima em estado de 'medo', reduzindo a velocidade e desativando o uso de armas por alguns segundos.\nOs sobreviventes têm pequena resistência ao serem apunhalados pelas costas."
+	}
+
+	"Menu_ClassesInfectedSpecialTank"
+	{
+		"pt"		"Como um dos infectados mais fortes e brutais, ele tem a habilidade de destruir rapidamente um time desavisado de sobreviventes.\n- O Tank tem muita vida, que ele eventualmente perde com o tempo.\n- O Tank tem resistência total a empurrões.\n- O Tank começa rápido, mas é desacelerado quando danificado pelos sobreviventes.\n- O Tank aparece se certas condições forem atendidas."
+	}
+
+	"Menu_ClassesInfectedSpecialBoomer"
+	{
+		"pt"		"Ele é nojento, sujo e não tem medo de compartilhar isso com sobreviventes azarados.\n- Ao entrar em fúria, o Boomer explode, cobrindo os sobreviventes próximos com Jarate.\n- Também explode ao morrer, mas de forma mais fraca e com menor alcance."
+	}
+	
+	"Menu_ClassesInfectedSpecialCharger"
+	{
+		"pt"		"Sua raiva interior e insanidade fizeram com que ele não se importasse mais com como usa seu corpo, desde que consiga levar alguém junto.\n- Usando a fúria para carregar, o Charger é capaz de travar o movimento do sobrevivente e continuar empurrando pela área."
+	}
+
+	"Menu_ClassesInfectedSpecialScreamer"
+	{
+		"pt"		"O Screamer é o diretor da matilha, ele garante que os Zumbis deem o máximo para derrotar os sobreviventes.\n- Usando a fúria, o Screamer reúne os Zumbis com um grito ensurdecedor, aumentando o poder geral dos zumbis.\n- O Screamer motiva os zumbis ao ficar próximo a eles, aumentando sua eficiência."
+	}
+
+	"Menu_ClassesInfectedSpecialStalker"
+	{
+		"pt"		"O Stalker é furtivo, sendo capaz de se aproximar dos sobreviventes e recuar num piscar de olhos.\n- O Stalker está sempre invisível se não estiver perto de nenhum sobrevivente.\n- Backstabs causam 50 de dano à saúde de um sobrevivente, tornando-o 2,5 vezes mais forte que um backstab normal."
+	}
+
+	"Menu_ClassesInfectedSpecialHunter"
+	{
+		"pt"		"O Hunter é ágil e rápido, capaz de alcançar obstáculos do nível com facilidade.\n- Usando a fúria, ele realiza um salto rápido que pode atacar inimigos ao fazer contato físico durante o salto.\n- Ao atacar, você ficará 'preso' dentro do inimigo, tornando-se um encontro muito perigoso para enfrentar quando o oponente está sozinho."
+	}
+
+	"Menu_ClassesInfectedSpecialSmoker"
+	{
+		"pt"		"O Smoker depende de seu feixe tóxico, que danifica os sobreviventes e os puxa em direção ao Smoker.\n- O poder do puxão aumenta quanto menor for a saúde da vítima.\n- Não pode usar fúria."
+	}
+
+	"Menu_ClassesInfectedSpecialSpitter"
+	{
+		"pt"		"O Spitter tem um pescoço longo cheio de gases nojentos que os sobreviventes não suportam.\n- Usar a fúria congela o Spitter, fazendo-o cuspir no chão e danificar os sobreviventes próximos.\n- Também libera gás ao morrer.\n- Isso representa uma ameaça maior para hordas de sobreviventes em salas pequenas."
+	}
+
+	"Menu_ClassesInfectedSpecialJockey"
+	{
+		"pt"		"O Jockey ronda sorrateiramente, ansioso para levar os sobreviventes à sua destruição.\n- Usar a fúria realiza um salto curto, agarrando-se à cabeça de um sobrevivente ao fazer contato físico.\n- Controla o movimento de um sobrevivente e causa dano enquanto está em cima dele."
+	}
+}
