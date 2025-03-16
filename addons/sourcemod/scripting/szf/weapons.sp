@@ -13,6 +13,7 @@ enum struct Weapon
 	int iIndex;
 	WeaponRarity nRarity;
 	char sModel[PLATFORM_MAX_PATH];
+	char sModelAttach[PLATFORM_MAX_PATH];
 	int iSkin;
 	char sSound[PLATFORM_MAX_PATH];
 	char sAttribs[256];
@@ -79,7 +80,10 @@ void Weapons_Precache()
 		
 		PrecacheModel(wep.sModel);
 		
-		if (wep.sSound[0] != '\0')
+		if (wep.sModelAttach[0])
+			PrecacheModel(wep.sModelAttach);
+		
+		if (wep.sSound[0])
 			PrecacheSound(wep.sSound);
 	}
 	
@@ -89,8 +93,13 @@ void Weapons_Precache()
 
 bool GetWeaponFromEntity(Weapon buffer, int iEntity)
 {
-	char sModel[PLATFORM_MAX_PATH];
+	char sModel[PLATFORM_MAX_PATH], sModelAttach[PLATFORM_MAX_PATH];
 	GetEntityModel(iEntity, sModel, sizeof(sModel));
+	
+	int iChild = GetChildEntity(iEntity, "prop_dynamic");
+	if (iChild != INVALID_ENT_REFERENCE)
+		GetEntityModel(iChild, sModelAttach, sizeof(sModelAttach));
+	
 	int iSkin = GetEntProp(iEntity, Prop_Send, "m_nSkin");
 	
 	int iLength = g_Weapons.Length;
@@ -99,7 +108,7 @@ bool GetWeaponFromEntity(Weapon buffer, int iEntity)
 		Weapon wep;
 		g_Weapons.GetArray(i, wep);
 		
-		if (StrEqual(sModel, wep.sModel) && iSkin == wep.iSkin)
+		if (StrEqual(sModel, wep.sModel) && StrEqual(sModelAttach, wep.sModelAttach) && iSkin == wep.iSkin)
 		{
 			buffer = wep;
 			return true;

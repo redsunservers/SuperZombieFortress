@@ -122,12 +122,14 @@ ArrayList Config_LoadWeaponData()
 				mRarity.GetValue(sBuffer, wep.nRarity);
 				
 				kv.GetString("model", wep.sModel, sizeof(wep.sModel));
-				if (wep.sModel[0] == '\0') 
+				if (!wep.sModel[0]) 
 				{
-					LogError("Weapon must have a model.");
+					LogError("Weapon index '%d' must have a model.", wep.iIndex);
 					continue;
 				}
-
+				
+				kv.GetString("model_attach", wep.sModelAttach, sizeof(wep.sModelAttach));
+				
 				if (wep.iIndex > -1)
 				{
 					//Skip weapon if weapon is not for any class enabled
@@ -153,7 +155,7 @@ ArrayList Config_LoadWeaponData()
 				{
 					aWeapons.GetArray(i, duplicate);
 					
-					if (StrEqual(wep.sModel, duplicate.sModel) && wep.iSkin == duplicate.iSkin)
+					if (StrEqual(wep.sModel, duplicate.sModel) && StrEqual(wep.sModelAttach, duplicate.sModelAttach) && wep.iSkin == duplicate.iSkin)
 					{
 						LogError("%i: Model \"%s\" with skin \"%d\" is already taken by weapon %i.", wep.iIndex, wep.sModel, wep.iSkin, duplicate.iIndex);
 						continue;

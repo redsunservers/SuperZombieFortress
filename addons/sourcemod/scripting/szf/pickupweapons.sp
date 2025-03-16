@@ -143,8 +143,7 @@ public void SetWeapon(int iEntity)
 			return;
 		}
 	}
-		
-		
+	
 	SetEntityCollisionGroup(iEntity, COLLISION_GROUP_DEBRIS_TRIGGER);
 	AcceptEntityInput(iEntity, "DisableShadow");
 	AcceptEntityInput(iEntity, "EnableCollision");
@@ -614,6 +613,29 @@ void SetWeaponModel(int iEntity, Weapon wep)
 	
 	SetEntityModel(iEntity, wep.sModel);
 	SetEntProp(iEntity, Prop_Send, "m_nSkin", wep.iSkin);
+	
+	int iChild = GetChildEntity(iEntity, "prop_dynamic");
+	if (wep.sModelAttach[0] && iChild == INVALID_ENT_REFERENCE)
+	{
+		iChild = CreateEntityByName("prop_dynamic");
+		SetEntityModel(iChild, wep.sModelAttach);
+		SetEntProp(iChild, Prop_Send, "m_fEffects", EF_BONEMERGE|EF_NOSHADOW|EF_NORECEIVESHADOW|EF_NOINTERP);
+		
+		SetEntityCollisionGroup(iChild, COLLISION_GROUP_NONE);
+		
+		DispatchSpawn(iChild);
+		
+		SetVariantString("!activator");
+		AcceptEntityInput(iChild, "SetParent", iEntity);
+	}
+	else if (wep.sModelAttach[0])
+	{
+		SetEntityModel(iChild, wep.sModelAttach);
+	}
+	else if (iChild != INVALID_ENT_REFERENCE)
+	{
+		RemoveEntity(iChild);
+	}
 	
 	//Update model origin and angles from weapon offset and const
 	

@@ -516,6 +516,18 @@ stock bool IsClassname(int iEntity, const char[] sClassname)
 	return false;
 }
 
+stock int GetChildEntity(int iEntity, const char[] sClassname)
+{
+	int iOther = INVALID_ENT_REFERENCE;
+	while ((iOther = FindEntityByClassname(iOther, sClassname)) != INVALID_ENT_REFERENCE)
+	{
+		if (GetEntPropEnt(iOther, Prop_Send, "moveparent") == iEntity)
+			return iOther;
+	}
+	
+	return INVALID_ENT_REFERENCE;
+}
+
 stock void AddEntityEffect(int iEntity, int iFlag)
 {
 	SetEntProp(iEntity, Prop_Send, "m_fEffects", GetEntProp(iEntity, Prop_Send, "m_fEffects") | iFlag);
