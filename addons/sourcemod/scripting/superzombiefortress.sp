@@ -19,7 +19,7 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.6.7"
+#define PLUGIN_VERSION				"4.7.0"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define MAX_CONTROL_POINTS	8
