@@ -121,15 +121,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		{
 			Sound_Attack(iVictim, iAttacker);
 			
-			if (TF2_IsPlayerInCondition(iAttacker, TFCond_CritCola)
-				|| TF2_IsPlayerInCondition(iAttacker, TFCond_Buffed)
-				|| TF2_IsPlayerInCondition(iAttacker, TFCond_CritHype))
-			{
-				//Reduce damage from crit amplifying items when active
-				flDamage *= 0.85;
-				bChanged = true;
-			}
-			
 			//Taunt kill, backstabs and gunslinger combo punch
 			if (flDamage >= 300.0
 				|| iDamageCustom == TF_CUSTOM_BACKSTAB
@@ -192,15 +183,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 					g_flDamageDealtAgainstTank[iAttacker] += flDamage;
 					ScaleVector(vecForce, 0.0);
 					iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
-				}
-				
-				else if (TF2_IsPlayerInCondition(iVictim, TFCond_CritCola)
-					|| TF2_IsPlayerInCondition(iVictim, TFCond_Buffed)
-					|| TF2_IsPlayerInCondition(iVictim, TFCond_CritHype))
-				{
-					//Increase damage taken from crit amplifying items when active
-					flDamage *= 1.1;
-					bChanged = true;
 				}
 			}
 		}
