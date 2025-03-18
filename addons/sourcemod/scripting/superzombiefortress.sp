@@ -413,6 +413,7 @@ ConVar g_cvTankHealthMax;
 ConVar g_cvTankTime;
 ConVar g_cvTankStab;
 ConVar g_cvTankDebrisLifetime;
+ConVar g_cvSpecialInfectedInterval;
 ConVar g_cvJockeyMovementVictim;
 ConVar g_cvJockeyMovementAttacker;
 ConVar g_cvFrenzyChance;
@@ -442,6 +443,7 @@ float g_flTimeProgress;
 float g_flTankCooldown;
 float g_flRageCooldown;
 float g_flRageRespawnStress;
+float g_flInfectedInterval;
 float g_flInfectedCooldown[view_as<int>(Infected_Count)];	//GameTime
 int g_iInfectedCooldown[view_as<int>(Infected_Count)];	//Client who started the cooldown
 int g_iStartSurvivors;
@@ -897,6 +899,7 @@ void EndGracePeriod()
 	
 	g_flTankCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before tank spawns will be considered
 	g_flRageCooldown = flGameTime + 60.0 - fMin(0.0, (iSurvivors-12) * 1.5); //1 min cooldown before frenzy will be considered
+	g_flInfectedInterval = flGameTime;
 	g_flSurvivorsLastDeath = flGameTime;
 }
 
@@ -1060,14 +1063,32 @@ public void OnGameFrame()
 	if (!g_bEnabled)
 		return;
 	
-	int iCount = GetSurvivorCount();
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	if (g_nRoundState == SZFRoundState_Active)
 	{
-		if (g_nRoundState == SZFRoundState_Active)
+		int iCount = GetSurvivorCount();
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
 		{
 			//Last man gets minicrit boost if 6 players ingame
 			if (iCount == 1 && IsValidLivingSurvivor(iClient) && GetActivePlayerCount() >= 6)
 				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
+		}
+		
+		float flInterval = g_cvSpecialInfectedInterval.FloatValue;
+		if (flInterval >= 0.0 && g_flInfectedInterval + flInterval <= GetGameTime())
+		{
+			// Collect list of possible clients to choose
+			int iClients[MAXPLAYERS];
+			int iZombieCount;
+			for (int iClient = 1; iClient <= MaxClients; iClient++)
+				if (IsValidZombie(iClient) && g_nInfected[iClient] == Infected_None && g_nNextInfected[iClient] == Infected_None)
+					iClients[iZombieCount++] = iClient;
+			
+			if (iZombieCount > 0)
+			{
+				int iClient = iClients[GetRandomInt(0, iZombieCount - 1)];
+				g_bSpawnAsSpecialInfected[iClient] = true;
+				g_flInfectedInterval = GetGameTime();
+			}
 		}
 	}
 }

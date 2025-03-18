@@ -21,6 +21,7 @@ void ConVar_Init()
 	g_cvTankTime = CreateConVar("sm_szf_tank_time", "30.0", "Adjusts the damage the Tank takes per second. 0 to disable.", _, true, 0.0);
 	g_cvTankStab = CreateConVar("sm_szf_tank_stab", "500", "Flat Damage dealt to the Tank from a backstab.", _, true, 0.0);
 	g_cvTankDebrisLifetime = CreateConVar("sm_szf_tank_debris_lifetime", "20.0", "Amount of time (in seconds) it takes for debris thrown by Tanks to despawn. Use 0 to prevent despawning.", _, true, 0.0);
+	g_cvSpecialInfectedInterval = CreateConVar("sm_szf_special_infected_interval", "40.0", "Seconds interval to select a random infected to be special infected. -1 to disable it.", _, true, -1.0);
 	g_cvJockeyMovementVictim = CreateConVar("sm_szf_jockey_movement_victim", "0.25", "Percentage of movement speed applied to victim from jockey grab.", _, true, 0.0);
 	g_cvJockeyMovementAttacker = CreateConVar("sm_szf_jockey_movement_attacker", "0.75", "Percentage of movement speed applied to jockey during grab.", _, true, 0.0);
 	g_cvFrenzyChance = CreateConVar("sm_szf_frenzy_chance", "0.0", "% Chance of a random frenzy.", _, true, 0.0);
