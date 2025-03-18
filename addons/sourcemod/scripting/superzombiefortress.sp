@@ -1154,11 +1154,10 @@ void Handle_SurvivorAbilities()
 			//1. Survivor health regeneration.
 			int iHealth = GetClientHealth(iClient);
 			int iMaxHealth = SDKCall_GetMaxHealth(iClient);
-			if (iHealth < iMaxHealth && !TF2_IsPlayerInCondition(iClient, TFCond_Bleeding))	// No regen while in spitter bleed
+			int iRegen = g_ClientClasses[iClient].iRegen;
+			
+			if (iHealth < iMaxHealth && (iRegen < 0 || !TF2_IsPlayerInCondition(iClient, TFCond_Bleeding)))	// No regen while in spitter bleed
 			{
-				int iRegen = g_ClientClasses[iClient].iRegen;
-				
-				if (TF2_GetPlayerClass(iClient) == TFClass_Medic && TF2_IsEquipped(iClient, 36)) iRegen--;
 				iRegen = min(iRegen, iMaxHealth - iHealth);
 				SetEntityHealth(iClient, iHealth + iRegen);
 				
