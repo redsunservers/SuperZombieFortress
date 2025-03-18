@@ -232,10 +232,20 @@ void Infected_ActivateDebris(int iClient, bool bVel)
 	
 	if (bVel)
 	{
+		// Calculate velocity from eye angle
 		float vecAngles[3], vecVel[3];
 		GetClientEyeAngles(iClient, vecAngles);
 		AnglesToVelocity(vecAngles, vecVel, 2000.0);
-		TeleportEntity(iDebris, NULL_VECTOR, NULL_VECTOR, vecVel);
+		
+		// Calculate position by distance between eye and rock,
+		float vecEyePos[3], vecDebrisPos[3];
+		GetClientEyePosition(iClient, vecEyePos);
+		GetEntPropVector(iDebris, Prop_Send, "m_vecOrigin", vecDebrisPos);
+		float flDistance = GetVectorDistance(vecEyePos, vecDebrisPos);
+		AnglesToVelocity(vecAngles, vecDebrisPos, flDistance);
+		AddVectors(vecDebrisPos, vecEyePos, vecDebrisPos);
+		
+		TeleportEntity(iDebris, vecDebrisPos, NULL_VECTOR, vecVel);
 	}
 	
 	CreateTimer(1.0, Infected_DebrisTimerMoving, iDebris, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
