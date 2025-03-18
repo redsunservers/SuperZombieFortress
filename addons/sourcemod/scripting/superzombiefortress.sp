@@ -300,6 +300,21 @@ enum struct ClientClasses
 		return true;
 	}
 	
+	bool GetWeaponFromIndex(int iIndex, WeaponClasses buffer)
+	{
+		int iPos;
+		WeaponClasses weapon;
+		while (this.GetWeapon(iPos, weapon))
+		{
+			if (weapon.iIndex != iIndex)
+				continue;
+			
+			buffer = weapon;
+			return true;
+		}
+		
+		return false;
+	}
 	bool GetWeaponSlot(int iSlot, WeaponClasses buffer)
 	{
 		if (!this.aWeapons)
@@ -2070,11 +2085,7 @@ void HandleSurvivorLoadout(int iClient)
 				}
 					
 				//Apply attribute
-				char sAttribs[32][32];
-				int iCount = ExplodeString(melee.sAttrib, " ; ", sAttribs, sizeof(sAttribs), sizeof(sAttribs));
-				if (iCount > 1)
-					for (int j = 0; j < iCount; j+= 2)
-						TF2Attrib_SetByDefIndex(iEntity, StringToInt(sAttribs[j]), StringToFloat(sAttribs[j+1]));
+				TF2_WeaponApplyAttribute(iEntity, melee.sAttrib);
 			}
 			
 			//This will refresh health max calculation and other attributes
@@ -2117,8 +2128,16 @@ void HandleZombieLoadout(int iClient)
 	//Give out zombie weapons if don't have one
 	for (int iSlot = WeaponSlot_Primary; iSlot < WeaponSlot_BuilderEngie; iSlot++)	// Ideally should also check toolbox slot, but ermmmm lets not do that
 	{
-		if (TF2_GetItemInSlot(iClient, iSlot) != INVALID_ENT_REFERENCE)
+		int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
+		if (iWeapon != INVALID_ENT_REFERENCE)
+		{
+			WeaponClasses weapon;
+			if (!g_ClientClasses[iClient].GetWeaponFromIndex(GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex"), weapon))
+				continue;	// how could this happen?
+			
+			TF2_WeaponApplyAttribute(iWeapon, weapon.sAttribs);
 			continue;
+		}
 		
 		WeaponClasses weapon;
 		if (!g_ClientClasses[iClient].GetWeaponSlot(iSlot, weapon))	// picks one of the available weapon in slot at random

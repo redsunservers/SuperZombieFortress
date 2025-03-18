@@ -708,16 +708,7 @@ stock int TF2_CreateWeapon(int iClient, int iIndex, const char[] sAttribs = NULL
 	
 	if (IsValidEntity(iWeapon))
 	{
-		//Attribute shittery inbound
-		if (sAttribs[0])
-		{
-			char sAttribs2[32][32];
-			int iCount = ExplodeString(sAttribs, " ; ", sAttribs2, 32, 32);
-			if (iCount > 1)
-				for (int i = 0; i < iCount; i+= 2)
-					TF2Attrib_SetByDefIndex(iWeapon, StringToInt(sAttribs2[i]), StringToFloat(sAttribs2[i+1]));
-		}
-		
+		TF2_WeaponApplyAttribute(iWeapon, sAttribs);
 		DispatchSpawn(iWeapon);
 	}
 	
@@ -745,6 +736,14 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttrib
 	TF2_EquipWeapon(iClient, iWeapon);
 	
 	return iWeapon;
+}
+
+stock void TF2_WeaponApplyAttribute(int iWeapon, const char[] sAttrib)
+{
+	char sAttribs[32][32];
+	int iCount = ExplodeString(sAttrib, " ; ", sAttribs, sizeof(sAttribs), sizeof(sAttribs));
+	for (int i = 0; i < iCount - 1; i+= 2)
+		TF2Attrib_SetByDefIndex(iWeapon, StringToInt(sAttribs[i]), StringToFloat(sAttribs[i+1]));
 }
 
 stock bool TF2_WeaponFindAttribute(int iWeapon, int iAttrib, float &flVal)
