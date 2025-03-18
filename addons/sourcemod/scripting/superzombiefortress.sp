@@ -2717,7 +2717,12 @@ Action OnGiveNamedItem(int iClient, int iIndex)
 	}
 	else if (iTeam == TFTeam_Zombie)
 	{
-		if (iSlot <= WeaponSlot_BuilderEngie)
+		if (g_nInfected[iClient] != Infected_None)
+		{
+			// Special infected don't get to keep its own weapons
+			iAction = Plugin_Handled;
+		}
+		else if (iSlot <= WeaponSlot_BuilderEngie)
 		{
 			// Only allow weapon if its listed in config
 			if (!g_ClientClasses[iClient].HasWeaponIndex(iIndex) && !g_ClientClasses[iClient].HasWeaponIndex(Config_GetOriginalItemDefIndex(iIndex)))
