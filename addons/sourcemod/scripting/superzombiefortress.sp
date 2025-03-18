@@ -284,6 +284,8 @@ enum struct ClientClasses
 	Function callback_rage;
 	Function callback_think;
 	Function callback_touch;
+	Function callback_damage;
+	Function callback_attack;
 	Function callback_death;
 	
 	//Infected

@@ -27,6 +27,8 @@ void Classes_Refresh()
 	g_DefaultClasses.callback_rage = INVALID_FUNCTION;
 	g_DefaultClasses.callback_think = INVALID_FUNCTION;
 	g_DefaultClasses.callback_touch = INVALID_FUNCTION;
+	g_DefaultClasses.callback_damage = INVALID_FUNCTION;
+	g_DefaultClasses.callback_attack = INVALID_FUNCTION;
 	g_DefaultClasses.callback_death = INVALID_FUNCTION;
 	
 	g_iSurvivorClassCount = 0;

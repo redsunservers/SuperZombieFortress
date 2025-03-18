@@ -360,6 +360,48 @@ public void Infected_OnTankThink(int iClient)
 	}
 }
 
+public Action Infected_OnTankDamage(int iClient, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
+{
+	//Tank is immune to knockback
+	ScaleVector(vecForce, 0.0);
+	iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
+			
+	//Disable fall damage to tank
+	if (iDamageType & DMG_FALL)
+		flDamage = 0.0;
+	
+	if (IsValidSurvivor(iAttacker))
+	{
+		//"SHOOT THAT TANK" voice call
+		SetVariantString("IsMvMDefender:1");
+		AcceptEntityInput(iAttacker, "AddContext");
+		SetVariantString("TLK_MVM_ATTACK_THE_TANK");
+		AcceptEntityInput(iAttacker, "SpeakResponseConcept");
+		AcceptEntityInput(iAttacker, "ClearContext");
+		
+		//Don't instantly kill the tank on a backstab
+		if (iDamageCustom == TF_CUSTOM_BACKSTAB)
+		{
+			flDamage = g_cvTankStab.FloatValue / 3.0;
+			iDamageType |= DMG_CRIT;
+			SetNextAttack(iAttacker, GetGameTime() + 1.25);
+		}
+		
+		g_flDamageDealtAgainstTank[iAttacker] += flDamage;
+	}
+	
+	//Check if tank takes damage from map deathpit, if so kill him
+	if (MaxClients < iAttacker)
+	{
+		char strAttacker[32];
+		GetEntityClassname(iAttacker, strAttacker, sizeof(strAttacker));
+		if (StrContains(strAttacker, "trigger_hurt") == 0 && flDamage >= 450.0)
+			ForcePlayerSuicide(iClient);
+	}
+	
+	return Plugin_Changed;
+}
+
 public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 {
 	g_hTimerTank[iVictim] = null;

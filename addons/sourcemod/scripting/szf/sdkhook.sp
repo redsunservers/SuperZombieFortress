@@ -95,15 +95,46 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	
 	bool bChanged = false;
 	
-	//Disable fall damage to tank
-	if (g_nInfected[iVictim] == Infected_Tank && iDamageType & DMG_FALL)
+	if (g_ClientClasses[iVictim].callback_damage != INVALID_FUNCTION)
 	{
-		flDamage = 0.0;
-		bChanged = true;
+		Call_StartFunction(null, g_ClientClasses[iVictim].callback_damage);
+		Call_PushCell(iVictim);
+		Call_PushCellRef(iAttacker);
+		Call_PushCellRef(iInflicter);
+		Call_PushFloatRef(flDamage);
+		Call_PushCellRef(iDamageType);
+		Call_PushCellRef(iWeapon);
+		Call_PushArrayEx(vecForce, sizeof(vecForce), SM_PARAM_COPYBACK);
+		Call_PushArrayEx(vecForcePos, sizeof(vecForcePos), SM_PARAM_COPYBACK);
+		Call_PushCell(iDamageCustom);
+		
+		Action action;
+		Call_Finish(action);
+		if (action >= Plugin_Changed)
+			bChanged = true;
 	}
 	
 	if (iVictim != iAttacker)
 	{
+		if (IsValidLivingClient(iAttacker) && g_ClientClasses[iAttacker].callback_attack != INVALID_FUNCTION)
+		{
+			Call_StartFunction(null, g_ClientClasses[iVictim].callback_damage);
+			Call_PushCell(iVictim);
+			Call_PushCellRef(iAttacker);
+			Call_PushCellRef(iInflicter);
+			Call_PushFloatRef(flDamage);
+			Call_PushCellRef(iDamageType);
+			Call_PushCellRef(iWeapon);
+			Call_PushArrayEx(vecForce, sizeof(vecForce), SM_PARAM_COPYBACK);
+			Call_PushArrayEx(vecForcePos, sizeof(vecForcePos), SM_PARAM_COPYBACK);
+			Call_PushCell(iDamageCustom);
+			
+			Action action;
+			Call_Finish(action);
+			if (action >= Plugin_Changed)
+				bChanged = true;
+		}
+		
 		if (IsValidLivingClient(iAttacker) && flDamage < 300.0)
 		{
 			//Damage scaling Zombies
@@ -149,51 +180,9 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		
 		if (IsValidZombie(iVictim))
 		{
-			//Tank is immune to knockback
-			if (g_nInfected[iVictim] == Infected_Tank)
-			{
-				ScaleVector(vecForce, 0.0);
-				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
-				bChanged = true;
-			}
-			
 			//Disable physics force from sentry damage
 			if (IsClassname(iInflicter, "obj_sentrygun"))
 				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
-			
-			if (IsValidSurvivor(iAttacker))
-			{
-				if (g_nInfected[iVictim] == Infected_Tank)
-				{
-					//"SHOOT THAT TANK" voice call
-					SetVariantString("IsMvMDefender:1");
-					AcceptEntityInput(iAttacker, "AddContext");
-					SetVariantString("TLK_MVM_ATTACK_THE_TANK");
-					AcceptEntityInput(iAttacker, "SpeakResponseConcept");
-					AcceptEntityInput(iAttacker, "ClearContext");
-					
-					//Don't instantly kill the tank on a backstab
-					if (iDamageCustom == TF_CUSTOM_BACKSTAB)
-					{
-						flDamage = g_cvTankStab.FloatValue / 3.0;
-						iDamageType |= DMG_CRIT;
-						SetNextAttack(iAttacker, GetGameTime() + 1.25);
-					}
-					
-					g_flDamageDealtAgainstTank[iAttacker] += flDamage;
-					ScaleVector(vecForce, 0.0);
-					iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
-				}
-			}
-		}
-		
-		//Check if tank takes damage from map deathpit, if so kill him
-		if (g_nInfected[iVictim] == Infected_Tank && MaxClients < iAttacker)
-		{
-			char strAttacker[32];
-			GetEdictClassname(iAttacker, strAttacker, sizeof(strAttacker));
-			if (strcmp(strAttacker, "trigger_hurt") == 0 && flDamage >= 450.0)
-				ForcePlayerSuicide(iVictim);
 		}
 	}
 	
