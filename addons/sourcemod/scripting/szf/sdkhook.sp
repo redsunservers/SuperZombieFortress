@@ -118,7 +118,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	{
 		if (IsValidLivingClient(iAttacker) && g_ClientClasses[iAttacker].callback_attack != INVALID_FUNCTION)
 		{
-			Call_StartFunction(null, g_ClientClasses[iVictim].callback_damage);
+			Call_StartFunction(null, g_ClientClasses[iAttacker].callback_attack);
 			Call_PushCell(iVictim);
 			Call_PushCellRef(iAttacker);
 			Call_PushCellRef(iInflicter);

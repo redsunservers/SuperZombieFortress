@@ -626,6 +626,30 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 	}
 }
 
+public Action Infected_OnChargerAttack(int iVictim, int &iClient, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
+{
+	TF2_AddCondition(iClient, TFCond_CritCola, 0.05);	// mini-crit without visual effects, does unintentionally blocks healing
+	
+	// Make vector from attacker to victim pos
+	float vecOriginVictim[3], vecOriginAttacker[3], vecVelocity[3], vecResult[3];
+	GetClientAbsOrigin(iVictim, vecOriginVictim);
+	GetClientAbsOrigin(iClient, vecOriginAttacker);
+	
+	MakeVectorFromPoints(vecOriginAttacker, vecOriginVictim, vecVelocity);
+	NormalizeVector(vecVelocity, vecVelocity);
+	vecVelocity[2] += 0.5;	// slightly upward
+	ScaleVector(vecVelocity, 400.0);
+	
+	GetEntPropVector(iVictim, Prop_Data, "m_vecVelocity", vecResult);
+	AddVectors(vecResult, vecVelocity, vecResult);
+	
+	TF2_AddCondition(iVictim, TFCond_LostFooting, 0.4);	//Allow push victims easier with friction
+	TeleportEntity(iVictim, NULL_VECTOR, NULL_VECTOR, vecResult);
+	
+	iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
+	return Plugin_Changed;
+}
+
 ////////////////
 // Screamer
 ////////////////
