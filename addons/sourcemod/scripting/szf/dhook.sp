@@ -275,12 +275,9 @@ public MRESReturn DHook_OnGiveNamedItemPre(int iClient, DHookReturn hReturn, DHo
 		return MRES_Supercede;
 	}
 	
-	char sClassname[256];
-	hParams.GetString(1, sClassname, sizeof(sClassname));
-	
 	int iIndex = hParams.GetObjectVar(3, g_iOffsetItemDefinitionIndex, ObjectValueType_Int) & 0xFFFF;
 	
-	Action iAction = OnGiveNamedItem(iClient, sClassname, iIndex);
+	Action iAction = OnGiveNamedItem(iClient, iIndex);
 	
 	if (iAction == Plugin_Handled)
 	{

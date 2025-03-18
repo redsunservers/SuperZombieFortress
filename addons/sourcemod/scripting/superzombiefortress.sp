@@ -300,17 +300,50 @@ enum struct ClientClasses
 		return true;
 	}
 	
-	int GetWeaponSlotIndex(int iSlot)
+	bool GetWeaponSlot(int iSlot, WeaponClasses buffer)
 	{
+		if (!this.aWeapons)
+			return false;
+		
+		// Get one of the weapon in slot by random
+		WeaponClasses[] weapons = new WeaponClasses[this.aWeapons.Length];
+		int iCount;
+		
 		int iPos;
 		WeaponClasses weapon;
 		while (this.GetWeapon(iPos, weapon))
 		{
 			if (TF2Econ_GetItemDefaultLoadoutSlot(weapon.iIndex) == iSlot)
-				return weapon.iIndex;
+				weapons[iCount++] = weapon;
 		}
 		
-		return -1;
+		if (iCount == 0)
+			return false;
+		
+		buffer = weapons[GetRandomInt(0, iCount - 1)];
+		return true;
+	}
+	
+	int GetWeaponSlotIndex(int iSlot)
+	{
+		WeaponClasses weapon;
+		if (!this.GetWeaponSlot(iSlot, weapon))
+			return -1;
+		
+		return weapon.iIndex;
+	}
+	
+	bool HasWeaponIndex(int iIndex)
+	{
+		int iPos;
+		WeaponClasses weapon;
+		while (this.GetWeapon(iPos, weapon))
+		{
+			if (weapon.iIndex == iIndex)
+				return true;
+		}
+		
+		return false;
 	}
 }
 
@@ -2082,10 +2115,18 @@ void HandleZombieLoadout(int iClient)
 	
 	CheckClientWeapons(iClient);
 	
-	int iPos;
-	WeaponClasses weapon;
-	while (g_ClientClasses[iClient].GetWeapon(iPos, weapon))
+	//Give out zombie weapons if don't have one
+	for (int iSlot = WeaponSlot_Primary; iSlot < WeaponSlot_BuilderEngie; iSlot++)	// Ideally should also check toolbox slot, but ermmmm lets not do that
+	{
+		if (TF2_GetItemInSlot(iClient, iSlot) != INVALID_ENT_REFERENCE)
+			continue;
+		
+		WeaponClasses weapon;
+		if (!g_ClientClasses[iClient].GetWeaponSlot(iSlot, weapon))	// picks one of the available weapon in slot at random
+			continue;
+		
 		TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sAttribs);
+	}
 	
 	ViewModel_UpdateClient(iClient);
 	
@@ -2634,7 +2675,7 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 	return Plugin_Continue;
 }
 
-Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
+Action OnGiveNamedItem(int iClient, int iIndex)
 {
 	if (g_bGiveNamedItemSkip || TF2_IsPlayerInCondition(iClient, TFCond_Disguised))
 		return Plugin_Continue;
@@ -2658,57 +2699,11 @@ Action OnGiveNamedItem(int iClient, const char[] sClassname, int iIndex)
 	}
 	else if (iTeam == TFTeam_Zombie)
 	{
-		if (iSlot == WeaponSlot_Primary || iSlot == WeaponSlot_Melee)
+		if (iSlot <= WeaponSlot_BuilderEngie)
 		{
-			iAction = Plugin_Handled;
-		}
-		else if (iSlot <= WeaponSlot_BuilderEngie)
-		{
-			if (g_nInfected[iClient] != Infected_None)
-			{
+			// Only allow weapon if its listed in config
+			if (!g_ClientClasses[iClient].HasWeaponIndex(iIndex) && !g_ClientClasses[iClient].HasWeaponIndex(Config_GetOriginalItemDefIndex(iIndex)))
 				iAction = Plugin_Handled;
-			}
-			else
-			{
-				switch (iClass)
-				{
-					case TFClass_Scout:
-					{
-						//Block all secondary weapons that are not drinks
-						if (StrContains(sClassname, "tf_weapon_lunchbox_drink") == -1)
-							iAction = Plugin_Handled;
-					}
-					case TFClass_Soldier:
-					{
-						//Block all secondary weapons that are not banners
-						if (StrContains(sClassname, "tf_weapon_buff_item") == -1)
-							iAction = Plugin_Handled;
-					}
-					case TFClass_Heavy:
-					{
-						//Block all secondary weapons that are not food
-						if (StrContains(sClassname, "tf_weapon_lunchbox") == -1)
-							iAction = Plugin_Handled;
-					}
-					case TFClass_Engineer:
-					{
-						//Block all weapons that are not PDA and toolbox
-						if (iSlot <= WeaponSlot_Melee)
-							iAction = Plugin_Handled;
-					}
-					case TFClass_Sniper:
-					{
-						//Block all secondary weapons that are not wearables
-						if (StrContains(sClassname, "tf_wearable") == -1)
-							iAction = Plugin_Handled;
-					}
-					default:
-					{
-						//Block literally everything else
-						iAction = Plugin_Handled;
-					}
-				}
-			}
 		}
 		else if (iSlot > WeaponSlot_BuilderEngie)
 		{
@@ -2733,7 +2728,7 @@ public Action TF2Items_OnGiveNamedItem(int iClient, char[] sClassname, int iInde
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
-	return OnGiveNamedItem(iClient, sClassname, iIndex);
+	return OnGiveNamedItem(iClient, iIndex);
 }
 
 

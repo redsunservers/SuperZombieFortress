@@ -786,10 +786,8 @@ stock void CheckClientWeapons(int iClient)
 		int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
 		if (iWeapon > MaxClients)
 		{
-			char sClassname[256];
-			GetEntityClassname(iWeapon, sClassname, sizeof(sClassname));
 			int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
-			if (OnGiveNamedItem(iClient, sClassname, iIndex) >= Plugin_Handled)
+			if (OnGiveNamedItem(iClient, iIndex) >= Plugin_Handled)
 				TF2_RemoveItemInSlot(iClient, iSlot);
 		}
 	}
@@ -800,10 +798,8 @@ stock void CheckClientWeapons(int iClient)
 	{
 		if (GetEntPropEnt(iWearable, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iWearable, Prop_Send, "moveparent") == iClient)
 		{
-			char sClassname[256];
-			GetEntityClassname(iWearable, sClassname, sizeof(sClassname));
 			int iIndex = GetEntProp(iWearable, Prop_Send, "m_iItemDefinitionIndex");
-			if (OnGiveNamedItem(iClient, sClassname, iIndex) >= Plugin_Handled)
+			if (OnGiveNamedItem(iClient, iIndex) >= Plugin_Handled)
 				TF2_RemoveWearable(iClient, iWearable);
 		}
 	}
@@ -814,7 +810,7 @@ stock void CheckClientWeapons(int iClient)
 	{
 		if (GetEntPropEnt(iPowerupBottle, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iPowerupBottle, Prop_Send, "moveparent") == iClient)
 		{
-			if (OnGiveNamedItem(iClient, "tf_powerup_bottle", GetEntProp(iPowerupBottle, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
+			if (OnGiveNamedItem(iClient, GetEntProp(iPowerupBottle, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
 				TF2_RemoveWearable(iClient, iPowerupBottle);
 		}
 	}
