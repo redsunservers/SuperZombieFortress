@@ -117,16 +117,6 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 				
 				i++;
 			}
-			
-			//Check if player spawned using fast respawn
-			if (g_bReplaceRageWithSpecialInfectedSpawn[iClient])
-			{
-				//Check if they did not become special infected because all is in cooldown
-				if (nInfected == Infected_None)
-					CPrintToChat(iClient, "%t", "Infected_AllInCooldown", "{red}");
-				
-				g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
-			}
 		}
 		
 		g_nNextInfected[iClient] = Infected_None;
@@ -288,7 +278,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	
 	g_iMaxHealth[iVictim] = -1;
 	g_bShouldBacteriaPlay[iVictim] = true;
-	g_bReplaceRageWithSpecialInfectedSpawn[iVictim] = false;
 	
 	//Handle zombie death logic, all round states.
 	if (IsValidZombie(iVictim))

@@ -91,16 +91,6 @@ stock int GetActivePlayerCount()
 	return i;
 }
 
-stock int GetReplaceRageWithSpecialInfectedSpawnCount()
-{
-	int iCount = 0;
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && g_bReplaceRageWithSpecialInfectedSpawn[iClient])
-			iCount++;
-	
-	return iCount;
-}
-
 ////////////////
 // Models
 ////////////////

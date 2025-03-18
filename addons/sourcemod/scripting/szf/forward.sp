@@ -2,7 +2,6 @@ static GlobalForward g_hForwardLastSurvivor;
 static GlobalForward g_hForwardBackstab;
 static GlobalForward g_hForwardTankSpawn;
 static GlobalForward g_hForwardTankDeath;
-static GlobalForward g_hForwardQuickSpawnAsSpecialInfected;
 static GlobalForward g_hForwardChargerHit;
 static GlobalForward g_hForwardHunterHit;
 static GlobalForward g_hForwardBoomerExplode;
@@ -19,7 +18,6 @@ void Forward_AskLoad()
 	g_hForwardBackstab = new GlobalForward("SZF_OnBackstab", ET_Ignore, Param_Cell, Param_Cell);
 	g_hForwardTankSpawn = new GlobalForward("SZF_OnTankSpawn", ET_Ignore, Param_Cell);
 	g_hForwardTankDeath = new GlobalForward("SZF_OnTankDeath", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
-	g_hForwardQuickSpawnAsSpecialInfected = new GlobalForward("SZF_OnQuickSpawnAsSpecialInfected", ET_Ignore, Param_Cell);
 	g_hForwardChargerHit = new GlobalForward("SZF_OnChargerHit", ET_Ignore, Param_Cell, Param_Cell);
 	g_hForwardHunterHit = new GlobalForward("SZF_OnHunterHit", ET_Ignore, Param_Cell, Param_Cell);
 	g_hForwardBoomerExplode = new GlobalForward("SZF_OnBoomerExplode", ET_Ignore, Param_Cell, Param_Array, Param_Cell);
@@ -59,13 +57,6 @@ void Forward_OnTankDeath(int iVictim, int iWinner, int iDamage)
 	Call_PushCell(iVictim);
 	Call_PushCell(iWinner);
 	Call_PushCell(iDamage);
-	Call_Finish();
-}
-
-void Forward_OnQuickSpawnAsSpecialInfected(int iClient)
-{
-	Call_StartForward(g_hForwardQuickSpawnAsSpecialInfected);
-	Call_PushCell(iClient);
 	Call_Finish();
 }
 

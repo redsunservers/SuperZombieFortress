@@ -444,7 +444,6 @@ float g_flRageCooldown;
 float g_flRageRespawnStress;
 float g_flInfectedCooldown[view_as<int>(Infected_Count)];	//GameTime
 int g_iInfectedCooldown[view_as<int>(Infected_Count)];	//Client who started the cooldown
-float g_flSelectSpecialCooldown;
 int g_iStartSurvivors;
 
 int g_iTanksSpawned;
@@ -455,7 +454,6 @@ bool g_bSpawnAsSpecialInfected[MAXPLAYERS + 1];
 int g_iKillsThisLife[MAXPLAYERS + 1];
 int g_iMaxHealth[MAXPLAYERS + 1];
 bool g_bShouldBacteriaPlay[MAXPLAYERS + 1] = {true, ...};
-bool g_bReplaceRageWithSpecialInfectedSpawn[MAXPLAYERS + 1];
 float g_flTimeStartAsZombie[MAXPLAYERS + 1];
 
 char g_sForceZombieStartMapName[MAXPLAYERS + 1][64];
@@ -898,7 +896,6 @@ void EndGracePeriod()
 	int iSurvivors = GetSurvivorCount();
 	
 	g_flTankCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before tank spawns will be considered
-	g_flSelectSpecialCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before select special will be considered
 	g_flRageCooldown = flGameTime + 60.0 - fMin(0.0, (iSurvivors-12) * 1.5); //1 min cooldown before frenzy will be considered
 	g_flSurvivorsLastDeath = flGameTime;
 }
@@ -943,36 +940,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 		SetTeamRespawnTime(TFTeam_Zombie, fMax(6.0, 12.0 / fMax(0.6, g_flZombieDamageScale) - g_iZombiesKilledSpree * 0.02));
 	
 	if (g_nRoundState == SZFRoundState_Active)
-	{
 		Handle_WinCondition();
-		
-		float flGameTime = GetGameTime();
-		for (int iClient = 1; iClient <= MaxClients; iClient++)
-		{
-			//Alive infected
-			if (IsValidLivingZombie(iClient))
-			{
-				//If no special select cooldown is active and less than 2 people have been selected for the respawn into special infected
-				//AND
-				//damage scale is 120% and a dice roll is hit OR the damage scale is 160%
-				if ( g_nRoundState == SZFRoundState_Active 
-					&& g_flSelectSpecialCooldown <= flGameTime 
-					&& GetReplaceRageWithSpecialInfectedSpawnCount() <= 2 
-					&& g_nInfected[iClient] == Infected_None 
-					&& g_nNextInfected[iClient] == Infected_None 
-					&& g_bSpawnAsSpecialInfected[iClient] == false
-					&& ( (g_flZombieDamageScale >= 1.0 
-					&& !GetRandomInt(0, RoundToCeil(200 / g_flZombieDamageScale)))
-					|| g_flZombieDamageScale >= 1.6 ) )
-				{
-					g_bSpawnAsSpecialInfected[iClient] = true;
-					g_bReplaceRageWithSpecialInfectedSpawn[iClient] = true;
-					g_flSelectSpecialCooldown = flGameTime + 20.0;
-					CPrintToChat(iClient, "%t", "Infected_SelectedRespawn", "{green}", "{orange}");
-				}
-			}
-		}
-	}
 	
 	return Plugin_Continue;
 }
@@ -1229,14 +1197,9 @@ void Handle_ZombieAbilities()
 				SetEntityHealth(iClient, iHealth - iDegen);
 			}
 			
-			//2.1. Handle fast respawn into special infected HUD message
-			if (g_nRoundState == SZFRoundState_Active && g_bReplaceRageWithSpecialInfectedSpawn[iClient])
-			{
-				PrintHintText(iClient, "%t", "Infected_CallMedic");
-			}
-			//2.2. Handle zombie rage timer
+			//2.1. Handle zombie rage timer
 			//       Rage recharges every 20(special)/30(normal) seconds.
-			else if (g_iRageTimer[iClient] > 0)
+			if (g_iRageTimer[iClient] > 0)
 			{
 				if (g_iRageTimer[iClient] == 1) PrintHintText(iClient, "%t", "Infected_RageReady");
 				if (g_iRageTimer[iClient] == 6) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 5);
@@ -2294,7 +2257,6 @@ void ZombieTank(int iCaller = -1)
 	if (IsValidClient(iCaller))
 		CPrintToChat(iCaller, "%t", "Tank_Called", "{green}");
 	
-	g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
 	g_nNextInfected[iClient] = Infected_Tank;
 	g_flTankCooldown = GetGameTime() + 120.0; //Set new cooldown
 }

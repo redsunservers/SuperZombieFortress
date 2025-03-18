@@ -75,29 +75,9 @@
 		"pt"		"{1}Você morreu e se transformou em um zumbi..."
 	}
 	
-	"Infected_SelectedRespawn"
-	{
-		"pt"		"{1}Você foi selecionado para se tornar um Infectado Especial! {2}Chame 'MEDIC!' para reaparecer como um ou se tornar um ao morrer."
-	}
-	
-	"Infected_UsedQuickRespawn"
-	{
-		"pt"		"(EQUIPE) {1}{2} : Eu usei meu {3}reaparecimento rápido como infectado especial{4}!"
-	}
-	
-	"Infected_AllInCooldown"
-	{
-		"pt"		"{1}Todos os infectados especiais parecem estar em recarga..."
-	}
-	
 	"Infected_ForceStart"
 	{
 		"pt"		"{1}Você foi forçado a entrar na equipe dos infectados por tentar evitar jogar como um infectado."
-	}
-	
-	"Infected_CallMedic"
-	{
-		"pt"		"Chame 'MEDIC!' para reaparecer como um infectado especial!"
 	}
 	
 	"Infected_RageReady"

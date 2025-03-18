@@ -75,26 +75,6 @@
 		"chi"		"{1}你死亡并变成了感染者..."
 	}
 	
-	"Infected_SelectedRespawn"
-	{
-		"chi"		"{1}你被选择变成一个特殊感染者！{2}呼叫 '医生！' 来重生为特感或者死亡后变成特感。"
-	}
-	
-	"Infected_UsedQuickRespawn"
-	{
-		"chi"		"(团队) {1}{2} : 我使用了我的 {3}快速重生为特感{4}！"
-	}
-	
-	"Infected_AllInCooldown"
-	{
-		"chi"		"{1}所有的特殊感染者似乎都在冷却..."
-	}
-	
-	"Infected_CallMedic"
-	{
-		"chi"		"呼叫 '医生！' 来重生成为特感！"
-	}
-	
 	"Infected_RageReady"
 	{
 		"chi"		"愤怒已准备好！"

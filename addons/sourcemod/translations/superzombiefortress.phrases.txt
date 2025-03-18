@@ -89,24 +89,6 @@
 		"en"		"{1}You have perished and turned into a zombie..."
 	}
 	
-	"Infected_SelectedRespawn"
-	{
-		"#format"	"{1:s},{2:s}"
-		"en"		"{1}You have been selected to become a Special Infected! {2}Call 'MEDIC!' to respawn as one or become one on death."
-	}
-	
-	"Infected_UsedQuickRespawn"
-	{
-		"#format"	"{1:s},{2:s},{3:s},{4:s}"
-		"en"		"(TEAM) {1}{2} : I have used my {3}quick respawn into special infected{4}!"
-	}
-	
-	"Infected_AllInCooldown"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}All special infected seems to be in a cooldown..."
-	}
-	
 	"Infected_ForceStart_LastRound"
 	{
 		"#format"	"{1:s}"
@@ -117,11 +99,6 @@
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
 		"en"		"{1}You have been forcibly set to the Infected team because you avoided participating when playing on {2}, {3}."
-	}
-	
-	"Infected_CallMedic"
-	{
-		"en"		"Call 'MEDIC!' to respawn as a special infected!"
 	}
 	
 	"Infected_RageReady"

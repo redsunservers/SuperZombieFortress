@@ -75,21 +75,6 @@
 		"hu"		"{1}Meghaltál és zombivá váltál..."
 	}
 	
-	"Infected_SelectedRespawn"
-	{
-		"hu"		"{1}Kiválasztottak, hogy Speciális Fertőzött legyél! {2}Kiálts 'MEDIC!'-et, hogy újraéledj egyként, vagy válj azzá halálodkor."
-	}
-	
-	"Infected_UsedQuickRespawn"
-	{
-		"hu"		"(CSAPAT) {1}{2} : Használtam a {3}gyors újraéledést speciális fertőzöttként{4}!"
-	}
-	
-	"Infected_AllInCooldown"
-	{
-		"hu"		"{1}Úgy tűnik, minden speciális fertőzött várakozási időben van..."
-	}
-	
 	"Infected_ForceStart_LastRound"
 	{
 		"hu"		"{1}Kényszerítve lettél a Fertőzött csapatba, mert elkerülted a részvételt az előző körben."
@@ -98,11 +83,6 @@
 	"Infected_ForceStart"
 	{
 		"hu"		"{1}Kényszerítve lettél a Fertőzött csapatba, mert elkerülted a részvételt, amikor {2}, {3} játszottál."
-	}
-	
-	"Infected_CallMedic"
-	{
-		"hu"		"Kiálts 'MEDIC!'-et, hogy speciális fertőzöttként újraéledj!"
 	}
 	
 	"Infected_RageReady"

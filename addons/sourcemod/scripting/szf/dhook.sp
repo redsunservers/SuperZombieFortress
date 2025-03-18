@@ -357,7 +357,6 @@ public MRESReturn DHook_RoundRespawnPre()
 		g_bSpawnAsSpecialInfected[iClient] = false;
 		g_nInfected[iClient] = Infected_None;
 		g_nNextInfected[iClient] = Infected_None;
-		g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
 		g_iMaxHealth[iClient] = -1;
 		g_flTimeStartAsZombie[iClient] = 0.0;
 		g_flDamageDealtAgainstTank[iClient] = 0.0;
