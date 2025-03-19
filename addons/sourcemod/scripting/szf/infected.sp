@@ -782,7 +782,7 @@ public void Infected_OnHunterTouch(int iClient, int iToucher)
 	if (Stun_StartPlayer(iToucher, flDuration))
 	{
 		SetEntityHealth(iToucher, GetClientHealth(iToucher) - 20);
-		SetNextAttack(iClient, GetGameTime() + 3.0);
+		SetNextAttack(iClient, GetGameTime() + 2.0);
 		
 		//Teleport hunter inside the target
 		float vecPosClient[3];
