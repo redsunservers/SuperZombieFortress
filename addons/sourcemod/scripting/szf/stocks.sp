@@ -490,6 +490,26 @@ stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
 		TF2_RemoveWearable(iClient, iWearable);
 }
 
+stock void SetNextAttack(int iClient, float flDuration, bool bMeleeOnly = true)
+{
+	if (!IsValidClient(iClient))
+		return;
+	
+	//Primary, secondary and melee
+	for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_Melee; iSlot++)
+	{
+		if (bMeleeOnly && iSlot < WeaponSlot_Melee)
+			continue;
+		
+		int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
+		if (iWeapon > MaxClients && IsValidEntity(iWeapon))
+		{
+			SetEntPropFloat(iWeapon, Prop_Send, "m_flNextPrimaryAttack", flDuration);
+			SetEntPropFloat(iWeapon, Prop_Send, "m_flNextSecondaryAttack", flDuration);
+		}
+	}
+}
+
 ////////////////
 // Entities
 ////////////////
@@ -526,6 +546,14 @@ stock void AddEntityEffect(int iEntity, int iFlag)
 stock void RemoveEntityEffect(int iEntity, int iFlag)
 {
 	SetEntProp(iEntity, Prop_Send, "m_fEffects", GetEntProp(iEntity, Prop_Send, "m_fEffects") & ~iFlag);
+}
+
+stock float DistanceFromEntities(int iEntity1, int iEntity2)
+{
+	float vecOrigin1[3], vecOrigin2[3];
+	GetEntPropVector(iEntity1, Prop_Send, "m_vecOrigin", vecOrigin1);
+	GetEntPropVector(iEntity2, Prop_Send, "m_vecOrigin", vecOrigin2);
+	return GetVectorDistance(vecOrigin1, vecOrigin2);
 }
 
 ////////////////
@@ -931,16 +959,25 @@ stock bool ObstactleBetweenEntities(int iEntity1, int iEntity2)
 
 stock bool IsEntityStuck(int iEntity)
 {
-	float vecMin[3];
-	float vecMax[3];
-	float vecOrigin[3];
-	
-	GetEntPropVector(iEntity, Prop_Send, "m_vecMins", vecMin);
-	GetEntPropVector(iEntity, Prop_Send, "m_vecMaxs", vecMax);
+	float vecOrigin[3], vecMins[3], vecMaxs[3];
 	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMins", vecMins);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMaxs", vecMaxs);
 	
-	TR_TraceHullFilter(vecOrigin, vecOrigin, vecMin, vecMax, MASK_SOLID, Trace_DontHitEntity, iEntity);
+	TR_TraceHullFilter(vecOrigin, vecOrigin, vecMins, vecMaxs, MASK_SOLID, Trace_DontHitEntity, iEntity);
 	return (TR_DidHit());
+}
+
+stock void GetEntityCenterPoint(int iEntity, float vecResult[3])
+{
+	float vecOrigin[3], vecMins[3], vecMaxs[3];
+	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMins", vecMins);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMaxs", vecMaxs);
+	
+	AddVectors(vecMins, vecMaxs, vecResult);
+	ScaleVector(vecResult, 0.5);
+	AddVectors(vecResult, vecOrigin, vecResult);
 }
 
 public bool Trace_DontHitOtherEntities(int iEntity, int iMask, any iData)
@@ -960,6 +997,14 @@ public bool Trace_DontHitEntity(int iEntity, int iMask, any iData)
 		return false;
 	
 	return true;
+}
+
+public bool Trace_OnlyHitEnemies(int iEntity, int iMask, any iData)
+{
+	if (iEntity <= 0 || iEntity > MaxClients)
+		return false;
+	
+	return GetClientTeam(iEntity) != GetClientTeam(iData);
 }
 
 ////////////////

@@ -2543,26 +2543,6 @@ Action SoundHook(int iClients[MAXPLAYERS], int &iNumClients, char sSound[PLATFOR
 	return action;
 }
 
-void SetNextAttack(int iClient, float flDuration = 0.0, bool bMeleeOnly = true)
-{
-	if (!IsValidClient(iClient))
-		return;
-	
-	//Primary, secondary and melee
-	for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_Melee; iSlot++)
-	{
-		if (bMeleeOnly && iSlot < WeaponSlot_Melee)
-			continue;
-		
-		int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
-		if (iWeapon > MaxClients && IsValidEntity(iWeapon))
-		{
-			SetEntPropFloat(iWeapon, Prop_Send, "m_flNextPrimaryAttack", flDuration);
-			SetEntPropFloat(iWeapon, Prop_Send, "m_flNextSecondaryAttack", flDuration);
-		}
-	}
-}
-
 void InitiateSurvivorTutorial(int iClient)
 {
 	DataPack data;
