@@ -346,9 +346,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		
 		if (IsValidZombie(iKillers[0]))
 		{
-			g_flSurvivorsLastDeath = GetGameTime();
-			g_iZombiesKilledSpree = max(RoundToNearest(float(g_iZombiesKilledSpree) / 2.0) - 8, 0);
-			g_iSurvivorsKilledCounter++;
+			g_aSurvivorDeathTimes.Push(GetGameTime());
+			g_iZombiesKilledSpree = 0;
 		}
 		
 		//Set zombie time to iVictim as he started playing zombie
@@ -366,10 +365,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	else if (IsValidZombie(iVictim))
 	{
 		if (IsValidSurvivor(iKillers[0]))
-		{
 			g_iZombiesKilledSpree++;
-			g_iZombiesKilledSurvivor[iKillers[0]]++;
-		}
 		
 		for (int i = 0; i < 2; i++)
 		{

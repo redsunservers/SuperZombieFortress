@@ -378,7 +378,6 @@ public MRESReturn DHook_RoundRespawnPre()
 	//Find all active players.
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		g_iZombiesKilledSurvivor[iClient] = 0;
 		Sound_EndMusic(iClient);
 		
 		if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
@@ -470,8 +469,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	//Reset counters
 	g_flCapScale = -1.0;
-	g_flSurvivorsLastDeath = GetGameTime();
-	g_iSurvivorsKilledCounter = 0;
+	g_aSurvivorDeathTimes.Clear();
 	g_iZombiesKilledSpree = 0;
 	g_iTanksSpawned = 0;
 	

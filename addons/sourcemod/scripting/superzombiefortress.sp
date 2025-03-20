@@ -424,10 +424,8 @@ bool g_bLastSurvivor;
 bool g_bTF2Items;
 bool g_bGiveNamedItemSkip;
 
-float g_flSurvivorsLastDeath = 0.0;
-int g_iSurvivorsKilledCounter;
+ArrayList g_aSurvivorDeathTimes;
 int g_iZombiesKilledSpree;
-int g_iZombiesKilledSurvivor[MAXPLAYERS + 1];
 
 int g_iRoundTimestamp;
 
@@ -443,8 +441,6 @@ bool g_bWaitingForTeamSwitch[MAXPLAYERS + 1];
 StringMap g_mRoundPlayedAsZombie;
 int g_iRoundPlayedCount;
 
-int g_iSprite; //Smoker beam
-
 //Global Timer Handles
 Handle g_hTimerMain;
 Handle g_hTimerMainSlow;
@@ -454,6 +450,7 @@ Handle g_hTimerProgress;
 
 //Cvar Handles
 ConVar g_cvForceOn;
+ConVar g_cvDebug;
 ConVar g_cvRatio;
 ConVar g_cvTankHealth;
 ConVar g_cvTankHealthMin;
@@ -464,11 +461,80 @@ ConVar g_cvTankDebrisLifetime;
 ConVar g_cvSpecialInfectedInterval;
 ConVar g_cvJockeyMovementVictim;
 ConVar g_cvJockeyMovementAttacker;
-ConVar g_cvFrenzyChance;
 ConVar g_cvFrenzyTankChance;
 ConVar g_cvStunImmunity;
 ConVar g_cvMeleeIgnoreTeammates;
 ConVar g_cvPunishAvoidingPlayers;
+
+enum struct ConVarEvent
+{
+	ConVar cvCooldown;
+	ConVar cvSurvivorDeathInterval;		// Seconds interval to consider for survivor deaths
+	ConVar cvSurvivorDeathThreshold;	// Min threshold for % of survivors died within interval
+	ConVar cvKillSpree;					// Killing spree requirement since last survivor death, multiplied by % of zombies in playerbase
+	ConVar cvChance;					// % Chance to randomly trigger it
+	
+	float flCooldown;
+	
+	void SetCooldown()
+	{
+		this.flCooldown = GetGameTime();
+	}
+	
+	bool CanDoEvent()
+	{
+		float flGameTime = GetGameTime();
+		if (this.flCooldown + this.cvCooldown.FloatValue > flGameTime)
+			return false;
+		
+		// Random chance
+		if (GetRandomFloat(0.0, 1.0) < this.cvChance.FloatValue)
+		{
+			CPrintToChatDebug("Triggered event from random chance (%.2f%%)", this.cvChance.FloatValue * 100.0);
+			return true;
+		}
+		
+		// Check if there too few survivor deaths within timeframe
+		
+		float flTotal;
+		float flInterval = this.cvSurvivorDeathInterval.FloatValue;
+		int iLength = g_aSurvivorDeathTimes.Length;
+		for (int i = 0; i < iLength; i++)
+		{
+			float flDeath = g_aSurvivorDeathTimes.Get(i);
+			if (flDeath + flInterval < flGameTime)
+				continue;
+			
+			// from 1.0 to 0.0, value fades down
+			flTotal += 1.0 - ((flGameTime - flDeath) / flInterval);
+		}
+		
+		int iSurvivors = GetSurvivorCount();
+		int iZombies = GetZombieCount();
+		
+		// Counting both dead and alive survivors
+		float flThreshold = (iSurvivors + iLength) * this.cvSurvivorDeathThreshold.FloatValue;
+		if (flTotal < flThreshold)
+		{
+			CPrintToChatDebug("Triggered event from few survivor deaths (%.2f deaths < threshold %.2f)", flTotal, flThreshold);
+			return true;
+		}
+		
+		// Check if there too many zombie kills since last survivor death
+		
+		float flPercentage = float(iZombies) / float(iSurvivors + iZombies);
+		if (g_iZombiesKilledSpree >= this.cvKillSpree.FloatValue * flPercentage)
+		{
+			CPrintToChatDebug("Triggered event from killing spree (%d killed >= threshold %.2f)", g_iZombiesKilledSpree, this.cvKillSpree.FloatValue * flPercentage);
+			return true;
+		}
+		
+		return false;
+	}
+}
+
+ConVarEvent g_FrenzyEvent;
+ConVarEvent g_TankEvent;
 
 float g_flZombieDamageScale = 1.0;
 
@@ -488,8 +554,6 @@ int g_iCarryingItem[MAXPLAYERS + 1] = {INVALID_ENT_REFERENCE, ...};
 
 float g_flTimeProgress;
 
-float g_flTankCooldown;
-float g_flRageCooldown;
 float g_flRageRespawnStress;
 float g_flInfectedInterval;
 float g_flInfectedCooldown[view_as<int>(Infected_Count)];	//GameTime
@@ -590,6 +654,7 @@ public void OnPluginStart()
 	g_bEnabled = false;
 	g_bNewFullRound = true;
 	g_bLastSurvivor = false;
+	g_aSurvivorDeathTimes = new ArrayList();
 	
 	g_cFirstTimeZombie = new Cookie("szf_firsttimezombie", "Whether this player is playing as Infected for the first time.", CookieAccess_Protected);
 	g_cFirstTimeSurvivor = new Cookie("szf_firsttimesurvivor2", "Whether this player is playing as a Survivor for the first time.", CookieAccess_Protected);
@@ -942,13 +1007,10 @@ void EndGracePeriod()
 	g_flTimeProgress = 0.0;
 	g_hTimerProgress = CreateTimer(6.0, Timer_Progress, _, TIMER_REPEAT);
 	
-	float flGameTime = GetGameTime();
-	int iSurvivors = GetSurvivorCount();
-	
-	g_flTankCooldown = flGameTime + 120.0 - fMin(0.0, (iSurvivors-12) * 3.0); //2 min cooldown before tank spawns will be considered
-	g_flRageCooldown = flGameTime + 60.0 - fMin(0.0, (iSurvivors-12) * 1.5); //1 min cooldown before frenzy will be considered
-	g_flInfectedInterval = flGameTime;
-	g_flSurvivorsLastDeath = flGameTime;
+	g_FrenzyEvent.SetCooldown();
+	g_TankEvent.SetCooldown();
+	g_flInfectedInterval = GetGameTime();
+	g_aSurvivorDeathTimes.Clear();
 }
 
 public void Frame_PostGracePeriodSpawn(int iClient)
@@ -988,7 +1050,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 	if (g_bZombieRage)
 		SetTeamRespawnTime(TFTeam_Zombie, 0.0);
 	else
-		SetTeamRespawnTime(TFTeam_Zombie, fMax(6.0, 12.0 / fMax(0.6, g_flZombieDamageScale) - g_iZombiesKilledSpree * 0.02));
+		SetTeamRespawnTime(TFTeam_Zombie, fMax(6.0, 12.0 / fMax(0.6, g_flZombieDamageScale)));
 	
 	if (g_nRoundState == SZFRoundState_Active)
 		Handle_WinCondition();
@@ -1400,9 +1462,6 @@ void SZFEnable()
 	//Map pickup
 	PrecacheSound("ui/item_paint_can_pickup.wav");
 	
-	//Smoker beam
-	g_iSprite = PrecacheModel("materials/sprites/laser.vmt");
-	
 	if (GameRules_GetRoundState() < RoundState_Preround)
 	{
 		g_nRoundState = SZFRoundState_Setup;
@@ -1725,41 +1784,16 @@ void UpdateZombieDamageScale()
 	//Not survival, no rage and no active tank
 	if (!g_bSurvival && !g_bZombieRage && !ZombiesTankComing() && !ZombiesHaveTank())
 	{
-		float flGameTime = GetGameTime();
-
-		//Tank cooldown is active
-		if (flGameTime > g_flTankCooldown)
+		if (g_TankEvent.CanDoEvent())
 		{
-			//In order:
-			//The damage scale is above 170%
-			//The damage scale is above 120% and either zombies killed since a survivor died exceeds 20 or last capture
-			//None of the survivors died in the past 90 seconds
-			if ((g_flZombieDamageScale >= 1.7)
-			|| (g_flZombieDamageScale >= 1.2 && (g_iZombiesKilledSpree >= 20 || g_bCapturingLastPoint))
-			|| (g_flSurvivorsLastDeath < flGameTime - 120.0) )
-			{
-				ZombieTank();
-			}
+			ZombieTank();
 		}
-		//If a random frenzy chance was triggered, determine whether to frenzy or if to trigger a tank
-		else if (flGameTime > g_flRageCooldown)
+		else if (g_FrenzyEvent.CanDoEvent())
 		{
-			//In order:
-			//The damage scale is above 120%
-			//The damage scale is above 80% and either zombies killed since a survivor died exceeds 12 or last capture
-			//The frenzy chance rng is triggered
-			//None of the survivors died in the past 60 seconds
-			if ( g_flZombieDamageScale >= 1.2
-			|| (g_flZombieDamageScale >= 0.8 && (g_iZombiesKilledSpree >= 12 || g_bCapturingLastPoint))
-			|| GetRandomInt(0, 100) < g_cvFrenzyChance.IntValue
-			|| (g_flSurvivorsLastDeath < flGameTime - 60.0) )
-			{
-				//If zombie damage scale is high and the frenzy chance for tank is triggered
-				if (GetRandomInt(0, 100) < g_cvFrenzyTankChance.IntValue && g_flZombieDamageScale >= 1.2)	//convar right now is at 0%
-					ZombieTank();
-				else
-					ZombieRage();
-			}
+			if (GetRandomFloat(0.0, 1.0) < g_cvFrenzyTankChance.IntValue)
+				ZombieTank();
+			else
+				ZombieRage();
 		}
 	}
 }
@@ -1908,7 +1942,7 @@ void ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 		}
 	}
 	
-	g_flRageCooldown = flGameTime + flDuration + 40.0;
+	g_FrenzyEvent.SetCooldown();
 	
 	FireRelay("FireUser1", "szf_zombierage", "szf_panic_event");
 }
@@ -2338,7 +2372,7 @@ void ZombieTank(int iCaller = -1)
 		CPrintToChat(iCaller, "%t", "Tank_Called", "{green}");
 	
 	g_nNextInfected[iClient] = Infected_Tank;
-	g_flTankCooldown = GetGameTime() + 120.0; //Set new cooldown
+	g_TankEvent.SetCooldown();
 }
 
 void DetermineControlPoints()

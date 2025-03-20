@@ -85,8 +85,9 @@ stock int GetSurvivorCount()
 stock int GetActivePlayerCount()
 {
 	int i = 0;
-	for (int j = 1; j <= MaxClients; j++)
-		if (IsValidLivingClient(j)) i++;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidClient(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
+			i++;
 	
 	return i;
 }
@@ -1173,6 +1174,16 @@ stock void SayText2(int[] iClients, int iLength, int iEntity, bool bChat, const 
 	bf.WriteString(sParam4);
 	
 	EndMessage();
+}
+
+stock void CPrintToChatDebug(const char[] sFormat, any ...)
+{
+	if (!g_cvDebug.BoolValue)
+		return;
+	
+	char sBuffer[MAX_BUFFER_LENGTH];
+	VFormat(sBuffer, sizeof(sBuffer), sFormat, 2);
+	CPrintToChatAll("{orange}[SZF Debug]{default} %s", sBuffer);
 }
 
 /******************************************************************************************************/
