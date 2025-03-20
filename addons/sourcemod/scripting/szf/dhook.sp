@@ -134,7 +134,7 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 			if (g_nInfected[iClient] == Infected_None)
 			{
 				//Movement speed increase
-				flSpeed += fMin(g_ClientClasses[iClient].flMaxSpree, g_ClientClasses[iClient].flSpree * g_iZombiesKilledSpree) + fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
+				flSpeed += fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
 				
 				if (g_bZombieRage)
 					flSpeed += 40.0; //Map-wide zombie enrage event

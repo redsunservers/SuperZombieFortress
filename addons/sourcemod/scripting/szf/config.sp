@@ -270,9 +270,7 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	classes.iHealth = kv.GetNum("health", classes.iHealth);
 	classes.iDegen = kv.GetNum("degen", classes.iDegen);
 	classes.aWeapons = Config_GetWeaponClasses(kv);
-	classes.flSpree = kv.GetFloat("spree", classes.flSpree);
 	classes.flHorde = kv.GetFloat("horde", classes.flHorde);
-	classes.flMaxSpree = kv.GetFloat("maxspree", classes.flMaxSpree);
 	classes.flMaxHorde = kv.GetFloat("maxhorde", classes.flMaxHorde);
 	classes.bGlow = !!kv.GetNum("glow", classes.bGlow);
 	classes.bThirdperson = !!kv.GetNum("thirdperson", classes.bThirdperson);

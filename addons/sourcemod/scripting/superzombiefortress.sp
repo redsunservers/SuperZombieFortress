@@ -266,9 +266,7 @@ enum struct ClientClasses
 	//Zombie and Infected
 	int iDegen;
 	ArrayList aWeapons;
-	float flSpree;
 	float flHorde;
-	float flMaxSpree;
 	float flMaxHorde;
 	bool bGlow;
 	bool bThirdperson;
