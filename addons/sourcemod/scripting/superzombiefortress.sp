@@ -463,6 +463,8 @@ ConVar g_cvJockeyMovementVictim;
 ConVar g_cvJockeyMovementAttacker;
 ConVar g_cvFrenzyTankChance;
 ConVar g_cvStunImmunity;
+ConVar g_cvLastStandKingRuneDuration;
+ConVar g_cvLastStandDefenseDuration;
 ConVar g_cvMeleeIgnoreTeammates;
 ConVar g_cvPunishAvoidingPlayers;
 
@@ -1823,7 +1825,8 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	if (!iLastSurvivor)
 		return;
 	
-	TF2_AddCondition(iLastSurvivor, TFCond_KingRune, TFCondDuration_Infinite);
+	TF2_AddCondition(iLastSurvivor, TFCond_KingRune, g_cvLastStandKingRuneDuration.FloatValue);
+	TF2_AddCondition(iLastSurvivor, TFCond_DefenseBuffNoCritBlock, g_cvLastStandDefenseDuration.FloatValue);
 	SetEntityHealth(iLastSurvivor, SDKCall_GetMaxHealth(iLastSurvivor));
 	
 	g_bLastSurvivor = true;
