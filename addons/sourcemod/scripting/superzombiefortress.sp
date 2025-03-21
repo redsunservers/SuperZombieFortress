@@ -413,7 +413,7 @@ char g_sInfectedNames[view_as<int>(Infected_Count)][] = {
 
 Cookie g_cFirstTimeSurvivor;
 Cookie g_cFirstTimeZombie;
-Cookie g_cNoMusicForPlayer;
+Cookie g_cSoundPreference;
 Cookie g_cForceZombieStartMapName;
 Cookie g_cForceZombieStartTimestamp;
 
@@ -660,7 +660,7 @@ public void OnPluginStart()
 	
 	g_cFirstTimeZombie = new Cookie("szf_firsttimezombie", "Whether this player is playing as Infected for the first time.", CookieAccess_Protected);
 	g_cFirstTimeSurvivor = new Cookie("szf_firsttimesurvivor2", "Whether this player is playing as a Survivor for the first time.", CookieAccess_Protected);
-	g_cNoMusicForPlayer = new Cookie("szf_musicpreference", "Whether this player has their music preference disabled.", CookieAccess_Protected);
+	g_cSoundPreference = new Cookie("szf_musicpreference", "Player's sound preference.", CookieAccess_Protected);
 	
 	g_cForceZombieStartTimestamp = new Cookie("szf_forcezombiestart_timestamp", "Timestamp of when the player was detected skipping playing on the Infected team.", CookieAccess_Protected);
 	g_cForceZombieStartMapName = new Cookie("szf_forcezombiestart_mapname", "Name of the map that the player was detected skipping playing on the Infected team on.", CookieAccess_Protected);
@@ -752,9 +752,8 @@ public void OnClientCookiesCached(int iClient)
 	char sValue[32];
 	int iValue;
 	
-	g_cNoMusicForPlayer.Get(iClient, sValue, sizeof(sValue));
-	iValue = StringToInt(sValue);
-	g_bNoMusicForClient[iClient] = iValue != 0;
+	g_cSoundPreference.Get(iClient, sValue, sizeof(sValue));
+	Sound_UpdateClientSetting(iClient, view_as<SoundSetting>(StringToInt(sValue)));
 	
 	g_cForceZombieStartTimestamp.Get(iClient, sValue, sizeof(sValue));
 	iValue = StringToInt(sValue);

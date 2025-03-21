@@ -193,23 +193,7 @@ public Action Command_MusicToggle(int iClient, int iArgs)
 		return Plugin_Continue;
 	
 	if (IsValidClient(iClient))
-	{
-		char sPreference[32];
-		
-		if (g_bNoMusicForClient[iClient])
-		{
-			g_bNoMusicForClient[iClient] = false;
-			CPrintToChat(iClient, "%t", "Command_MusicEnable", "{limegreen}");
-		}
-		else if (!g_bNoMusicForClient[iClient])
-		{
-			g_bNoMusicForClient[iClient] = true;
-			CPrintToChat(iClient, "%t", "Command_MusicDisable", "{limegreen}");
-		}
-		
-		Format(sPreference, sizeof(sPreference), "%d", g_bNoMusicForClient[iClient]);
-		SetClientCookie(iClient, g_cNoMusicForPlayer, sPreference);
-	}
+		Menu_DisplayMusicSetting(iClient);
 	
 	return Plugin_Handled;
 }

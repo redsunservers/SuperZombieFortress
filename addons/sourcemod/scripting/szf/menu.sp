@@ -5,7 +5,7 @@ enum MenuSelect
 	MenuSelect_Infected,
 }
 
-static MenuSelect g_nMenuClientSelect[MAXPLAYERS];
+static MenuSelect g_nMenuClientSelect[MAXPLAYERS+1];
 
 void Menu_DisplayMain(int iClient)
 {
@@ -193,6 +193,43 @@ public int Menu_SelectClassesInfo(Menu hMenu, MenuAction action, int iClient, in
 				case MenuSelect_Zombie: Menu_DisplayClasses(iClient, "Menu_MainClassesZombie", MenuSelect_Zombie);
 				case MenuSelect_Infected: Menu_DisplayClasses(iClient, "Menu_MainClassesInfected", MenuSelect_Infected);
 			}
+		}
+		case MenuAction_End:
+		{
+			delete hMenu;
+		}
+	}
+	
+	return 0;
+}
+
+void Menu_DisplayMusicSetting(int iClient)
+{
+	SoundSetting nSetting = Sound_GetClientSetting(iClient);
+	
+	Menu hMenu = new Menu(Menu_SelectSoundSetting);
+	Menu_SetTitleTranslation(hMenu, "Menu_SoundTitle", iClient);
+	Menu_AddItemTranslation(hMenu, "0", "Menu_SoundFull", iClient, nSetting == SoundSetting_Full ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+	Menu_AddItemTranslation(hMenu, "1", "Menu_SoundNoMusic", iClient, nSetting == SoundSetting_NoMusic ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+	Menu_AddItemTranslation(hMenu, "2", "Menu_SoundNone", iClient, nSetting == SoundSetting_None ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+	hMenu.ExitButton = true;
+	hMenu.Display(iClient, MENU_TIME_FOREVER);
+}
+
+public int Menu_SelectSoundSetting(Menu hMenu, MenuAction action, int iClient, int iSelect)
+{
+	switch (action)
+	{
+		case MenuAction_Select:
+		{
+			char sSelect[12], sDisplay[256];
+			hMenu.GetItem(iSelect, sSelect, sizeof(sSelect), _, sDisplay, sizeof(sDisplay));
+			SoundSetting nSetting = view_as<SoundSetting>(StringToInt(sSelect));
+			
+			Sound_UpdateClientSetting(iClient, nSetting);
+			SetClientCookie(iClient, g_cSoundPreference, sSelect);
+			
+			CPrintToChat(iClient, "%t", "Menu_SoundSelected", "{limegreen}", sDisplay, "{lightsalmon}");
 		}
 		case MenuAction_End:
 		{

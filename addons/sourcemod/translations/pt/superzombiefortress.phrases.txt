@@ -250,16 +250,6 @@
 		"pt"		"{1}Stunned {2} players."
 	}
 	
-	"Command_MusicEnable"
-	{
-		"pt"		"{1}Música foi ativada."
-	}
-	
-	"Command_MusicDisable"
-	{
-		"pt"		"{1}Música foi desativada."
-	}
-	
 	"JoinTeam_CantSwitchGrace"
 	{
 		"pt"		"{1}Você não pode mudar para o time oposto durante o período de graça."

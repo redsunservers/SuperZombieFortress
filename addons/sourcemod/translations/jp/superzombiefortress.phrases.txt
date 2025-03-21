@@ -245,16 +245,6 @@
 		"jp"		"{1}唖然とした{2}人のプレイヤー。"
 	}
 	
-	"Command_MusicEnable"
-	{
-		"jp"		"{1}音楽が有効になりました。"
-	}
-	
-	"Command_MusicDisable"
-	{
-		"jp"		"{1}音楽が無効になりました。"
-	}
-	
 	"JoinTeam_CantSwitchGrace"
 	{
 		"jp"		"{1}猶予期間中は敵チームに切り替えることはできません。"

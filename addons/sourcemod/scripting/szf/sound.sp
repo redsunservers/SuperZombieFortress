@@ -50,14 +50,21 @@ enum SoundVo
 	SoundVo_Count,
 }
 
+enum SoundSetting
+{
+	SoundSetting_Full,
+	SoundSetting_NoMusic,
+	SoundSetting_None,
+}
+
 static StringMap g_mSoundMusic;
 static ArrayList g_aSoundVoInfected[view_as<int>(Infected_Count)][view_as<int>(SoundVo_Count)];
 
-static SoundFilepath g_SoundFilepath[MAXPLAYERS];
-static SoundMusic g_SoundMusic[MAXPLAYERS];
-static Handle g_hSoundMusicTimer[MAXPLAYERS];
+static SoundFilepath g_SoundFilepath[MAXPLAYERS+1];
+static SoundMusic g_SoundMusic[MAXPLAYERS+1];
+static Handle g_hSoundMusicTimer[MAXPLAYERS+1];
 
-bool g_bNoMusicForClient[MAXPLAYERS];
+static SoundSetting g_nClientSoundSetting[MAXPLAYERS+1];
 
 void Sound_Refresh()
 {
@@ -232,8 +239,18 @@ void Sound_PlayMusic(int[] iClients, int iCount, const char[] sName, float flDur
 		int iClient = iClients[i];
 		
 		//Client don't want to hear music
-		if (g_bNoMusicForClient[iClient])
-			continue;
+		switch (Sound_GetClientSetting(iClient))
+		{
+			case SoundSetting_NoMusic:
+			{
+				if (bMusic)
+					continue;
+			}
+			case SoundSetting_None:
+			{
+				continue;
+			}
+		}
 		
 		//If current sound the same, don't play again
 		if (StrEqual(g_SoundMusic[iClient].sName, music.sName))
@@ -362,6 +379,16 @@ void Sound_Timer()	//This timer fires every 1 second from timer_main
 		if (IsValidLivingSurvivor(iClient) && !g_SoundFilepath[iClient].sFilepath[0])
 			Sound_PlayMusicToClient(iClient, "rabies");
 	}
+}
+
+SoundSetting Sound_GetClientSetting(int iClient)
+{
+	return g_nClientSoundSetting[iClient];
+}
+
+void Sound_UpdateClientSetting(int iClient, SoundSetting nSetting)
+{
+	g_nClientSoundSetting[iClient] = nSetting;
 }
 
 bool Sound_IsCurrentMusic(int iClient, const char[] sName)

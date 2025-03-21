@@ -255,16 +255,6 @@
 		"hu"		"{1}{2} játékos elkábítva."
 	}
 	
-	"Command_MusicEnable"
-	{
-		"hu"		"{1}Zene engedélyezve."
-	}
-	
-	"Command_MusicDisable"
-	{
-		"hu"		"{1}Zene letiltva."
-	}
-	
 	"JoinTeam_CantSwitchGrace"
 	{
 		"hu"		"{1}Nem válthatsz az ellenfél csapatába a kegyelmi időszak alatt."

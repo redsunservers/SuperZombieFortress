@@ -246,16 +246,6 @@
 		"chi"		"{1}惊呆了 {2} 名玩家。"
 	}
 	
-	"Command_MusicEnable"
-	{
-		"chi"		"{1}音乐已开启。"
-	}
-	
-	"Command_MusicDisable"
-	{
-		"chi"		"{1}音乐已关闭。"
-	}
-	
 	"JoinTeam_CantSwitchGrace"
 	{
 		"chi"		"{1}你不能在准备阶段切换到对面队伍。"

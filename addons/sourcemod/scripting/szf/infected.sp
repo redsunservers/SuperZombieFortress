@@ -1009,7 +1009,7 @@ void Infected_RetractSmokerBeam(int iClient, SmokerStatus nStatus)
 	TeleportEntity(g_iSmokerRopes[iClient][0], _, _, vecVelocity);
 }
 
-void Infected_EndSmokerBeam(int iClient)
+public void Infected_EndSmokerBeam(int iClient)
 {
 	g_nSmokerStatus[iClient] = SmokerStatus_None;
 	g_iSmokerGrabVictim[iClient] = 0;

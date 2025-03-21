@@ -280,18 +280,6 @@
 		"en"		"{1}Stunned {2} players."
 	}
 	
-	"Command_MusicEnable"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}Music has been enabled."
-	}
-	
-	"Command_MusicDisable"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}Music has been disabled."
-	}
-	
 	"JoinTeam_CantSwitchGrace"
 	{
 		"#format"	"{1:s}"
@@ -652,6 +640,32 @@
 	"Menu_ClassesInfectedSpecialJockey"
 	{
 		"en"		"The Jockey creeps around, eager to lead survivors to their demise.\n- Using rage will perform a short leap, latching onto a survivor's head when making physical contact.\n- Controls a survivor's movement and deals damage while on top of them."
+	}
+	
+	"Menu_SoundTitle"
+	{
+		"en"		"Select a preference for sound setting."
+	}
+	
+	"Menu_SoundFull"
+	{
+		"en"		"All Sounds"
+	}
+	
+	"Menu_SoundNoMusic"
+	{
+		"en"		"No Musics"
+	}
+	
+	"Menu_SoundNone"
+	{
+		"en"		"No Sounds"
+	}
+	
+	"Menu_SoundSelected"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"en"		"{1}{2}{3} preference has been selected."
 	}
 	
 	"Time_MonthsAgo"
