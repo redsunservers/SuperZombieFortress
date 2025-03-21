@@ -396,7 +396,6 @@ public MRESReturn DHook_RoundRespawnPre()
 		iSurvivorCount = 1;
 	
 	TFTeam[] nClientTeam = new TFTeam[MaxClients+1];
-	g_iStartSurvivors = 0;
 	
 	//Check if we need to force players to survivor or zombie team
 	for (int i = 0; i < iLength; i++)
@@ -453,7 +452,6 @@ public MRESReturn DHook_RoundRespawnPre()
 				//Survivor
 				SpawnClient(iClient, TFTeam_Survivor, false);
 				nClientTeam[iClient] = TFTeam_Survivor;
-				g_iStartSurvivors++;
 				iSurvivorCount--;
 			}
 			else

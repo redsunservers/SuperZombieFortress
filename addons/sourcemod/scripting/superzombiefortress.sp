@@ -142,74 +142,6 @@ enum SolidType_t
 	SOLID_LAST,
 };
 
-// Spectator Movement modes
-enum
-{
-	OBS_MODE_NONE = 0,	// not in spectator mode
-	OBS_MODE_DEATHCAM,	// special mode for death cam animation
-	OBS_MODE_FREEZECAM,	// zooms to a target, and freeze-frames on them
-	OBS_MODE_FIXED,		// view from a fixed camera position
-	OBS_MODE_IN_EYE,	// follow a player in first person view
-	OBS_MODE_CHASE,		// follow a player in third person view
-	OBS_MODE_POI,		// PASSTIME point of interest - game objective, big fight, anything interesting; added in the middle of the enum due to tons of hard-coded "<ROAMING" enum compares
-	OBS_MODE_ROAMING,	// free roaming
-
-	NUM_OBSERVER_MODES,
-};
-
-enum PlayerAnimEvent_t
-{
-	PLAYERANIMEVENT_ATTACK_PRIMARY,
-	PLAYERANIMEVENT_ATTACK_SECONDARY,
-	PLAYERANIMEVENT_ATTACK_GRENADE,
-	PLAYERANIMEVENT_RELOAD,
-	PLAYERANIMEVENT_RELOAD_LOOP,
-	PLAYERANIMEVENT_RELOAD_END,
-	PLAYERANIMEVENT_JUMP,
-	PLAYERANIMEVENT_SWIM,
-	PLAYERANIMEVENT_DIE,
-	PLAYERANIMEVENT_FLINCH_CHEST,
-	PLAYERANIMEVENT_FLINCH_HEAD,
-	PLAYERANIMEVENT_FLINCH_LEFTARM,
-	PLAYERANIMEVENT_FLINCH_RIGHTARM,
-	PLAYERANIMEVENT_FLINCH_LEFTLEG,
-	PLAYERANIMEVENT_FLINCH_RIGHTLEG,
-	PLAYERANIMEVENT_DOUBLEJUMP,
-
-	// Cancel.
-	PLAYERANIMEVENT_CANCEL,
-	PLAYERANIMEVENT_SPAWN,
-
-	// Snap to current yaw exactly
-	PLAYERANIMEVENT_SNAP_YAW,
-
-	PLAYERANIMEVENT_CUSTOM,				// Used to play specific activities
-	PLAYERANIMEVENT_CUSTOM_GESTURE,
-	PLAYERANIMEVENT_CUSTOM_SEQUENCE,	// Used to play specific sequences
-	PLAYERANIMEVENT_CUSTOM_GESTURE_SEQUENCE,
-
-	// TF Specific. Here until there's a derived game solution to this.
-	PLAYERANIMEVENT_ATTACK_PRE,
-	PLAYERANIMEVENT_ATTACK_POST,
-	PLAYERANIMEVENT_GRENADE1_DRAW,
-	PLAYERANIMEVENT_GRENADE2_DRAW,
-	PLAYERANIMEVENT_GRENADE1_THROW,
-	PLAYERANIMEVENT_GRENADE2_THROW,
-	PLAYERANIMEVENT_VOICE_COMMAND_GESTURE,
-	PLAYERANIMEVENT_DOUBLEJUMP_CROUCH,
-	PLAYERANIMEVENT_STUN_BEGIN,
-	PLAYERANIMEVENT_STUN_MIDDLE,
-	PLAYERANIMEVENT_STUN_END,
-	PLAYERANIMEVENT_PASSTIME_THROW_BEGIN,
-	PLAYERANIMEVENT_PASSTIME_THROW_MIDDLE,
-	PLAYERANIMEVENT_PASSTIME_THROW_END,
-	PLAYERANIMEVENT_PASSTIME_THROW_CANCEL,
-
-	PLAYERANIMEVENT_ATTACK_PRIMARY_SUPER,
-
-	PLAYERANIMEVENT_COUNT
-};
-
 enum
 {
 	WeaponSlot_Primary = 0,
@@ -432,7 +364,6 @@ int g_iZombiesKilledSpree;
 int g_iRoundTimestamp;
 
 //Client State
-int g_iMorale[MAXPLAYERS + 1];
 int g_iHorde[MAXPLAYERS + 1];
 int g_iCapturingPoint[MAXPLAYERS + 1];
 int g_iRageTimer[MAXPLAYERS + 1];
@@ -562,7 +493,6 @@ float g_flRageRespawnStress;
 float g_flInfectedInterval;
 float g_flInfectedCooldown[view_as<int>(Infected_Count)];	//GameTime
 int g_iInfectedCooldown[view_as<int>(Infected_Count)];	//Client who started the cooldown
-int g_iStartSurvivors;
 
 int g_iTanksSpawned;
 bool g_bZombieRage;
@@ -1540,7 +1470,6 @@ void SZFDisable()
 
 void ResetClientState(int iClient)
 {
-	g_iMorale[iClient] = 0;
 	g_iHorde[iClient] = 0;
 	g_iCapturingPoint[iClient] = -1;
 	g_iRageTimer[iClient] = 0;
@@ -1686,7 +1615,7 @@ void UpdateZombieDamageScale()
 {
 	g_flZombieDamageScale = 1.0;
 	
-	if (g_iStartSurvivors <= 0 || !g_bEnabled || g_nRoundState != SZFRoundState_Active)
+	if (!g_bEnabled || g_nRoundState != SZFRoundState_Active)
 		return;
 	
 	int iSurvivors = GetSurvivorCount();
