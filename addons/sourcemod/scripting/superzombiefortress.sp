@@ -548,7 +548,7 @@ int g_iOffsetItemDefinitionIndex;
 public Plugin myinfo =
 {
 	name = "Super Zombie Fortress",
-	author = "42, Sasch, Benoist3012, Haxton Sale, Frosty Scales, MekuCube (original)",
+	author = "42, Alex Turtle, Batfoxkid, Haxton Sale, Mikusch, sasch, wo, MekuCube (original)",
 	description = "Originally based off MekuCube's 1.05 version.",
 	version = PLUGIN_VERSION ... "." ... PLUGIN_VERSION_REVISION,
 	url = "https://github.com/redsunservers/SuperZombieFortress"
