@@ -211,8 +211,7 @@ void Sound_PlayMusicToClient(int iClient, const char[] sName, float flDuration =
 
 void Sound_PlayMusic(int[] iClients, int iCount, const char[] sName, float flDuration = 0.0)
 {
-	//Check if there music override
-	if (iCount <= 0 || Sound_IsMusicOverrideOn())
+	if (iCount <= 0)
 		return;
 	
 	SoundMusic music;
@@ -222,6 +221,11 @@ void Sound_PlayMusic(int[] iClients, int iCount, const char[] sName, float flDur
 	//Get random sound only once, play same sound to all clients
 	SoundFilepath filepath;
 	music.aSounds.GetArray(GetRandomInt(0, music.aSounds.Length - 1), filepath, sizeof(filepath));
+	
+	//Check if there music override
+	bool bMusic = filepath.sFilepath[0] == '#';
+	if (bMusic && Sound_IsMusicOverrideOn())
+		return;
 	
 	for (int i = 0; i < iCount; i++)
 	{
