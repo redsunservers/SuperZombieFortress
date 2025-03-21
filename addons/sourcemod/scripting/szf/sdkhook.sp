@@ -175,6 +175,10 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				bChanged = true;
 			}
 			
+			//Regular Sniper zombies add jarate on melee hits
+			if (TF2_GetPlayerClass(iAttacker) == TFClass_Sniper && g_nNextInfected[iAttacker] == Infected_None && iDamageType & DMG_MELEE)
+				TF2_AddCondition(iVictim, TFCond_Jarated, 3.0);
+			
 			Sound_PlayInfectedVo(iAttacker, g_nInfected[iAttacker], SoundVo_Attack);
 		}
 		
