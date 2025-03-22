@@ -394,7 +394,18 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 		g_iDamageDealtLife[iAttacker] += iDamageAmount;
 		
 		if (IsValidZombie(iAttacker))
+		{
 			g_iDamageZombie[iAttacker] += iDamageAmount;
+			
+			if (!GetEntProp(iAttacker, Prop_Send, "m_bRageDraining") && TF2_IsSlotClassname(iAttacker, WeaponSlot_Secondary, "tf_weapon_buff_item"))
+			{
+				g_flBannerMeter[iAttacker] += float(iDamageAmount) / g_cvBannerRequirement.FloatValue * 100.0;
+				if (g_flBannerMeter[iAttacker] >= 100.0)
+					g_flBannerMeter[iAttacker] = 100.0;
+				
+				SetEntPropFloat(iAttacker, Prop_Send, "m_flRageMeter", g_flBannerMeter[iAttacker]);
+			}
+		}
 	}
 	
 	return Plugin_Continue;

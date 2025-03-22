@@ -71,6 +71,11 @@ public void Client_PreThinkPost(int iClient)
 {
 	UpdateClientCarrying(iClient);
 	
+	// This should only be changed from reset, e.g. player spawn or banner used
+	float flRageMeter = GetEntPropFloat(iClient, Prop_Send, "m_flRageMeter");
+	if (g_flBannerMeter[iClient] > flRageMeter)
+		g_flBannerMeter[iClient] = flRageMeter;
+	
 	if (g_flDisguiseCompleteTime && !GetEntDataFloat(iClient, g_iOffsetDisguiseCompleteTime))
 		OnClientDisguise(iClient);
 }

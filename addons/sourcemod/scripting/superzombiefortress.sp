@@ -398,6 +398,7 @@ ConVar g_cvFrenzyTankChance;
 ConVar g_cvStunImmunity;
 ConVar g_cvLastStandKingRuneDuration;
 ConVar g_cvLastStandDefenseDuration;
+ConVar g_cvBannerRequirement;
 ConVar g_cvMeleeIgnoreTeammates;
 ConVar g_cvPunishAvoidingPlayers;
 
@@ -503,6 +504,7 @@ int g_iKillsThisLife[MAXPLAYERS + 1];
 int g_iMaxHealth[MAXPLAYERS + 1];
 bool g_bShouldBacteriaPlay[MAXPLAYERS + 1] = {true, ...};
 float g_flTimeStartAsZombie[MAXPLAYERS + 1];
+float g_flBannerMeter[MAXPLAYERS + 1];
 
 char g_sForceZombieStartMapName[MAXPLAYERS + 1][64];
 int g_iForceZombieStartTimestamp[MAXPLAYERS + 1];
