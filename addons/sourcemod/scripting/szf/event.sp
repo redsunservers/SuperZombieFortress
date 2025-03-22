@@ -422,10 +422,18 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 	   
 	if (nObjectType == TFObject_Dispenser && IsSurvivor(iClient))
 	{
+		SetEntProp(iEntity, Prop_Send, "m_bMiniBuilding", true);	// This also prevents starting 25 metal generated
+		
 		if (!GetEntProp(iEntity, Prop_Send, "m_bCarryDeploy"))
 		{
-			int iMaxHealth = GetEntProp(iEntity, Prop_Send, "m_iMaxHealth");
-			SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", iMaxHealth * 2);	// Double max health (default level 1 is 150)
+			// Starting half of max health due to side effect of mini building
+			int iOffset = FindSendPropInfo("CObjectDispenser", "m_flPercentageConstructed") + 4;	// m_flHealth
+			
+			const iMaxHealth = 100;	// TF2 game forces it to be 100 due to mini building
+			
+			SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", iMaxHealth);
+			SetEntDataFloat(iEntity, iOffset, float(iMaxHealth) * 0.5);
+			SetEntProp(iEntity, Prop_Send, "m_iHealth", RoundToFloor(float(iMaxHealth) * 0.5));
 		}
 	}
 	
