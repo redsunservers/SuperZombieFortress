@@ -77,6 +77,11 @@
 				"linux"		"493"
 				"windows"	"486"
 			}
+			"CObjectDispenser::RefillThink"
+			{
+				"linux"		"419"
+				"windows"	"405"
+			}
 			"CObjectDispenser::DispenseAmmo"
 			{
 				"linux"		"424"
@@ -234,6 +239,13 @@
 						"type"	"bool"
 					}
 				}
+			}
+			"CObjectDispenser::RefillThink"
+			{
+				"offset"	"CObjectDispenser::RefillThink"
+				"hooktype"	"entity"
+				"return"	"void"
+				"this"		"entity"
 			}
 			"CObjectDispenser::DispenseAmmo"
 			{

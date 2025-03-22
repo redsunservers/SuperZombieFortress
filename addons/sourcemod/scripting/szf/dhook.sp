@@ -13,6 +13,7 @@ static DynamicHook g_hDHookTeamMayCapturePoint;
 static DynamicHook g_hDHookSetWinningTeam;
 static DynamicHook g_hDHookRoundRespawn;
 static DynamicHook g_hDHookGiveNamedItem;
+static DynamicHook g_hDHookRefillThink;
 static DynamicHook g_hDHookDispenseAmmo;
 static DynamicHook g_hDHookGetHealRate;
 
@@ -33,6 +34,7 @@ void DHook_Init(GameData hSZF)
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
 	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
+	g_hDHookRefillThink = DHook_CreateVirtual(hSZF, "CObjectDispenser::RefillThink");
 	g_hDHookDispenseAmmo = DHook_CreateVirtual(hSZF, "CObjectDispenser::DispenseAmmo");
 	g_hDHookGetHealRate = DHook_CreateVirtual(hSZF, "CObjectDispenser::GetHealRate");
 }
@@ -91,6 +93,7 @@ void DHook_OnEntityCreated(int iEntity, const char[] sClassname)
 {
 	if (StrEqual(sClassname, "obj_dispenser"))
 	{
+		g_hDHookRefillThink.HookEntity(Hook_Pre, iEntity, DHook_RefillThinkPre);
 		g_hDHookDispenseAmmo.HookEntity(Hook_Pre, iEntity, DHook_DispenseAmmoPre);
 		g_hDHookGetHealRate.HookEntity(Hook_Post, iEntity, DHook_GetHealRatePost);
 	}
@@ -312,6 +315,14 @@ public void DHook_OnGiveNamedItemRemoved(int iHookId)
 			return;
 		}
 	}
+}
+
+public MRESReturn DHook_RefillThinkPre(int iDispenser, DHookReturn hReturn, DHookParam hParams)
+{
+	if (view_as<TFTeam>(GetEntProp(iDispenser, Prop_Send, "m_iTeamNum")) == TFTeam_Survivor)
+		return MRES_Supercede;
+	
+	return MRES_Ignored;
 }
 
 public MRESReturn DHook_DispenseAmmoPre(int iDispenser, DHookReturn hReturn, DHookParam hParams)
