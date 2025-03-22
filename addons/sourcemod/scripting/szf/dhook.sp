@@ -13,10 +13,11 @@ static DynamicHook g_hDHookTeamMayCapturePoint;
 static DynamicHook g_hDHookSetWinningTeam;
 static DynamicHook g_hDHookRoundRespawn;
 static DynamicHook g_hDHookGiveNamedItem;
+static DynamicHook g_hDHookGetHealRate;
 
-static TFTeam g_iOldClientTeam[MAXPLAYERS];
+static TFTeam g_iOldClientTeam[MAXPLAYERS+1];
 
-static int g_iHookIdGiveNamedItem[MAXPLAYERS];
+static int g_iHookIdGiveNamedItem[MAXPLAYERS+1];
 
 void DHook_Init(GameData hSZF)
 {
@@ -30,6 +31,7 @@ void DHook_Init(GameData hSZF)
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
 	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
+	g_hDHookGetHealRate = DHook_CreateVirtual(hSZF, "CObjectDispenser::GetHealRate");
 }
 
 static void DHook_CreateDetour(GameData hGameData, const char[] sName, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
@@ -61,7 +63,7 @@ static DynamicHook DHook_CreateVirtual(GameData hGameData, const char[] sName)
 void DHook_HookGiveNamedItem(int iClient)
 {
 	if (!g_bTF2Items)
-		g_iHookIdGiveNamedItem[iClient] = DHookEntity(g_hDHookGiveNamedItem, false, iClient, DHook_OnGiveNamedItemRemoved, DHook_OnGiveNamedItemPre);
+		g_iHookIdGiveNamedItem[iClient] = g_hDHookGiveNamedItem.HookEntity(Hook_Pre, iClient, DHook_OnGiveNamedItemPre, DHook_OnGiveNamedItemRemoved);
 }
 
 void DHook_UnhookGiveNamedItem(int iClient)
@@ -80,6 +82,12 @@ bool DHook_IsGiveNamedItemActive()
 			return true;
 	
 	return false;
+}
+
+void DHook_OnEntityCreated(int iEntity, const char[] sClassname)
+{
+	if (StrEqual(sClassname, "obj_dispenser"))
+		g_hDHookGetHealRate.HookEntity(Hook_Post, iEntity, DHook_GetHealRatePost);
 }
 
 void DHook_Enable()
@@ -298,6 +306,19 @@ public void DHook_OnGiveNamedItemRemoved(int iHookId)
 			return;
 		}
 	}
+}
+
+public MRESReturn DHook_GetHealRatePost(int iDispenser, DHookReturn hReturn, DHookParam hParams)
+{
+	if (view_as<TFTeam>(GetEntProp(iDispenser, Prop_Send, "m_iTeamNum")) == TFTeam_Survivor)
+	{
+		float flValue = hReturn.Value;
+		flValue *= g_cvDispenserHealRate.FloatValue;
+		hReturn.Value = flValue;
+		return MRES_Supercede;
+	}
+	
+	return MRES_Ignored;
 }
 
 public MRESReturn DHook_GetCaptureValueForPlayerPost(DHookReturn hReturn, DHookParam hParams)

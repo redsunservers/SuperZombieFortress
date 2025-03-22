@@ -398,6 +398,7 @@ ConVar g_cvFrenzyTankChance;
 ConVar g_cvStunImmunity;
 ConVar g_cvLastStandKingRuneDuration;
 ConVar g_cvLastStandDefenseDuration;
+ConVar g_cvDispenserHealRate;
 ConVar g_cvBannerRequirement;
 ConVar g_cvMeleeIgnoreTeammates;
 ConVar g_cvPunishAvoidingPlayers;
@@ -795,6 +796,7 @@ public void OnEntityCreated(int iEntity, const char[] sClassname)
 	if (!g_bEnabled)
 		return;
 	
+	DHook_OnEntityCreated(iEntity, sClassname);
 	SDKHook_OnEntityCreated(iEntity, sClassname);
 	
 	if (StrEqual(sClassname, "tf_dropped_weapon") || StrEqual(sClassname, "item_powerup_rune"))	//Never allow dropped weapon and rune dropped from survivors
