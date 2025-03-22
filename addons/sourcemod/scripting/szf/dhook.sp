@@ -13,9 +13,11 @@ static DynamicHook g_hDHookTeamMayCapturePoint;
 static DynamicHook g_hDHookSetWinningTeam;
 static DynamicHook g_hDHookRoundRespawn;
 static DynamicHook g_hDHookGiveNamedItem;
+static DynamicHook g_hDHookDispenseAmmo;
 static DynamicHook g_hDHookGetHealRate;
 
 static TFTeam g_iOldClientTeam[MAXPLAYERS+1];
+static float g_flLastDispenserUsed[MAXPLAYERS + 1];
 
 static int g_iHookIdGiveNamedItem[MAXPLAYERS+1];
 
@@ -31,6 +33,7 @@ void DHook_Init(GameData hSZF)
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
 	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
+	g_hDHookDispenseAmmo = DHook_CreateVirtual(hSZF, "CObjectDispenser::DispenseAmmo");
 	g_hDHookGetHealRate = DHook_CreateVirtual(hSZF, "CObjectDispenser::GetHealRate");
 }
 
@@ -87,7 +90,10 @@ bool DHook_IsGiveNamedItemActive()
 void DHook_OnEntityCreated(int iEntity, const char[] sClassname)
 {
 	if (StrEqual(sClassname, "obj_dispenser"))
+	{
+		g_hDHookDispenseAmmo.HookEntity(Hook_Pre, iEntity, DHook_DispenseAmmoPre);
 		g_hDHookGetHealRate.HookEntity(Hook_Post, iEntity, DHook_GetHealRatePost);
+	}
 }
 
 void DHook_Enable()
@@ -305,6 +311,24 @@ public void DHook_OnGiveNamedItemRemoved(int iHookId)
 			g_iHookIdGiveNamedItem[iClient] = 0;
 			return;
 		}
+	}
+}
+
+public MRESReturn DHook_DispenseAmmoPre(int iDispenser, DHookReturn hReturn, DHookParam hParams)
+{
+	int iClient = hParams.Get(1);
+	if (!IsValidLivingSurvivor(iClient))
+		return MRES_Ignored;
+	
+	if (g_flLastDispenserUsed[iClient] + g_cvDispenserAmmoCooldown.FloatValue <= GetGameTime())
+	{
+		g_flLastDispenserUsed[iClient] = GetGameTime();
+		return MRES_Ignored;
+	}
+	else
+	{
+		hReturn.Value = false;
+		return MRES_Supercede;
 	}
 }
 

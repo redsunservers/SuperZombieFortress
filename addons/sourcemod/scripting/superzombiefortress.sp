@@ -398,6 +398,7 @@ ConVar g_cvFrenzyTankChance;
 ConVar g_cvStunImmunity;
 ConVar g_cvLastStandKingRuneDuration;
 ConVar g_cvLastStandDefenseDuration;
+ConVar g_cvDispenserAmmoCooldown;
 ConVar g_cvDispenserHealRate;
 ConVar g_cvBannerRequirement;
 ConVar g_cvMeleeIgnoreTeammates;

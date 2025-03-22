@@ -77,6 +77,11 @@
 				"linux"		"493"
 				"windows"	"486"
 			}
+			"CObjectDispenser::DispenseAmmo"
+			{
+				"linux"		"424"
+				"windows"	"410"
+			}
 			"CObjectDispenser::GetHealRate"
 			{
 				"linux"		"428"
@@ -227,6 +232,20 @@
 					"bForce"
 					{
 						"type"	"bool"
+					}
+				}
+			}
+			"CObjectDispenser::DispenseAmmo"
+			{
+				"offset"	"CObjectDispenser::DispenseAmmo"
+				"hooktype"	"entity"
+				"return"	"bool"
+				"this"		"entity"
+				"arguments"
+				{
+					"pPlayer"
+					{
+						"type"	"cbaseentity"
 					}
 				}
 			}
