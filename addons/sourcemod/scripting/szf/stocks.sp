@@ -549,6 +549,13 @@ stock void RemoveEntityEffect(int iEntity, int iFlag)
 	SetEntProp(iEntity, Prop_Send, "m_fEffects", GetEntProp(iEntity, Prop_Send, "m_fEffects") & ~iFlag);
 }
 
+stock float DistanceFromEntityToPoint(int iEntity, const float vecOrigin[3])
+{
+	float vecOther[3];
+	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOther);
+	return GetVectorDistance(vecOther, vecOrigin);
+}
+
 stock float DistanceFromEntities(int iEntity1, int iEntity2)
 {
 	float vecOrigin1[3], vecOrigin2[3];

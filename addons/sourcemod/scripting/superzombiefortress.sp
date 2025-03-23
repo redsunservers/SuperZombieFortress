@@ -499,7 +499,6 @@ int g_iInfectedCooldown[view_as<int>(Infected_Count)];	//Client who started the 
 
 int g_iTanksSpawned;
 bool g_bZombieRage;
-bool g_bZombieRageAllowRespawn;
 
 bool g_bSpawnAsSpecialInfected[MAXPLAYERS + 1];
 int g_iKillsThisLife[MAXPLAYERS + 1];
@@ -1851,10 +1850,6 @@ void ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 	
 	float flGameTime = GetGameTime();
 	g_flRageRespawnStress = flGameTime;	//Set initial respawn stress
-	g_bZombieRageAllowRespawn = true;
-	
-	if (flDuration < 20.0)
-		g_bZombieRageAllowRespawn = false;
 	
 	CreateTimer(flDuration, Timer_StopZombieRage);
 	
@@ -1907,7 +1902,6 @@ int FastRespawnNearby(int iClient, float flDistance, bool bMustBeInvisible = tru
 	float vecPosClient[3];
 	float vecPosEntry[3];
 	float vecPosEntry2[3];
-	float flEntryDistance;
 	GetClientAbsOrigin(iClient, vecPosClient);
 	
 	int iLength = g_aFastRespawn.Length;
@@ -1920,9 +1914,7 @@ int FastRespawnNearby(int iClient, float flDistance, bool bMustBeInvisible = tru
 		
 		bool bAllow = true;
 		
-		flEntryDistance = GetVectorDistance(vecPosClient, vecPosEntry);
-		flEntryDistance /= 50.0;
-		
+		float flEntryDistance = GetVectorDistance(vecPosClient, vecPosEntry);
 		if (flEntryDistance > flDistance)
 			bAllow = false;
 		
@@ -1942,7 +1934,7 @@ int FastRespawnNearby(int iClient, float flDistance, bool bMustBeInvisible = tru
 		if (bAllow)
 			aTombola.Push(i);
 	}
-
+	
 	if (aTombola.Length > 0)
 	{
 		int iRandom = GetRandomInt(0, aTombola.Length-1);
@@ -1958,7 +1950,7 @@ int FastRespawnNearby(int iClient, float flDistance, bool bMustBeInvisible = tru
 
 bool PerformFastRespawn(int iClient)
 {
-	if (!(g_bDirectorSpawnTeleport) && (!g_bZombieRage || !g_bZombieRageAllowRespawn))
+	if (!g_bDirectorSpawnTeleport && !g_bZombieRage)
 		return false;
 	
 	//First let's find a target
@@ -1978,7 +1970,7 @@ bool PerformFastRespawn(int iClient)
 	int iTarget = aTombola.Get(GetRandomInt(0, aTombola.Length-1));
 	delete aTombola;
 	
-	int iResult = FastRespawnNearby(iTarget, 7.0);
+	int iResult = FastRespawnNearby(iTarget, 350.0);
 	if (iResult < 0)
 		return false;
 	
@@ -1998,12 +1990,33 @@ void FastRespawnDataCollect()
 	if (g_aFastRespawn == null)
 		g_aFastRespawn = new ArrayList(3);
 	
-	g_aFastRespawn.Clear(); //Clear before adding new stuffs
+	// Delete any positions too far away from any clients, clear up space
+	for (int i = g_aFastRespawn.Length - 1; i >= 0; i--)
+	{
+		float vecPos[3];
+		g_aFastRespawn.GetArray(i, vecPos);
+		
+		bool bDelete = true;
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
+		{
+			if (!IsValidLivingClient(iClient))
+				continue;
+			
+			if (DistanceFromEntityToPoint(iClient, vecPos) > 350.0)
+				continue;
+			
+			bDelete = false;
+			break;
+		}
+		
+		if (bDelete)
+			g_aFastRespawn.Erase(i);
+	}
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		if (IsValidLivingClient(iClient)
-			&& FastRespawnNearby(iClient, 1.0, false) < 0
+			&& FastRespawnNearby(iClient, 100.0, false) < 0
 			&& !(GetEntityFlags(iClient) & FL_DUCKING)
 			&& GetEntityFlags(iClient) & FL_ONGROUND)
 		{
