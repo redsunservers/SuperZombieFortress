@@ -1970,7 +1970,7 @@ bool PerformFastRespawn(int iClient)
 	int iTarget = aTombola.Get(GetRandomInt(0, aTombola.Length-1));
 	delete aTombola;
 	
-	int iResult = FastRespawnNearby(iTarget, 350.0);
+	int iResult = FastRespawnNearby(iTarget, 1000.0);
 	if (iResult < 0)
 		return false;
 	
@@ -2002,7 +2002,7 @@ void FastRespawnDataCollect()
 			if (!IsValidLivingClient(iClient))
 				continue;
 			
-			if (DistanceFromEntityToPoint(iClient, vecPos) > 350.0)
+			if (DistanceFromEntityToPoint(iClient, vecPos) > 1250.0)
 				continue;
 			
 			bDelete = false;
