@@ -434,7 +434,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	//Find all active players.
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		Sound_EndMusic(iClient);
+		Sound_EndAllMusic(iClient);
 		
 		if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
 		{

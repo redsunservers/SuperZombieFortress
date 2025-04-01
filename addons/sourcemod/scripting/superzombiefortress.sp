@@ -670,7 +670,7 @@ public void OnPluginEnd()
 		{
 			if (IsClientInGame(iClient))
 			{
-				Sound_EndMusic(iClient);
+				Sound_EndAllMusic(iClient);
 				SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", 0, _, VISION_MODE_ROME);
 			}
 		}
@@ -784,7 +784,7 @@ public void OnClientDisconnect(int iClient)
 	
 	CheckZombieBypass(iClient);
 	
-	Sound_EndMusic(iClient);
+	Sound_EndAllMusic(iClient);
 	DropCarryingItem(iClient);
 	CheckLastSurvivor(iClient);
 	

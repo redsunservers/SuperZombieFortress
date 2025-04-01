@@ -407,6 +407,9 @@ StringMap Config_LoadMusic(KeyValues kv)
 {
 	StringMap mMusics = new StringMap();
 	
+	char sGroupNames[SoundGroup_MAX][32];
+	int iGroupCount;
+	
 	if (kv.GotoFirstSubKey(false))
 	{
 		do
@@ -457,6 +460,34 @@ StringMap Config_LoadMusic(KeyValues kv)
 			}
 			
 			music.iPriority = kv.GetNum("priority", 0);
+			
+			char sGroup[256], sGroupSplit[SoundGroup_MAX][32];
+			kv.GetString("group", sGroup, sizeof(sGroup));
+			int iCount = ExplodeString(sGroup, " ", sGroupSplit, sizeof(sGroupSplit), sizeof(sGroupSplit[]));
+			
+			for (int i = 0; i < iCount; i++)
+			{
+				bool bFound;
+				
+				for (int j = 0; j < iGroupCount; j++)
+				{
+					if (!StrEqual(sGroupSplit[i], sGroupNames[j]))
+						continue;
+					
+					music.bGroup[j] = true;
+					bFound = true;
+					break;
+				}
+				
+				if (!bFound)
+				{
+					// New group to add in
+					sGroupNames[iGroupCount] = sGroupSplit[i];
+					music.bGroup[iGroupCount] = true;
+					iGroupCount++;
+				}
+			}
+			
 			mMusics.SetArray(music.sName, music, sizeof(music));
 			
 		}

@@ -358,6 +358,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		//Check if he's the last
 		CheckLastSurvivor(iVictim);
 		
+		Sound_EndSpecificMusic(iVictim, "rabies");
 		Sound_PlayMusicToClient(iVictim, "dead");
 	}
 	

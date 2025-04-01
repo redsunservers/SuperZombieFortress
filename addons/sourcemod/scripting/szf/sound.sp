@@ -1,5 +1,10 @@
 #define CONFIG_SOUNDS       "configs/szf/sounds.cfg"
 
+enum SoundGroup
+{
+	SoundGroup_MAX = 8
+}
+
 enum struct SoundFilepath
 {
 	char sFilepath[PLATFORM_MAX_PATH];
@@ -9,6 +14,7 @@ enum struct SoundFilepath
 enum struct SoundMusic
 {
 	char sName[64];
+	bool bGroup[SoundGroup_MAX];
 	int iPriority;
 	ArrayList aSounds;
 	
@@ -60,9 +66,9 @@ enum SoundSetting
 static StringMap g_mSoundMusic;
 static ArrayList g_aSoundVoInfected[view_as<int>(Infected_Count)][view_as<int>(SoundVo_Count)];
 
-static SoundFilepath g_SoundFilepath[MAXPLAYERS+1];
-static SoundMusic g_SoundMusic[MAXPLAYERS+1];
-static Handle g_hSoundMusicTimer[MAXPLAYERS+1];
+static SoundFilepath g_SoundFilepath[MAXPLAYERS+1][SoundGroup_MAX];
+static SoundMusic g_SoundMusic[MAXPLAYERS+1][SoundGroup_MAX];
+static Handle g_hSoundMusicTimer[MAXPLAYERS+1][SoundGroup_MAX];
 
 static SoundSetting g_nClientSoundSetting[MAXPLAYERS+1];
 
@@ -223,7 +229,7 @@ void Sound_PlayMusic(int[] iClients, int iCount, const char[] sName, float flDur
 	
 	SoundMusic music;
 	if (!g_mSoundMusic.GetArray(sName, music, sizeof(music)))
-		return;
+		ThrowError("Invalid sound name '%s'", sName);
 	
 	//Get random sound only once, play same sound to all clients
 	SoundFilepath filepath;
@@ -252,31 +258,56 @@ void Sound_PlayMusic(int[] iClients, int iCount, const char[] sName, float flDur
 			}
 		}
 		
-		//If current sound the same, don't play again
-		if (StrEqual(g_SoundMusic[iClient].sName, music.sName))
+		bool bPlay = true;
+		for (SoundGroup nGroup; nGroup < SoundGroup_MAX; nGroup++)
+		{
+			// Ignore if were not part of this group
+			if (!music.bGroup[nGroup])
+				continue;
+			
+			// If sound is already ongoing, don't play again
+			if (StrEqual(g_SoundMusic[iClient][nGroup].sName, music.sName))
+			{
+				bPlay = false;
+				break;
+			}
+			
+			// If there an ongoing sound that have higher priority than sound we wanted to play, don't play
+			if (g_SoundMusic[iClient][nGroup].iPriority > music.iPriority)
+			{
+				bPlay = false;
+				break;
+			}
+		}
+		
+		if (!bPlay)
 			continue;
 		
-		//Don't play if current sound have higher priority than sound we wanted to play
-		if (g_SoundMusic[iClient].iPriority > music.iPriority)
-			continue;
-		
-		//End current sound before we start new sound
-		Sound_EndMusic(iClient);
+		//End current group sound before we start new sound
+		for (SoundGroup nGroup; nGroup < SoundGroup_MAX; nGroup++)
+			if (music.bGroup[nGroup])
+				Sound_EndMusic(iClient, nGroup);
 		
 		//Play sound to client
 		EmitSoundToClient(iClient, filepath.sFilepath, _, SNDCHAN_STATIC, SNDLEVEL_NONE);
-		
-		//Set sound global variables as that sound
-		g_SoundFilepath[iClient] = filepath;
-		g_SoundMusic[iClient] = music;
 		
 		//If duration not specified, use one from config
 		if (flDuration <= 0.0)
 			flDuration = filepath.flDuration;
 		
-		//if duration specified, create timer to end sound
-		if (flDuration > 0.0)
-			g_hSoundMusicTimer[iClient] = CreateTimer(flDuration, Timer_EndMusic, GetClientSerial(iClient));
+		for (SoundGroup nGroup; nGroup < SoundGroup_MAX; nGroup++)
+		{
+			if (!music.bGroup[nGroup])
+				continue;
+			
+			//Set sound global variables as that sound
+			g_SoundFilepath[iClient][nGroup] = filepath;
+			g_SoundMusic[iClient][nGroup] = music;
+			
+			//if duration specified, create timer to end sound
+			if (flDuration > 0.0)
+				g_hSoundMusicTimer[iClient][nGroup] = CreateTimer(flDuration, Timer_EndMusic, GetClientSerial(iClient));
+		}
 	}
 }
 
@@ -285,30 +316,48 @@ public Action Timer_EndMusic(Handle hTimer, int iSerial)
 	int iClient = GetClientFromSerial(iSerial);
 	
 	//Check if client current sound is still the same
-	if (g_hSoundMusicTimer[iClient] == hTimer)
-		Sound_EndMusic(iClient);
+	for (SoundGroup nGroup; nGroup < SoundGroup_MAX; nGroup++)
+	{
+		if (g_hSoundMusicTimer[iClient][nGroup] == hTimer)
+			Sound_EndMusic(iClient, nGroup);
+	}
 	
 	return Plugin_Continue;
 }
 
-void Sound_EndMusic(int iClient)
+void Sound_EndAllMusic(int iClient)
+{
+	for (SoundGroup nGroup; nGroup < SoundGroup_MAX; nGroup++)
+		Sound_EndMusic(iClient, nGroup);
+}
+
+void Sound_EndSpecificMusic(int iClient, const char[] sName)
+{
+	for (SoundGroup nGroup; nGroup < SoundGroup_MAX; nGroup++)
+	{
+		if (StrEqual(g_SoundMusic[iClient][nGroup].sName, sName))
+			Sound_EndMusic(iClient, nGroup);
+	}
+}
+
+void Sound_EndMusic(int iClient, SoundGroup nGroup)
 {
 	//If there currently no sound on, no point doing it
-	if (!g_SoundFilepath[iClient].sFilepath[0])
+	if (!g_SoundFilepath[iClient][nGroup].sFilepath[0])
 		return;
 	
 	//End whatever current music from g_sSound to all clients
 	if (IsClientInGame(iClient))
-		StopSound(iClient, SNDCHAN_STATIC, g_SoundFilepath[iClient].sFilepath);
+		StopSound(iClient, SNDCHAN_STATIC, g_SoundFilepath[iClient][nGroup].sFilepath);
 	
 	//Reset global variables
 	SoundFilepath filepath;
-	g_SoundFilepath[iClient] = filepath;
+	g_SoundFilepath[iClient][nGroup] = filepath;
 	
 	SoundMusic music;
-	g_SoundMusic[iClient] = music;
+	g_SoundMusic[iClient][nGroup] = music;
 	
-	g_hSoundMusicTimer[iClient] = null;
+	g_hSoundMusicTimer[iClient][nGroup] = null;
 }
 
 void Sound_Attack(int iVictim, int iAttacker)
@@ -355,17 +404,16 @@ void Sound_Attack(int iVictim, int iAttacker)
 	GetClientAbsOrigin(iVictim, vecVictimOrigin);
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		//Only play if survivor dont have higher or same priortiy music
-		if (IsValidLivingSurvivor(i) && g_SoundMusic[i].iPriority < Sound_GetPriority(sName))
-		{
-			//Is survivor nearby victim
-			GetClientAbsOrigin(i, vecOrigin);
-			if (GetVectorDistance(vecOrigin, vecVictimOrigin) <= 128.0)
-			{
-				iClients[iCount] = i;
-				iCount++;
-			}
-		}
+		if (!IsValidLivingSurvivor(i))
+			continue;
+		
+		//Is survivor nearby victim
+		GetClientAbsOrigin(i, vecOrigin);
+		if (GetVectorDistance(vecOrigin, vecVictimOrigin) > 128.0)
+			continue;
+		
+		iClients[iCount] = i;
+		iCount++;
 	}
 	
 	Sound_PlayMusic(iClients, iCount, sName);
@@ -373,12 +421,8 @@ void Sound_Attack(int iVictim, int iAttacker)
 
 void Sound_Timer()	//This timer fires every 1 second from timer_main
 {
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		//No sound playing for survivor, lets play rabies
-		if (IsValidLivingSurvivor(iClient) && !g_SoundFilepath[iClient].sFilepath[0])
-			Sound_PlayMusicToClient(iClient, "rabies");
-	}
+	// Always try to play rabies, it has the lowest priority of all sounds
+	Sound_PlayMusicToTeam(TFTeam_Survivor, "rabies");
 }
 
 SoundSetting Sound_GetClientSetting(int iClient)
@@ -389,18 +433,6 @@ SoundSetting Sound_GetClientSetting(int iClient)
 void Sound_UpdateClientSetting(int iClient, SoundSetting nSetting)
 {
 	g_nClientSoundSetting[iClient] = nSetting;
-}
-
-bool Sound_IsCurrentMusic(int iClient, const char[] sName)
-{
-	return StrEqual(g_SoundMusic[iClient].sName, sName);
-}
-
-int Sound_GetPriority(const char[] sName)
-{
-	SoundMusic music;
-	g_mSoundMusic.GetArray(sName, music, sizeof(music));
-	return music.iPriority;
 }
 
 bool Sound_IsMusicOverrideOn()

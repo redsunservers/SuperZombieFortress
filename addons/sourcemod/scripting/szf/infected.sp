@@ -432,9 +432,8 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 		
 		for (int i = 1; i <= MaxClients; i++)
 		{
-			//If current music is tank, end it
-			if (Sound_IsCurrentMusic(i, "tank"))
-				Sound_EndMusic(i);
+			// End tank music
+			Sound_EndSpecificMusic(i, "tank");
 			
 			if (IsValidLivingSurvivor(i))
 			{
