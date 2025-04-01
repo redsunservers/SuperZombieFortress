@@ -628,6 +628,9 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 
 public Action Infected_OnChargerAttack(int iVictim, int &iClient, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
 {
+	if (!(iDamageType & DMG_CLUB))	// melee damage
+		return Plugin_Continue;
+	
 	TF2_AddCondition(iClient, TFCond_CritCola, 0.05);	// mini-crit without visual effects, does unintentionally blocks healing
 	
 	// Make vector from attacker to victim pos
