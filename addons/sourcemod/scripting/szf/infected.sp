@@ -646,6 +646,8 @@ public Action Infected_OnChargerAttack(int iVictim, int &iClient, int &iInflicte
 	TF2_AddCondition(iVictim, TFCond_LostFooting, 0.4);	//Allow push victims easier with friction
 	TeleportEntity(iVictim, NULL_VECTOR, NULL_VECTOR, vecResult);
 	
+	Stun_Shake(iVictim, vecForce, 250.0);	// Give a little screen shake on being knocked back
+	
 	iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
 	return Plugin_Changed;
 }
