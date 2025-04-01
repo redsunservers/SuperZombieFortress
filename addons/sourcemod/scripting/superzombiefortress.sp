@@ -1864,10 +1864,7 @@ void ZombieRage(float flDuration = 20.0, bool bIgnoreDirector = false)
 				CPrintToChat(iClient, "%t", "Frenzy_Start", (IsZombie(iClient)) ? "{green}" : "{red}");
 				
 				if (IsZombie(iClient) && !IsPlayerAlive(iClient))
-				{
 					TF2_RespawnPlayer2(iClient);
-					g_flRageRespawnStress += 1.7;	//Add stress time 1.7 sec for every respawn zombies
-				}
 			}
 		}
 	}

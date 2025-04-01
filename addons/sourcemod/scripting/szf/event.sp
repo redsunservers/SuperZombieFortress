@@ -321,9 +321,9 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			
 			//Check if respawn stress reaches time limit, if so add cooldown/timer so we dont instant respawn too much zombies at once
 			if (g_flRageRespawnStress > GetGameTime())
-				flTimer += (g_flRageRespawnStress - GetGameTime()) * 1.2;
+				flTimer += g_flRageRespawnStress - GetGameTime();
 			
-			g_flRageRespawnStress += 1.7;	//Add stress time 1.7 sec for every respawn zombies
+			g_flRageRespawnStress += 16.0 / GetActivePlayerCount();	// Add stress time for every respawns, 0.5 sec for 32 players
 			CreateTimer(flTimer, Timer_RespawnPlayer, iVictim);
 		}
 		
