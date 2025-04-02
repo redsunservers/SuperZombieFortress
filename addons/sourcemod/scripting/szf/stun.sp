@@ -115,6 +115,8 @@ void Stun_EndPlayer(int iClient)
 	
 	if (IsValidEntity(g_StunInfo[iClient].iPreviousFogEnt))
 		SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", g_StunInfo[iClient].iPreviousFogEnt);
+	else
+		SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", INVALID_ENT_REFERENCE);
 	
 	g_StunInfo[iClient].iPreviousFogEnt = INVALID_ENT_REFERENCE;
 	g_StunInfo[iClient].bStunned = false;
