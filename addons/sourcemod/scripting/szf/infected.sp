@@ -1022,7 +1022,7 @@ public void Infected_EndSmokerBeam(int iClient)
 	TF2_RemoveCondition(iClient, TFCond_FreezeInput);
 	
 	for (int i = 0; i < sizeof(g_iSmokerRopes[]); i++)
-		if (IsValidEntity(g_iSmokerRopes[iClient][i]))
+		if (g_iSmokerRopes[iClient][i] && IsValidEntity(g_iSmokerRopes[iClient][i]))	// variable can be 0 as its not initialized as -1
 			RemoveEntity(g_iSmokerRopes[iClient][i]);
 	
 	ViewModel_SetAnimation(iClient, "ACT_VM_COUGH");
