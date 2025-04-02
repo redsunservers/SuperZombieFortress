@@ -144,6 +144,7 @@ public void SetWeapon(int iEntity)
 		}
 	}
 	
+	SetEntProp(iEntity, Prop_Send, "m_nSolidType", SOLID_OBB);
 	SetEntityCollisionGroup(iEntity, COLLISION_GROUP_DEBRIS_TRIGGER);
 	AcceptEntityInput(iEntity, "DisableShadow");
 	AcceptEntityInput(iEntity, "EnableCollision");
