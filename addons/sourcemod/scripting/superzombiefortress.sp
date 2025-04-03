@@ -1889,60 +1889,78 @@ public Action Timer_StopZombieRage(Handle hTimer)
 	return Plugin_Continue;
 }
 
-int FastRespawnNearby(int iClient, float flDistance, bool bMustBeInvisible = true)
+ArrayList FastRespawnNearby(float flMinDistance, float flMaxDistance, int iForceClient = 0)
 {
-	if (g_aFastRespawn == null)
-		return -1;
+	if (!g_aFastRespawn)
+		return null;
 	
-	ArrayList aTombola = new ArrayList();
+	ArrayList aTombola = new ArrayList(3);
 	
-	float vecPosClient[3];
-	float vecPosEntry[3];
-	float vecPosEntry2[3];
-	GetClientAbsOrigin(iClient, vecPosClient);
+	// A few corners from client bounding box to check if hidden from view
+	static float vecPosOffsets[][3] = {
+		{ 24.0, 24.0, 0.0 },
+		{ -24.0, -24.0, 0.0 },
+		{ 24.0, -24.0, 80.0 },
+		{ -24.0, 24.0, 80.0 },
+	};
 	
 	int iLength = g_aFastRespawn.Length;
 	for (int i = 0; i < iLength; i++)
 	{
-		g_aFastRespawn.GetArray(i, vecPosEntry);
-		vecPosEntry2[0] = vecPosEntry[0];
-		vecPosEntry2[1] = vecPosEntry[1];
-		vecPosEntry2[2] = vecPosEntry[2] += 90.0;
+		float vecPosOrigin[3];
+		g_aFastRespawn.GetArray(i, vecPosOrigin);
 		
 		bool bAllow = true;
-		
-		float flEntryDistance = GetVectorDistance(vecPosClient, vecPosEntry);
-		if (flEntryDistance > flDistance)
-			bAllow = false;
+		bool bDistance = false;
 		
 		//Check if survivors can see it
-		if (bMustBeInvisible && bAllow)
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
 		{
-			for (int iSurvivor = 1; iSurvivor <= MaxClients; iSurvivor++)
+			if (iForceClient && iForceClient != iClient)
+				continue;
+			else if (!iForceClient && !IsValidLivingSurvivor(iClient))
+				continue;
+			
+			float vecPosClient[3];
+			GetClientAbsOrigin(iClient, vecPosClient);
+			float flDistance = DistanceFromEntityToPoint(iClient, vecPosOrigin);
+			if (flDistance < flMinDistance)
 			{
-				if (IsValidLivingSurvivor(iSurvivor))
+				bAllow = false;
+				break;
+			}
+			else if (flDistance <= flMaxDistance)
+			{
+				bDistance = true;
+			}
+			
+			if (!iForceClient)
+			{
+				for (int j = 0; j < sizeof(vecPosOffsets); j++)
 				{
-					if (PointsAtTarget(vecPosEntry, iSurvivor) || PointsAtTarget(vecPosEntry2, iSurvivor))
-						bAllow = false;
+					float vecPos[3];
+					AddVectors(vecPosOrigin, vecPosOffsets[j], vecPos);
+					if (!PointsAtTarget(vecPos, iClient))
+						continue;
+					
+					bAllow = false;
+					break;
 				}
 			}
+			
+			if (!bAllow)
+				break;
 		}
 		
-		if (bAllow)
-			aTombola.Push(i);
+		if (bAllow && bDistance)
+			aTombola.PushArray(vecPosOrigin);
 	}
 	
 	if (aTombola.Length > 0)
-	{
-		int iRandom = GetRandomInt(0, aTombola.Length-1);
-		int iResult = aTombola.Get(iRandom);
-		
-		delete aTombola;
-		return iResult;
-	}
+		return aTombola;
 	
 	delete aTombola;
-	return -1;
+	return null;
 }
 
 bool PerformFastRespawn(int iClient)
@@ -1950,35 +1968,40 @@ bool PerformFastRespawn(int iClient)
 	if (!g_bDirectorSpawnTeleport && !g_bZombieRage)
 		return false;
 	
-	//First let's find a target
-	ArrayList aTombola = new ArrayList();
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (IsValidLivingSurvivor(i))
-			aTombola.Push(i);
-	}
-	
-	if (aTombola.Length <= 0)
-	{
-		delete aTombola;
-		return false;
-	}
-	
-	int iTarget = aTombola.Get(GetRandomInt(0, aTombola.Length-1));
-	delete aTombola;
-	
-	int iResult = FastRespawnNearby(iTarget, 1000.0);
-	if (iResult < 0)
+	const float flMinDistance = 400.0;
+	const float flMaxDistance = 1000.0;
+	ArrayList aPos = FastRespawnNearby(flMinDistance, flMaxDistance);
+	if (!aPos)
 		return false;
 	
 	float vecPosSpawn[3];
-	float vecPosTarget[3];
-	float vecAngle[3];
-	g_aFastRespawn.GetArray(iResult, vecPosSpawn);
-	GetClientAbsOrigin(iTarget, vecPosTarget);
-	VectorTowards(vecPosSpawn, vecPosTarget, vecAngle);
+	aPos.GetArray(GetRandomInt(0, aPos.Length - 1), vecPosSpawn);
+	delete aPos;
 	
+	// Find a survivor thats the closest to this pos, to set angle to it
+	int iSurvivor;
+	float flSurvivorDistance = flMaxDistance;
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (!IsValidLivingSurvivor(i))
+			continue;
+		
+		float flDistance = DistanceFromEntityToPoint(i, vecPosSpawn);
+		if (flDistance > flSurvivorDistance)
+			continue;
+		
+		flSurvivorDistance = flDistance;
+		iSurvivor = i;
+	}
+	
+	if (!iSurvivor)
+		return false;
+	
+	float vecPosTarget[3], vecAngle[3];
+	GetClientAbsOrigin(iSurvivor, vecPosTarget);
+	VectorTowards(vecPosSpawn, vecPosTarget, vecAngle);
 	TeleportEntity(iClient, vecPosSpawn, vecAngle, NULL_VECTOR);
+	
 	return true;
 }
 
@@ -2012,10 +2035,15 @@ void FastRespawnDataCollect()
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (IsValidLivingClient(iClient)
-			&& FastRespawnNearby(iClient, 100.0, false) < 0
-			&& !(GetEntityFlags(iClient) & FL_DUCKING)
-			&& GetEntityFlags(iClient) & FL_ONGROUND)
+		if (!IsValidLivingClient(iClient) || GetEntityFlags(iClient) & FL_DUCKING || !(GetEntityFlags(iClient) & FL_ONGROUND))
+			continue;
+		
+		ArrayList aPos = FastRespawnNearby(0.0, 100.0, iClient);
+		if (aPos)
+		{
+			delete aPos;
+		}
+		else
 		{
 			float vecPos[3];
 			GetClientAbsOrigin(iClient, vecPos);
