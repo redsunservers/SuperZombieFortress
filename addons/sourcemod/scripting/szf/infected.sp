@@ -1087,7 +1087,11 @@ void Infected_SmokerGrabVictim(int iClient)
 	else if (g_nSmokerStatus[iClient] == SmokerStatus_Retract)
 	{
 		if (!TF2_IsPlayerInCondition(iVictim, TFCond_Dazed))
-			TF2_StunPlayer(iVictim, 5.0, 0.2, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, iClient);
+		{
+			const float flDuration = 5.0;
+			Stun_StartPlayer(iVictim, flDuration);
+			TF2_StunPlayer(iVictim, flDuration, 0.2, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, iClient);
+		}
 		
 		float flDistance = GetVectorDistance(vecOriginVictim, vecOriginRopeStart);
 		if (flDistance >= 250.0)
