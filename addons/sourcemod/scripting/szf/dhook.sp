@@ -154,7 +154,7 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 				flSpeed += fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
 				
 				if (g_bZombieRage)
-					flSpeed += 40.0; //Map-wide zombie enrage event
+					flSpeed += 20.0; //Map-wide zombie enrage event
 				
 				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
 					flSpeed += 20.0; //Screamer effect
