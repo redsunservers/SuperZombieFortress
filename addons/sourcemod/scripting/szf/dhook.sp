@@ -157,7 +157,7 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 					flSpeed += 20.0; //Map-wide zombie enrage event
 				
 				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
-					flSpeed += 20.0; //Screamer effect
+					flSpeed += 40.0; //Screamer effect
 				
 				if (GetClientHealth(iClient) > SDKCall_GetMaxHealth(iClient))
 					flSpeed += 20.0; //Has overheal due to normal rage
