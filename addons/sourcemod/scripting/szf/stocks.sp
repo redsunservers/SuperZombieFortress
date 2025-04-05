@@ -462,9 +462,13 @@ stock int TF2_GetItemSlot(int iIndex, TFClassType iClass)
 				}
 			}
 		}
+		
+		return iSlot;
 	}
-	
-	return iSlot;
+	else
+	{
+		return TF2Econ_GetItemDefaultLoadoutSlot(iIndex);
+	}
 }
 
 stock int TF2_GetItemInSlot(int iClient, int iSlot)
