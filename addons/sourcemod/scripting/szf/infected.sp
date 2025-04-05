@@ -864,7 +864,9 @@ public void Infected_OnSmokerThink(int iClient, int &iButtons)
 				return;
 			}
 			
-			Infected_SmokerTryGrab(iClient);	// find a victim to grab while extending
+			if (!Infected_DoBeamTrace(iClient))	// find a victim to grab while extending
+				return;
+			
 			if (IsValidLivingSurvivor(g_iSmokerGrabVictim[iClient]))
 				Infected_SmokerGrabVictim(iClient);
 			
@@ -880,12 +882,15 @@ public void Infected_OnSmokerThink(int iClient, int &iButtons)
 			else
 			{
 				if (g_flSmokerGrabStart[iClient] + 2.0 <= GetGameTime())
-					Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract); // TODO stun stuffs too
+					Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
 				else
 					Infected_RetractSmokerBeam(iClient, SmokerStatus_Grabbing);	// Just to check if tongue speed need to be changed
 				
 				Infected_SmokerGrabVictim(iClient);
 			}
+			
+			if (!Infected_DoBeamTrace(iClient))
+				return;
 			
 			SDKCall_PlaySpecificSequence(iClient, "tongue_attack_drag_survivor_idle");
 			ViewModel_SetAnimation(iClient, "ACT_VM_TONGUE");
@@ -898,8 +903,10 @@ public void Infected_OnSmokerThink(int iClient, int &iButtons)
 				return;
 			}
 			
-			if (!IsValidLivingSurvivor(g_iSmokerGrabVictim[iClient]))
-				Infected_SmokerTryGrab(iClient);	// if we haven't got victim yet, keep trying to find one while retracting
+			if (!Infected_DoBeamTrace(iClient))
+				return;
+			
+			Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
 			
 			if (IsValidLivingSurvivor(g_iSmokerGrabVictim[iClient]))
 				Infected_SmokerGrabVictim(iClient);
@@ -951,26 +958,26 @@ void Infected_StartSmokerBeam(int iClient)
 		TeleportEntity(iRope, vecOrigin);
 	}
 	
+	int iRopeMove = g_iSmokerRopes[iClient][0];
+	
 	char sBuffer[32];
 	Format(sBuffer, sizeof(sBuffer), "szf_rope_%d", g_iSmokerRopes[iClient][1]);
-	SetEntPropString(g_iSmokerRopes[iClient][0], Prop_Data, "m_iNextLinkName", sBuffer);
-		
+	SetEntPropString(iRopeMove, Prop_Data, "m_iNextLinkName", sBuffer);
+	
 	for (int i = 0; i < sizeof(g_iSmokerRopes[]); i++)
 	{
 		DispatchSpawn(g_iSmokerRopes[iClient][i]);
 		ActivateEntity(g_iSmokerRopes[iClient][i]);
 	}
 	
-	int iRope = g_iSmokerRopes[iClient][0];
-	
 	SetVariantString("self.SetMoveType(Constants.EMoveType.MOVETYPE_FLY, Constants.EMoveCollide.MOVECOLLIDE_FLY_CUSTOM)");
-	AcceptEntityInput(iRope, "RunScriptCode");
+	AcceptEntityInput(iRopeMove, "RunScriptCode");
 	
 	float vecVelocity[3];
 	AnglesToVelocity(vecAngles, vecVelocity, flSmokerSpeedFast);
-	TeleportEntity(iRope, _, _, vecVelocity);
+	TeleportEntity(iRopeMove, _, _, vecVelocity);
 	
-	SDKHook(iRope, SDKHook_Touch, Infected_OnSmokerTouch);
+	SDKHook(iRopeMove, SDKHook_Touch, Infected_OnSmokerTouch);
 }
 
 void Infected_RetractSmokerBeam(int iClient, SmokerStatus nStatus)
@@ -1049,21 +1056,54 @@ public Action Infected_OnSmokerTouch(int iRope, int iToucher)
 	return Plugin_Handled;
 }
 
-void Infected_SmokerTryGrab(int iClient)
+bool Infected_DoBeamTrace(int iClient)
 {
+	// Ensure one end of the beam is always at client
 	float vecOrigin1[3], vecOrigin2[3];
-	GetEntPropVector(g_iSmokerRopes[iClient][1], Prop_Send, "m_vecOrigin", vecOrigin1);
+	GetClientEyePosition(iClient, vecOrigin1);
+	vecOrigin1[2] += flSmokerZPosition;
+	TeleportEntity(g_iSmokerRopes[iClient][1], vecOrigin1);
 	GetEntPropVector(g_iSmokerRopes[iClient][0], Prop_Send, "m_vecOrigin", vecOrigin2);
 	
-	Handle hTrace = TR_TraceRayFilterEx(vecOrigin1, vecOrigin2, MASK_ALL, RayType_EndPoint, Trace_OnlyHitEnemies, iClient);
+	Handle hTrace = TR_TraceRayFilterEx(vecOrigin1, vecOrigin2, MASK_PLAYERSOLID, RayType_EndPoint, Trace_DontHitTeammates, iClient);
 	if (TR_DidHit(hTrace))
 	{
-		g_flSmokerGrabStart[iClient] = GetGameTime();
-		g_iSmokerGrabVictim[iClient] = TR_GetEntityIndex(hTrace);
-		Infected_RetractSmokerBeam(iClient, SmokerStatus_Grabbing);
+		int iVictim = TR_GetEntityIndex(hTrace);
+		if (IsValidLivingSurvivor(iVictim))
+		{
+			if (!g_iSmokerGrabVictim[iClient])
+			{
+				g_flSmokerGrabStart[iClient] = GetGameTime();
+				g_iSmokerGrabVictim[iClient] = iVictim;
+				Infected_RetractSmokerBeam(iClient, SmokerStatus_Grabbing);
+			}
+		}
+		else
+		{
+			// Either something got in the way or we got teleported, try extract it
+			if (g_nSmokerStatus[iClient] == SmokerStatus_Extend)
+			{
+				Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+				delete hTrace;
+				return false;
+			}
+			else
+			{
+				float vecVelocity[3];
+				GetEntPropVector(g_iSmokerRopes[iClient][0], Prop_Data, "m_vecVelocity", vecVelocity);
+				if (GetVectorLength(vecVelocity) < flSmokerSpeedFast * 0.8)
+				{
+					// Likely hit something and is in the way, end it
+					Infected_EndSmokerBeam(iClient);
+					delete hTrace;
+					return false;
+				}
+			}
+		}
 	}
 	
 	delete hTrace;
+	return true;
 }
 
 void Infected_SmokerGrabVictim(int iClient)

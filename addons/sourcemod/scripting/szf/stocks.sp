@@ -988,7 +988,7 @@ stock void GetEntityCenterPoint(int iEntity, float vecResult[3])
 	AddVectors(vecResult, vecOrigin, vecResult);
 }
 
-public bool Trace_DontHitOtherEntities(int iEntity, int iMask, any iData)
+bool Trace_DontHitOtherEntities(int iEntity, int iMask, any iData)
 {
 	if (iEntity == iData)
 		return true;
@@ -999,7 +999,7 @@ public bool Trace_DontHitOtherEntities(int iEntity, int iMask, any iData)
 	return true;
 }
 
-public bool Trace_DontHitEntity(int iEntity, int iMask, any iData)
+bool Trace_DontHitEntity(int iEntity, int iMask, any iData)
 {
 	if (iEntity == iData)
 		return false;
@@ -1007,10 +1007,10 @@ public bool Trace_DontHitEntity(int iEntity, int iMask, any iData)
 	return true;
 }
 
-public bool Trace_OnlyHitEnemies(int iEntity, int iMask, any iData)
+bool Trace_DontHitTeammates(int iEntity, int iMask, any iData)
 {
 	if (iEntity <= 0 || iEntity > MaxClients)
-		return false;
+		return true;
 	
 	return GetClientTeam(iEntity) != GetClientTeam(iData);
 }
