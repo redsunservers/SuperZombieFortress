@@ -1022,8 +1022,11 @@ void Infected_RetractSmokerBeam(int iClient, SmokerStatus nStatus)
 
 public void Infected_EndSmokerBeam(int iClient)
 {
-	g_nSmokerStatus[iClient] = SmokerStatus_None;
+	if (IsValidLivingSurvivor(g_iSmokerGrabVictim[iClient]))
+		TeleportEntity(g_iSmokerGrabVictim[iClient], NULL_VECTOR, NULL_VECTOR, {0.0, 0.0, 0.0});
+	
 	g_iSmokerGrabVictim[iClient] = 0;
+	g_nSmokerStatus[iClient] = SmokerStatus_None;
 	
 	SetEntityMoveType(iClient, MOVETYPE_WALK);
 	TF2_RemoveCondition(iClient, TFCond_FreezeInput);
@@ -1143,6 +1146,11 @@ void Infected_SmokerGrabVictim(int iClient)
 		
 		// Add up amount of distance left to catch up from victim to tip of tongue
 		ScaleVector(vecVelocity, flSmokerSpeedFast + flDistance);
+		
+		if (GetEntityFlags(iVictim) & FL_ONGROUND)
+			vecVelocity[2] += 300.0;
+		else
+			vecVelocity[2] += 50.0;
 	}
 	
 	TeleportEntity(iVictim, NULL_VECTOR, NULL_VECTOR, vecVelocity);
