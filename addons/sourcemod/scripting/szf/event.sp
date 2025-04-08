@@ -233,7 +233,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		if (g_nNextInfected[iKillers[0]] == Infected_None && !GetRandomInt(0, 1) && g_nRoundState == SZFRoundState_Active)
 			g_bSpawnAsSpecialInfected[iKillers[0]] = true;
 		
-		if (g_iKillsThisLife[iKillers[0]] == 3)
+		if (g_iKillsThisLife[iKillers[0]] == 3 && g_nInfected[iKillers[0]] != Infected_Tank)
 			TF2_AddCondition(iKillers[0], TFCond_DefenseBuffed, TFCondDuration_Infinite);
 	}
 	
