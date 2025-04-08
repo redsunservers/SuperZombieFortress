@@ -433,9 +433,14 @@ stock bool IsRazorbackActive(int iClient)
 	return false;
 }
 
-stock int TF2_GetItemSlot(int iIndex, TFClassType iClass)
+stock int TF2_GetItemSlot(int iIndex, TFClassType iClass = TFClass_Unknown)
 {
-	int iSlot = TF2Econ_GetItemLoadoutSlot(iIndex, iClass);
+	int iSlot = -1;
+	if (iClass == TFClass_Unknown)
+		iSlot = TF2Econ_GetItemDefaultLoadoutSlot(iIndex);
+	else
+		iSlot = TF2Econ_GetItemLoadoutSlot(iIndex, iClass);
+	
 	if (iSlot >= 0)
 	{
 		// Econ reports wrong slots for Engineer and Spy
@@ -465,10 +470,8 @@ stock int TF2_GetItemSlot(int iIndex, TFClassType iClass)
 		
 		return iSlot;
 	}
-	else
-	{
-		return TF2Econ_GetItemDefaultLoadoutSlot(iIndex);
-	}
+	
+	return -1;
 }
 
 stock int TF2_GetItemInSlot(int iClient, int iSlot)
