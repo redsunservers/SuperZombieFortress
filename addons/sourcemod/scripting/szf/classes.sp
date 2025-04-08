@@ -297,7 +297,7 @@ stock int GetZombieClassCount()
 
 stock int GetZombieMeleeIndex(TFClassType nClass)
 {
-	return g_ZombieClasses[nClass].GetWeaponSlotIndex(WeaponSlot_Melee, nClass);
+	return g_ZombieClasses[nClass].GetWeaponSlotIndex(WeaponSlot_Melee);
 }
 
 stock bool IsValidInfected(Infected nInfected)

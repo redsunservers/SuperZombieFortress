@@ -249,7 +249,7 @@ enum struct ClientClasses
 		
 		return false;
 	}
-	bool GetWeaponSlot(int iSlot, TFClassType nClass, WeaponClasses buffer)
+	bool GetWeaponSlot(int iSlot, WeaponClasses buffer)
 	{
 		if (!this.aWeapons)
 			return false;
@@ -262,7 +262,7 @@ enum struct ClientClasses
 		WeaponClasses weapon;
 		while (this.GetWeapon(iPos, weapon))
 		{
-			if (TF2_GetItemSlot(weapon.iIndex, nClass) == iSlot)
+			if (TF2_GetItemSlot(weapon.iIndex) == iSlot)
 				weapons[iCount++] = weapon;
 		}
 		
@@ -273,10 +273,10 @@ enum struct ClientClasses
 		return true;
 	}
 	
-	int GetWeaponSlotIndex(int iSlot, TFClassType nClass)
+	int GetWeaponSlotIndex(int iSlot)
 	{
 		WeaponClasses weapon;
-		if (!this.GetWeaponSlot(iSlot, nClass, weapon))
+		if (!this.GetWeaponSlot(iSlot, weapon))
 			return -1;
 		
 		return weapon.iIndex;
@@ -2147,7 +2147,7 @@ void HandleZombieLoadout(int iClient)
 		}
 		
 		WeaponClasses weapon;
-		if (!g_ClientClasses[iClient].GetWeaponSlot(iSlot, TF2_GetPlayerClass(iClient), weapon))	// picks one of the available weapon in slot at random
+		if (!g_ClientClasses[iClient].GetWeaponSlot(iSlot, weapon))	// picks one of the available weapon in slot at random
 			continue;
 		
 		TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sAttribs);
@@ -2215,7 +2215,7 @@ void OnClientDisguise(int iClient)
 		if (g_ClientClasses[iTarget].sWorldModel[0])
 			SetEntProp(iClient, Prop_Send, "m_nModelIndexOverrides", PrecacheModel(g_ClientClasses[iTarget].sWorldModel), _, VISION_MODE_ROME);
 		
-		iIndex = g_ClientClasses[iTarget].GetWeaponSlotIndex(WeaponSlot_Melee, nClass);
+		iIndex = g_ClientClasses[iTarget].GetWeaponSlotIndex(WeaponSlot_Melee);
 	}
 	else
 	{
