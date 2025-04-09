@@ -640,8 +640,11 @@ void SetWeaponModel(int iEntity, Weapon wep)
 		Call_Finish();
 	}
 	
+	float flOldScale = oldWep.flScale ? oldWep.flScale : 1.0;
+	
 	SetEntityModel(iEntity, wep.sModel);
 	SetEntProp(iEntity, Prop_Send, "m_nSkin", wep.iSkin);
+	SetEntPropFloat(iEntity, Prop_Send, "m_flModelScale", 1.0 / flOldScale * wep.flScale);
 	
 	if (wep.iColor[0] + wep.iColor[1] + wep.iColor[2] > 0)
 	{
