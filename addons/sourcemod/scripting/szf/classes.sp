@@ -219,32 +219,37 @@ void Classes_PrecacheClass(ClientClasses class)
 		PrecacheSound2(class.sSoundSpawn);
 }
 
-void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), TFClassType iClass = TFClass_Unknown)
+void Classes_SetClient(int iClient, Infected nInfected = view_as<Infected>(-1), TFClassType nClass = TFClass_Unknown)
 {
 	if (nInfected != view_as<Infected>(-1))
 		g_nInfected[iClient] = nInfected;
 	
 	if (g_nInfected[iClient] != Infected_None)
-		iClass = GetInfectedClass(g_nInfected[iClient]);
-	else if (iClass == TFClass_Unknown)
-		iClass = TF2_GetPlayerClass(iClient);
+		nClass = GetInfectedClass(g_nInfected[iClient]);
+	else if (nClass == TFClass_Unknown)
+		nClass = TF2_GetPlayerClass(iClient);
+	
+	ArrayList aOldWeapons = g_ClientClasses[iClient].aWeapons;
 	
 	if (IsSurvivor(iClient))
 	{
-		g_ClientClasses[iClient] = g_SurvivorClasses[iClass];
+		g_ClientClasses[iClient] = g_SurvivorClasses[nClass];
 	}
 	else if (IsZombie(iClient))
 	{
 		if (g_nInfected[iClient] == Infected_None)
-			g_ClientClasses[iClient] = g_ZombieClasses[iClass];
+			g_ClientClasses[iClient] = g_ZombieClasses[nClass];
 		else
 			g_ClientClasses[iClient] = g_InfectedClasses[g_nInfected[iClient]];
 	}
 	else
 	{
-		//How
+		// How
 		g_ClientClasses[iClient] = g_DefaultClasses;
 	}
+	
+	if (aOldWeapons != g_ClientClasses[iClient].aWeapons)
+		TF2_RemoveAllAttributes(iClient);	// Clear all attribs for it to be re-set, previous attribs applied may've been carried over
 }
 
 stock bool IsValidSurvivorClass(TFClassType iClass)

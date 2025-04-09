@@ -803,6 +803,16 @@ stock bool TF2_WeaponFindAttribute(int iWeapon, int iAttrib, float &flVal)
 	return true;
 }
 
+stock void TF2_RemoveAllAttributes(int iClient)
+{
+	for (int iSlot = 1; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
+	{
+		int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
+		if (iWeapon != INVALID_ENT_REFERENCE)
+			TF2Attrib_RemoveAll(iWeapon);
+	}
+}
+
 stock bool TF2_DefIndexFindAttribute(int iDefIndex, int iAttrib, float &flVal)
 {
 	ArrayList attribs = TF2Econ_GetItemStaticAttributes(iDefIndex);
