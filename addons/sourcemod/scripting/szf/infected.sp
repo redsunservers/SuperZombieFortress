@@ -829,7 +829,7 @@ static int g_iSmokerBeamHits[MAXPLAYERS+1];
 
 // TODO convar?
 const float flSmokerSpeedSlow = 100.0;
-const float flSmokerSpeedFast = 1000.0;
+const float flSmokerSpeedFast = 350.0;
 const float flSmokerZPosition = -8.0;
 
 public void Infected_OnSmokerThink(int iClient, int &iButtons)
