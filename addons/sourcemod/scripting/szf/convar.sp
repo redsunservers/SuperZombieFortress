@@ -16,7 +16,7 @@ void ConVar_Init()
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Force enable SZF for next map.", _, true, 0.0, true, 1.0);
 	g_cvDebug = CreateConVar("sm_szf_debug", "1", "Enable debugs?", _, true, 0.0, true, 1.0);
 	g_cvRatio = CreateConVar("sm_szf_ratio", "0.80", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
-	g_cvWeaponSpawnReappear = CreateConVar("sm_szf_weapon_spawn_reappear", "0.0", "% chance for spawn weapons to reappear.", _, true, 0.0, true, 1.0);
+	g_cvWeaponSpawnReappear = CreateConVar("sm_szf_weapon_spawn_reappear", "0.5", "% chance for spawn weapons to reappear.", _, true, 0.0, true, 1.0);
 	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "400", "Amount of health the Tank gets per alive survivor.", _, true, 10.0);
 	g_cvTankHealthMin = CreateConVar("sm_szf_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with.", _, true, 0.0);
 	g_cvTankHealthMax = CreateConVar("sm_szf_tank_health_max", "10000", "Maximum amount of health the Tank can spawn with.", _, true, 0.0);
