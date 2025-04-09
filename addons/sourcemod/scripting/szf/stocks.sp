@@ -444,16 +444,21 @@ stock int TF2_GetItemSlot(int iIndex, TFClassType iClass = TFClass_Unknown)
 	if (iSlot >= 0)
 	{
 		// Econ reports wrong slots for Engineer and Spy
+		
+		switch (iSlot)
+		{
+			case 5: return WeaponSlot_PDABuild; // Construction PDA and Disguise Kit
+			case 6: return WeaponSlot_PDADestroy; // Destruction PDA and Invis Watch
+		}
+		
 		switch (iClass)
 		{
 			case TFClass_Spy:
 			{
 				switch (iSlot)
 				{
-					case 1: iSlot = WeaponSlot_Primary; // Revolver
-					case 4: iSlot = WeaponSlot_Secondary; // Sapper
-					case 5: iSlot = WeaponSlot_PDADisguise; // Disguise Kit
-					case 6: iSlot = WeaponSlot_InvisWatch; // Invis Watch
+					case 1: return WeaponSlot_Primary; // Revolver
+					case 4: return WeaponSlot_Secondary; // Sapper
 				}
 			}
 			
@@ -461,9 +466,7 @@ stock int TF2_GetItemSlot(int iIndex, TFClassType iClass = TFClass_Unknown)
 			{
 				switch (iSlot)
 				{
-					case 4: iSlot = WeaponSlot_BuilderEngie; // Toolbox
-					case 5: iSlot = WeaponSlot_PDABuild; // Construction PDA
-					case 6: iSlot = WeaponSlot_PDADestroy; // Destruction PDA
+					case 4: return WeaponSlot_BuilderEngie; // Toolbox
 				}
 			}
 		}
