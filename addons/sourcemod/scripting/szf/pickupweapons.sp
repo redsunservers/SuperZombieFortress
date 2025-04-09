@@ -60,14 +60,28 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	g_aWeaponsSpawn = new ArrayList();
 	
 	// Loop through spawn weapons first to fill up spawn array
+	ArrayList aSpawns = new ArrayList();
+	ArrayList aNonSpawns = new ArrayList();
 	
 	while ((iEntity = FindEntityByClassname(iEntity, "prop_dynamic")) != INVALID_ENT_REFERENCE)
+	{
 		if (IsSpawnWeapon(iEntity))
-			SetWeapon(iEntity);
+			aSpawns.Push(iEntity);
+		else
+			aNonSpawns.Push(iEntity);
+	}
 	
-	while ((iEntity = FindEntityByClassname(iEntity, "prop_dynamic")) != INVALID_ENT_REFERENCE)
-		if (!IsSpawnWeapon(iEntity))
-			SetWeapon(iEntity);
+	aSpawns.Sort(Sort_Random, Sort_Integer);
+	aNonSpawns.Sort(Sort_Random, Sort_Integer);
+	
+	for (int i = 0; i < aSpawns.Length; i++)
+		SetWeapon(aSpawns.Get(i));
+	
+	for (int i = 0; i < aNonSpawns.Length; i++)
+		SetWeapon(aNonSpawns.Get(i));
+	
+	delete aSpawns;
+	delete aNonSpawns;
 	
 	return Plugin_Continue;
 }
