@@ -1041,6 +1041,9 @@ public Action Infected_OnSmokerTouch(int iRope, int iToucher)
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
+		if (g_nInfected[iClient] != Infected_Smoker)	// can happen when client disconnects or new round begins
+			continue;
+		
 		for (int i = 0; i < sizeof(g_iSmokerRopes[]); i++)
 		{
 			if (iRope != g_iSmokerRopes[iClient][i])
@@ -1051,7 +1054,6 @@ public Action Infected_OnSmokerTouch(int iRope, int iToucher)
 		}
 	}
 	
-	// ermm...... weird situation, delete it
 	RemoveEntity(iRope);
 	return Plugin_Handled;
 }
