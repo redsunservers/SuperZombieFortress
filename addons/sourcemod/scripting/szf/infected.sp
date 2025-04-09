@@ -952,7 +952,7 @@ void Infected_StartSmokerBeam(int iClient)
 		Format(sBuffer, sizeof(sBuffer), "szf_rope_%d", iRope);
 		SetEntPropString(iRope, Prop_Data, "m_iName", sBuffer);
 		
-		DispatchKeyValue(iRope, "RopeMaterial", "sprites/laserbeam.vmt");
+		DispatchKeyValue(iRope, "RopeMaterial", "cable/red.vmt");
 		SetEntProp(iRope, Prop_Data, "m_spawnflags", 1);	// SF_ROPE_RESIZE
 		
 		TeleportEntity(iRope, vecOrigin);
