@@ -305,11 +305,6 @@
 		"jp"		"{green}あなたはハンターです：\n{orange}- 「メディック！」 敵の生存者をつかむために！ {yellow}（ミス時に3秒のクールダウン、ヒット時に21秒のクールダウン）"
 	}
 	
-	"SpecialInfected_Smoker"
-	{
-		"jp"		"{green}あなたは喫煙者です：\n{orange}- 右クリックを押し続けると、敵を引き寄せてダメージを与えるビームを発射します！ {yellow}（クールダウンなし）"
-	}
-	
 	"SpecialInfected_Spitter"
 	{
 		"jp"		"{green}あなたはつばです：\n{orange}- 「メディック！」 生存者に有害なガスを投げる！ {yellow}（16秒のクールダウン）"

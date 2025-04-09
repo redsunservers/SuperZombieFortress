@@ -315,11 +315,6 @@
 		"pt"		"{green}VOCÊ É UM HUNTER:\n{orange}- Grite 'MEDIC!' para SALTAR e ATACAR SOBREVIVENTES! {yellow}(Recarga de 3 segundos ao errar & 21 segundos ao acertar)"
 	}
 
-	"SpecialInfected_Smoker"
-	{
-		"pt"		"{green}VOCÊ É UM SMOKER:\n{orange}- Clique com o botão direito para disparar um raio que puxa os sobreviventes para você! {yellow}(Sem recarga)"
-	}
-
 	"SpecialInfected_Spitter"
 	{
 		"pt"		"{green}VOCÊ É UM SPITTER:\n{orange}- Grite 'MEDIC!' para lançar seu GÁS em um grupo de sobreviventes para causar dano! {yellow}(Recarga de 16 segundos)"

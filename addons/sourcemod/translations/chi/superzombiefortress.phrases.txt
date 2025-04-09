@@ -306,11 +306,6 @@
 		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}(未命中3秒冷却 & 命中21秒冷却)"
 	}
 	
-	"SpecialInfected_Smoker"
-	{
-		"chi"		"{green}你是SMOKER:\N{orange}- 右键发射一道光束拉扯敌人靠近你！{yellow}(没有冷却)"
-	}
-	
 	"SpecialInfected_Spitter"
 	{
 		"chi"		"{green}你是SPITTER:\N{orange}- 呼叫'医生！'来投掷你的毒气到幸存者中造成伤害！{yellow}(16秒冷却)"

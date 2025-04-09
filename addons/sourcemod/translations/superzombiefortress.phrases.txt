@@ -354,7 +354,7 @@
 	
 	"SpecialInfected_Smoker"
 	{
-		"en"		"{green}YOU ARE A SMOKER:\n{orange}- Right click to fire a beam to enemy players and pull them towards you! {yellow}(no cooldown)"
+		"en"		"{green}YOU ARE A SMOKER:\n{orange}- Call 'MEDIC!' to fire a beam to enemy players and pull them towards you! {yellow}(no cooldown)"
 	}
 	
 	"SpecialInfected_Spitter"

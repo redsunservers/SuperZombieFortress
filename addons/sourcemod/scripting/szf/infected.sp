@@ -846,15 +846,6 @@ public void Infected_OnSmokerThink(int iClient, int &iButtons)
 	
 	switch (g_nSmokerStatus[iClient])
 	{
-		case SmokerStatus_None:
-		{
-			if (iButtons & IN_ATTACK2 && (GetEntityFlags(iClient) & FL_ONGROUND == FL_ONGROUND) && (GetEntityFlags(iClient) & FL_DUCKING != FL_DUCKING))
-			{
-				// Begin the smoker beam
-				Infected_StartSmokerBeam(iClient);
-				ViewModel_SetAnimation(iClient, "ACT_VM_TONGUE");
-			}
-		}
 		case SmokerStatus_Extend:
 		{
 			if (DistanceFromEntities(g_iSmokerRopes[iClient][0], g_iSmokerRopes[iClient][1]) >= 1150.0)
@@ -929,11 +920,17 @@ public Action Infected_OnSmokerDamage(int iClient, int &iAttacker, int &iInflict
 	return Plugin_Continue;
 }
 
-void Infected_StartSmokerBeam(int iClient)
+public void Infected_StartSmokerBeam(int iClient)
 {
+	if (g_nSmokerStatus[iClient] != SmokerStatus_None || GetEntityFlags(iClient) & FL_ONGROUND != FL_ONGROUND || GetEntityFlags(iClient) & FL_DUCKING == FL_DUCKING)
+		return;
+	
+	// Begin the smoker beam
+	
 	g_nSmokerStatus[iClient] = SmokerStatus_Extend;
 	g_iSmokerGrabVictim[iClient] = 0;
 	
+	ViewModel_SetAnimation(iClient, "ACT_VM_TONGUE");
 	SDKCall_PlaySpecificSequence(iClient, "tongue_attack_grab_survivor");
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
 	TF2_AddCondition(iClient, TFCond_FreezeInput, TFCondDuration_Infinite);

@@ -320,11 +320,6 @@
 		"hu"		"{green}TE EGY HUNTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy UGORJ és RÁVESD MAGAD AZ ELLENSÉGES TÚLÉLŐKRE! {yellow}(3 másodperc várakozási idő mellé és 21 találat esetén)"
 	}
 	
-	"SpecialInfected_Smoker"
-	{
-		"hu"		"{green}TE EGY SMOKER VAGY:\n{orange}- Jobb kattintással tüzelj egy sugarat az ellenséges játékosokra és húzd őket magad felé! {yellow}(nincs várakozási idő)"
-	}
-	
 	"SpecialInfected_Spitter"
 	{
 		"hu"		"{green}TE EGY SPITTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy GÁZT dobj a túlélők csoportjára, sebzést okozva! {yellow}(16 másodperc várakozási idő)"
