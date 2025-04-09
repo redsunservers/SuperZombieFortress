@@ -385,6 +385,7 @@ Handle g_hTimerProgress;
 ConVar g_cvForceOn;
 ConVar g_cvDebug;
 ConVar g_cvRatio;
+ConVar g_cvWeaponSpawnReappear;
 ConVar g_cvTankHealth;
 ConVar g_cvTankHealthMin;
 ConVar g_cvTankHealthMax;

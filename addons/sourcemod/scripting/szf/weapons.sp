@@ -134,7 +134,7 @@ void GetWeaponFromIndex(Weapon buffer, int iIndex)
 	}
 }
 
-ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, TFClassType nFilter = TFClass_Unknown)
+ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, ArrayList aSpawnWeapons = null, TFClassType nFilter = TFClass_Unknown)
 {
 	ArrayList aList = new ArrayList(sizeof(Weapon));
 	
@@ -143,6 +143,9 @@ ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, TFClassType nFilter = TF
 	{
 		Weapon wep;
 		g_Weapons.GetArray(g_WepIndexesByRarity[iRarity].Get(i), wep);
+		
+		if (aSpawnWeapons && aSpawnWeapons.FindValue(wep.iIndex) != -1 && GetRandomFloat(0.0, 1.0) >= g_cvWeaponSpawnReappear.FloatValue)
+			continue;	// spawn weapons have a chance to not reappear
 		
 		if (nFilter == TFClass_Unknown)
 		{
@@ -156,6 +159,23 @@ ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, TFClassType nFilter = TF
 		}
 	}
 	
+	return aList;
+}
+
+ArrayList GetAllCommonAndUncommonWeapons(ArrayList aSpawnWeapons = null, TFClassType nFilter = TFClass_Unknown)
+{
+	ArrayList aList = GetAllWeaponsWithRarity(WeaponRarity_Common, aSpawnWeapons, nFilter);
+	ArrayList aOther = GetAllWeaponsWithRarity(WeaponRarity_Uncommon, aSpawnWeapons, nFilter);
+	
+	int iLength = aOther.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		Weapon wep;
+		aOther.GetArray(i, wep);
+		aList.PushArray(wep);
+	}
+	
+	delete aOther;
 	return aList;
 }
 
