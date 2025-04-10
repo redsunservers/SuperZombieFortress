@@ -142,13 +142,20 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		
 		if (IsValidLivingClient(iAttacker) && flDamage < 300.0)
 		{
-			//Damage scaling Zombies
 			if (IsValidZombie(iAttacker))
-				flDamage = flDamage * g_flZombieDamageScale * 0.7; //Default: 0.7
-			
-			//Damage scaling Survivors
-			if (IsValidSurvivor(iAttacker) && !IsClassname(iInflicter, "obj_sentrygun"))
+			{
+				// Damage scaling Zombies, don't make it too crazy for higher dmg scale
+				float flScale = g_flZombieDamageScale;
+				if (flScale > 1.0)
+					flScale = Pow(flScale, 0.5);
+				
+				flDamage = flDamage * flScale * 0.7; // Default: 0.7
+			}
+			else if (IsValidSurvivor(iAttacker) && !IsClassname(iInflicter, "obj_sentrygun"))
+			{
+				// Damage scaling Survivors
 				flDamage /= g_flZombieDamageScale;
+			}
 			
 			bChanged = true;
 		}
