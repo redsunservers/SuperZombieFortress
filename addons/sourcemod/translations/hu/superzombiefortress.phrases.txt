@@ -345,11 +345,6 @@
 		"hu"		"{orange}A Pain Train {red}miatt 10%%-kal több sebzést szenvedsz."
 	}
 	
-	"Melee_HalfZatochi"
-	{
-		"hu"		"{orange}A Half-Zatoichi {red}csökkenti a maximális életerődet, amíg aktív."
-	}
-	
 	"Melee_MarketGardener"
 	{
 		"hu"		"{orange}A Market Gardener {green}25%%-kal magasabbra enged rocket jump-olni."

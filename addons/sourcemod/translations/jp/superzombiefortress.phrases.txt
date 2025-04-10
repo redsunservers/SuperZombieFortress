@@ -330,11 +330,6 @@
 		"jp"		"{orange}The ペイン・トレイン {red}10%%の追加ダメージを与えます。"
 	}
 	
-	"Melee_HalfZatochi"
-	{
-		"jp"		"{orange}The ハーフ座頭市 {red}アクティブな状態で最大の体力を消耗します。"
-	}
-	
 	"Melee_MarketGardener"
 	{
 		"jp"		"{orange}The マーケット・ガーデナー {green}ロケットジャンプが25%%高くなります。"

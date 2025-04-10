@@ -384,7 +384,7 @@
 	
 	"Melee_HalfZatochi"
 	{
-		"en"		"{orange}The Half-Zatoichi {red}drains your max health while active."
+		"en"		"{orange}The Half-Zatoichi {red}has its health restored on kill decreased to 15%%."
 	}
 	
 	"Melee_MarketGardener"

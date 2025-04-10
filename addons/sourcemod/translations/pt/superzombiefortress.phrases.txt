@@ -340,11 +340,6 @@
 		"pt"		"{orange}O Pain Train {red}faz você receber 10%% de dano adicional."
 	}
 
-	"Melee_HalfZatochi"
-	{
-		"pt"		"{orange}O Half-Zatoichi {red}drena sua saúde máxima enquanto ativo."
-	}
-
 	"Melee_MarketGardener"
 	{
 		"pt"		"{orange}O Market Gardener {green}faz você saltar 25%% mais alto com foguetes."

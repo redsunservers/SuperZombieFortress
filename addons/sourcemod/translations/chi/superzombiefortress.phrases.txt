@@ -331,11 +331,6 @@
 		"chi"		"{orange}钉棍{red}使你受到额外10%%的伤害。"
 	}
 	
-	"Melee_HalfZatochi"
-	{
-		"chi"		"{orange}座头市之刀{red}部署时消耗你的最大生命值。"
-	}
-	
 	"Melee_MarketGardener"
 	{
 		"chi"		"{orange}市场花园铁铲{green}让你火箭跳高度增加25%%。"
