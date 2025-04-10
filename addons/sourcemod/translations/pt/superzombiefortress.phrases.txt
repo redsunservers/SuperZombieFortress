@@ -312,7 +312,7 @@
 
 	"SpecialInfected_Hunter"
 	{
-		"pt"		"{green}VOCÊ É UM HUNTER:\n{orange}- Grite 'MEDIC!' para SALTAR e ATACAR SOBREVIVENTES! {yellow}(Recarga de 3 segundos ao errar & 21 segundos ao acertar)"
+		"pt"		"{green}VOCÊ É UM HUNTER:\n{orange}- Grite 'MEDIC!' para SALTAR e ATACAR SOBREVIVENTES! {yellow}(Recarga de 6 segundos ao errar & 21 segundos ao acertar)"
 	}
 
 	"SpecialInfected_Spitter"

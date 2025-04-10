@@ -349,7 +349,7 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"en"		"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}(3 on miss & 21 on hit second cooldown)"
+		"en"		"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}(6 on miss & 21 on hit second cooldown)"
 	}
 	
 	"SpecialInfected_Smoker"

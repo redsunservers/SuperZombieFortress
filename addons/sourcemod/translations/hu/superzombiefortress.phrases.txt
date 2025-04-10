@@ -317,7 +317,7 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"hu"		"{green}TE EGY HUNTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy UGORJ és RÁVESD MAGAD AZ ELLENSÉGES TÚLÉLŐKRE! {yellow}(3 másodperc várakozási idő mellé és 21 találat esetén)"
+		"hu"		"{green}TE EGY HUNTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy UGORJ és RÁVESD MAGAD AZ ELLENSÉGES TÚLÉLŐKRE! {yellow}(6 másodperc várakozási idő mellé és 21 találat esetén)"
 	}
 	
 	"SpecialInfected_Spitter"

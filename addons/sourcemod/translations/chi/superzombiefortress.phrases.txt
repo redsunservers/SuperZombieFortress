@@ -303,7 +303,7 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}(未命中3秒冷却 & 命中21秒冷却)"
+		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}(未命中6秒冷却 & 命中21秒冷却)"
 	}
 	
 	"SpecialInfected_Spitter"

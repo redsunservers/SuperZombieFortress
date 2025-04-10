@@ -302,7 +302,7 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"jp"		"{green}あなたはハンターです：\n{orange}- 「メディック！」 敵の生存者をつかむために！ {yellow}（ミス時に3秒のクールダウン、ヒット時に21秒のクールダウン）"
+		"jp"		"{green}あなたはハンターです：\n{orange}- 「メディック！」 敵の生存者をつかむために！ {yellow}（ミス時に6秒のクールダウン、ヒット時に21秒のクールダウン）"
 	}
 	
 	"SpecialInfected_Spitter"
