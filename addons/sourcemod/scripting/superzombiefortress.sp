@@ -386,6 +386,7 @@ ConVar g_cvForceOn;
 ConVar g_cvDebug;
 ConVar g_cvRatio;
 ConVar g_cvWeaponSpawnReappear;
+ConVar g_cvWeaponRareCap;
 ConVar g_cvTankHealth;
 ConVar g_cvTankHealthMin;
 ConVar g_cvTankHealthMax;
@@ -588,7 +589,6 @@ public void OnPluginStart()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
-	g_iMaxRareWeapons = MAX_RARE;
 	g_bEnabled = false;
 	g_bNewFullRound = true;
 	g_bLastSurvivor = false;
@@ -753,7 +753,7 @@ void GetMapSettings()
 		{
 			ReplaceString(sTargetName, sizeof(sTargetName), "szf_rarecap_", "", false);
 			if(StringToIntEx(sTargetName, g_iMaxRareWeapons) == 0)
-				g_iMaxRareWeapons = MAX_RARE;
+				g_iMaxRareWeapons = g_cvWeaponRareCap.IntValue;
 		}
 	}
 }
@@ -1362,7 +1362,7 @@ void SZFEnable()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
-	g_iMaxRareWeapons = MAX_RARE;
+	g_iMaxRareWeapons = g_cvWeaponRareCap.IntValue;
 	g_bEnabled = true;
 	g_bNewFullRound = true;
 	g_bLastSurvivor = false;
@@ -1436,7 +1436,7 @@ void SZFDisable()
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;
 	g_bDirectorSpawnTeleport = false;
-	g_iMaxRareWeapons = MAX_RARE;
+	g_iMaxRareWeapons = g_cvWeaponRareCap.IntValue;
 	g_bEnabled = false;
 	g_bNewFullRound = true;
 	g_bLastSurvivor = false;

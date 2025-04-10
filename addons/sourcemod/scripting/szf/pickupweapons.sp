@@ -1,5 +1,4 @@
 #define PICKUP_COOLDOWN 	2.0
-#define MAX_RARE			15
 
 enum WeaponType
 {
