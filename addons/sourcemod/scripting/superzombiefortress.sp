@@ -386,6 +386,7 @@ ConVar g_cvForceOn;
 ConVar g_cvDebug;
 ConVar g_cvRatio;
 ConVar g_cvWeaponSpawnReappear;
+ConVar g_cvWeaponPickupChance;
 ConVar g_cvWeaponRareChance;
 ConVar g_cvWeaponRareCap;
 ConVar g_cvTankHealth;

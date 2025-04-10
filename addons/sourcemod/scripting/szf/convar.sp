@@ -17,6 +17,7 @@ void ConVar_Init()
 	g_cvDebug = CreateConVar("sm_szf_debug", "1", "Enable debugs?", _, true, 0.0, true, 1.0);
 	g_cvRatio = CreateConVar("sm_szf_ratio", "0.80", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
 	g_cvWeaponSpawnReappear = CreateConVar("sm_szf_weapon_spawn_reappear", "0.5", "% chance for spawn weapons to reappear.", _, true, 0.0, true, 1.0);
+	g_cvWeaponPickupChance = CreateConVar("sm_szf_weapon_pickup_chance", "0.07", "% chance for normal weapons to be pickups.", _, true, 0.0, true, 1.0);
 	g_cvWeaponRareChance = CreateConVar("sm_szf_weapon_rare_chance", "0.2", "% chance for normal weapons to be rare.", _, true, 0.0, true, 1.0);
 	g_cvWeaponRareCap = CreateConVar("sm_szf_weapon_rare_cap", "22", "Max amount of rare weapons to generate", _, true, 0.0);
 	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "400", "Amount of health the Tank gets per alive survivor.", _, true, 10.0);

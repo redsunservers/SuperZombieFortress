@@ -135,7 +135,7 @@ public void SetWeapon(int iEntity)
 				g_iAvailableRareCount--;
 			}
 			//Pick-ups
-			else if (!GetRandomInt(0, 9) && nWeaponType != WeaponType_DefaultNoPickup)
+			else if (nWeaponType != WeaponType_DefaultNoPickup && GetRandomFloat(0.0, 1.0) < g_cvWeaponPickupChance.FloatValue)
 			{
 				SetRandomPickup(iEntity);
 			}
