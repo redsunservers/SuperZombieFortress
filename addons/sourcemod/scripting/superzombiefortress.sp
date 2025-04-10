@@ -1700,7 +1700,7 @@ void UpdateZombieDamageScale()
 	
 	//Zombie rage increases damage
 	if (g_bZombieRage)
-		g_flZombieDamageScale += 0.15;
+		g_flZombieDamageScale *= 1.15;
 	
 	//If the last point is being captured, increase damage scale if lower than 100%
 	if (g_bCapturingLastPoint && g_flZombieDamageScale < 1.0 && !g_bSurvival)
