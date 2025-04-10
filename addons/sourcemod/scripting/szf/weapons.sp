@@ -224,14 +224,14 @@ public bool Weapons_OnPickup_Regen(int iClient)
 
 public bool Weapons_OnPickup_Minicrits(int iClient)
 {
-	TF2_AddCondition(iClient, TFCond_Buffed, 30.0);
+	TF2_AddCondition(iClient, TFCond_Buffed, 45.0);
 	
 	return true;
 }
 
 public bool Weapons_OnPickup_Defense(int iClient)
 {
-	TF2_AddCondition(iClient, TFCond_DefenseBuffed, 30.0);
+	TF2_AddCondition(iClient, TFCond_DefenseBuffed, 45.0);
 	
 	return true;
 }
