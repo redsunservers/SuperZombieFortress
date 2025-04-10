@@ -211,31 +211,15 @@ void Weapons_ReplaceEntityModel(int iEnt, int iIndex)
 }
 
 // -----------------------------------------------------------
-public void Weapons_OnSpawn_Health(int iEntity)
+public bool Weapons_OnPickup_Regen(int iClient)
 {
-	int iPickup = SpawnPickup(iEntity, "item_healthkit_full", false);
+	TF2_AddCondition(iClient, TFCond_HalloweenQuickHeal, 5.0);
 	
-	SetVariantString("!activator");
-	AcceptEntityInput(iPickup, "SetParent", iEntity);
+	GivePlayerAmmo(iClient, 9999, 1, true);	// TF_AMMO_PRIMARY
+	GivePlayerAmmo(iClient, 9999, 2, true);	// TF_AMMO_SECONDARY
+	GivePlayerAmmo(iClient, 9999, 3, true);	// TF_AMMO_METAL
 	
-	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
-	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
-}
-
-public void Weapons_OnSpawn_Ammo(int iEntity)
-{
-	int iPickup = SpawnPickup(iEntity, "item_ammopack_full", false);
-	
-	SetVariantString("!activator");
-	AcceptEntityInput(iPickup, "SetParent", iEntity);
-	
-	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
-	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
-}
-
-public bool Weapons_OnPickup_Deny(int iClient)
-{
-	return false;
+	return true;
 }
 
 public bool Weapons_OnPickup_Minicrits(int iClient)
@@ -250,18 +234,4 @@ public bool Weapons_OnPickup_Defense(int iClient)
 	TF2_AddCondition(iClient, TFCond_DefenseBuffed, 30.0);
 	
 	return true;
-}
-
-public Action Weapons_PickupTouch(const char[] sOutput, int iCaller, int iActivator, float flDelay)
-{
-	int iParent = GetEntPropEnt(iCaller, Prop_Data, "m_pParent");
-	if (iParent != -1)
-	{
-		AcceptEntityInput(iParent, ENT_ONKILL, iActivator, iActivator);
-		RemoveEntity(iParent);
-	}
-
-	RemoveEntity(iCaller);
-
-	return Plugin_Continue;
 }

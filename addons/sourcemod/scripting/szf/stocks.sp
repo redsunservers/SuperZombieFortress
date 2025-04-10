@@ -1129,27 +1129,6 @@ stock void Shake(int iClient, float flAmplitude, float flDuration)
 	EndMessage();
 }
 
-stock int SpawnPickup(int iEntity, const char[] sClassname, bool bTemp=true)
-{
-	float vecOrigin[3];
-	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
-	vecOrigin[2] += 16.0;
-	
-	int iPickup = CreateEntityByName(sClassname);
-	
-	if (bTemp)
-		DispatchKeyValue(iPickup, "OnPlayerTouch", "!self,Kill,,0,-1");
-	
-	if (DispatchSpawn(iPickup))
-	{
-		SetEntProp(iPickup, Prop_Send, "m_iTeamNum", 0, 4);
-		TeleportEntity(iPickup, vecOrigin, NULL_VECTOR, NULL_VECTOR);
-		if (bTemp)
-			CreateTimer(0.15, Timer_KillEntity, EntIndexToEntRef(iPickup));
-	}
-	return iPickup;
-}
-
 public Action Timer_KillEntity(Handle hTimer, int iRef)
 {
 	int iEntity = EntRefToEntIndex(iRef);
