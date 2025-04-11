@@ -855,6 +855,14 @@ public void Infected_OnSmokerThink(int iClient, int &iButtons)
 				return;
 			}
 			
+			float vecVelocity[3];
+			GetEntPropVector(g_iSmokerRopes[iClient][0], Prop_Data, "m_vecVelocity", vecVelocity);
+			if (GetVectorLength(vecVelocity) < flSmokerSpeedFast * 0.8)
+			{
+				Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+				return;
+			}
+			
 			if (!Infected_DoBeamTrace(iClient))	// find a victim to grab while extending
 				return;
 			

@@ -39,12 +39,8 @@ stock void VectorTowards(const float vecOrigin[3], const float vecTarget[3], flo
 
 stock void AnglesToVelocity(const float vecAngle[3], float vecVelocity[3], float flSpeed = 1.0)
 {
-	vecVelocity[0] = Cosine(DegToRad(vecAngle[1]));
-	vecVelocity[1] = Sine(DegToRad(vecAngle[1]));
-	vecVelocity[2] = Sine(DegToRad(vecAngle[0])) * -1.0;
-	
+	GetAngleVectors(vecAngle, vecVelocity, NULL_VECTOR, NULL_VECTOR);
 	NormalizeVector(vecVelocity, vecVelocity);
-	
 	ScaleVector(vecVelocity, flSpeed);
 }
 
