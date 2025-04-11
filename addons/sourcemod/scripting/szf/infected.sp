@@ -1199,10 +1199,10 @@ public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
 		SetEntProp(iGas, Prop_Send, "m_iTeamNum", GetClientTeam(iVictim));
 		if (DispatchSpawn(iGas))
 		{
-			float vecOrigin[3], vecAngles[3];
-			GetClientAbsOrigin(iVictim, vecOrigin);
+			float vecCenter[3], vecAngles[3];
+			WorldSpaceCenter(iVictim, vecCenter);
 			GetClientAbsAngles(iVictim, vecAngles);
-			TeleportEntity(iGas, vecOrigin, vecAngles, NULL_VECTOR);
+			TeleportEntity(iGas, vecCenter, vecAngles);
 		}
 	}
 }
