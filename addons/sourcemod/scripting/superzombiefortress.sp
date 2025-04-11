@@ -1926,7 +1926,12 @@ ArrayList FastRespawnNearby(float flMinDistance, float flMaxDistance, int iForce
 			
 			float vecPosClient[3];
 			GetClientAbsOrigin(iClient, vecPosClient);
-			float flDistance = DistanceFromEntityToPoint(iClient, vecPosOrigin);
+			
+			// If client is above position, drastically increase distance between as spot could be in a different floor, harder to climb back up
+			if (vecPosClient[2] > vecPosOrigin[2])
+				vecPosClient[2] += (vecPosClient[2] - vecPosOrigin[2]) * 4.0;
+			
+			float flDistance = GetVectorDistance(vecPosClient, vecPosOrigin);
 			if (flDistance < flMinDistance)
 			{
 				bAllow = false;
