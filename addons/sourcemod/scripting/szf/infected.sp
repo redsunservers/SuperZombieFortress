@@ -1140,7 +1140,7 @@ void Infected_SmokerGrabVictim(int iClient)
 		{
 			const float flDuration = 5.0;
 			Stun_StartPlayer(iVictim, flDuration);
-			TF2_StunPlayer(iVictim, flDuration, 0.2, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, iClient);
+			TF2_StunPlayer(iVictim, flDuration, 0.8, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, iClient);
 		}
 		
 		float flDistance = GetVectorDistance(vecOriginVictim, vecOriginRopeStart);
