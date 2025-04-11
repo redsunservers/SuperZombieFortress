@@ -64,17 +64,17 @@ stock void RotateVector(const float vecVector[3], const float vecAngle[3], float
 	vecResult[2] = (vecVector[0]*-flSP) + (vecVector[1]*flSR*flCP) + (vecVector[2]*flCR*flCP);
 }
 
-stock void WorldSpaceCenter(int entity, float buffer[3])
+stock void WorldSpaceCenter(int iEntity, float vecCenter[3])
 {
-	float origin[3], mins[3], maxs[3], offset[3];
-	GetEntPropVector(entity, Prop_Data, "m_vecAbsOrigin", origin);
-	GetEntPropVector(entity, Prop_Data, "m_vecMins", mins);
-	GetEntPropVector(entity, Prop_Data, "m_vecMaxs", maxs);
+	float vecOrigin[3], vecMins[3], vecMaxs[3], vecOffset[3];
+	GetEntPropVector(iEntity, Prop_Data, "m_vecAbsOrigin", vecOrigin);
+	GetEntPropVector(iEntity, Prop_Data, "m_vecMins", vecMins);
+	GetEntPropVector(iEntity, Prop_Data, "m_vecMaxs", vecMaxs);
 	
-	AddVectors(mins, maxs, offset);
-	ScaleVector(offset, 0.5);
+	AddVectors(vecMins, vecMaxs, vecOffset);
+	ScaleVector(vecOffset, 0.5);
 	
-	AddVectors(origin, offset, buffer);
+	AddVectors(vecOrigin, vecOffset, vecCenter);
 }
 
 ////////////////
