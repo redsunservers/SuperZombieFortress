@@ -20,7 +20,7 @@ enum struct Weapon
 	ArrayList aClassSpecific[view_as<int>(TFClass_Engineer) + 1];
 	int iColor[3];
 	float flScale;
-	float flHeightOffset;
+	float vecOriginOffset[3];
 	float vecAnglesOffset[3];
 	float vecAnglesConst[3];
 	bool bAnglesConst[3];

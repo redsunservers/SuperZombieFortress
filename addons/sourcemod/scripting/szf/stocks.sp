@@ -48,6 +48,26 @@ stock void AnglesToVelocity(const float vecAngle[3], float vecVelocity[3], float
 	ScaleVector(vecVelocity, flSpeed);
 }
 
+// https://github.com/samisalreadytaken/vs_library/blob/2480773c8904c4d6012d2ecf46bfc7c1fbd9fb28/src/vs_math.nut#L1469
+stock void RotateVector(const float vecVector[3], const float vecAngle[3], float vecResult[3])
+{
+	float flSP = Sine(DegToRad(vecAngle[0]));
+	float flCP = Cosine(DegToRad(vecAngle[0]));
+	float flSY = Sine(DegToRad(vecAngle[1]));
+	float flCY = Cosine(DegToRad(vecAngle[1]));
+	float flSR = Sine(DegToRad(vecAngle[2]));
+	float flCR = Cosine(DegToRad(vecAngle[2]));
+	
+	float flCRCY = flCR * flCY;
+	float flCRSY = flCR * flSY;
+	float flSRCY = flSR * flCY;
+	float flSRSY = flSR * flSY;
+	
+	vecResult[0] = (vecVector[0]*flCP*flCY) + vecVector[1] * (flSP*flSRCY-flCRSY) + vecVector[2] * (flSP*flCRCY+flSRSY);
+	vecResult[1] = (vecVector[0]*flCP*flSY) + vecVector[1] * (flSP*flSRSY+flCRCY) + vecVector[2] * (flSP*flCRSY-flSRCY);
+	vecResult[2] = (vecVector[0]*-flSP) + (vecVector[1]*flSR*flCP) + (vecVector[2]*flCR*flCP);
+}
+
 ////////////////
 // SZF Team
 ////////////////

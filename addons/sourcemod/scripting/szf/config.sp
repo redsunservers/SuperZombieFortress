@@ -200,7 +200,7 @@ ArrayList Config_LoadWeaponData()
 				wep.iColor[2] = iColor[2];
 				
 				wep.flScale = kv.GetFloat("scale", 1.0);
-				wep.flHeightOffset = kv.GetFloat("height_offset");
+				kv.GetVector("origin_offset", wep.vecOriginOffset);
 				kv.GetVector("angles_offset", wep.vecAnglesOffset);
 				
 				char sAnglesOffset[3][12];

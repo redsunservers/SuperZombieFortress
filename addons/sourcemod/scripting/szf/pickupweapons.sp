@@ -178,12 +178,6 @@ public void SetWeapon(int iEntity)
 	AcceptEntityInput(iEntity, "DisableShadow");
 	AcceptEntityInput(iEntity, "EnableCollision");
 	
-	//Relocate weapon to higher height, looks much better
-	float flPosition[3];
-	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", flPosition);
-	flPosition[2] += 0.8;
-	TeleportEntity(iEntity, flPosition, NULL_VECTOR, NULL_VECTOR);
-	
 	g_bTriggerEntity[iEntity] = true; //Indicate reset of the OnUser triggers
 }
 
@@ -676,21 +670,14 @@ void SetWeaponModel(int iEntity, Weapon wep)
 	
 	//Update model origin and angles from weapon offset and const
 	
-	float vecOrigin[3], vecAngles[3];
+	float vecOrigin[3], vecAngles[3], vecOffset[3];
 	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
 	GetEntPropVector(iEntity, Prop_Send, "m_angRotation", vecAngles);
 	
-	SubtractVectors(vecAngles, oldWep.vecAnglesOffset, vecAngles);
+	RotateVector(oldWep.vecOriginOffset, vecAngles, vecOffset);
+	AddVectors(vecOrigin, vecOffset, vecOrigin);
 	
-	if (oldWep.flHeightOffset != 0.0)
-	{
-		float vecDirection[3];
-		GetAngleVectors(vecAngles, vecDirection, NULL_VECTOR, NULL_VECTOR);
-		ScaleVector(vecDirection, oldWep.flHeightOffset);
-		vecOrigin[0] += vecDirection[1] * Sine(DegToRad(vecAngles[2]));
-		vecOrigin[1] -= vecDirection[0] * Sine(DegToRad(vecAngles[2]));
-		vecOrigin[2] += oldWep.flHeightOffset * Cosine(DegToRad(vecAngles[2]));
-	}
+	SubtractVectors(vecAngles, oldWep.vecAnglesOffset, vecAngles);
 	
 	//No easy way to revert const from old weapon :(
 	for (int i = 0; i < 3; i++)
@@ -701,15 +688,8 @@ void SetWeaponModel(int iEntity, Weapon wep)
 	
 	AddVectors(vecAngles, wep.vecAnglesOffset, vecAngles);
 	
-	if (wep.flHeightOffset != 0.0)
-	{
-		float vecDirection[3];
-		GetAngleVectors(vecAngles, vecDirection, NULL_VECTOR, NULL_VECTOR);
-		ScaleVector(vecDirection, wep.flHeightOffset);
-		vecOrigin[0] -= vecDirection[1] * Sine(DegToRad(vecAngles[2]));
-		vecOrigin[1] += vecDirection[0] * Sine(DegToRad(vecAngles[2]));
-		vecOrigin[2] -= wep.flHeightOffset * Cosine(DegToRad(vecAngles[2]));
-	}
+	RotateVector(wep.vecOriginOffset, vecAngles, vecOffset);
+	SubtractVectors(vecOrigin, vecOffset, vecOrigin);
 	
 	TeleportEntity(iEntity, vecOrigin, vecAngles, NULL_VECTOR);
 }
