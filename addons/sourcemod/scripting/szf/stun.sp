@@ -193,6 +193,7 @@ void Stun_ClientThink(int iClient)
 		SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", iFogEnt);
 	}
 	
+	SetEntProp(iClient, Prop_Send, "m_iAirDash", 999);	// Prevent any double-jumping
 	TF2_AddCondition(iClient, TFCond_LostFooting, TFCondDuration_Infinite);
 	SDKCall_SetSpeed(iClient);	//Recalculate speed every frame
 }
