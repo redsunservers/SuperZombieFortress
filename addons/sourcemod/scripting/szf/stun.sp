@@ -129,7 +129,9 @@ void Stun_EndPlayer(int iClient)
 		g_StunInfo[iClient].bCooldown = true;
 	}
 	
-	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD") & ~BLIND_HIDEHUD);
+	if (IsPlayerAlive(iClient))
+		SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD") & ~BLIND_HIDEHUD);
+	
 	TF2Attrib_RemoveByName(iClient, "deploy time increased");
 	
 	TF2_RemoveCondition(iClient, TFCond_LostFooting);
