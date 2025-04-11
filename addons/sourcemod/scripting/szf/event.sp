@@ -344,11 +344,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		//Black and white effect for death
 		ClientCommand(iVictim, "r_screenoverlay\"debug/yuv\"");
 		
-		if (IsValidZombie(iKillers[0]))
-		{
-			g_aSurvivorDeathTimes.Push(GetGameTime());
-			g_iZombiesKilledSpree = 0;
-		}
+		g_aSurvivorDeathTimes.Push(GetGameTime());
+		g_iZombiesKilledSpree = 0;
 		
 		//Set zombie time to iVictim as he started playing zombie
 		g_flTimeStartAsZombie[iVictim] = GetGameTime();
