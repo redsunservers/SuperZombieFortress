@@ -942,7 +942,7 @@ public void Infected_StartSmokerBeam(int iClient)
 	
 	for (int i = 0; i < sizeof(g_iSmokerRopes[]); i++)
 	{
-		int iRope = CreateEntityByName("keyframe_rope");
+		int iRope = EntIndexToEntRef(CreateEntityByName("keyframe_rope"));
 		g_iSmokerRopes[iClient][i] = iRope;
 		
 		char sBuffer[32];
@@ -1046,7 +1046,7 @@ public Action Infected_OnSmokerTouch(int iRope, int iToucher)
 		
 		for (int i = 0; i < sizeof(g_iSmokerRopes[]); i++)
 		{
-			if (iRope != g_iSmokerRopes[iClient][i])
+			if (EntIndexToEntRef(iRope) != g_iSmokerRopes[iClient][i])
 				continue;
 			
 			Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
