@@ -39,8 +39,8 @@ void ConVar_Init()
 	g_cvMeleeIgnoreTeammates = CreateConVar("sm_szf_melee_ignores_teammates", "1.0", "<0/1> If enabled, melee hits will ignore teammates.", _, true, 0.0, true, 1.0);
 	g_cvPunishAvoidingPlayers = CreateConVar("sm_szf_punish_avoiding_players", "1.0", "<0/1> If enabled, players who avoid playing on the Infected team will be forced back into it in the next round they play.", _, true, 0.0, true, 1.0);
 	
-	ConVar_InitEvent(g_FrenzyEvent, "frenzy", "60.0", "120.0", "0.1", "60");
-	ConVar_InitEvent(g_TankEvent, "tank", "120.0", "180.0", "0.1", "100");
+	ConVar_InitEvent(g_FrenzyEvent, "frenzy", "60.0", "150.0", "0.1", "50");
+	ConVar_InitEvent(g_TankEvent, "tank", "120.0", "240.0", "0.1", "80");
 	
 	g_aConVar = new ArrayList(sizeof(ConVarInfo));
 	
