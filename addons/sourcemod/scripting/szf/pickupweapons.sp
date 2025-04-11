@@ -203,22 +203,24 @@ void SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
 	{
 		// No more unique weapons to pick, delete it
 		RemoveEntity(iEntity);
-		return;
 	}
 	
 	if (nClassFilter == TFClass_Unknown)
 	{
-		// No class filter
-		int iRandom = GetRandomInt(0, aWeapons.Length - 1);
+		if (IsSpawnWeapon(iEntity))
+			aWeapons.SortCustom(Sort_SpawnWeapons);	// Priorise whoever class with fewest spawn weapons
+		else
+			aWeapons.Sort(Sort_Random, Sort_Integer);	// No class filter
 		
-		aWeapons.GetArray(iRandom, wep);
+		aWeapons.GetArray(0, wep);
 		SetWeaponModel(iEntity, wep);
 		
-		//This weapon is no longer in the pool
-		aWeapons.Erase(iRandom);
-		g_aWeaponsSpawn.Push(wep.iIndex);
+		if (IsSpawnWeapon(iEntity))
+			PrintToServer(wep.sModel);
 		
-		return;
+		//This weapon is no longer in the pool
+		aWeapons.Erase(0);
+		g_aWeaponsSpawn.Push(wep.iIndex);
 	}
 	else
 	{
@@ -242,8 +244,41 @@ void SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
 		
 		//If array empty, pick a random weapon
 		SetRandomWeapon(iEntity, iWepRarity);
-		return;
 	}
+}
+
+int Sort_SpawnWeapons(int iIndex1, int iIndex2, Handle hArray, Handle hData)
+{
+	int iIndex[2];
+	iIndex[0] = GetArrayCell(hArray, iIndex1);
+	iIndex[1] = GetArrayCell(hArray, iIndex2);
+	
+	int iMinCount[2] = {999, 999};
+	
+	for (TFClassType nClass = TFClass_Scout; nClass <= TFClass_Engineer; nClass++)
+	{
+		for (int i = 0; i < sizeof(iIndex); i++)
+		{
+			if (TF2_GetItemSlot(iIndex[i], nClass) == -1)
+				continue;
+			
+			// Count up how many spawn weapons this class currently have
+			int iCount;
+			for (int j = 0; j < g_aWeaponsSpawn.Length; j++)
+				if (TF2_GetItemSlot(g_aWeaponsSpawn.Get(j), nClass) != -1)
+					iCount++;
+			
+			if (iMinCount[i] > iCount)
+				iMinCount[i] = iCount;
+		}
+	}
+	
+	if (iMinCount[0] < iMinCount[1])
+		return -1;
+	else if (iMinCount[0] > iMinCount[1])
+		return 1;
+	else
+		return 0;
 }
 
 bool AttemptGrabItem(int iClient)

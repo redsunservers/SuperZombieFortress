@@ -160,6 +160,7 @@ ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, ArrayList aSpawnWeapons 
 		}
 	}
 	
+	aList.Sort(Sort_Random, Sort_Integer);
 	return aList;
 }
 
