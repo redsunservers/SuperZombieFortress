@@ -63,8 +63,6 @@
 #define SF_PHYSPROP_NO_COLLISIONS				0x200000		// Don't enable collisions on spawn
 #define SF_PHYSPROP_IS_GIB						0x400000		// Limit # of active gibs
 
-#define DMG_MELEE	(DMG_BLAST_SURFACE)
-
 enum
 {
 	COLLISION_GROUP_NONE  = 0,
