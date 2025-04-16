@@ -436,8 +436,9 @@ public MRESReturn DHook_RoundRespawnPre()
 	{
 		Sound_EndAllMusic(iClient);
 		
-		if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
+		if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) != TFTeam_Spectator)
 		{
+			// Add all unassigned and users already in team, unassigned users assumes to be put in zombie team later
 			iClients[iLength] = iClient;
 			iLength++;
 		}
@@ -458,7 +459,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	{
 		int iClient = iClients[i];
 		
-		if (IsValidClient(iClient))
+		if (TF2_GetClientTeam(iClient) > TFTeam_Spectator)
 		{
 			Action action = Forward_ShouldStartZombie(iClient);
 			
@@ -501,7 +502,7 @@ public MRESReturn DHook_RoundRespawnPre()
 		int iClient = iClients[i];
 		
 		//Check if they have not already been assigned
-		if (IsValidClient(iClient) && !(nClientTeam[iClient] == TFTeam_Zombie) && !(nClientTeam[iClient] == TFTeam_Survivor))
+		if (TF2_GetClientTeam(iClient) > TFTeam_Spectator && !(nClientTeam[iClient] == TFTeam_Zombie) && !(nClientTeam[iClient] == TFTeam_Survivor))
 		{
 			if (iSurvivorCount > 0)
 			{
