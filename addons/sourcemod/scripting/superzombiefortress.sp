@@ -1213,13 +1213,10 @@ void Handle_ZombieAbilities()
 				int iRegen = g_ClientClasses[iClient].iRegen;
 				
 				//Handle additional regeneration
-				iRegen += g_iHorde[iClient]; //Horde bonus
-				
-				if (g_bZombieRage)
-					iRegen += 3; //Zombie rage
+				iRegen += min(g_iHorde[iClient], 3); //Horde bonus
 				
 				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
-					iRegen += 2; //Screamer
+					iRegen += 3; //Screamer
 				
 				iRegen = min(iRegen, iMaxHealth - iHealth);
 				SetEntityHealth(iClient, iHealth + iRegen);
