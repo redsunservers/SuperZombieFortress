@@ -60,7 +60,15 @@ enum SoundSetting
 {
 	SoundSetting_Full,
 	SoundSetting_NoMusic,
+	SoundSetting_NoSound,
 	SoundSetting_None,
+}
+
+char g_sSoundSettingTranslation[][] = {
+	"Menu_SoundFull",
+	"Menu_SoundNoMusic",
+	"Menu_SoundNoSound",
+	"Menu_SoundNone",
 }
 
 static StringMap g_mSoundMusic;
@@ -250,6 +258,11 @@ void Sound_PlayMusic(int[] iClients, int iCount, const char[] sName, float flDur
 			case SoundSetting_NoMusic:
 			{
 				if (bMusic)
+					continue;
+			}
+			case SoundSetting_NoSound:
+			{
+				if (!bMusic)
 					continue;
 			}
 			case SoundSetting_None:

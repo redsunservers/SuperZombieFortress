@@ -657,9 +657,14 @@
 		"en"		"No Musics"
 	}
 	
-	"Menu_SoundNone"
+	"Menu_SoundNoSound"
 	{
 		"en"		"No Sounds"
+	}
+	
+	"Menu_SoundNone"
+	{
+		"en"		"No Musics and Sounds"
 	}
 	
 	"Menu_SoundSelected"

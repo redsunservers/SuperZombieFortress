@@ -205,13 +205,19 @@ public int Menu_SelectClassesInfo(Menu hMenu, MenuAction action, int iClient, in
 
 void Menu_DisplayMusicSetting(int iClient)
 {
-	SoundSetting nSetting = Sound_GetClientSetting(iClient);
+	SoundSetting nCurrent = Sound_GetClientSetting(iClient);
 	
 	Menu hMenu = new Menu(Menu_SelectSoundSetting);
 	Menu_SetTitleTranslation(hMenu, "Menu_SoundTitle", iClient);
-	Menu_AddItemTranslation(hMenu, "0", "Menu_SoundFull", iClient, nSetting == SoundSetting_Full ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
-	Menu_AddItemTranslation(hMenu, "1", "Menu_SoundNoMusic", iClient, nSetting == SoundSetting_NoMusic ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
-	Menu_AddItemTranslation(hMenu, "2", "Menu_SoundNone", iClient, nSetting == SoundSetting_None ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+	
+	for (SoundSetting nSetting; nSetting < view_as<SoundSetting>(sizeof(g_sSoundSettingTranslation)); nSetting++)
+	{
+		char sInt[12];
+		IntToString(nSetting, sInt, sizeof(sInt));
+		
+		Menu_AddItemTranslation(hMenu, sInt, g_sSoundSettingTranslation[nSetting], iClient, nCurrent == nSetting ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
+	}
+	
 	hMenu.ExitButton = true;
 	hMenu.Display(iClient, MENU_TIME_FOREVER);
 }
