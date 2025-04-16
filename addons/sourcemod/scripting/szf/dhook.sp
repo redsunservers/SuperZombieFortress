@@ -151,16 +151,18 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 			if (g_nInfected[iClient] == Infected_None)
 			{
 				//Movement speed increase
-				flSpeed += fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
-				
-				if (g_bZombieRage)
-					flSpeed += 20.0; //Map-wide zombie enrage event
+				float flSpeedBonus = fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
 				
 				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
-					flSpeed += 40.0; //Screamer effect
+					flSpeedBonus += 40.0; //Screamer effect
 				
 				if (GetClientHealth(iClient) > SDKCall_GetMaxHealth(iClient))
-					flSpeed += 20.0; //Has overheal due to normal rage
+					flSpeedBonus += 20.0; //Has overheal due to normal rage
+				
+				if (g_bZombieRage && flSpeedBonus < 40.0)
+					flSpeedBonus += 40.0; //Map-wide zombie enrage event, but don't stack too much from other bonus
+				
+				flSpeed += flSpeedBonus;
 				
 				//Movement speed decrease
 				if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
