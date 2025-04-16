@@ -396,6 +396,7 @@ ConVar g_cvSpecialInfectedInterval;
 ConVar g_cvJockeyMovementVictim;
 ConVar g_cvJockeyMovementAttacker;
 ConVar g_cvFrenzyTankChance;
+ConVar g_cvFrenzyRespawnStress;
 ConVar g_cvStunImmunity;
 ConVar g_cvLastStandKingRuneDuration;
 ConVar g_cvLastStandDefenseDuration;

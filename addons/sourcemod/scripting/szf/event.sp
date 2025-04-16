@@ -323,7 +323,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			if (g_flRageRespawnStress > GetGameTime())
 				flTimer += g_flRageRespawnStress - GetGameTime();
 			
-			g_flRageRespawnStress += 16.0 / GetActivePlayerCount();	// Add stress time for every respawns, 0.5 sec for 32 players
+			g_flRageRespawnStress += g_cvFrenzyRespawnStress.FloatValue / GetActivePlayerCount();	// Add stress time for every respawns
 			CreateTimer(flTimer, Timer_RespawnPlayer, iVictim);
 		}
 		
