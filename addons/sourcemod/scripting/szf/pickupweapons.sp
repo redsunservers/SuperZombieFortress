@@ -215,9 +215,6 @@ void SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
 		aWeapons.GetArray(0, wep);
 		SetWeaponModel(iEntity, wep);
 		
-		if (IsSpawnWeapon(iEntity))
-			PrintToServer(wep.sModel);
-		
 		//This weapon is no longer in the pool
 		aWeapons.Erase(0);
 		g_aWeaponsSpawn.Push(wep.iIndex);

@@ -246,26 +246,6 @@
 		"chi"		"{1}惊呆了 {2} 名玩家。"
 	}
 	
-	"JoinTeam_CantSwitchGrace"
-	{
-		"chi"		"{1}你不能在准备阶段切换到对面队伍。"
-	}
-	
-	"JoinTeam_WillJoinInfectedGrace"
-	{
-		"chi"		"{1}你在准备阶段结束后会加入感染者阵营。"
-	}
-	
-	"JoinTeam_CancelGraceEnd"
-	{
-		"chi"		"{1}你不会在准备阶段结束之后加入感染者阵营。"
-	}
-	
-	"JoinTeam_CantJoinSurvivorGrace"
-	{
-		"chi"		"{1}现在不能加入幸存者阵营。你在准备阶段结束后会加入感染者阵营。"
-	}
-	
 	"JoinClass_ValidZombies"
 	{
 		"chi"		"{1}无效感染者: {2}."

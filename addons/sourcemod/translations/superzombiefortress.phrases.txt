@@ -280,30 +280,6 @@
 		"en"		"{1}Stunned {2} players."
 	}
 	
-	"JoinTeam_CantSwitchGrace"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}You can not switch to the opposing team during grace period."
-	}
-	
-	"JoinTeam_WillJoinInfectedGrace"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}You will join the Infected team when grace period ends."
-	}
-	
-	"JoinTeam_CancelGraceEnd"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}You will no longer automatically join the Infected team when grace period ends."
-	}
-	
-	"JoinTeam_CantJoinSurvivorGrace"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}Can not join the Survivor team at this time. You will join the Infected team when grace period ends."
-	}
-	
 	"JoinClass_ValidZombies"
 	{
 		"#format"	"{1:s},{2:s}"

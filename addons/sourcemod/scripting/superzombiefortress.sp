@@ -369,7 +369,6 @@ int g_iCapturingPoint[MAXPLAYERS + 1];
 int g_iRageTimer[MAXPLAYERS + 1];
 
 float g_flStopChatSpam[MAXPLAYERS + 1];
-bool g_bWaitingForTeamSwitch[MAXPLAYERS + 1];
 
 StringMap g_mRoundPlayedAsZombie;
 int g_iRoundPlayedCount;
@@ -764,7 +763,6 @@ public void OnClientPutInServer(int iClient)
 {
 	g_iDamageZombie[iClient] = 0;
 	g_flTimeStartAsZombie[iClient] = 0.0;
-	g_bWaitingForTeamSwitch[iClient] = false;
 	
 	if (AreClientCookiesCached(iClient))
 		OnClientCookiesCached(iClient);
@@ -936,14 +934,6 @@ void EndGracePeriod()
 			RemoveEntity(iEntity);
 	}
 	
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-	{
-		if (IsClientInGame(iClient) && g_bWaitingForTeamSwitch[iClient])
-		{
-			RequestFrame(Frame_PostGracePeriodSpawn, iClient); //A frame later so maps which have post-setup spawn points can adapt to these players
-		}
-	}
-	
 	g_flTimeProgress = 0.0;
 	g_hTimerProgress = CreateTimer(6.0, Timer_Progress, _, TIMER_REPEAT);
 	
@@ -951,25 +941,6 @@ void EndGracePeriod()
 	g_TankEvent.SetCooldown();
 	g_flInfectedInterval = GetGameTime();
 	g_aSurvivorDeathTimes.Clear();
-}
-
-public void Frame_PostGracePeriodSpawn(int iClient)
-{
-	if (!g_bEnabled)
-		return;
-	
-	TF2_ChangeClientTeam(iClient, TFTeam_Zombie);
-	
-	if (!IsPlayerAlive(iClient))
-	{
-		if (TFTeam_Zombie == TFTeam_Blue)
-			ShowVGUIPanel(iClient, "class_blue");
-		else
-			ShowVGUIPanel(iClient, "class_red");
-	}
-	
-	g_bWaitingForTeamSwitch[iClient] = false;
-	SetClientStartedAsZombie(iClient);	// Client pretty much will play a whole round as zombie
 }
 
 ////////////////////////////////////////////////////////////
@@ -1598,11 +1569,6 @@ void SetClientStartedAsZombie(int iClient)
 		GetClientAuthId(iClient, AuthId_SteamID64, sSteamId, sizeof(sSteamId));
 	
 	g_mRoundPlayedAsZombie.SetValue(sSteamId, g_iRoundPlayedCount);
-}
-
-bool ClientStartedAsZombie(int iClient)
-{
-	return GetRoundPlayedAsZombie(iClient) == g_iRoundPlayedCount;
 }
 
 int Sort_LastPlayedZombie(int iClient1, int iClient2, const int[] iClients, Handle hData)

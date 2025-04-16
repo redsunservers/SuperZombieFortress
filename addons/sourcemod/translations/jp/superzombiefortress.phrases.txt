@@ -245,26 +245,6 @@
 		"jp"		"{1}唖然とした{2}人のプレイヤー。"
 	}
 	
-	"JoinTeam_CantSwitchGrace"
-	{
-		"jp"		"{1}猶予期間中は敵チームに切り替えることはできません。"
-	}
-	
-	"JoinTeam_WillJoinInfectedGrace"
-	{
-		"jp"		"{1}猶予期間が終了すると、感染したチームに参加します。"
-	}
-	
-	"JoinTeam_CancelGraceEnd"
-	{
-		"jp"		"{1}猶予期間が終了しても、感染したチームに自動的に参加することはありません。"
-	}
-	
-	"JoinTeam_CantJoinSurvivorGrace"
-	{
-		"jp"		"{1}現在、サバイバーチームに参加できません。 猶予期間が終了すると、感染したチームに参加します。"
-	}
-	
 	"JoinClass_ValidZombies"
 	{
 		"jp"		"{1}有効なゾンビ：{2}."

@@ -250,26 +250,6 @@
 		"pt"		"{1}Stunned {2} players."
 	}
 	
-	"JoinTeam_CantSwitchGrace"
-	{
-		"pt"		"{1}Você não pode mudar para o time oposto durante o período de graça."
-	}
-	
-	"JoinTeam_WillJoinInfectedGrace"
-	{
-		"pt"		"{1}Você entrará no time dos Infectados quando o período de graça terminar."
-	}
-	
-	"JoinTeam_CancelGraceEnd"
-	{
-		"pt"		"{1}Você não entrará mais automaticamente no time dos Infectados quando o período de graça terminar."
-	}
-	
-	"JoinTeam_CantJoinSurvivorGrace"
-	{
-		"pt"		"{1}Não é possível entrar no time dos Sobreviventes neste momento. Você entrará no time dos Infectados quando o período de tolerância terminar."
-	}
-
 	"JoinClass_ValidZombies"
 	{
 		"pt"		"{1}Zumbis válidos:{2}."

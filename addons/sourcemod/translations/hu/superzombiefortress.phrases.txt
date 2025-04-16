@@ -255,26 +255,6 @@
 		"hu"		"{1}{2} játékos elkábítva."
 	}
 	
-	"JoinTeam_CantSwitchGrace"
-	{
-		"hu"		"{1}Nem válthatsz az ellenfél csapatába a kegyelmi időszak alatt."
-	}
-	
-	"JoinTeam_WillJoinInfectedGrace"
-	{
-		"hu"		"{1}Csatlakozni fogsz a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
-	}
-	
-	"JoinTeam_CancelGraceEnd"
-	{
-		"hu"		"{1}Már nem fogsz automatikusan csatlakozni a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
-	}
-	
-	"JoinTeam_CantJoinSurvivorGrace"
-	{
-		"hu"		"{1}Nem csatlakozhatsz a Túlélő csapathoz most. Csatlakozni fogsz a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
-	}
-	
 	"JoinClass_ValidZombies"
 	{
 		"hu"		"{1}Érvényes zombik:{2}."
