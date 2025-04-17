@@ -361,6 +361,7 @@ bool g_bGiveNamedItemSkip;
 ArrayList g_aSurvivorDeathTimes;
 int g_iZombiesKilledSpree;
 
+float g_flRoundStarted;
 int g_iRoundTimestamp;
 
 //Client State
@@ -458,6 +459,9 @@ enum struct ConVarEvent
 		
 		// Counting both dead and alive survivors
 		float flThreshold = (iSurvivors + iLength) * this.cvSurvivorDeathThreshold.FloatValue;
+		if (flGameTime - g_flRoundStarted < flInterval)	// If game has just started, lower the threshold
+			flThreshold *= (flGameTime - g_flRoundStarted) / flInterval;
+		
 		if (flTotal < flThreshold)
 		{
 			CPrintToChatDebug("Triggered event from few survivor deaths (%.2f deaths < threshold %.2f)", flTotal, flThreshold);
@@ -938,6 +942,7 @@ void EndGracePeriod()
 			RemoveEntity(iEntity);
 	}
 	
+	g_flRoundStarted = GetGameTime();
 	g_flTimeProgress = 0.0;
 	g_hTimerProgress = CreateTimer(6.0, Timer_Progress, _, TIMER_REPEAT);
 	
