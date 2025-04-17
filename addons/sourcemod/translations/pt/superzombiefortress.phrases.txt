@@ -277,12 +277,12 @@
 
 	"SpecialInfected_Charger"
 	{
-		"pt"		"{green}VOCÊ É UM CHARGER:\n{orange}- Grite 'MEDIC!' para CARREGAR! {yellow}(Recarga de 16 segundos)"
+		"pt"		"{green}VOCÊ É UM CHARGER:\n{orange}- Grite 'MEDIC!' para CARREGAR! {yellow}(Recarga de 15 segundos)"
 	}
 
 	"SpecialInfected_Screamer"
 	{
-		"pt"		"{green}VOCÊ É UM SCREAMER:\n{orange}- Grite 'MEDIC!' para REUNIR ZUMBIS ALIADOS! {yellow}(Recarga de 21 segundos){orange}\n- Zumbis próximos a você ficam mais poderosos."
+		"pt"		"{green}VOCÊ É UM SCREAMER:\n{orange}- Grite 'MEDIC!' para REUNIR ZUMBIS ALIADOS! {yellow}(Recarga de 20 segundos){orange}\n- Zumbis próximos a você ficam mais poderosos."
 	}
 
 	"SpecialInfected_Stalker"
@@ -292,17 +292,17 @@
 
 	"SpecialInfected_Hunter"
 	{
-		"pt"		"{green}VOCÊ É UM HUNTER:\n{orange}- Grite 'MEDIC!' para SALTAR e ATACAR SOBREVIVENTES! {yellow}(Recarga de 6 segundos ao errar & 21 segundos ao acertar)"
+		"pt"		"{green}VOCÊ É UM HUNTER:\n{orange}- Grite 'MEDIC!' para SALTAR e ATACAR SOBREVIVENTES! {yellow}(Recarga de 5 segundos ao errar & 20 segundos ao acertar)"
 	}
 
 	"SpecialInfected_Spitter"
 	{
-		"pt"		"{green}VOCÊ É UM SPITTER:\n{orange}- Grite 'MEDIC!' para lançar seu GÁS em um grupo de sobreviventes para causar dano! {yellow}(Recarga de 16 segundos)"
+		"pt"		"{green}VOCÊ É UM SPITTER:\n{orange}- Grite 'MEDIC!' para lançar seu GÁS em um grupo de sobreviventes para causar dano! {yellow}(Recarga de 15 segundos)"
 	}
 
 	"SpecialInfected_Jockey"
 	{
-		"pt"		"{green}VOCÊ É UM JOCKEY:\n{orange}- Grite 'MEDIC!' para SALTAR nos SOBREVIVENTES e controlar seus movimentos! {yellow}(Recarga de 6 segundos)"
+		"pt"		"{green}VOCÊ É UM JOCKEY:\n{orange}- Grite 'MEDIC!' para SALTAR nos SOBREVIVENTES e controlar seus movimentos! {yellow}(Recarga de 5 segundos)"
 	}
 
 	"Melee_Atomizer"

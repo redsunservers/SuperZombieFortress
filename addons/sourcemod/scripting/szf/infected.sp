@@ -800,7 +800,7 @@ public void Infected_OnHunterTouch(int iClient, int iToucher)
 	}
 	
 	g_bHunterIsUsingPounce[iClient] = false;
-	g_iRageTimer[iClient] = 21;
+	g_iRageTimer[iClient] = 21;	// display as 20 seconds, but +1 so hud can display it
 }
 
 public void Infected_OnHunterDeath(int iClient, int iKiller, int iAssist)

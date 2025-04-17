@@ -1240,16 +1240,15 @@ void Handle_ZombieAbilities()
 			}
 			
 			//2.1. Handle zombie rage timer
-			//       Rage recharges every 20(special)/30(normal) seconds.
 			if (g_iRageTimer[iClient] > 0)
 			{
-				if (g_iRageTimer[iClient] == 1) PrintHintText(iClient, "%t", "Infected_RageReady");
-				if (g_iRageTimer[iClient] == 6) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 5);
-				if (g_iRageTimer[iClient] == 11) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 10);
-				if (g_iRageTimer[iClient] == 21) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 20);
-				if (g_iRageTimer[iClient] == 31) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 30);
-				
 				g_iRageTimer[iClient]--;
+				
+				if (g_iRageTimer[iClient] == 0) PrintHintText(iClient, "%t", "Infected_RageReady");
+				if (g_iRageTimer[iClient] == 5) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 5);
+				if (g_iRageTimer[iClient] == 10) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 10);
+				if (g_iRageTimer[iClient] == 20) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 20);
+				if (g_iRageTimer[iClient] == 30) PrintHintText(iClient, "%t", "Infected_RageReadyInSec", 30);
 			}
 		}
 	}

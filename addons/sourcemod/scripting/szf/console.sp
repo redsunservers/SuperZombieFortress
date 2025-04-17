@@ -200,6 +200,8 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 			{
 				Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Rage);
 				g_iRageTimer[iClient] = g_ClientClasses[iClient].iRageCooldown;
+				if (g_iRageTimer[iClient])
+					g_iRageTimer[iClient]++;	// +1 as it'd take less than a second till main timer runs, and for "Rage is ready in" display
 				
 				if (g_ClientClasses[iClient].callback_rage != INVALID_FUNCTION)
 				{

@@ -267,12 +267,12 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"jp"		"{green}あなたは充電器です：\n{orange}- 「メディック！」 充電する！ {yellow}（16秒のクールダウン）"
+		"jp"		"{green}あなたは充電器です：\n{orange}- 「メディック！」 充電する！ {yellow}（15秒のクールダウン）"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"jp"		"{green}あなたはスクリーマーです：\n{orange}- 「メディック！」 近くのゾンビを結集させる！ {yellow}（21秒のクールダウン）{orange}\n- あなたの近くに立つゾンビはより強力になります。"
+		"jp"		"{green}あなたはスクリーマーです：\n{orange}- 「メディック！」 近くのゾンビを結集させる！ {yellow}（20秒のクールダウン）{orange}\n- あなたの近くに立つゾンビはより強力になります。"
 	}
 	
 	"SpecialInfected_Stalker"
@@ -282,17 +282,17 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"jp"		"{green}あなたはハンターです：\n{orange}- 「メディック！」 敵の生存者をつかむために！ {yellow}（ミス時に6秒のクールダウン、ヒット時に21秒のクールダウン）"
+		"jp"		"{green}あなたはハンターです：\n{orange}- 「メディック！」 敵の生存者をつかむために！ {yellow}（ミス時に5秒のクールダウン、ヒット時に20秒のクールダウン）"
 	}
 	
 	"SpecialInfected_Spitter"
 	{
-		"jp"		"{green}あなたはつばです：\n{orange}- 「メディック！」 生存者に有害なガスを投げる！ {yellow}（16秒のクールダウン）"
+		"jp"		"{green}あなたはつばです：\n{orange}- 「メディック！」 生存者に有害なガスを投げる！ {yellow}（15秒のクールダウン）"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"jp"		"{green}あなたはジョッキーです：\n{orange}- 「メディック！」 生存者をつかみ、彼らの動きを制御する！ {yellow}（6秒のクールダウン）"
+		"jp"		"{green}あなたはジョッキーです：\n{orange}- 「メディック！」 生存者をつかみ、彼らの動きを制御する！ {yellow}（5秒のクールダウン）"
 	}
 
 	"Melee_Atomizer"
