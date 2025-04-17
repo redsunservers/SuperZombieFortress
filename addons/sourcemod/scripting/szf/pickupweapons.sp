@@ -372,48 +372,60 @@ bool AttemptGrabItem(int iClient)
 		}
 		else if (nRarity == WeaponRarity_Rare || !IsSpawnWeapon(iTarget))
 		{
-			g_flWeaponCallout[iTarget][iClient] = GetGameTime();
-			
-			if (GetWeaponGlowEnt(iTarget) != INVALID_ENT_REFERENCE)	//Glow already here, don't announce again
-				return false;
-			
-			//Create glow outline
-			int iProp = CreateBonemerge(iTarget);
-			SetEntProp(iProp, Prop_Send, "m_bGlowEnabled", true);
-			SDKHook(iProp, SDKHook_SetTransmit, Weapon_SetTransmit);
-			
-			//If rare, show in chat to everyone in team
-			if (nRarity == WeaponRarity_Rare)
-			{
-				char sName[255];
-				TF2Econ_GetLocalizedItemName(iIndex, sName, sizeof(sName));
-				
-				for (int i = 1; i <= MaxClients; i++)
-				{
-					if (!IsValidLivingSurvivor(i))
-						continue;
-					
-					char sBuffer[256];
-					Format(sBuffer, sizeof(sBuffer), "%T", "Weapon_Callout", i, "{limegreen}", "{param3}", "\x01");
-					CPrintToChatTranslation(i, iClient, sBuffer, true, .sParam3 = sName);
-				}
-			}
-			
-			AddToCookie(iClient, 1, g_cWeaponsCalled);
-			if (GetCookie(iClient, g_cWeaponsCalled) <= 1)
-			{
-				DataPack data;
-				CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
-				data.WriteCell(iClient);
-				data.WriteFloat(4.0);
-				data.WriteString("Tutorial_Callout1");
-			}
-			
-			Forward_OnWeaponCallout(iClient, iTarget, nRarity);
+			CalloutWeapon(iClient, iTarget, false);
 		}
 	}
 	
 	return false;
+}
+
+void CalloutWeapon(int iClient, int iTarget, bool bOnlyGlow)
+{
+	g_flWeaponCallout[iTarget][iClient] = GetGameTime();
+	
+	if (GetWeaponGlowEnt(iTarget) != INVALID_ENT_REFERENCE)	//Glow already here, don't announce again
+		return;
+	
+	//Create glow outline
+	int iProp = CreateBonemerge(iTarget);
+	SetEntProp(iProp, Prop_Send, "m_bGlowEnabled", true);
+	SDKHook(iProp, SDKHook_SetTransmit, Weapon_SetTransmit);
+	
+	if (bOnlyGlow)
+		return;
+	
+	Weapon wep;
+	if (!GetWeaponFromEntity(wep, iTarget))
+		return;
+	
+	//If rare, show in chat to everyone in team
+	if (wep.nRarity == WeaponRarity_Rare)
+	{
+		char sName[255];
+		TF2Econ_GetLocalizedItemName(wep.iIndex, sName, sizeof(sName));
+		
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			if (!IsValidLivingSurvivor(i))
+				continue;
+			
+			char sBuffer[256];
+			Format(sBuffer, sizeof(sBuffer), "%T", "Weapon_Callout", i, "{limegreen}", "{param3}", "\x01");
+			CPrintToChatTranslation(i, iClient, sBuffer, true, .sParam3 = sName);
+		}
+	}
+	
+	AddToCookie(iClient, 1, g_cWeaponsCalled);
+	if (GetCookie(iClient, g_cWeaponsCalled) <= 1)
+	{
+		DataPack data;
+		CreateDataTimer(0.5, Timer_DisplayTutorialMessage, data);
+		data.WriteCell(iClient);
+		data.WriteFloat(4.0);
+		data.WriteString("Tutorial_Callout1");
+	}
+	
+	Forward_OnWeaponCallout(iClient, iTarget, wep.nRarity);
 }
 
 void PickupWeapon(int iClient, Weapon wep, int iTarget)
@@ -461,10 +473,13 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 				EmitSoundToClient(iClient, "ui/item_heavy_gun_drop.wav");
 				SetWeaponModel(iTarget, oldwep);
 				
-				//Kill the weapon glow if it had one.
+				//Kill the weapon glow with its model if it had one.
 				int iGlow = GetWeaponGlowEnt(iTarget);
 				if (iGlow != INVALID_ENT_REFERENCE)
 					RemoveEntity(iGlow);
+				
+				//Callout under a new weapon model
+				CalloutWeapon(iClient, iTarget, true);
 				
 				bKillEntity = false;
 			}
