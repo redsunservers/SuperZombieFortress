@@ -368,6 +368,11 @@
 		"en"		"{orange}The Market Gardener {green}makes you rocket jump 25%% higher."
 	}
 	
+	"Melee_ThirdDegree"
+	{
+		"en"		"{orange}The Third Degree {green}deals 30%% extra damage while being healed."
+	}
+	
 	"Melee_Eyelander"
 	{
 		"en"		"{orange}The Eyelander {red}makes you move 15%% slower."
