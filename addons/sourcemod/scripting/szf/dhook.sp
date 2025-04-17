@@ -95,6 +95,7 @@ void DHook_OnEntityCreated(int iEntity, const char[] sClassname)
 	{
 		g_hDHookRefillThink.HookEntity(Hook_Pre, iEntity, DHook_RefillThinkPre);
 		g_hDHookDispenseAmmo.HookEntity(Hook_Pre, iEntity, DHook_DispenseAmmoPre);
+		g_hDHookDispenseAmmo.HookEntity(Hook_Post, iEntity, DHook_DispenseAmmoPost);
 		g_hDHookGetHealRate.HookEntity(Hook_Post, iEntity, DHook_GetHealRatePost);
 	}
 }
@@ -335,6 +336,7 @@ public MRESReturn DHook_DispenseAmmoPre(int iDispenser, DHookReturn hReturn, DHo
 	
 	if (g_flLastDispenserUsed[iClient] + g_cvDispenserAmmoCooldown.FloatValue <= GetGameTime())
 	{
+		SetEntProp(iDispenser, Prop_Send, "m_iAmmoMetal", 0);	// prevent giving engis metal, reverted back in post
 		g_flLastDispenserUsed[iClient] = GetGameTime();
 		return MRES_Ignored;
 	}
@@ -343,6 +345,28 @@ public MRESReturn DHook_DispenseAmmoPre(int iDispenser, DHookReturn hReturn, DHo
 		hReturn.Value = false;
 		return MRES_Supercede;
 	}
+}
+
+public MRESReturn DHook_DispenseAmmoPost(int iDispenser, DHookReturn hReturn, DHookParam hParams)
+{
+	int iClient = GetEntPropEnt(iDispenser, Prop_Send, "m_hBuilder");
+	if (!IsValidLivingSurvivor(iClient))
+		return MRES_Ignored;
+	
+	if (hReturn.Value)
+		g_flDispenserUsage[iClient] -= 1.0 / g_cvDispenserAmmoMax.FloatValue;
+	
+	if (g_flDispenserUsage[iClient] > 0.0)
+	{
+		SetEntProp(iDispenser, Prop_Send, "m_iAmmoMetal", RoundToCeil(g_flDispenserUsage[iClient] * MINI_DISPENSER_MAX_METAL));
+	}
+	else
+	{
+		SetVariantInt(GetEntProp(iDispenser, Prop_Send, "m_iMaxHealth"));
+		AcceptEntityInput(iDispenser, "RemoveHealth");
+	}
+	
+	return MRES_Ignored;
 }
 
 public MRESReturn DHook_GetHealRatePost(int iDispenser, DHookReturn hReturn, DHookParam hParams)

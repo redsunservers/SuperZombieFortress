@@ -6,6 +6,7 @@ void Event_Init()
 	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
 	HookEvent("player_hurt", Event_PlayerHurt, EventHookMode_Pre);
 	HookEvent("player_builtobject", Event_PlayerBuiltObject);
+	HookEvent("player_healed", Event_PlayerHealed);
 	HookEvent("object_destroyed", Event_ObjectDestoryed, EventHookMode_Pre);
 	HookEvent("teamplay_point_captured", Event_CPCapture);
 	HookEvent("teamplay_point_startcapture", Event_CPCaptureStart);
@@ -420,10 +421,13 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 	   
 	if (nObjectType == TFObject_Dispenser && IsSurvivor(iClient))
 	{
-		SetEntProp(iEntity, Prop_Send, "m_bMiniBuilding", true);	// This also prevents starting 25 metal generated
+		SetEntProp(iEntity, Prop_Send, "m_bMiniBuilding", true);	// This also prevents starting 25 metal being set
 		
 		if (!GetEntProp(iEntity, Prop_Send, "m_bCarryDeploy"))
 		{
+			g_flDispenserUsage[iClient] = 1.0;
+			SetEntProp(iEntity, Prop_Send, "m_iAmmoMetal", MINI_DISPENSER_MAX_METAL);
+			
 			// Starting half of max health due to side effect of mini building
 			int iOffset = FindSendPropInfo("CObjectDispenser", "m_flPercentageConstructed") + 4;	// m_flHealth
 			
@@ -433,6 +437,36 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 			SetEntDataFloat(iEntity, iOffset, float(iMaxHealth) * 0.5);
 			SetEntProp(iEntity, Prop_Send, "m_iHealth", RoundToFloor(float(iMaxHealth) * 0.5));
 		}
+	}
+	
+	return Plugin_Continue;
+}
+
+public Action Event_PlayerHealed(Event event, const char[] name, bool dontBroadcast)
+{
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	// Don't think there a better way to do this in a simple way
+	int iClient = GetClientOfUserId(event.GetInt("healer"));
+	if (!IsValidSurvivor(iClient))
+		return Plugin_Continue;
+	
+	int iDispenser = TF2_GetBuilding(iClient, TFObject_Dispenser);
+	if (iDispenser == INVALID_ENT_REFERENCE)
+		return Plugin_Continue;
+	
+	int iAmount = event.GetInt("amount");
+	g_flDispenserUsage[iClient] -= float(iAmount) / g_cvDispenserHealMax.FloatValue;
+	
+	if (g_flDispenserUsage[iClient] > 0.0)
+	{
+		SetEntProp(iDispenser, Prop_Send, "m_iAmmoMetal", RoundToCeil(g_flDispenserUsage[iClient] * MINI_DISPENSER_MAX_METAL));
+	}
+	else
+	{
+		SetVariantInt(GetEntProp(iDispenser, Prop_Send, "m_iMaxHealth"));
+		AcceptEntityInput(iDispenser, "RemoveHealth");
 	}
 	
 	return Plugin_Continue;

@@ -36,6 +36,8 @@ void ConVar_Init()
 	g_cvLastStandDefenseDuration = CreateConVar("sm_szf_laststand_defense_duration", "30.0", "How long the last survivor gets the Defense Buff, -1.0 for infinite.", _, true, -1.0);
 	g_cvDispenserAmmoCooldown = CreateConVar("sm_szf_dispenser_ammo_cooldown", "8.0", "Cooldown before client could gain ammo from dispensers.", _, true, 0.0);
 	g_cvDispenserHealRate = CreateConVar("sm_szf_dispenser_heal_rate", "0.2", "Heal rate multiplier for survivor's dispensers.", _, true, 0.0);
+	g_cvDispenserAmmoMax = CreateConVar("sm_szf_dispenser_ammo_max", "10", "Max amount of ticks dispenser could dispense before self-destructs.", _, true, 0.0);
+	g_cvDispenserHealMax = CreateConVar("sm_szf_dispenser_heal_max", "400", "Max amount of health dispenser could dispense before self-destructs.", _, true, 0.0);
 	g_cvBannerRequirement = CreateConVar("sm_szf_banner_requirement", "200.0", "Total damage requirement to build banner meter.", _, true, 0.0);
 	g_cvMeleeIgnoreTeammates = CreateConVar("sm_szf_melee_ignores_teammates", "1.0", "<0/1> If enabled, melee hits will ignore teammates.", _, true, 0.0, true, 1.0);
 	g_cvPunishAvoidingPlayers = CreateConVar("sm_szf_punish_avoiding_players", "1.0", "<0/1> If enabled, players who avoid playing on the Infected team will be forced back into it in the next round they play.", _, true, 0.0, true, 1.0);
