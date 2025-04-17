@@ -370,7 +370,7 @@ bool AttemptGrabItem(int iClient)
 			
 			return true;
 		}
-		else if (nRarity == WeaponRarity_Uncommon || nRarity == WeaponRarity_Rare)
+		else if (nRarity == WeaponRarity_Rare || !IsSpawnWeapon(iTarget))
 		{
 			g_flWeaponCallout[iTarget][iClient] = GetGameTime();
 			
