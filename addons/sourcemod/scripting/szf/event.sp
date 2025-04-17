@@ -342,8 +342,9 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	//Handle survivor death logic, active round only.
 	if (IsValidSurvivor(iVictim) && !bDeadRinger)
 	{
-		//Black and white effect for death
-		ClientCommand(iVictim, "r_screenoverlay\"debug/yuv\"");
+		//Black and white effect for death, if not a suicide to join spec team
+		if (event.GetInt("customkill") != TF_CUSTOM_SUICIDE)
+			ClientCommand(iVictim, "r_screenoverlay\"debug/yuv\"");
 		
 		g_aSurvivorDeathTimes.Push(GetGameTime());
 		g_iZombiesKilledSpree = 0;
