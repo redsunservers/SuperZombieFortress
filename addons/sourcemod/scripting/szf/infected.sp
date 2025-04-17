@@ -495,7 +495,8 @@ public void Infected_DoBoomerRage(int iClient)
 
 public void Infected_OnBoomerDeath(int iClient, int iKiller, int iAssist)
 {
-	Infected_DoBoomerExplosion(iClient, 400.0);
+	if (iClient != iKiller)	// Prevent explosion called twice, as suiciding from rage calls death callback
+		Infected_DoBoomerExplosion(iClient, 400.0);
 }
 
 void Infected_DoBoomerExplosion(int iClient, float flRadius)
