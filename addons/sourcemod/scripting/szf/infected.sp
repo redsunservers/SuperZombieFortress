@@ -906,6 +906,9 @@ public void Infected_OnSmokerThink(int iClient, int &iButtons)
 			if (!Infected_DoBeamTrace(iClient))
 				return;
 			
+			if (g_nSmokerStatus[iClient] == SmokerStatus_Grabbing)
+				return;	// found a victim from Infected_DoBeamTrace above, don't immediately stun em
+			
 			Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
 			
 			if (IsValidLivingSurvivor(g_iSmokerGrabVictim[iClient]))
@@ -1050,7 +1053,7 @@ public Action Infected_OnSmokerTouch(int iRope, int iToucher)
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (g_nInfected[iClient] != Infected_Smoker)	// can happen when client disconnects or new round begins
+		if (g_nInfected[iClient] != Infected_Smoker)	// can happen when client disconnects or new round begins, delete entity after loop
 			continue;
 		
 		for (int i = 0; i < sizeof(g_iSmokerRopes[]); i++)
@@ -1058,6 +1061,7 @@ public Action Infected_OnSmokerTouch(int iRope, int iToucher)
 			if (EntIndexToEntRef(iRope) != g_iSmokerRopes[iClient][i])
 				continue;
 			
+			g_iSmokerGrabVictim[iClient] = 0;
 			Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
 			return Plugin_Handled;
 		}
