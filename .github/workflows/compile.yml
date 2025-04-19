@@ -10,7 +10,7 @@ jobs:
     
     strategy:
       matrix:
-        version: ["1.11", "1.12"]
+        version: ["1.12", "1.13"]
     
     steps:
       - name: Checkout

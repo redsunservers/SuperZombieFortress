@@ -20,7 +20,7 @@ All builds can be found [here](https://github.com/redsunservers/SuperZombieFortr
 To download latest build version, select latest package then "Artifacts" button at top right.
 
 # Required Plugin/Extension Dependencies
-- SourceMod 1.11
+- SourceMod 1.12
 - [tf2attributes](https://forums.alliedmods.net/showthread.php?t=210221)
 - [tf_econ_data](https://forums.alliedmods.net/showthread.php?t=315011)
 - [morecolors](https://forums.alliedmods.net/showthread.php?t=185016) (Only needed if recompiling)
