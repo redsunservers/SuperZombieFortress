@@ -68,6 +68,15 @@ forward void SZF_OnChargerHit(int iCharger, int iVictim);
 forward void SZF_OnHunterHit(int iHunter, int iVictim);
 
 /**
+ * Forward called when smoker grabbed a survivor with tongue
+ *
+ * @param	iSmoker		Client whose the smoker to grab a survivor
+ * @param	iVictim		Client whose the victim grabbed from the smoker
+ * @noreturn
+ */
+forward void SZF_OnSmokerHit(int iSmoker, int iVictim);
+
+/**
  * Forward called when a boomer explodes
  *
  * @param	iBoomer		Client whose the boomer explode

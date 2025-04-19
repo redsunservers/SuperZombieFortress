@@ -1090,6 +1090,7 @@ bool Infected_DoBeamTrace(int iClient)
 			{
 				g_flSmokerGrabStart[iClient] = GetGameTime();
 				g_iSmokerGrabVictim[iClient] = iVictim;
+				Forward_OnSmokerHit(iClient, iVictim);
 				Infected_RetractSmokerBeam(iClient, SmokerStatus_Grabbing);
 			}
 		}
