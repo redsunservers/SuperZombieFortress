@@ -14,7 +14,7 @@ void ConVar_Init()
 	CreateConVar("sm_szf_version", sBuffer, "Current Super Zombie Fortress Version", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 	
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Force enable SZF for next map.", _, true, 0.0, true, 1.0);
-	g_cvDebug = CreateConVar("sm_szf_debug", "1", "Enable debugs?", _, true, 0.0, true, 1.0);
+	g_cvDebug = CreateConVar("sm_szf_debug", "0", "Enable debugs?", _, true, 0.0, true, 1.0);
 	g_cvRatio = CreateConVar("sm_szf_ratio", "0.80", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
 	g_cvWeaponSpawnReappear = CreateConVar("sm_szf_weapon_spawn_reappear", "0.25", "% chance for spawn weapons to reappear.", _, true, 0.0, true, 1.0);
 	g_cvWeaponPickupChance = CreateConVar("sm_szf_weapon_pickup_chance", "0.07", "% chance for normal weapons to be pickups.", _, true, 0.0, true, 1.0);
