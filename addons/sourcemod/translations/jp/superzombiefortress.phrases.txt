@@ -75,26 +75,6 @@
 		"jp"		"{1}あなたは死に、ゾンビに変わりました..."
 	}
 	
-	"Infected_SelectedRespawn"
-	{
-		"jp"		"{1}あなたは特別感染者に選ばれました！ {2}メディックが特別なゾンビとして復活するか、死んだときに特別なゾンビとして復活するように要請します。"
-	}
-	
-	"Infected_UsedQuickRespawn"
-	{
-		"jp"		"(TEAM) {1}{2} : 私は私のを使用しました {3}特別な感染者にすばやくリスポーン{4}！"
-	}
-	
-	"Infected_AllInCooldown"
-	{
-		"jp"		"{1}すべての特別なゾンビがクールダウンしています..."
-	}
-	
-	"Infected_CallMedic"
-	{
-		"jp"		"「メディック！」 特別な感染者としてリスポーンします！"
-	}
-	
 	"Infected_RageReady"
 	{
 		"jp"		"怒りは準備ができています！"
@@ -265,36 +245,6 @@
 		"jp"		"{1}唖然とした{2}人のプレイヤー。"
 	}
 	
-	"Command_MusicEnable"
-	{
-		"jp"		"{1}音楽が有効になりました。"
-	}
-	
-	"Command_MusicDisable"
-	{
-		"jp"		"{1}音楽が無効になりました。"
-	}
-	
-	"JoinTeam_CantSwitchGrace"
-	{
-		"jp"		"{1}猶予期間中は敵チームに切り替えることはできません。"
-	}
-	
-	"JoinTeam_WillJoinInfectedGrace"
-	{
-		"jp"		"{1}猶予期間が終了すると、感染したチームに参加します。"
-	}
-	
-	"JoinTeam_CancelGraceEnd"
-	{
-		"jp"		"{1}猶予期間が終了しても、感染したチームに自動的に参加することはありません。"
-	}
-	
-	"JoinTeam_CantJoinSurvivorGrace"
-	{
-		"jp"		"{1}現在、サバイバーチームに参加できません。 猶予期間が終了すると、感染したチームに参加します。"
-	}
-	
 	"JoinClass_ValidZombies"
 	{
 		"jp"		"{1}有効なゾンビ：{2}."
@@ -317,12 +267,12 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"jp"		"{green}あなたは充電器です：\n{orange}- 「メディック！」 充電する！ {yellow}（16秒のクールダウン）"
+		"jp"		"{green}あなたは充電器です：\n{orange}- 「メディック！」 充電する！ {yellow}（15秒のクールダウン）"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"jp"		"{green}あなたはスクリーマーです：\n{orange}- 「メディック！」 近くのゾンビを結集させる！ {yellow}（21秒のクールダウン）{orange}\n- あなたの近くに立つゾンビはより強力になります。"
+		"jp"		"{green}あなたはスクリーマーです：\n{orange}- 「メディック！」 近くのゾンビを結集させる！ {yellow}（20秒のクールダウン）{orange}\n- あなたの近くに立つゾンビはより強力になります。"
 	}
 	
 	"SpecialInfected_Stalker"
@@ -332,22 +282,17 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"jp"		"{green}あなたはハンターです：\n{orange}- 「メディック！」 敵の生存者をつかむために！ {yellow}（ミス時に3秒のクールダウン、ヒット時に21秒のクールダウン）"
-	}
-	
-	"SpecialInfected_Smoker"
-	{
-		"jp"		"{green}あなたは喫煙者です：\n{orange}- 右クリックを押し続けると、敵を引き寄せてダメージを与えるビームを発射します！ {yellow}（クールダウンなし）"
+		"jp"		"{green}あなたはハンターです：\n{orange}- 「メディック！」 敵の生存者をつかむために！ {yellow}（ミス時に5秒のクールダウン、ヒット時に20秒のクールダウン）"
 	}
 	
 	"SpecialInfected_Spitter"
 	{
-		"jp"		"{green}あなたはつばです：\n{orange}- 「メディック！」 生存者に有害なガスを投げる！ {yellow}（16秒のクールダウン）"
+		"jp"		"{green}あなたはつばです：\n{orange}- 「メディック！」 生存者に有害なガスを投げる！ {yellow}（15秒のクールダウン）"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"jp"		"{green}あなたはジョッキーです：\n{orange}- 「メディック！」 生存者をつかみ、彼らの動きを制御する！ {yellow}（6秒のクールダウン）"
+		"jp"		"{green}あなたはジョッキーです：\n{orange}- 「メディック！」 生存者をつかみ、彼らの動きを制御する！ {yellow}（5秒のクールダウン）"
 	}
 
 	"Melee_Atomizer"
@@ -363,11 +308,6 @@
 	"Melee_PainTrain"
 	{
 		"jp"		"{orange}The ペイン・トレイン {red}10%%の追加ダメージを与えます。"
-	}
-	
-	"Melee_HalfZatochi"
-	{
-		"jp"		"{orange}The ハーフ座頭市 {red}アクティブな状態で最大の体力を消耗します。"
 	}
 	
 	"Melee_MarketGardener"

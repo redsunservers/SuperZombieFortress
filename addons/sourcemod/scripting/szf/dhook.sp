@@ -13,10 +13,14 @@ static DynamicHook g_hDHookTeamMayCapturePoint;
 static DynamicHook g_hDHookSetWinningTeam;
 static DynamicHook g_hDHookRoundRespawn;
 static DynamicHook g_hDHookGiveNamedItem;
+static DynamicHook g_hDHookRefillThink;
+static DynamicHook g_hDHookDispenseAmmo;
+static DynamicHook g_hDHookGetHealRate;
 
-static TFTeam g_iOldClientTeam[MAXPLAYERS];
+static TFTeam g_iOldClientTeam[MAXPLAYERS+1];
+static float g_flLastDispenserUsed[MAXPLAYERS + 1];
 
-static int g_iHookIdGiveNamedItem[MAXPLAYERS];
+static int g_iHookIdGiveNamedItem[MAXPLAYERS+1];
 
 void DHook_Init(GameData hSZF)
 {
@@ -30,6 +34,9 @@ void DHook_Init(GameData hSZF)
 	g_hDHookSetWinningTeam = DHook_CreateVirtual(hSZF, "CTeamplayRules::SetWinningTeam");
 	g_hDHookRoundRespawn = DHook_CreateVirtual(hSZF, "CTeamplayRoundBasedRules::RoundRespawn");
 	g_hDHookGiveNamedItem = DHook_CreateVirtual(hSZF, "CTFPlayer::GiveNamedItem");
+	g_hDHookRefillThink = DHook_CreateVirtual(hSZF, "CObjectDispenser::RefillThink");
+	g_hDHookDispenseAmmo = DHook_CreateVirtual(hSZF, "CObjectDispenser::DispenseAmmo");
+	g_hDHookGetHealRate = DHook_CreateVirtual(hSZF, "CObjectDispenser::GetHealRate");
 }
 
 static void DHook_CreateDetour(GameData hGameData, const char[] sName, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
@@ -61,7 +68,7 @@ static DynamicHook DHook_CreateVirtual(GameData hGameData, const char[] sName)
 void DHook_HookGiveNamedItem(int iClient)
 {
 	if (!g_bTF2Items)
-		g_iHookIdGiveNamedItem[iClient] = DHookEntity(g_hDHookGiveNamedItem, false, iClient, DHook_OnGiveNamedItemRemoved, DHook_OnGiveNamedItemPre);
+		g_iHookIdGiveNamedItem[iClient] = g_hDHookGiveNamedItem.HookEntity(Hook_Pre, iClient, DHook_OnGiveNamedItemPre, DHook_OnGiveNamedItemRemoved);
 }
 
 void DHook_UnhookGiveNamedItem(int iClient)
@@ -80,6 +87,17 @@ bool DHook_IsGiveNamedItemActive()
 			return true;
 	
 	return false;
+}
+
+void DHook_OnEntityCreated(int iEntity, const char[] sClassname)
+{
+	if (StrEqual(sClassname, "obj_dispenser"))
+	{
+		g_hDHookRefillThink.HookEntity(Hook_Pre, iEntity, DHook_RefillThinkPre);
+		g_hDHookDispenseAmmo.HookEntity(Hook_Pre, iEntity, DHook_DispenseAmmoPre);
+		g_hDHookDispenseAmmo.HookEntity(Hook_Post, iEntity, DHook_DispenseAmmoPost);
+		g_hDHookGetHealRate.HookEntity(Hook_Post, iEntity, DHook_GetHealRatePost);
+	}
 }
 
 void DHook_Enable()
@@ -134,16 +152,18 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 			if (g_nInfected[iClient] == Infected_None)
 			{
 				//Movement speed increase
-				flSpeed += fMin(g_ClientClasses[iClient].flMaxSpree, g_ClientClasses[iClient].flSpree * g_iZombiesKilledSpree) + fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
-				
-				if (g_bZombieRage)
-					flSpeed += 40.0; //Map-wide zombie enrage event
+				float flSpeedBonus = fMin(g_ClientClasses[iClient].flMaxHorde, g_ClientClasses[iClient].flHorde * g_iHorde[iClient]);
 				
 				if (TF2_IsPlayerInCondition(iClient, TFCond_TeleportedGlow))
-					flSpeed += 20.0; //Screamer effect
+					flSpeedBonus += 40.0; //Screamer effect
 				
 				if (GetClientHealth(iClient) > SDKCall_GetMaxHealth(iClient))
-					flSpeed += 20.0; //Has overheal due to normal rage
+					flSpeedBonus += 20.0; //Has overheal due to normal rage
+				
+				if (g_bZombieRage && flSpeedBonus < 40.0)
+					flSpeedBonus += 40.0; //Map-wide zombie enrage event, but don't stack too much from other bonus
+				
+				flSpeed += flSpeedBonus;
 				
 				//Movement speed decrease
 				if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
@@ -173,7 +193,7 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 					case Infected_Stalker:
 					{
 						if (TF2_IsPlayerInCondition(iClient, TFCond_Cloaked))
-							flSpeed += 80.0;
+							flSpeed += 200.0;
 					}
 				}
 			}
@@ -275,12 +295,9 @@ public MRESReturn DHook_OnGiveNamedItemPre(int iClient, DHookReturn hReturn, DHo
 		return MRES_Supercede;
 	}
 	
-	char sClassname[256];
-	hParams.GetString(1, sClassname, sizeof(sClassname));
-	
 	int iIndex = hParams.GetObjectVar(3, g_iOffsetItemDefinitionIndex, ObjectValueType_Int) & 0xFFFF;
 	
-	Action iAction = OnGiveNamedItem(iClient, sClassname, iIndex);
+	Action iAction = OnGiveNamedItem(iClient, iIndex);
 	
 	if (iAction == Plugin_Handled)
 	{
@@ -301,6 +318,68 @@ public void DHook_OnGiveNamedItemRemoved(int iHookId)
 			return;
 		}
 	}
+}
+
+public MRESReturn DHook_RefillThinkPre(int iDispenser, DHookReturn hReturn, DHookParam hParams)
+{
+	if (view_as<TFTeam>(GetEntProp(iDispenser, Prop_Send, "m_iTeamNum")) == TFTeam_Survivor)
+		return MRES_Supercede;
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHook_DispenseAmmoPre(int iDispenser, DHookReturn hReturn, DHookParam hParams)
+{
+	int iClient = hParams.Get(1);
+	if (!IsValidLivingSurvivor(iClient))
+		return MRES_Ignored;
+	
+	if (g_flLastDispenserUsed[iClient] + g_cvDispenserAmmoCooldown.FloatValue <= GetGameTime())
+	{
+		SetEntProp(iDispenser, Prop_Send, "m_iAmmoMetal", 0);	// prevent giving engis metal, reverted back in post
+		g_flLastDispenserUsed[iClient] = GetGameTime();
+		return MRES_Ignored;
+	}
+	else
+	{
+		hReturn.Value = false;
+		return MRES_Supercede;
+	}
+}
+
+public MRESReturn DHook_DispenseAmmoPost(int iDispenser, DHookReturn hReturn, DHookParam hParams)
+{
+	int iClient = GetEntPropEnt(iDispenser, Prop_Send, "m_hBuilder");
+	if (!IsValidLivingSurvivor(iClient))
+		return MRES_Ignored;
+	
+	if (hReturn.Value)
+		g_flDispenserUsage[iClient] -= 1.0 / g_cvDispenserAmmoMax.FloatValue;
+	
+	if (g_flDispenserUsage[iClient] > 0.0)
+	{
+		SetEntProp(iDispenser, Prop_Send, "m_iAmmoMetal", RoundToCeil(g_flDispenserUsage[iClient] * MINI_DISPENSER_MAX_METAL));
+	}
+	else
+	{
+		SetVariantInt(GetEntProp(iDispenser, Prop_Send, "m_iMaxHealth"));
+		AcceptEntityInput(iDispenser, "RemoveHealth");
+	}
+	
+	return MRES_Ignored;
+}
+
+public MRESReturn DHook_GetHealRatePost(int iDispenser, DHookReturn hReturn, DHookParam hParams)
+{
+	if (view_as<TFTeam>(GetEntProp(iDispenser, Prop_Send, "m_iTeamNum")) == TFTeam_Survivor)
+	{
+		float flValue = hReturn.Value;
+		flValue *= g_cvDispenserHealRate.FloatValue;
+		hReturn.Value = flValue;
+		return MRES_Supercede;
+	}
+	
+	return MRES_Ignored;
 }
 
 public MRESReturn DHook_GetCaptureValueForPlayerPost(DHookReturn hReturn, DHookParam hParams)
@@ -357,7 +436,6 @@ public MRESReturn DHook_RoundRespawnPre()
 		g_bSpawnAsSpecialInfected[iClient] = false;
 		g_nInfected[iClient] = Infected_None;
 		g_nNextInfected[iClient] = Infected_None;
-		g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
 		g_iMaxHealth[iClient] = -1;
 		g_flTimeStartAsZombie[iClient] = 0.0;
 		g_flDamageDealtAgainstTank[iClient] = 0.0;
@@ -382,11 +460,11 @@ public MRESReturn DHook_RoundRespawnPre()
 	//Find all active players.
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		g_iZombiesKilledSurvivor[iClient] = 0;
-		Sound_EndMusic(iClient);
+		Sound_EndAllMusic(iClient);
 		
-		if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
+		if (IsClientInGame(iClient) && TF2_GetClientTeam(iClient) != TFTeam_Spectator)
 		{
+			// Add all unassigned and users already in team, unassigned users assumes to be put in zombie team later
 			iClients[iLength] = iClient;
 			iLength++;
 		}
@@ -401,14 +479,13 @@ public MRESReturn DHook_RoundRespawnPre()
 		iSurvivorCount = 1;
 	
 	TFTeam[] nClientTeam = new TFTeam[MaxClients+1];
-	g_iStartSurvivors = 0;
 	
 	//Check if we need to force players to survivor or zombie team
 	for (int i = 0; i < iLength; i++)
 	{
 		int iClient = iClients[i];
 		
-		if (IsValidClient(iClient))
+		if (TF2_GetClientTeam(iClient) > TFTeam_Spectator)
 		{
 			Action action = Forward_ShouldStartZombie(iClient);
 			
@@ -451,14 +528,13 @@ public MRESReturn DHook_RoundRespawnPre()
 		int iClient = iClients[i];
 		
 		//Check if they have not already been assigned
-		if (IsValidClient(iClient) && !(nClientTeam[iClient] == TFTeam_Zombie) && !(nClientTeam[iClient] == TFTeam_Survivor))
+		if (TF2_GetClientTeam(iClient) > TFTeam_Spectator && !(nClientTeam[iClient] == TFTeam_Zombie) && !(nClientTeam[iClient] == TFTeam_Survivor))
 		{
 			if (iSurvivorCount > 0)
 			{
 				//Survivor
 				SpawnClient(iClient, TFTeam_Survivor, false);
 				nClientTeam[iClient] = TFTeam_Survivor;
-				g_iStartSurvivors++;
 				iSurvivorCount--;
 			}
 			else
@@ -474,8 +550,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	//Reset counters
 	g_flCapScale = -1.0;
-	g_flSurvivorsLastDeath = GetGameTime();
-	g_iSurvivorsKilledCounter = 0;
+	g_aSurvivorDeathTimes.Clear();
 	g_iZombiesKilledSpree = 0;
 	g_iTanksSpawned = 0;
 	

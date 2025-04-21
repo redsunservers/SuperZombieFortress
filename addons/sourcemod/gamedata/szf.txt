@@ -62,16 +62,6 @@
 				"linux"		"232"
 				"windows"	"230"
 			}
-			"CTFPlayer::GiveNamedItem"
-			{
-				"linux"		"493"
-				"windows"	"486"
-			}
-			"CTFJar::TossJarThink"
-			{
-				"linux"		"498"
-				"windows"	"491"
-			}
 			"CBaseEntity::GetVelocity"
 			{
 				"linux" 	"147"
@@ -81,6 +71,31 @@
 			{
 				"linux"		"197"
 				"windows"	"196"
+			}
+			"CTFPlayer::GiveNamedItem"
+			{
+				"linux"		"493"
+				"windows"	"486"
+			}
+			"CObjectDispenser::RefillThink"
+			{
+				"linux"		"419"
+				"windows"	"405"
+			}
+			"CObjectDispenser::DispenseAmmo"
+			{
+				"linux"		"424"
+				"windows"	"410"
+			}
+			"CObjectDispenser::GetHealRate"
+			{
+				"linux"		"428"
+				"windows"	"414"
+			}
+			"CTFJar::TossJarThink"
+			{
+				"linux"		"498"
+				"windows"	"491"
 			}
 			"CEconItemView::m_iItemDefinitionIndex"
 			{
@@ -224,6 +239,34 @@
 						"type"	"bool"
 					}
 				}
+			}
+			"CObjectDispenser::RefillThink"
+			{
+				"offset"	"CObjectDispenser::RefillThink"
+				"hooktype"	"entity"
+				"return"	"void"
+				"this"		"entity"
+			}
+			"CObjectDispenser::DispenseAmmo"
+			{
+				"offset"	"CObjectDispenser::DispenseAmmo"
+				"hooktype"	"entity"
+				"return"	"bool"
+				"this"		"entity"
+				"arguments"
+				{
+					"pPlayer"
+					{
+						"type"	"cbaseentity"
+					}
+				}
+			}
+			"CObjectDispenser::GetHealRate"
+			{
+				"offset"	"CObjectDispenser::GetHealRate"
+				"hooktype"	"entity"
+				"return"	"float"
+				"this"		"entity"
 			}
 		}
 	}

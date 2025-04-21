@@ -89,24 +89,6 @@
 		"en"		"{1}You have perished and turned into a zombie..."
 	}
 	
-	"Infected_SelectedRespawn"
-	{
-		"#format"	"{1:s},{2:s}"
-		"en"		"{1}You have been selected to become a Special Infected! {2}Call 'MEDIC!' to respawn as one or become one on death."
-	}
-	
-	"Infected_UsedQuickRespawn"
-	{
-		"#format"	"{1:s},{2:s},{3:s},{4:s}"
-		"en"		"(TEAM) {1}{2} : I have used my {3}quick respawn into special infected{4}!"
-	}
-	
-	"Infected_AllInCooldown"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}All special infected seems to be in a cooldown..."
-	}
-	
 	"Infected_ForceStart_LastRound"
 	{
 		"#format"	"{1:s}"
@@ -117,11 +99,6 @@
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
 		"en"		"{1}You have been forcibly set to the Infected team because you avoided participating when playing on {2}, {3}."
-	}
-	
-	"Infected_CallMedic"
-	{
-		"en"		"Call 'MEDIC!' to respawn as a special infected!"
 	}
 	
 	"Infected_RageReady"
@@ -303,42 +280,6 @@
 		"en"		"{1}Stunned {2} players."
 	}
 	
-	"Command_MusicEnable"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}Music has been enabled."
-	}
-	
-	"Command_MusicDisable"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}Music has been disabled."
-	}
-	
-	"JoinTeam_CantSwitchGrace"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}You can not switch to the opposing team during grace period."
-	}
-	
-	"JoinTeam_WillJoinInfectedGrace"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}You will join the Infected team when grace period ends."
-	}
-	
-	"JoinTeam_CancelGraceEnd"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}You will no longer automatically join the Infected team when grace period ends."
-	}
-	
-	"JoinTeam_CantJoinSurvivorGrace"
-	{
-		"#format"	"{1:s}"
-		"en"		"{1}Can not join the Survivor team at this time. You will join the Infected team when grace period ends."
-	}
-	
 	"JoinClass_ValidZombies"
 	{
 		"#format"	"{1:s},{2:s}"
@@ -369,12 +310,12 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"en"		"{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}(16 second cooldown)"
+		"en"		"{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}(15 second cooldown)"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"en"		"{green}YOU ARE A SCREAMER:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(21 second cooldown){orange}\n- Zombies standing near you are more powerful."
+		"en"		"{green}YOU ARE A SCREAMER:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(20 second cooldown){orange}\n- Zombies standing near you are more powerful."
 	}
 	
 	"SpecialInfected_Stalker"
@@ -384,22 +325,22 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"en"		"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}(3 on miss & 21 on hit second cooldown)"
+		"en"		"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}(5 on miss & 20 on hit second cooldown)"
 	}
 	
 	"SpecialInfected_Smoker"
 	{
-		"en"		"{green}YOU ARE A SMOKER:\n{orange}- Right click to fire a beam to enemy players and pull them towards you! {yellow}(no cooldown)"
+		"en"		"{green}YOU ARE A SMOKER:\n{orange}- Call 'MEDIC!' to fire a beam to enemy players and pull them towards you! {yellow}(no cooldown)"
 	}
 	
 	"SpecialInfected_Spitter"
 	{
-		"en"		"{green}YOU ARE A SPITTER:\n{orange}- Call 'MEDIC!' to throw your GAS to pile of survivors to deal damage! {yellow}(16 second cooldown)"
+		"en"		"{green}YOU ARE A SPITTER:\n{orange}- Call 'MEDIC!' to throw your GAS to pile of survivors to deal damage! {yellow}(15 second cooldown)"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"en"		"{green}YOU ARE A JOCKEY:\n{orange}- Call 'MEDIC!' to LEAP into SURVIVORS and control movements! {yellow}(6 second cooldown)"
+		"en"		"{green}YOU ARE A JOCKEY:\n{orange}- Call 'MEDIC!' to LEAP into SURVIVORS and control movements! {yellow}(5 second cooldown)"
 	}
 
 	"Melee_Atomizer"
@@ -419,12 +360,17 @@
 	
 	"Melee_HalfZatochi"
 	{
-		"en"		"{orange}The Half-Zatoichi {red}drains your max health while active."
+		"en"		"{orange}The Half-Zatoichi {red}has its health restored on kill decreased to 15%%."
 	}
 	
 	"Melee_MarketGardener"
 	{
 		"en"		"{orange}The Market Gardener {green}makes you rocket jump 25%% higher."
+	}
+	
+	"Melee_ThirdDegree"
+	{
+		"en"		"{orange}The Third Degree {green}deals 30%% extra damage while being healed."
 	}
 	
 	"Melee_Eyelander"
@@ -675,6 +621,37 @@
 	"Menu_ClassesInfectedSpecialJockey"
 	{
 		"en"		"The Jockey creeps around, eager to lead survivors to their demise.\n- Using rage will perform a short leap, latching onto a survivor's head when making physical contact.\n- Controls a survivor's movement and deals damage while on top of them."
+	}
+	
+	"Menu_SoundTitle"
+	{
+		"en"		"Select a preference for sound setting."
+	}
+	
+	"Menu_SoundFull"
+	{
+		"en"		"All Sounds"
+	}
+	
+	"Menu_SoundNoMusic"
+	{
+		"en"		"No Musics"
+	}
+	
+	"Menu_SoundNoSound"
+	{
+		"en"		"No Sounds"
+	}
+	
+	"Menu_SoundNone"
+	{
+		"en"		"No Musics and Sounds"
+	}
+	
+	"Menu_SoundSelected"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"en"		"{1}{2}{3} preference has been selected."
 	}
 	
 	"Time_MonthsAgo"

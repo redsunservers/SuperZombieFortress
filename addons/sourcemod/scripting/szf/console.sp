@@ -50,79 +50,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 		sZomVgui = "class_red";
 	}
 	
-	if (g_nRoundState == SZFRoundState_Grace)
-	{
-		TFTeam nTeam = TF2_GetClientTeam(iClient);
-		
-		//If a client tries to join the infected team or a random team during grace period...
-		if (StrEqual(sArg, sZomTeam, false) || StrEqual(sArg, "auto", false) || StrEqual(sArg, "autoteam", false))
-		{
-			//...as survivor, don't let them.
-			if (nTeam == TFTeam_Survivor)
-			{
-				CPrintToChat(iClient, "%t", "JoinTeam_CantSwitchGrace", "{red}");
-				return Plugin_Handled;
-			}
-			
-			//...as a spectator who didn't start as an infected, set them as infected after grace period ends, after warning them.
-			if (nTeam <= TFTeam_Spectator && !ClientStartedAsZombie(iClient))
-			{
-				if (!g_bWaitingForTeamSwitch[iClient])
-				{
-					if (nTeam == TFTeam_Unassigned) //If they're unassigned, let them spectate for now.
-						TF2_ChangeClientTeam(iClient, TFTeam_Spectator);
-					
-					CPrintToChat(iClient, "%t", "JoinTeam_WillJoinInfectedGrace", "{red}");
-					g_bWaitingForTeamSwitch[iClient] = true;
-				}
-				
-				return Plugin_Handled;
-			}	
-		}
-		//If client tries to spectate during grace period, make them
-		//not be booted into the infected team if they tried to join
-		//it before.
-		else if (StrEqual(sArg, "spectate", false))
-		{
-			if (nTeam <= TFTeam_Spectator && g_bWaitingForTeamSwitch[iClient])
-			{
-				CPrintToChat(iClient, "%t", "JoinTeam_CancelGraceEnd", "{green}");
-				g_bWaitingForTeamSwitch[iClient] = false;
-			}
-			
-			return Plugin_Continue;
-		}
-		
-		//If client tries to join the survivor team during grace period, 
-		//deny and set them as infected instead.
-		else if (StrEqual(sArg, sSurTeam, false))
-		{
-			if (nTeam <= TFTeam_Spectator && !g_bWaitingForTeamSwitch[iClient])
-			{
-				//However, if they started as infected, they can spawn as infected again, normally.
-				if (ClientStartedAsZombie(iClient))
-				{
-					TF2_ChangeClientTeam(iClient, TFTeam_Zombie);
-					ShowVGUIPanel(iClient, sZomVgui);
-				}
-				else
-				{
-					if (nTeam == TFTeam_Unassigned) //If they're unassigned, let them spectate for now.
-						TF2_ChangeClientTeam(iClient, TFTeam_Spectator);
-					
-					CPrintToChat(iClient, "%t", "JoinTeam_CantJoinSurvivorGrace", "{red}");
-					g_bWaitingForTeamSwitch[iClient] = true;
-				}
-			}
-			
-			return Plugin_Handled;
-		}
-		//Prevent joining any other team.
-		else
-			return Plugin_Handled;
-	}
-	
-	else if (g_nRoundState > SZFRoundState_Grace)
+	if (g_nRoundState >= SZFRoundState_Grace)
 	{
 		//If client tries to join the survivor team or a random team
 		//during an active round, place them on the zombie
@@ -131,11 +59,22 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 		{
 			TF2_ChangeClientTeam(iClient, TFTeam_Zombie);
 			ShowVGUIPanel(iClient, sZomVgui);
+			
+			if (g_nRoundState == SZFRoundState_Grace)
+				SetClientStartedAsZombie(iClient);	// Client pretty much will play a whole round as zombie
+			
 			return Plugin_Handled;
 		}
 		//If client tries to join the zombie team or spectator
 		//during an active round, let them do so.
-		else if (StrEqual(sArg, sZomTeam, false) || StrEqual(sArg, "spectate", false))
+		else if (StrEqual(sArg, sZomTeam, false))
+		{
+			if (g_nRoundState == SZFRoundState_Grace)
+				SetClientStartedAsZombie(iClient);
+			
+			return Plugin_Continue;
+		}
+		else if (StrEqual(sArg, "spectate", false))
 			return Plugin_Continue;
 		//Prevent joining any other team.
 		else
@@ -257,24 +196,12 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 		
 		if (IsZombie(iClient) && !TF2_IsPlayerInCondition(iClient, TFCond_Taunting))
 		{
-			if (g_nRoundState == SZFRoundState_Active && g_bSpawnAsSpecialInfected[iClient] && g_bReplaceRageWithSpecialInfectedSpawn[iClient])
-			{
-				TF2_RespawnPlayer2(iClient);
-				
-				Forward_OnQuickSpawnAsSpecialInfected(iClient);
-				
-				//Broadcast to team
-				char sName[256];
-				GetClientName2(iClient, sName, sizeof(sName));
-				
-				for (int i = 1; i <= MaxClients; i++)
-					if (IsValidClient(i) && GetClientTeam(i) == GetClientTeam(iClient))
-						CPrintToChatEx(i, iClient, "%t", "Infected_UsedQuickRespawn", sName, "\x01", "{limegreen}", "\x01");
-			}
-			else if (g_iRageTimer[iClient] == 0)
+			if (g_iRageTimer[iClient] == 0)
 			{
 				Sound_PlayInfectedVo(iClient, g_nInfected[iClient], SoundVo_Rage);
 				g_iRageTimer[iClient] = g_ClientClasses[iClient].iRageCooldown;
+				if (g_iRageTimer[iClient])
+					g_iRageTimer[iClient]++;	// +1 as it'd take less than a second till main timer runs, and for "Rage is ready in" display
 				
 				if (g_ClientClasses[iClient].callback_rage != INVALID_FUNCTION)
 				{

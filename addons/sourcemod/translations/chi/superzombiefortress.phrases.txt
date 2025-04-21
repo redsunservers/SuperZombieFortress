@@ -75,26 +75,6 @@
 		"chi"		"{1}你死亡并变成了感染者..."
 	}
 	
-	"Infected_SelectedRespawn"
-	{
-		"chi"		"{1}你被选择变成一个特殊感染者！{2}呼叫 '医生！' 来重生为特感或者死亡后变成特感。"
-	}
-	
-	"Infected_UsedQuickRespawn"
-	{
-		"chi"		"(团队) {1}{2} : 我使用了我的 {3}快速重生为特感{4}！"
-	}
-	
-	"Infected_AllInCooldown"
-	{
-		"chi"		"{1}所有的特殊感染者似乎都在冷却..."
-	}
-	
-	"Infected_CallMedic"
-	{
-		"chi"		"呼叫 '医生！' 来重生成为特感！"
-	}
-	
 	"Infected_RageReady"
 	{
 		"chi"		"愤怒已准备好！"
@@ -266,36 +246,6 @@
 		"chi"		"{1}惊呆了 {2} 名玩家。"
 	}
 	
-	"Command_MusicEnable"
-	{
-		"chi"		"{1}音乐已开启。"
-	}
-	
-	"Command_MusicDisable"
-	{
-		"chi"		"{1}音乐已关闭。"
-	}
-	
-	"JoinTeam_CantSwitchGrace"
-	{
-		"chi"		"{1}你不能在准备阶段切换到对面队伍。"
-	}
-	
-	"JoinTeam_WillJoinInfectedGrace"
-	{
-		"chi"		"{1}你在准备阶段结束后会加入感染者阵营。"
-	}
-	
-	"JoinTeam_CancelGraceEnd"
-	{
-		"chi"		"{1}你不会在准备阶段结束之后加入感染者阵营。"
-	}
-	
-	"JoinTeam_CantJoinSurvivorGrace"
-	{
-		"chi"		"{1}现在不能加入幸存者阵营。你在准备阶段结束后会加入感染者阵营。"
-	}
-	
 	"JoinClass_ValidZombies"
 	{
 		"chi"		"{1}无效感染者: {2}."
@@ -318,12 +268,12 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"chi"		"{green}你是CHARGER:\n{orange}- 呼叫'医生！'来冲锋！{yellow}(16秒冷却)"
+		"chi"		"{green}你是CHARGER:\n{orange}- 呼叫'医生！'来冲锋！{yellow}(15秒冷却)"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"chi"		"你是SCREAMER:\n{orange}- 呼叫'医生！'来强化队友感染者！{yellow}(21秒冷却){orange}\n- 靠近你的感染者会变强。"
+		"chi"		"你是SCREAMER:\n{orange}- 呼叫'医生！'来强化队友感染者！{yellow}(20秒冷却){orange}\n- 靠近你的感染者会变强。"
 	}
 	
 	"SpecialInfected_Stalker"
@@ -333,22 +283,17 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}(未命中3秒冷却 & 命中21秒冷却)"
-	}
-	
-	"SpecialInfected_Smoker"
-	{
-		"chi"		"{green}你是SMOKER:\N{orange}- 右键发射一道光束拉扯敌人靠近你！{yellow}(没有冷却)"
+		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}(未命中5秒冷却 & 命中20秒冷却)"
 	}
 	
 	"SpecialInfected_Spitter"
 	{
-		"chi"		"{green}你是SPITTER:\N{orange}- 呼叫'医生！'来投掷你的毒气到幸存者中造成伤害！{yellow}(16秒冷却)"
+		"chi"		"{green}你是SPITTER:\N{orange}- 呼叫'医生！'来投掷你的毒气到幸存者中造成伤害！{yellow}(15秒冷却)"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"chi"		"{green}你是JOCKEY:\n{orange}- 呼叫'医生！'来飞扑感染者并控制其移动！{yellow}(6秒冷却)"
+		"chi"		"{green}你是JOCKEY:\n{orange}- 呼叫'医生！'来飞扑感染者并控制其移动！{yellow}(5秒冷却)"
 	}
 
 	"Melee_Atomizer"
@@ -364,11 +309,6 @@
 	"Melee_PainTrain"
 	{
 		"chi"		"{orange}钉棍{red}使你受到额外10%%的伤害。"
-	}
-	
-	"Melee_HalfZatochi"
-	{
-		"chi"		"{orange}座头市之刀{red}部署时消耗你的最大生命值。"
 	}
 	
 	"Melee_MarketGardener"

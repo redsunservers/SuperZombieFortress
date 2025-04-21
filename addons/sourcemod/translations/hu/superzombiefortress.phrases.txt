@@ -75,21 +75,6 @@
 		"hu"		"{1}Meghaltál és zombivá váltál..."
 	}
 	
-	"Infected_SelectedRespawn"
-	{
-		"hu"		"{1}Kiválasztottak, hogy Speciális Fertőzött legyél! {2}Kiálts 'MEDIC!'-et, hogy újraéledj egyként, vagy válj azzá halálodkor."
-	}
-	
-	"Infected_UsedQuickRespawn"
-	{
-		"hu"		"(CSAPAT) {1}{2} : Használtam a {3}gyors újraéledést speciális fertőzöttként{4}!"
-	}
-	
-	"Infected_AllInCooldown"
-	{
-		"hu"		"{1}Úgy tűnik, minden speciális fertőzött várakozási időben van..."
-	}
-	
 	"Infected_ForceStart_LastRound"
 	{
 		"hu"		"{1}Kényszerítve lettél a Fertőzött csapatba, mert elkerülted a részvételt az előző körben."
@@ -98,11 +83,6 @@
 	"Infected_ForceStart"
 	{
 		"hu"		"{1}Kényszerítve lettél a Fertőzött csapatba, mert elkerülted a részvételt, amikor {2}, {3} játszottál."
-	}
-	
-	"Infected_CallMedic"
-	{
-		"hu"		"Kiálts 'MEDIC!'-et, hogy speciális fertőzöttként újraéledj!"
 	}
 	
 	"Infected_RageReady"
@@ -275,36 +255,6 @@
 		"hu"		"{1}{2} játékos elkábítva."
 	}
 	
-	"Command_MusicEnable"
-	{
-		"hu"		"{1}Zene engedélyezve."
-	}
-	
-	"Command_MusicDisable"
-	{
-		"hu"		"{1}Zene letiltva."
-	}
-	
-	"JoinTeam_CantSwitchGrace"
-	{
-		"hu"		"{1}Nem válthatsz az ellenfél csapatába a kegyelmi időszak alatt."
-	}
-	
-	"JoinTeam_WillJoinInfectedGrace"
-	{
-		"hu"		"{1}Csatlakozni fogsz a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
-	}
-	
-	"JoinTeam_CancelGraceEnd"
-	{
-		"hu"		"{1}Már nem fogsz automatikusan csatlakozni a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
-	}
-	
-	"JoinTeam_CantJoinSurvivorGrace"
-	{
-		"hu"		"{1}Nem csatlakozhatsz a Túlélő csapathoz most. Csatlakozni fogsz a Fertőzött csapathoz, amikor a kegyelmi időszak véget ér."
-	}
-	
 	"JoinClass_ValidZombies"
 	{
 		"hu"		"{1}Érvényes zombik:{2}."
@@ -332,12 +282,12 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"hu"		"{green}TE EGY CHARGER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ROHAMOZZ! {yellow}(16 másodperc várakozási idő)"
+		"hu"		"{green}TE EGY CHARGER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ROHAMOZZ! {yellow}(15 másodperc várakozási idő)"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"hu"		"{green}TE EGY SCREAMER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ÖSSZEGYŰJTSD A SZÖVETSÉGES ZOMBIKAT! {yellow}(21 másodperc várakozási idő){orange}\n- A közeledben álló zombik erősebbek."
+		"hu"		"{green}TE EGY SCREAMER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ÖSSZEGYŰJTSD A SZÖVETSÉGES ZOMBIKAT! {yellow}(20 másodperc várakozási idő){orange}\n- A közeledben álló zombik erősebbek."
 	}
 	
 	"SpecialInfected_Stalker"
@@ -347,22 +297,17 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"hu"		"{green}TE EGY HUNTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy UGORJ és RÁVESD MAGAD AZ ELLENSÉGES TÚLÉLŐKRE! {yellow}(3 másodperc várakozási idő mellé és 21 találat esetén)"
-	}
-	
-	"SpecialInfected_Smoker"
-	{
-		"hu"		"{green}TE EGY SMOKER VAGY:\n{orange}- Jobb kattintással tüzelj egy sugarat az ellenséges játékosokra és húzd őket magad felé! {yellow}(nincs várakozási idő)"
+		"hu"		"{green}TE EGY HUNTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy UGORJ és RÁVESD MAGAD AZ ELLENSÉGES TÚLÉLŐKRE! {yellow}(5 másodperc várakozási idő mellé és 20 találat esetén)"
 	}
 	
 	"SpecialInfected_Spitter"
 	{
-		"hu"		"{green}TE EGY SPITTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy GÁZT dobj a túlélők csoportjára, sebzést okozva! {yellow}(16 másodperc várakozási idő)"
+		"hu"		"{green}TE EGY SPITTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy GÁZT dobj a túlélők csoportjára, sebzést okozva! {yellow}(15 másodperc várakozási idő)"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"hu"		"{green}TE EGY JOCKEY VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy RÁUGORJ a TÚLÉLŐKRE és irányítsd a mozgásukat! {yellow}(6 másodperc várakozási idő)"
+		"hu"		"{green}TE EGY JOCKEY VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy RÁUGORJ a TÚLÉLŐKRE és irányítsd a mozgásukat! {yellow}(5 másodperc várakozási idő)"
 	}
 
 	"Melee_Atomizer"
@@ -378,11 +323,6 @@
 	"Melee_PainTrain"
 	{
 		"hu"		"{orange}A Pain Train {red}miatt 10%%-kal több sebzést szenvedsz."
-	}
-	
-	"Melee_HalfZatochi"
-	{
-		"hu"		"{orange}A Half-Zatoichi {red}csökkenti a maximális életerődet, amíg aktív."
 	}
 	
 	"Melee_MarketGardener"

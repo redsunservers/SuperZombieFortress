@@ -71,6 +71,11 @@ public void Client_PreThinkPost(int iClient)
 {
 	UpdateClientCarrying(iClient);
 	
+	// This should only be changed from reset, e.g. player spawn or banner used
+	float flRageMeter = GetEntPropFloat(iClient, Prop_Send, "m_flRageMeter");
+	if (g_flBannerMeter[iClient] > flRageMeter)
+		g_flBannerMeter[iClient] = flRageMeter;
+	
 	if (g_flDisguiseCompleteTime && !GetEntDataFloat(iClient, g_iOffsetDisguiseCompleteTime))
 		OnClientDisguise(iClient);
 }
@@ -95,24 +100,62 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	
 	bool bChanged = false;
 	
-	//Disable fall damage to tank
-	if (g_nInfected[iVictim] == Infected_Tank && iDamageType & DMG_FALL)
+	if (g_ClientClasses[iVictim].callback_damage != INVALID_FUNCTION)
 	{
-		flDamage = 0.0;
-		bChanged = true;
+		Call_StartFunction(null, g_ClientClasses[iVictim].callback_damage);
+		Call_PushCell(iVictim);
+		Call_PushCellRef(iAttacker);
+		Call_PushCellRef(iInflicter);
+		Call_PushFloatRef(flDamage);
+		Call_PushCellRef(iDamageType);
+		Call_PushCellRef(iWeapon);
+		Call_PushArrayEx(vecForce, sizeof(vecForce), SM_PARAM_COPYBACK);
+		Call_PushArrayEx(vecForcePos, sizeof(vecForcePos), SM_PARAM_COPYBACK);
+		Call_PushCell(iDamageCustom);
+		
+		Action action;
+		Call_Finish(action);
+		if (action >= Plugin_Changed)
+			bChanged = true;
 	}
 	
 	if (iVictim != iAttacker)
 	{
+		if (IsValidLivingClient(iAttacker) && g_ClientClasses[iAttacker].callback_attack != INVALID_FUNCTION)
+		{
+			Call_StartFunction(null, g_ClientClasses[iAttacker].callback_attack);
+			Call_PushCell(iVictim);
+			Call_PushCellRef(iAttacker);
+			Call_PushCellRef(iInflicter);
+			Call_PushFloatRef(flDamage);
+			Call_PushCellRef(iDamageType);
+			Call_PushCellRef(iWeapon);
+			Call_PushArrayEx(vecForce, sizeof(vecForce), SM_PARAM_COPYBACK);
+			Call_PushArrayEx(vecForcePos, sizeof(vecForcePos), SM_PARAM_COPYBACK);
+			Call_PushCell(iDamageCustom);
+			
+			Action action;
+			Call_Finish(action);
+			if (action >= Plugin_Changed)
+				bChanged = true;
+		}
+		
 		if (IsValidLivingClient(iAttacker) && flDamage < 300.0)
 		{
-			//Damage scaling Zombies
 			if (IsValidZombie(iAttacker))
-				flDamage = flDamage * g_flZombieDamageScale * 0.7; //Default: 0.7
-			
-			//Damage scaling Survivors
-			if (IsValidSurvivor(iAttacker) && !IsClassname(iInflicter, "obj_sentrygun"))
+			{
+				// Damage scaling Zombies, don't make it too crazy for higher dmg scale
+				float flScale = g_flZombieDamageScale;
+				if (flScale > 1.0)
+					flScale = Pow(flScale, 0.5);
+				
+				flDamage = flDamage * flScale * 0.7; // Default: 0.7
+			}
+			else if (IsValidSurvivor(iAttacker) && !IsClassname(iInflicter, "obj_sentrygun"))
+			{
+				// Damage scaling Survivors
 				flDamage /= g_flZombieDamageScale;
+			}
 			
 			bChanged = true;
 		}
@@ -120,15 +163,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		if (IsValidSurvivor(iVictim) && IsValidZombie(iAttacker))
 		{
 			Sound_Attack(iVictim, iAttacker);
-			
-			if (TF2_IsPlayerInCondition(iAttacker, TFCond_CritCola)
-				|| TF2_IsPlayerInCondition(iAttacker, TFCond_Buffed)
-				|| TF2_IsPlayerInCondition(iAttacker, TFCond_CritHype))
-			{
-				//Reduce damage from crit amplifying items when active
-				flDamage *= 0.85;
-				bChanged = true;
-			}
 			
 			//Taunt kill, backstabs and gunslinger combo punch
 			if (flDamage >= 300.0
@@ -158,60 +192,9 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		
 		if (IsValidZombie(iVictim))
 		{
-			//Tank is immune to knockback
-			if (g_nInfected[iVictim] == Infected_Tank)
-			{
-				ScaleVector(vecForce, 0.0);
-				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
-				bChanged = true;
-			}
-			
 			//Disable physics force from sentry damage
 			if (IsClassname(iInflicter, "obj_sentrygun"))
 				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
-			
-			if (IsValidSurvivor(iAttacker))
-			{
-				if (g_nInfected[iVictim] == Infected_Tank)
-				{
-					//"SHOOT THAT TANK" voice call
-					SetVariantString("IsMvMDefender:1");
-					AcceptEntityInput(iAttacker, "AddContext");
-					SetVariantString("TLK_MVM_ATTACK_THE_TANK");
-					AcceptEntityInput(iAttacker, "SpeakResponseConcept");
-					AcceptEntityInput(iAttacker, "ClearContext");
-					
-					//Don't instantly kill the tank on a backstab
-					if (iDamageCustom == TF_CUSTOM_BACKSTAB)
-					{
-						flDamage = g_cvTankStab.FloatValue / 3.0;
-						iDamageType |= DMG_CRIT;
-						SetNextAttack(iAttacker, GetGameTime() + 1.25);
-					}
-					
-					g_flDamageDealtAgainstTank[iAttacker] += flDamage;
-					ScaleVector(vecForce, 0.0);
-					iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
-				}
-				
-				else if (TF2_IsPlayerInCondition(iVictim, TFCond_CritCola)
-					|| TF2_IsPlayerInCondition(iVictim, TFCond_Buffed)
-					|| TF2_IsPlayerInCondition(iVictim, TFCond_CritHype))
-				{
-					//Increase damage taken from crit amplifying items when active
-					flDamage *= 1.1;
-					bChanged = true;
-				}
-			}
-		}
-		
-		//Check if tank takes damage from map deathpit, if so kill him
-		if (g_nInfected[iVictim] == Infected_Tank && MaxClients < iAttacker)
-		{
-			char strAttacker[32];
-			GetEdictClassname(iAttacker, strAttacker, sizeof(strAttacker));
-			if (strcmp(strAttacker, "trigger_hurt") == 0 && flDamage >= 450.0)
-				ForcePlayerSuicide(iVictim);
 		}
 	}
 	

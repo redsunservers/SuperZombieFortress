@@ -25,10 +25,10 @@ public void Infected_DoNoRage(int iClient)
 // Tank
 ////////////////
 
-static Handle g_hTimerTank[MAXPLAYERS];
-static float g_flTankLifetime[MAXPLAYERS];
-static int g_iTankHealthSubtract[MAXPLAYERS];
-static int g_iTankDebris[MAXPLAYERS] = {INVALID_ENT_REFERENCE, ...};
+static Handle g_hTimerTank[MAXPLAYERS+1];
+static float g_flTankLifetime[MAXPLAYERS+1];
+static int g_iTankHealthSubtract[MAXPLAYERS+1];
+static int g_iTankDebris[MAXPLAYERS+1] = {INVALID_ENT_REFERENCE, ...};
 
 public void Infected_OnTankSpawn(int iClient)
 {
@@ -232,10 +232,20 @@ void Infected_ActivateDebris(int iClient, bool bVel)
 	
 	if (bVel)
 	{
+		// Calculate velocity from eye angle
 		float vecAngles[3], vecVel[3];
 		GetClientEyeAngles(iClient, vecAngles);
 		AnglesToVelocity(vecAngles, vecVel, 2000.0);
-		TeleportEntity(iDebris, NULL_VECTOR, NULL_VECTOR, vecVel);
+		
+		// Calculate position by distance between eye and rock,
+		float vecEyePos[3], vecDebrisPos[3];
+		GetClientEyePosition(iClient, vecEyePos);
+		GetEntPropVector(iDebris, Prop_Send, "m_vecOrigin", vecDebrisPos);
+		float flDistance = GetVectorDistance(vecEyePos, vecDebrisPos);
+		AnglesToVelocity(vecAngles, vecDebrisPos, flDistance);
+		AddVectors(vecDebrisPos, vecEyePos, vecDebrisPos);
+		
+		TeleportEntity(iDebris, vecDebrisPos, NULL_VECTOR, vecVel);
 	}
 	
 	CreateTimer(1.0, Infected_DebrisTimerMoving, iDebris, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
@@ -350,6 +360,48 @@ public void Infected_OnTankThink(int iClient)
 	}
 }
 
+public Action Infected_OnTankDamage(int iClient, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
+{
+	//Tank is immune to knockback
+	ScaleVector(vecForce, 0.0);
+	iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
+			
+	//Disable fall damage to tank
+	if (iDamageType & DMG_FALL)
+		flDamage = 0.0;
+	
+	if (IsValidSurvivor(iAttacker))
+	{
+		//"SHOOT THAT TANK" voice call
+		SetVariantString("IsMvMDefender:1");
+		AcceptEntityInput(iAttacker, "AddContext");
+		SetVariantString("TLK_MVM_ATTACK_THE_TANK");
+		AcceptEntityInput(iAttacker, "SpeakResponseConcept");
+		AcceptEntityInput(iAttacker, "ClearContext");
+		
+		//Don't instantly kill the tank on a backstab
+		if (iDamageCustom == TF_CUSTOM_BACKSTAB)
+		{
+			flDamage = g_cvTankStab.FloatValue / 3.0;
+			iDamageType |= DMG_CRIT;
+			SetNextAttack(iAttacker, GetGameTime() + 1.25);
+		}
+		
+		g_flDamageDealtAgainstTank[iAttacker] += flDamage;
+	}
+	
+	//Check if tank takes damage from map deathpit, if so kill him
+	if (MaxClients < iAttacker)
+	{
+		char strAttacker[32];
+		GetEntityClassname(iAttacker, strAttacker, sizeof(strAttacker));
+		if (StrContains(strAttacker, "trigger_hurt") == 0 && flDamage >= 450.0)
+			ForcePlayerSuicide(iClient);
+	}
+	
+	return Plugin_Changed;
+}
+
 public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 {
 	g_hTimerTank[iVictim] = null;
@@ -380,9 +432,8 @@ public void Infected_OnTankDeath(int iVictim, int iKiller, int iAssist)
 		
 		for (int i = 1; i <= MaxClients; i++)
 		{
-			//If current music is tank, end it
-			if (Sound_IsCurrentMusic(i, "tank"))
-				Sound_EndMusic(i);
+			// End tank music
+			Sound_EndSpecificMusic(i, "tank");
 			
 			if (IsValidLivingSurvivor(i))
 			{
@@ -444,7 +495,8 @@ public void Infected_DoBoomerRage(int iClient)
 
 public void Infected_OnBoomerDeath(int iClient, int iKiller, int iAssist)
 {
-	Infected_DoBoomerExplosion(iClient, 400.0);
+	if (iClient != iKiller)	// Prevent explosion called twice, as suiciding from rage calls death callback
+		Infected_DoBoomerExplosion(iClient, 400.0);
 }
 
 void Infected_DoBoomerExplosion(int iClient, float flRadius)
@@ -496,8 +548,8 @@ void Infected_DoBoomerExplosion(int iClient, float flRadius)
 // Charger
 ////////////////
 
-static float g_flChargerEndCharge[MAXPLAYERS];
-static bool g_bChargerHitSurvivor[MAXPLAYERS][MAXPLAYERS];
+static float g_flChargerEndCharge[MAXPLAYERS+1];
+static bool g_bChargerHitSurvivor[MAXPLAYERS+1][MAXPLAYERS+1];
 
 public void Infected_OnChargerSpawn(int iClient)
 {
@@ -572,6 +624,35 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 			}
 		}
 	}
+}
+
+public Action Infected_OnChargerAttack(int iVictim, int &iClient, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
+{
+	if (!(iDamageType & DMG_CLUB))	// melee damage
+		return Plugin_Continue;
+	
+	TF2_AddCondition(iClient, TFCond_CritCola, 0.05);	// mini-crit without visual effects, does unintentionally blocks healing
+	
+	// Make vector from attacker to victim pos
+	float vecOriginVictim[3], vecOriginAttacker[3], vecVelocity[3], vecResult[3];
+	GetClientAbsOrigin(iVictim, vecOriginVictim);
+	GetClientAbsOrigin(iClient, vecOriginAttacker);
+	
+	MakeVectorFromPoints(vecOriginAttacker, vecOriginVictim, vecVelocity);
+	NormalizeVector(vecVelocity, vecVelocity);
+	vecVelocity[2] += 0.5;	// slightly upward
+	ScaleVector(vecVelocity, 400.0);
+	
+	GetEntPropVector(iVictim, Prop_Data, "m_vecVelocity", vecResult);
+	AddVectors(vecResult, vecVelocity, vecResult);
+	
+	TF2_AddCondition(iVictim, TFCond_LostFooting, 0.4);	//Allow push victims easier with friction
+	TeleportEntity(iVictim, NULL_VECTOR, NULL_VECTOR, vecResult);
+	
+	Stun_Shake(iVictim, vecForce, 250.0);	// Give a little screen shake on being knocked back
+	
+	iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
+	return Plugin_Changed;
 }
 
 ////////////////
@@ -664,7 +745,7 @@ public void Infected_OnStalkerThink(int iClient, int &iButtons)
 // Hunter
 ////////////////
 
-static bool g_bHunterIsUsingPounce[MAXPLAYERS];
+static bool g_bHunterIsUsingPounce[MAXPLAYERS+1];
 
 public void Infected_DoHunterJump(int iClient)
 {
@@ -706,7 +787,7 @@ public void Infected_OnHunterTouch(int iClient, int iToucher)
 	if (Stun_StartPlayer(iToucher, flDuration))
 	{
 		SetEntityHealth(iToucher, GetClientHealth(iToucher) - 20);
-		SetNextAttack(iClient, GetGameTime() + 0.6);
+		SetNextAttack(iClient, GetGameTime() + 2.0);
 		
 		//Teleport hunter inside the target
 		float vecPosClient[3];
@@ -720,7 +801,7 @@ public void Infected_OnHunterTouch(int iClient, int iToucher)
 	}
 	
 	g_bHunterIsUsingPounce[iClient] = false;
-	g_iRageTimer[iClient] = 21;
+	g_iRageTimer[iClient] = 21;	// display as 20 seconds, but +1 so hud can display it
 }
 
 public void Infected_OnHunterDeath(int iClient, int iKiller, int iAssist)
@@ -732,106 +813,371 @@ public void Infected_OnHunterDeath(int iClient, int iKiller, int iAssist)
 // Smoker
 ////////////////
 
-static int g_iSmokerBeamHits[MAXPLAYERS];
-static int g_iSmokerBeamHitVictim[MAXPLAYERS];
+enum SmokerStatus
+{
+	SmokerStatus_None,		// not pulling tongue out
+	SmokerStatus_Extend,	// extending the tongue
+	SmokerStatus_Grabbing,	// in process of grabbing someone, slowly
+	SmokerStatus_Retract,	// retract tongue out fast
+}
+
+static SmokerStatus g_nSmokerStatus[MAXPLAYERS+1];
+static int g_iSmokerRopes[MAXPLAYERS+1][2];
+static float g_flSmokerGrabStart[MAXPLAYERS+1];
+static int g_iSmokerGrabVictim[MAXPLAYERS+1];
+
+static int g_iSmokerBeamHits[MAXPLAYERS+1];
+
+const float flSmokerSpeedExtend = 1000.0;
+const float flSmokerSpeedGrabbing = 100.0;
+const float flSmokerSpeedRetract = 350.0;
+const float flSmokerZPosition = -8.0;
 
 public void Infected_OnSmokerThink(int iClient, int &iButtons)
 {
-	if (iButtons & IN_ATTACK2 && (GetEntityFlags(iClient) & FL_ONGROUND == FL_ONGROUND))
-	{
-		if (GetEntityMoveType(iClient) == MOVETYPE_NONE)
-			SDKCall_PlaySpecificSequence(iClient, "tongue_attack_grab_survivor");
-		
-		SetEntityMoveType(iClient, MOVETYPE_NONE);
-		Infected_DoSmokerBeam(iClient);
-	}
-	else if (GetEntityMoveType(iClient) == MOVETYPE_NONE)
-	{
-		ViewModel_SetAnimation(iClient, "ACT_VM_COUGH");
-		
-		g_iSmokerBeamHits[iClient] = 0;
-		g_iSmokerBeamHitVictim[iClient] = 0;
-		SetEntityMoveType(iClient, MOVETYPE_WALK);
-	}
-}
-
-void Infected_DoSmokerBeam(int iClient)
-{
-	float vecOrigin[3], vecAngles[3], vecEndOrigin[3], vecHitPos[3];
-	GetClientEyePosition(iClient, vecOrigin);
-	GetClientEyeAngles(iClient, vecAngles);
+	int iWeapon = GetPlayerWeaponSlot(iClient, WeaponSlot_Melee);
+	if (iWeapon != INVALID_ENT_REFERENCE)
+		SetEntPropFloat(iWeapon, Prop_Send, "m_flNextSecondaryAttack", GetGameTime() + 1.0);	// Don't want to swing from m2
 	
-	Handle hTrace = TR_TraceRayFilterEx(vecOrigin, vecAngles, MASK_ALL, RayType_Infinite, Trace_DontHitEntity, iClient);
-	TR_GetEndPosition(vecEndOrigin, hTrace);
-	
-	//750 in L4D2, scaled to TF2 player hull sizing (32hu -> 48hu)
-	if (GetVectorDistance(vecOrigin, vecEndOrigin) > 1150.0)
+	if (g_nSmokerStatus[iClient] != SmokerStatus_None && (!IsValidEntity(g_iSmokerRopes[iClient][0]) || !IsValidEntity(g_iSmokerRopes[iClient][1])))
 	{
-		delete hTrace;
-		SDKCall_PlaySpecificSequence(iClient, "tongue_attack_drag_survivor");
+		Infected_EndSmokerBeam(iClient);
 		return;
 	}
 	
-	//Smoker's tongue beam
-	//Beam that gets sent to all other clients
-	TE_SetupBeamPoints(vecOrigin, vecEndOrigin, g_iSprite, 0, 0, 0, 0.08, 5.0, 5.0, 10, 0.0, { 64, 0, 0, 255 }, 0);
-	int iTotal = 0;
-	int[] iClients = new int[MaxClients];
-	for (int i = 1; i <= MaxClients; i++)
-		if (IsClientInGame(i) && i != iClient)
-			iClients[iTotal++] = i;
-	
-	TE_Send(iClients, iTotal);
-	
-	//Send a different beam to smoker
-	float vecNewOrigin[3];
-	vecNewOrigin[0] = vecOrigin[0];
-	vecNewOrigin[1] = vecOrigin[1];
-	vecNewOrigin[2] = vecOrigin[2] - 7.0;
-	TE_SetupBeamPoints(vecNewOrigin, vecEndOrigin, g_iSprite, 0, 0, 0, 0.08, 2.0, 5.0, 10, 0.0, { 64, 0, 0, 255 }, 0);
-	TE_SendToClient(iClient);
-	
-	int iHit = TR_GetEntityIndex(hTrace);
-	
-	if (TR_DidHit(hTrace) && IsValidLivingSurvivor(iHit) && !TF2_IsPlayerInCondition(iHit, TFCond_Dazed))
+	switch (g_nSmokerStatus[iClient])
 	{
-		//Calculate pull velocity towards Smoker
-		float vecVelocity[3];
-		GetClientAbsOrigin(iHit, vecHitPos);
-		MakeVectorFromPoints(vecOrigin, vecHitPos, vecVelocity);
-		NormalizeVector(vecVelocity, vecVelocity);
-		ScaleVector(vecVelocity, fMin(-450.0 + GetClientHealth(iHit), -10.0) );
-		TeleportEntity(iHit, NULL_VECTOR, NULL_VECTOR, vecVelocity);
-		
-		//If target changed, change stored target AND reset beam hit count
-		if (g_iSmokerBeamHitVictim[iClient] != iHit)
+		case SmokerStatus_Extend:
 		{
-			g_iSmokerBeamHitVictim[iClient] = iHit;
-			g_iSmokerBeamHits[iClient] = 0;
+			if (DistanceFromEntities(g_iSmokerRopes[iClient][0], g_iSmokerRopes[iClient][1]) >= 1150.0)
+			{
+				//750 in L4D2, scaled to TF2 player hull sizing (32hu -> 48hu)
+				Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+				return;
+			}
+			
+			float vecVelocity[3];
+			GetEntPropVector(g_iSmokerRopes[iClient][0], Prop_Data, "m_vecVelocity", vecVelocity);
+			if (GetVectorLength(vecVelocity) < flSmokerSpeedExtend * 0.8)
+			{
+				Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+				return;
+			}
+			
+			if (!Infected_DoBeamTrace(iClient))	// find a victim to grab while extending
+				return;
+			
+			if (IsValidLivingSurvivor(g_iSmokerGrabVictim[iClient]))
+				Infected_SmokerGrabVictim(iClient);
+			
+			ViewModel_SetAnimation(iClient, "ACT_VM_TONGUE");
+		}
+		case SmokerStatus_Grabbing:
+		{
+			if (!IsValidLivingSurvivor(g_iSmokerGrabVictim[iClient]))
+			{
+				// Lost a victim
+				Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+			}
+			else
+			{
+				if (g_flSmokerGrabStart[iClient] + 2.0 <= GetGameTime())
+					Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+				else
+					Infected_RetractSmokerBeam(iClient, SmokerStatus_Grabbing);	// Just to check if tongue speed need to be changed
+				
+				Infected_SmokerGrabVictim(iClient);
+			}
+			
+			if (!Infected_DoBeamTrace(iClient))
+				return;
 			
 			SDKCall_PlaySpecificSequence(iClient, "tongue_attack_drag_survivor_idle");
 			ViewModel_SetAnimation(iClient, "ACT_VM_TONGUE");
 		}
-		
-		//Increase count and if it reaches a threshold, apply damage
-		g_iSmokerBeamHits[iClient]++;
-		if (g_iSmokerBeamHits[iClient] == 5)
+		case SmokerStatus_Retract:
 		{
-			DealDamage(iClient, iHit, 2.0); //Do damage
-			g_iSmokerBeamHits[iClient] = 0;
+			if (DistanceFromEntities(g_iSmokerRopes[iClient][0], g_iSmokerRopes[iClient][1]) <= 20.0)
+			{
+				Infected_EndSmokerBeam(iClient);
+				return;
+			}
+			
+			if (!Infected_DoBeamTrace(iClient))
+				return;
+			
+			if (g_nSmokerStatus[iClient] == SmokerStatus_Grabbing)
+				return;	// found a victim from Infected_DoBeamTrace above, don't immediately stun em
+			
+			Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+			
+			if (IsValidLivingSurvivor(g_iSmokerGrabVictim[iClient]))
+				Infected_SmokerGrabVictim(iClient);
+			
+			SDKCall_PlaySpecificSequence(iClient, "tongue_attack_drag_survivor_idle");
+			ViewModel_SetAnimation(iClient, "ACT_VM_TONGUE");
 		}
-		
-		Shake(iHit, 4.0, 0.2); //Shake effect
 	}
-	else if (g_iSmokerBeamHitVictim[iClient])
+}
+
+public Action Infected_OnSmokerDamage(int iClient, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
+{
+	if (IsValidLivingSurvivor(iAttacker) && IsValidLivingSurvivor(g_iSmokerGrabVictim[iClient]))
 	{
-		g_iSmokerBeamHitVictim[iClient] = 0;
-		g_iSmokerBeamHits[iClient] = 0;
+		// Lose the target when taking damage
+		g_iSmokerGrabVictim[iClient] = 0;
+		Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+	}
+	
+	return Plugin_Continue;
+}
+
+public void Infected_StartSmokerBeam(int iClient)
+{
+	if (g_nSmokerStatus[iClient] != SmokerStatus_None || GetEntityFlags(iClient) & FL_ONGROUND != FL_ONGROUND || GetEntityFlags(iClient) & FL_DUCKING == FL_DUCKING)
+		return;
+	
+	// Begin the smoker beam
+	
+	g_nSmokerStatus[iClient] = SmokerStatus_Extend;
+	g_iSmokerGrabVictim[iClient] = 0;
+	
+	ViewModel_SetAnimation(iClient, "ACT_VM_TONGUE");
+	SDKCall_PlaySpecificSequence(iClient, "tongue_attack_grab_survivor");
+	SetEntityMoveType(iClient, MOVETYPE_NONE);
+	TF2_AddCondition(iClient, TFCond_FreezeInput, TFCondDuration_Infinite);
+	
+	float vecOrigin[3], vecAngles[3];
+	GetClientEyePosition(iClient, vecOrigin);
+	GetClientEyeAngles(iClient, vecAngles);
+	vecOrigin[2] += flSmokerZPosition;
+	
+	for (int i = 0; i < sizeof(g_iSmokerRopes[]); i++)
+	{
+		int iRope = EntIndexToEntRef(CreateEntityByName("keyframe_rope"));
+		g_iSmokerRopes[iClient][i] = iRope;
 		
-		SDKCall_PlaySpecificSequence(iClient, "tongue_attack_drag_survivor");
+		char sBuffer[32];
+		Format(sBuffer, sizeof(sBuffer), "szf_rope_%d", iRope);
+		SetEntPropString(iRope, Prop_Data, "m_iName", sBuffer);
+		
+		DispatchKeyValue(iRope, "RopeMaterial", "cable/red.vmt");
+		SetEntProp(iRope, Prop_Data, "m_spawnflags", 1);	// SF_ROPE_RESIZE
+		
+		TeleportEntity(iRope, vecOrigin);
+	}
+	
+	int iRopeMove = g_iSmokerRopes[iClient][0];
+	
+	char sBuffer[32];
+	Format(sBuffer, sizeof(sBuffer), "szf_rope_%d", g_iSmokerRopes[iClient][1]);
+	SetEntPropString(iRopeMove, Prop_Data, "m_iNextLinkName", sBuffer);
+	
+	for (int i = 0; i < sizeof(g_iSmokerRopes[]); i++)
+	{
+		DispatchSpawn(g_iSmokerRopes[iClient][i]);
+		ActivateEntity(g_iSmokerRopes[iClient][i]);
+	}
+	
+	SetVariantString("self.SetMoveType(Constants.EMoveType.MOVETYPE_FLY, Constants.EMoveCollide.MOVECOLLIDE_FLY_CUSTOM)");
+	AcceptEntityInput(iRopeMove, "RunScriptCode");
+	
+	float vecVelocity[3];
+	AnglesToVelocity(vecAngles, vecVelocity, flSmokerSpeedExtend);
+	TeleportEntity(iRopeMove, _, _, vecVelocity);
+	
+	SDKHook(iRopeMove, SDKHook_Touch, Infected_OnSmokerTouch);
+}
+
+void Infected_RetractSmokerBeam(int iClient, SmokerStatus nStatus)
+{
+	g_nSmokerStatus[iClient] = nStatus;
+	
+	float vecOriginRope[3], vecOriginClient[3];
+	GetEntPropVector(g_iSmokerRopes[iClient][0], Prop_Send, "m_vecOrigin", vecOriginRope);
+	GetClientEyePosition(iClient, vecOriginClient);
+	vecOriginClient[2] += flSmokerZPosition;
+	
+	float vecVelocity[3];
+	float flSpeed;
+	
+	if (nStatus == SmokerStatus_Retract)
+	{
+		MakeVectorFromPoints(vecOriginRope, vecOriginClient, vecVelocity);
+		flSpeed = flSmokerSpeedRetract;
+	}
+	else if (nStatus == SmokerStatus_Grabbing)
+	{
+		float vecOriginVictim[3];
+		GetEntityCenterPoint(g_iSmokerGrabVictim[iClient], vecOriginVictim);
+		float flGap = GetVectorDistance(vecOriginClient, vecOriginRope) - GetVectorDistance(vecOriginClient, vecOriginVictim);
+		if (flGap > 10.0)
+		{
+			// Rope still got a bit of distance to catch up victim, aim tongue to inside victim's body
+			MakeVectorFromPoints(vecOriginRope, vecOriginVictim, vecVelocity);
+			flSpeed = flGap * 5.0;
+		}
+		else
+		{
+			MakeVectorFromPoints(vecOriginRope, vecOriginClient, vecVelocity);
+			flSpeed = flSmokerSpeedGrabbing;
+		}
+	}
+	
+	NormalizeVector(vecVelocity, vecVelocity);
+	ScaleVector(vecVelocity, flSpeed);
+	TeleportEntity(g_iSmokerRopes[iClient][0], _, _, vecVelocity);
+}
+
+public void Infected_EndSmokerBeam(int iClient)
+{
+	if (IsValidLivingSurvivor(g_iSmokerGrabVictim[iClient]))
+		TeleportEntity(g_iSmokerGrabVictim[iClient], NULL_VECTOR, NULL_VECTOR, {0.0, 0.0, 0.0});
+	
+	g_iSmokerGrabVictim[iClient] = 0;
+	g_nSmokerStatus[iClient] = SmokerStatus_None;
+	
+	SetEntityMoveType(iClient, MOVETYPE_WALK);
+	TF2_RemoveCondition(iClient, TFCond_FreezeInput);
+	
+	for (int i = 0; i < sizeof(g_iSmokerRopes[]); i++)
+		if (g_iSmokerRopes[iClient][i] && IsValidEntity(g_iSmokerRopes[iClient][i]))	// variable can be 0 as its not initialized as -1
+			RemoveEntity(g_iSmokerRopes[iClient][i]);
+	
+	ViewModel_SetAnimation(iClient, "ACT_VM_COUGH");
+}
+
+public Action Infected_OnSmokerTouch(int iRope, int iToucher)
+{
+	// Hit a wall or something, retract it
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (g_nInfected[iClient] != Infected_Smoker)	// can happen when client disconnects or new round begins, delete entity after loop
+			continue;
+		
+		for (int i = 0; i < sizeof(g_iSmokerRopes[]); i++)
+		{
+			if (EntIndexToEntRef(iRope) != g_iSmokerRopes[iClient][i])
+				continue;
+			
+			g_iSmokerGrabVictim[iClient] = 0;
+			Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+			return Plugin_Handled;
+		}
+	}
+	
+	RemoveEntity(iRope);
+	return Plugin_Handled;
+}
+
+bool Infected_DoBeamTrace(int iClient)
+{
+	// Ensure one end of the beam is always at client
+	float vecOrigin1[3], vecOrigin2[3];
+	GetClientEyePosition(iClient, vecOrigin1);
+	vecOrigin1[2] += flSmokerZPosition;
+	TeleportEntity(g_iSmokerRopes[iClient][1], vecOrigin1);
+	GetEntPropVector(g_iSmokerRopes[iClient][0], Prop_Send, "m_vecOrigin", vecOrigin2);
+	
+	Handle hTrace = TR_TraceRayFilterEx(vecOrigin1, vecOrigin2, MASK_PLAYERSOLID, RayType_EndPoint, Trace_DontHitTeammates, iClient);
+	if (TR_DidHit(hTrace))
+	{
+		int iVictim = TR_GetEntityIndex(hTrace);
+		if (IsValidLivingSurvivor(iVictim))
+		{
+			if (!g_iSmokerGrabVictim[iClient])
+			{
+				g_flSmokerGrabStart[iClient] = GetGameTime();
+				g_iSmokerGrabVictim[iClient] = iVictim;
+				Forward_OnSmokerHit(iClient, iVictim);
+				Infected_RetractSmokerBeam(iClient, SmokerStatus_Grabbing);
+			}
+		}
+		else
+		{
+			// Either something got in the way or we got teleported, try retract it
+			if (g_nSmokerStatus[iClient] == SmokerStatus_Extend)
+			{
+				Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+				delete hTrace;
+				return false;
+			}
+			else
+			{
+				float vecVelocity[3];
+				GetEntPropVector(g_iSmokerRopes[iClient][0], Prop_Data, "m_vecVelocity", vecVelocity);
+				if (GetVectorLength(vecVelocity) < flSmokerSpeedRetract * 0.8)
+				{
+					// Likely hit something and is in the way, end it
+					Infected_EndSmokerBeam(iClient);
+					delete hTrace;
+					return false;
+				}
+			}
+		}
 	}
 	
 	delete hTrace;
+	return true;
+}
+
+void Infected_SmokerGrabVictim(int iClient)
+{
+	int iVictim = g_iSmokerGrabVictim[iClient];
+	
+	//Calculate pull velocity towards Smoker
+	float vecOriginVictim[3], vecOriginRopeStart[3], vecOriginRopeEnd[3];
+	GetEntityCenterPoint(iVictim, vecOriginVictim);
+	GetEntPropVector(g_iSmokerRopes[iClient][0], Prop_Send, "m_vecOrigin", vecOriginRopeStart);
+	GetEntPropVector(g_iSmokerRopes[iClient][1], Prop_Send, "m_vecOrigin", vecOriginRopeEnd);
+	
+	float vecVelocity[3];
+	MakeVectorFromPoints(vecOriginVictim, vecOriginRopeEnd, vecVelocity);
+	NormalizeVector(vecVelocity, vecVelocity);
+	
+	if (g_nSmokerStatus[iClient] == SmokerStatus_Grabbing)
+	{
+		ScaleVector(vecVelocity, flSmokerSpeedGrabbing);
+	}
+	else if (g_nSmokerStatus[iClient] == SmokerStatus_Retract)
+	{
+		if (!TF2_IsPlayerInCondition(iVictim, TFCond_Dazed))
+		{
+			const float flDuration = 5.0;
+			Stun_StartPlayer(iVictim, flDuration);
+			TF2_StunPlayer(iVictim, flDuration, 0.8, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, iClient);
+		}
+		
+		float flDistance = GetVectorDistance(vecOriginVictim, vecOriginRopeStart);
+		if (flDistance >= 250.0)
+		{
+			// Lost the victim, abort
+			g_iSmokerGrabVictim[iClient] = 0;
+			return;
+		}
+		
+		// Add up amount of distance left to catch up from victim to tip of tongue
+		ScaleVector(vecVelocity, flSmokerSpeedRetract + flDistance);
+		
+		if (GetEntityFlags(iVictim) & FL_ONGROUND)
+			vecVelocity[2] += 300.0;
+		else
+			vecVelocity[2] += 50.0;
+	}
+	
+	TeleportEntity(iVictim, NULL_VECTOR, NULL_VECTOR, vecVelocity);
+	TF2_AddCondition(iVictim, TFCond_LostFooting, 0.2);
+	
+	//Increase count and if it reaches a threshold, apply damage
+	g_iSmokerBeamHits[iClient]++;
+	if (g_iSmokerBeamHits[iClient] == 5)
+	{
+		DealDamage(iClient, iVictim, 2.0); //Do damage
+		g_iSmokerBeamHits[iClient] = 0;
+	}
+	
+	Shake(iVictim, 4.0, 0.2); //Shake effect
 }
 
 ////////////////
@@ -859,10 +1205,10 @@ public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
 		SetEntProp(iGas, Prop_Send, "m_iTeamNum", GetClientTeam(iVictim));
 		if (DispatchSpawn(iGas))
 		{
-			float vecOrigin[3], vecAngles[3];
-			GetClientAbsOrigin(iVictim, vecOrigin);
+			float vecCenter[3], vecAngles[3];
+			WorldSpaceCenter(iVictim, vecCenter);
 			GetClientAbsAngles(iVictim, vecAngles);
-			TeleportEntity(iGas, vecOrigin, vecAngles, NULL_VECTOR);
+			TeleportEntity(iGas, vecCenter, vecAngles);
 		}
 	}
 }
@@ -871,8 +1217,8 @@ public void Infected_OnSpitterDeath(int iVictim, int iKiller, int iAssist)
 // Jockey
 ////////////////
 
-static bool g_bJockeyIsUsingPounce[MAXPLAYERS];
-static int g_iJockeyTarget[MAXPLAYERS];
+static bool g_bJockeyIsUsingPounce[MAXPLAYERS+1];
+static int g_iJockeyTarget[MAXPLAYERS+1];
 
 public void Infected_DoJockeyJump(int iClient)
 {

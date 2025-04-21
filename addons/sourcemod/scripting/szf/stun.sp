@@ -41,7 +41,7 @@ enum struct StunInfo
 	float flCurrentBlinkEnd;
 }
 
-static StunInfo g_StunInfo[MAXPLAYERS];
+static StunInfo g_StunInfo[MAXPLAYERS+1];
 
 // -----------------------
 // MAIN
@@ -113,7 +113,11 @@ void Stun_EndPlayer(int iClient)
 	if (IsPlayerAlive(iClient))	//Keep grey screen if dead
 		ClientCommand(iClient, "r_screenoverlay\"\"");
 	
-	SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", g_StunInfo[iClient].iPreviousFogEnt);
+	if (IsValidEntity(g_StunInfo[iClient].iPreviousFogEnt))
+		SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", g_StunInfo[iClient].iPreviousFogEnt);
+	else
+		SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", INVALID_ENT_REFERENCE);
+	
 	g_StunInfo[iClient].iPreviousFogEnt = INVALID_ENT_REFERENCE;
 	g_StunInfo[iClient].bStunned = false;
 	delete g_StunInfo[iClient].aTimers;
@@ -125,7 +129,9 @@ void Stun_EndPlayer(int iClient)
 		g_StunInfo[iClient].bCooldown = true;
 	}
 	
-	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD") & ~BLIND_HIDEHUD);
+	if (IsPlayerAlive(iClient))
+		SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD") & ~BLIND_HIDEHUD);
+	
 	TF2Attrib_RemoveByName(iClient, "deploy time increased");
 	
 	TF2_RemoveCondition(iClient, TFCond_LostFooting);
@@ -187,6 +193,7 @@ void Stun_ClientThink(int iClient)
 		SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", iFogEnt);
 	}
 	
+	SetEntProp(iClient, Prop_Send, "m_iAirDash", 999);	// Prevent any double-jumping
 	TF2_AddCondition(iClient, TFCond_LostFooting, TFCondDuration_Infinite);
 	SDKCall_SetSpeed(iClient);	//Recalculate speed every frame
 }

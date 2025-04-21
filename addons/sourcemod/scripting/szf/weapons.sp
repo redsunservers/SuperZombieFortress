@@ -13,12 +13,14 @@ enum struct Weapon
 	int iIndex;
 	WeaponRarity nRarity;
 	char sModel[PLATFORM_MAX_PATH];
+	char sModelAttach[PLATFORM_MAX_PATH];
 	int iSkin;
 	char sSound[PLATFORM_MAX_PATH];
 	char sAttribs[256];
 	ArrayList aClassSpecific[view_as<int>(TFClass_Engineer) + 1];
 	int iColor[3];
-	float flHeightOffset;
+	float flScale;
+	float vecOriginOffset[3];
 	float vecAnglesOffset[3];
 	float vecAnglesConst[3];
 	bool bAnglesConst[3];
@@ -79,7 +81,10 @@ void Weapons_Precache()
 		
 		PrecacheModel(wep.sModel);
 		
-		if (wep.sSound[0] != '\0')
+		if (wep.sModelAttach[0])
+			PrecacheModel(wep.sModelAttach);
+		
+		if (wep.sSound[0])
 			PrecacheSound(wep.sSound);
 	}
 	
@@ -89,8 +94,13 @@ void Weapons_Precache()
 
 bool GetWeaponFromEntity(Weapon buffer, int iEntity)
 {
-	char sModel[PLATFORM_MAX_PATH];
+	char sModel[PLATFORM_MAX_PATH], sModelAttach[PLATFORM_MAX_PATH];
 	GetEntityModel(iEntity, sModel, sizeof(sModel));
+	
+	int iChild = GetChildEntity(iEntity, "prop_dynamic");
+	if (iChild != INVALID_ENT_REFERENCE)
+		GetEntityModel(iChild, sModelAttach, sizeof(sModelAttach));
+	
 	int iSkin = GetEntProp(iEntity, Prop_Send, "m_nSkin");
 	
 	int iLength = g_Weapons.Length;
@@ -99,7 +109,7 @@ bool GetWeaponFromEntity(Weapon buffer, int iEntity)
 		Weapon wep;
 		g_Weapons.GetArray(i, wep);
 		
-		if (StrEqual(sModel, wep.sModel) && iSkin == wep.iSkin)
+		if (StrEqual(sModel, wep.sModel) && StrEqual(sModelAttach, wep.sModelAttach) && iSkin == wep.iSkin)
 		{
 			buffer = wep;
 			return true;
@@ -125,7 +135,7 @@ void GetWeaponFromIndex(Weapon buffer, int iIndex)
 	}
 }
 
-ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, TFClassType nFilter = TFClass_Unknown)
+ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, ArrayList aSpawnWeapons = null, TFClassType nFilter = TFClass_Unknown)
 {
 	ArrayList aList = new ArrayList(sizeof(Weapon));
 	
@@ -134,6 +144,9 @@ ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, TFClassType nFilter = TF
 	{
 		Weapon wep;
 		g_Weapons.GetArray(g_WepIndexesByRarity[iRarity].Get(i), wep);
+		
+		if (aSpawnWeapons && aSpawnWeapons.FindValue(wep.iIndex) != -1 && GetRandomFloat(0.0, 1.0) >= g_cvWeaponSpawnReappear.FloatValue)
+			continue;	// spawn weapons have a chance to not reappear
 		
 		if (nFilter == TFClass_Unknown)
 		{
@@ -147,6 +160,24 @@ ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, TFClassType nFilter = TF
 		}
 	}
 	
+	aList.Sort(Sort_Random, Sort_Integer);
+	return aList;
+}
+
+ArrayList GetAllCommonAndUncommonWeapons(ArrayList aSpawnWeapons = null, TFClassType nFilter = TFClass_Unknown)
+{
+	ArrayList aList = GetAllWeaponsWithRarity(WeaponRarity_Common, aSpawnWeapons, nFilter);
+	ArrayList aOther = GetAllWeaponsWithRarity(WeaponRarity_Uncommon, aSpawnWeapons, nFilter);
+	
+	int iLength = aOther.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		Weapon wep;
+		aOther.GetArray(i, wep);
+		aList.PushArray(wep);
+	}
+	
+	delete aOther;
 	return aList;
 }
 
@@ -181,57 +212,27 @@ void Weapons_ReplaceEntityModel(int iEnt, int iIndex)
 }
 
 // -----------------------------------------------------------
-public void Weapons_OnSpawn_Health(int iEntity)
+public bool Weapons_OnPickup_Regen(int iClient)
 {
-	int iPickup = SpawnPickup(iEntity, "item_healthkit_full", false);
+	TF2_AddCondition(iClient, TFCond_HalloweenQuickHeal, 5.0);
 	
-	SetVariantString("!activator");
-	AcceptEntityInput(iPickup, "SetParent", iEntity);
+	GivePlayerAmmo(iClient, 9999, 1, true);	// TF_AMMO_PRIMARY
+	GivePlayerAmmo(iClient, 9999, 2, true);	// TF_AMMO_SECONDARY
+	GivePlayerAmmo(iClient, 9999, 3, true);	// TF_AMMO_METAL
 	
-	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
-	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
-}
-
-public void Weapons_OnSpawn_Ammo(int iEntity)
-{
-	int iPickup = SpawnPickup(iEntity, "item_ammopack_full", false);
-	
-	SetVariantString("!activator");
-	AcceptEntityInput(iPickup, "SetParent", iEntity);
-	
-	SetEntProp(iPickup, Prop_Send, "m_fEffects", EF_NODRAW);
-	HookSingleEntityOutput(iPickup, "OnPlayerTouch", Weapons_PickupTouch, true);
-}
-
-public bool Weapons_OnPickup_Deny(int iClient)
-{
-	return false;
+	return true;
 }
 
 public bool Weapons_OnPickup_Minicrits(int iClient)
 {
-	TF2_AddCondition(iClient, TFCond_Buffed, 30.0);
+	TF2_AddCondition(iClient, TFCond_Buffed, 45.0);
 	
 	return true;
 }
 
 public bool Weapons_OnPickup_Defense(int iClient)
 {
-	TF2_AddCondition(iClient, TFCond_DefenseBuffed, 30.0);
+	TF2_AddCondition(iClient, TFCond_DefenseBuffed, 45.0);
 	
 	return true;
-}
-
-public Action Weapons_PickupTouch(const char[] sOutput, int iCaller, int iActivator, float flDelay)
-{
-	int iParent = GetEntPropEnt(iCaller, Prop_Data, "m_pParent");
-	if (iParent != -1)
-	{
-		AcceptEntityInput(iParent, ENT_ONKILL, iActivator, iActivator);
-		RemoveEntity(iParent);
-	}
-
-	RemoveEntity(iCaller);
-
-	return Plugin_Continue;
 }

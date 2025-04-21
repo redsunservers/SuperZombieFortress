@@ -6,6 +6,7 @@ void Event_Init()
 	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
 	HookEvent("player_hurt", Event_PlayerHurt, EventHookMode_Pre);
 	HookEvent("player_builtobject", Event_PlayerBuiltObject);
+	HookEvent("player_healed", Event_PlayerHealed);
 	HookEvent("object_destroyed", Event_ObjectDestoryed, EventHookMode_Pre);
 	HookEvent("teamplay_point_captured", Event_CPCapture);
 	HookEvent("teamplay_point_startcapture", Event_CPCaptureStart);
@@ -116,16 +117,6 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 				}
 				
 				i++;
-			}
-			
-			//Check if player spawned using fast respawn
-			if (g_bReplaceRageWithSpecialInfectedSpawn[iClient])
-			{
-				//Check if they did not become special infected because all is in cooldown
-				if (nInfected == Infected_None)
-					CPrintToChat(iClient, "%t", "Infected_AllInCooldown", "{red}");
-				
-				g_bReplaceRageWithSpecialInfectedSpawn[iClient] = false;
 			}
 		}
 		
@@ -243,7 +234,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		if (g_nNextInfected[iKillers[0]] == Infected_None && !GetRandomInt(0, 1) && g_nRoundState == SZFRoundState_Active)
 			g_bSpawnAsSpecialInfected[iKillers[0]] = true;
 		
-		if (g_iKillsThisLife[iKillers[0]] == 3)
+		if (g_iKillsThisLife[iKillers[0]] == 3 && g_nInfected[iKillers[0]] != Infected_Tank)
 			TF2_AddCondition(iKillers[0], TFCond_DefenseBuffed, TFCondDuration_Infinite);
 	}
 	
@@ -288,7 +279,6 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	
 	g_iMaxHealth[iVictim] = -1;
 	g_bShouldBacteriaPlay[iVictim] = true;
-	g_bReplaceRageWithSpecialInfectedSpawn[iVictim] = false;
 	
 	//Handle zombie death logic, all round states.
 	if (IsValidZombie(iVictim))
@@ -332,9 +322,9 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			
 			//Check if respawn stress reaches time limit, if so add cooldown/timer so we dont instant respawn too much zombies at once
 			if (g_flRageRespawnStress > GetGameTime())
-				flTimer += (g_flRageRespawnStress - GetGameTime()) * 1.2;
+				flTimer += g_flRageRespawnStress - GetGameTime();
 			
-			g_flRageRespawnStress += 1.7;	//Add stress time 1.7 sec for every respawn zombies
+			g_flRageRespawnStress += g_cvFrenzyRespawnStress.FloatValue / GetActivePlayerCount();	// Add stress time for every respawns
 			CreateTimer(flTimer, Timer_RespawnPlayer, iVictim);
 		}
 		
@@ -352,15 +342,12 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	//Handle survivor death logic, active round only.
 	if (IsValidSurvivor(iVictim) && !bDeadRinger)
 	{
-		//Black and white effect for death
-		ClientCommand(iVictim, "r_screenoverlay\"debug/yuv\"");
+		//Black and white effect for death, if not a suicide to join spec team
+		if (event.GetInt("customkill") != TF_CUSTOM_SUICIDE)
+			ClientCommand(iVictim, "r_screenoverlay\"debug/yuv\"");
 		
-		if (IsValidZombie(iKillers[0]))
-		{
-			g_flSurvivorsLastDeath = GetGameTime();
-			g_iZombiesKilledSpree = max(RoundToNearest(float(g_iZombiesKilledSpree) / 2.0) - 8, 0);
-			g_iSurvivorsKilledCounter++;
-		}
+		g_aSurvivorDeathTimes.Push(GetGameTime());
+		g_iZombiesKilledSpree = 0;
 		
 		//Set zombie time to iVictim as he started playing zombie
 		g_flTimeStartAsZombie[iVictim] = GetGameTime();
@@ -370,6 +357,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		//Check if he's the last
 		CheckLastSurvivor(iVictim);
 		
+		Sound_EndSpecificMusic(iVictim, "rabies");
 		Sound_PlayMusicToClient(iVictim, "dead");
 	}
 	
@@ -377,10 +365,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	else if (IsValidZombie(iVictim))
 	{
 		if (IsValidSurvivor(iKillers[0]))
-		{
 			g_iZombiesKilledSpree++;
-			g_iZombiesKilledSurvivor[iKillers[0]]++;
-		}
 		
 		for (int i = 0; i < 2; i++)
 		{
@@ -409,7 +394,18 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 		g_iDamageDealtLife[iAttacker] += iDamageAmount;
 		
 		if (IsValidZombie(iAttacker))
+		{
 			g_iDamageZombie[iAttacker] += iDamageAmount;
+			
+			if (!GetEntProp(iAttacker, Prop_Send, "m_bRageDraining") && TF2_IsSlotClassname(iAttacker, WeaponSlot_Secondary, "tf_weapon_buff_item"))
+			{
+				g_flBannerMeter[iAttacker] += float(iDamageAmount) / g_cvBannerRequirement.FloatValue * 100.0;
+				if (g_flBannerMeter[iAttacker] >= 100.0)
+					g_flBannerMeter[iAttacker] = 100.0;
+				
+				SetEntPropFloat(iAttacker, Prop_Send, "m_flRageMeter", g_flBannerMeter[iAttacker]);
+			}
+		}
 	}
 	
 	return Plugin_Continue;
@@ -426,12 +422,52 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 	   
 	if (nObjectType == TFObject_Dispenser && IsSurvivor(iClient))
 	{
+		SetEntProp(iEntity, Prop_Send, "m_bMiniBuilding", true);	// This also prevents starting 25 metal being set
+		
 		if (!GetEntProp(iEntity, Prop_Send, "m_bCarryDeploy"))
 		{
-			int iMaxHealth = GetEntProp(iEntity, Prop_Send, "m_iMaxHealth");
-			SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", iMaxHealth * 2);	// Double max health (default level 1 is 150)
+			g_flDispenserUsage[iClient] = 1.0;
+			SetEntProp(iEntity, Prop_Send, "m_iAmmoMetal", MINI_DISPENSER_MAX_METAL);
+			
+			// Starting half of max health due to side effect of mini building
+			int iOffset = FindSendPropInfo("CObjectDispenser", "m_flPercentageConstructed") + 4;	// m_flHealth
+			
+			const iMaxHealth = 100;	// TF2 game forces it to be 100 due to mini building
+			
+			SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", iMaxHealth);
+			SetEntDataFloat(iEntity, iOffset, float(iMaxHealth) * 0.5);
+			SetEntProp(iEntity, Prop_Send, "m_iHealth", RoundToFloor(float(iMaxHealth) * 0.5));
 		}
-		SetEntProp(iEntity, Prop_Send, "m_bCarried", 1);	// Disable healing/ammo and upgrading
+	}
+	
+	return Plugin_Continue;
+}
+
+public Action Event_PlayerHealed(Event event, const char[] name, bool dontBroadcast)
+{
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	// Don't think there a better way to do this in a simple way
+	int iClient = GetClientOfUserId(event.GetInt("healer"));
+	if (!IsValidSurvivor(iClient))
+		return Plugin_Continue;
+	
+	int iDispenser = TF2_GetBuilding(iClient, TFObject_Dispenser);
+	if (iDispenser == INVALID_ENT_REFERENCE)
+		return Plugin_Continue;
+	
+	int iAmount = event.GetInt("amount");
+	g_flDispenserUsage[iClient] -= float(iAmount) / g_cvDispenserHealMax.FloatValue;
+	
+	if (g_flDispenserUsage[iClient] > 0.0)
+	{
+		SetEntProp(iDispenser, Prop_Send, "m_iAmmoMetal", RoundToCeil(g_flDispenserUsage[iClient] * MINI_DISPENSER_MAX_METAL));
+	}
+	else
+	{
+		SetVariantInt(GetEntProp(iDispenser, Prop_Send, "m_iMaxHealth"));
+		AcceptEntityInput(iDispenser, "RemoveHealth");
 	}
 	
 	return Plugin_Continue;

@@ -75,29 +75,9 @@
 		"pt"		"{1}Você morreu e se transformou em um zumbi..."
 	}
 	
-	"Infected_SelectedRespawn"
-	{
-		"pt"		"{1}Você foi selecionado para se tornar um Infectado Especial! {2}Chame 'MEDIC!' para reaparecer como um ou se tornar um ao morrer."
-	}
-	
-	"Infected_UsedQuickRespawn"
-	{
-		"pt"		"(EQUIPE) {1}{2} : Eu usei meu {3}reaparecimento rápido como infectado especial{4}!"
-	}
-	
-	"Infected_AllInCooldown"
-	{
-		"pt"		"{1}Todos os infectados especiais parecem estar em recarga..."
-	}
-	
 	"Infected_ForceStart"
 	{
 		"pt"		"{1}Você foi forçado a entrar na equipe dos infectados por tentar evitar jogar como um infectado."
-	}
-	
-	"Infected_CallMedic"
-	{
-		"pt"		"Chame 'MEDIC!' para reaparecer como um infectado especial!"
 	}
 	
 	"Infected_RageReady"
@@ -270,36 +250,6 @@
 		"pt"		"{1}Stunned {2} players."
 	}
 	
-	"Command_MusicEnable"
-	{
-		"pt"		"{1}Música foi ativada."
-	}
-	
-	"Command_MusicDisable"
-	{
-		"pt"		"{1}Música foi desativada."
-	}
-	
-	"JoinTeam_CantSwitchGrace"
-	{
-		"pt"		"{1}Você não pode mudar para o time oposto durante o período de graça."
-	}
-	
-	"JoinTeam_WillJoinInfectedGrace"
-	{
-		"pt"		"{1}Você entrará no time dos Infectados quando o período de graça terminar."
-	}
-	
-	"JoinTeam_CancelGraceEnd"
-	{
-		"pt"		"{1}Você não entrará mais automaticamente no time dos Infectados quando o período de graça terminar."
-	}
-	
-	"JoinTeam_CantJoinSurvivorGrace"
-	{
-		"pt"		"{1}Não é possível entrar no time dos Sobreviventes neste momento. Você entrará no time dos Infectados quando o período de tolerância terminar."
-	}
-
 	"JoinClass_ValidZombies"
 	{
 		"pt"		"{1}Zumbis válidos:{2}."
@@ -327,12 +277,12 @@
 
 	"SpecialInfected_Charger"
 	{
-		"pt"		"{green}VOCÊ É UM CHARGER:\n{orange}- Grite 'MEDIC!' para CARREGAR! {yellow}(Recarga de 16 segundos)"
+		"pt"		"{green}VOCÊ É UM CHARGER:\n{orange}- Grite 'MEDIC!' para CARREGAR! {yellow}(Recarga de 15 segundos)"
 	}
 
 	"SpecialInfected_Screamer"
 	{
-		"pt"		"{green}VOCÊ É UM SCREAMER:\n{orange}- Grite 'MEDIC!' para REUNIR ZUMBIS ALIADOS! {yellow}(Recarga de 21 segundos){orange}\n- Zumbis próximos a você ficam mais poderosos."
+		"pt"		"{green}VOCÊ É UM SCREAMER:\n{orange}- Grite 'MEDIC!' para REUNIR ZUMBIS ALIADOS! {yellow}(Recarga de 20 segundos){orange}\n- Zumbis próximos a você ficam mais poderosos."
 	}
 
 	"SpecialInfected_Stalker"
@@ -342,22 +292,17 @@
 
 	"SpecialInfected_Hunter"
 	{
-		"pt"		"{green}VOCÊ É UM HUNTER:\n{orange}- Grite 'MEDIC!' para SALTAR e ATACAR SOBREVIVENTES! {yellow}(Recarga de 3 segundos ao errar & 21 segundos ao acertar)"
-	}
-
-	"SpecialInfected_Smoker"
-	{
-		"pt"		"{green}VOCÊ É UM SMOKER:\n{orange}- Clique com o botão direito para disparar um raio que puxa os sobreviventes para você! {yellow}(Sem recarga)"
+		"pt"		"{green}VOCÊ É UM HUNTER:\n{orange}- Grite 'MEDIC!' para SALTAR e ATACAR SOBREVIVENTES! {yellow}(Recarga de 5 segundos ao errar & 20 segundos ao acertar)"
 	}
 
 	"SpecialInfected_Spitter"
 	{
-		"pt"		"{green}VOCÊ É UM SPITTER:\n{orange}- Grite 'MEDIC!' para lançar seu GÁS em um grupo de sobreviventes para causar dano! {yellow}(Recarga de 16 segundos)"
+		"pt"		"{green}VOCÊ É UM SPITTER:\n{orange}- Grite 'MEDIC!' para lançar seu GÁS em um grupo de sobreviventes para causar dano! {yellow}(Recarga de 15 segundos)"
 	}
 
 	"SpecialInfected_Jockey"
 	{
-		"pt"		"{green}VOCÊ É UM JOCKEY:\n{orange}- Grite 'MEDIC!' para SALTAR nos SOBREVIVENTES e controlar seus movimentos! {yellow}(Recarga de 6 segundos)"
+		"pt"		"{green}VOCÊ É UM JOCKEY:\n{orange}- Grite 'MEDIC!' para SALTAR nos SOBREVIVENTES e controlar seus movimentos! {yellow}(Recarga de 5 segundos)"
 	}
 
 	"Melee_Atomizer"
@@ -373,11 +318,6 @@
 	"Melee_PainTrain"
 	{
 		"pt"		"{orange}O Pain Train {red}faz você receber 10%% de dano adicional."
-	}
-
-	"Melee_HalfZatochi"
-	{
-		"pt"		"{orange}O Half-Zatoichi {red}drena sua saúde máxima enquanto ativo."
 	}
 
 	"Melee_MarketGardener"

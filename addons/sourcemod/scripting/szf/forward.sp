@@ -2,9 +2,9 @@ static GlobalForward g_hForwardLastSurvivor;
 static GlobalForward g_hForwardBackstab;
 static GlobalForward g_hForwardTankSpawn;
 static GlobalForward g_hForwardTankDeath;
-static GlobalForward g_hForwardQuickSpawnAsSpecialInfected;
 static GlobalForward g_hForwardChargerHit;
 static GlobalForward g_hForwardHunterHit;
+static GlobalForward g_hForwardSmokerHit;
 static GlobalForward g_hForwardBoomerExplode;
 static GlobalForward g_hForwardWeaponPickup;
 static GlobalForward g_hForwardWeaponPickupPre;
@@ -19,9 +19,9 @@ void Forward_AskLoad()
 	g_hForwardBackstab = new GlobalForward("SZF_OnBackstab", ET_Ignore, Param_Cell, Param_Cell);
 	g_hForwardTankSpawn = new GlobalForward("SZF_OnTankSpawn", ET_Ignore, Param_Cell);
 	g_hForwardTankDeath = new GlobalForward("SZF_OnTankDeath", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
-	g_hForwardQuickSpawnAsSpecialInfected = new GlobalForward("SZF_OnQuickSpawnAsSpecialInfected", ET_Ignore, Param_Cell);
 	g_hForwardChargerHit = new GlobalForward("SZF_OnChargerHit", ET_Ignore, Param_Cell, Param_Cell);
 	g_hForwardHunterHit = new GlobalForward("SZF_OnHunterHit", ET_Ignore, Param_Cell, Param_Cell);
+	g_hForwardSmokerHit = new GlobalForward("SZF_OnSmokerHit", ET_Ignore, Param_Cell, Param_Cell);
 	g_hForwardBoomerExplode = new GlobalForward("SZF_OnBoomerExplode", ET_Ignore, Param_Cell, Param_Array, Param_Cell);
 	g_hForwardWeaponPickup = new GlobalForward("SZF_OnWeaponPickup", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
 	g_hForwardWeaponPickupPre = new GlobalForward("SZF_ShouldPickupWeapon", ET_Single, Param_Cell, Param_Cell, Param_Cell);
@@ -62,13 +62,6 @@ void Forward_OnTankDeath(int iVictim, int iWinner, int iDamage)
 	Call_Finish();
 }
 
-void Forward_OnQuickSpawnAsSpecialInfected(int iClient)
-{
-	Call_StartForward(g_hForwardQuickSpawnAsSpecialInfected);
-	Call_PushCell(iClient);
-	Call_Finish();
-}
-
 void Forward_OnChargerHit(int iClient, int iVictim)
 {
 	Call_StartForward(g_hForwardChargerHit);
@@ -80,6 +73,14 @@ void Forward_OnChargerHit(int iClient, int iVictim)
 void Forward_OnHunterHit(int iClient, int iVictim)
 {
 	Call_StartForward(g_hForwardHunterHit);
+	Call_PushCell(iClient);
+	Call_PushCell(iVictim);
+	Call_Finish();
+}
+
+void Forward_OnSmokerHit(int iClient, int iVictim)
+{
+	Call_StartForward(g_hForwardSmokerHit);
 	Call_PushCell(iClient);
 	Call_PushCell(iVictim);
 	Call_Finish();

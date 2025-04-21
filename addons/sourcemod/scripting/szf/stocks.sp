@@ -39,13 +39,42 @@ stock void VectorTowards(const float vecOrigin[3], const float vecTarget[3], flo
 
 stock void AnglesToVelocity(const float vecAngle[3], float vecVelocity[3], float flSpeed = 1.0)
 {
-	vecVelocity[0] = Cosine(DegToRad(vecAngle[1]));
-	vecVelocity[1] = Sine(DegToRad(vecAngle[1]));
-	vecVelocity[2] = Sine(DegToRad(vecAngle[0])) * -1.0;
-	
+	GetAngleVectors(vecAngle, vecVelocity, NULL_VECTOR, NULL_VECTOR);
 	NormalizeVector(vecVelocity, vecVelocity);
-	
 	ScaleVector(vecVelocity, flSpeed);
+}
+
+// https://github.com/samisalreadytaken/vs_library/blob/2480773c8904c4d6012d2ecf46bfc7c1fbd9fb28/src/vs_math.nut#L1469
+stock void RotateVector(const float vecVector[3], const float vecAngle[3], float vecResult[3])
+{
+	float flSP = Sine(DegToRad(vecAngle[0]));
+	float flCP = Cosine(DegToRad(vecAngle[0]));
+	float flSY = Sine(DegToRad(vecAngle[1]));
+	float flCY = Cosine(DegToRad(vecAngle[1]));
+	float flSR = Sine(DegToRad(vecAngle[2]));
+	float flCR = Cosine(DegToRad(vecAngle[2]));
+	
+	float flCRCY = flCR * flCY;
+	float flCRSY = flCR * flSY;
+	float flSRCY = flSR * flCY;
+	float flSRSY = flSR * flSY;
+	
+	vecResult[0] = (vecVector[0]*flCP*flCY) + vecVector[1] * (flSP*flSRCY-flCRSY) + vecVector[2] * (flSP*flCRCY+flSRSY);
+	vecResult[1] = (vecVector[0]*flCP*flSY) + vecVector[1] * (flSP*flSRSY+flCRCY) + vecVector[2] * (flSP*flCRSY-flSRCY);
+	vecResult[2] = (vecVector[0]*-flSP) + (vecVector[1]*flSR*flCP) + (vecVector[2]*flCR*flCP);
+}
+
+stock void WorldSpaceCenter(int iEntity, float vecCenter[3])
+{
+	float vecOrigin[3], vecMins[3], vecMaxs[3], vecOffset[3];
+	GetEntPropVector(iEntity, Prop_Data, "m_vecAbsOrigin", vecOrigin);
+	GetEntPropVector(iEntity, Prop_Data, "m_vecMins", vecMins);
+	GetEntPropVector(iEntity, Prop_Data, "m_vecMaxs", vecMaxs);
+	
+	AddVectors(vecMins, vecMaxs, vecOffset);
+	ScaleVector(vecOffset, 0.5);
+	
+	AddVectors(vecOrigin, vecOffset, vecCenter);
 }
 
 ////////////////
@@ -85,20 +114,11 @@ stock int GetSurvivorCount()
 stock int GetActivePlayerCount()
 {
 	int i = 0;
-	for (int j = 1; j <= MaxClients; j++)
-		if (IsValidLivingClient(j)) i++;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidClient(iClient) && TF2_GetClientTeam(iClient) > TFTeam_Spectator)
+			i++;
 	
 	return i;
-}
-
-stock int GetReplaceRageWithSpecialInfectedSpawnCount()
-{
-	int iCount = 0;
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && g_bReplaceRageWithSpecialInfectedSpawn[iClient])
-			iCount++;
-	
-	return iCount;
 }
 
 ////////////////
@@ -442,22 +462,32 @@ stock bool IsRazorbackActive(int iClient)
 	return false;
 }
 
-stock int TF2_GetItemSlot(int iIndex, TFClassType iClass)
+stock int TF2_GetItemSlot(int iIndex, TFClassType iClass = TFClass_Unknown)
 {
-	int iSlot = TF2Econ_GetItemLoadoutSlot(iIndex, iClass);
+	int iSlot = -1;
+	if (iClass == TFClass_Unknown)
+		iSlot = TF2Econ_GetItemDefaultLoadoutSlot(iIndex);
+	else
+		iSlot = TF2Econ_GetItemLoadoutSlot(iIndex, iClass);
+	
 	if (iSlot >= 0)
 	{
 		// Econ reports wrong slots for Engineer and Spy
+		
+		switch (iSlot)
+		{
+			case 5: return WeaponSlot_PDABuild; // Construction PDA and Disguise Kit
+			case 6: return WeaponSlot_PDADestroy; // Destruction PDA and Invis Watch
+		}
+		
 		switch (iClass)
 		{
 			case TFClass_Spy:
 			{
 				switch (iSlot)
 				{
-					case 1: iSlot = WeaponSlot_Primary; // Revolver
-					case 4: iSlot = WeaponSlot_Secondary; // Sapper
-					case 5: iSlot = WeaponSlot_PDADisguise; // Disguise Kit
-					case 6: iSlot = WeaponSlot_InvisWatch; // Invis Watch
+					case 1: return WeaponSlot_Primary; // Revolver
+					case 4: return WeaponSlot_Secondary; // Sapper
 				}
 			}
 			
@@ -465,15 +495,15 @@ stock int TF2_GetItemSlot(int iIndex, TFClassType iClass)
 			{
 				switch (iSlot)
 				{
-					case 4: iSlot = WeaponSlot_BuilderEngie; // Toolbox
-					case 5: iSlot = WeaponSlot_PDABuild; // Construction PDA
-					case 6: iSlot = WeaponSlot_PDADestroy; // Destruction PDA
+					case 4: return WeaponSlot_BuilderEngie; // Toolbox
 				}
 			}
 		}
+		
+		return iSlot;
 	}
 	
-	return iSlot;
+	return -1;
 }
 
 stock int TF2_GetItemInSlot(int iClient, int iSlot)
@@ -500,6 +530,26 @@ stock void TF2_RemoveItemInSlot(int iClient, int iSlot)
 		TF2_RemoveWearable(iClient, iWearable);
 }
 
+stock void SetNextAttack(int iClient, float flDuration, bool bMeleeOnly = true)
+{
+	if (!IsValidClient(iClient))
+		return;
+	
+	//Primary, secondary and melee
+	for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_Melee; iSlot++)
+	{
+		if (bMeleeOnly && iSlot < WeaponSlot_Melee)
+			continue;
+		
+		int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
+		if (iWeapon > MaxClients && IsValidEntity(iWeapon))
+		{
+			SetEntPropFloat(iWeapon, Prop_Send, "m_flNextPrimaryAttack", flDuration);
+			SetEntPropFloat(iWeapon, Prop_Send, "m_flNextSecondaryAttack", flDuration);
+		}
+	}
+}
+
 ////////////////
 // Entities
 ////////////////
@@ -516,6 +566,18 @@ stock bool IsClassname(int iEntity, const char[] sClassname)
 	return false;
 }
 
+stock int GetChildEntity(int iEntity, const char[] sClassname)
+{
+	int iOther = INVALID_ENT_REFERENCE;
+	while ((iOther = FindEntityByClassname(iOther, sClassname)) != INVALID_ENT_REFERENCE)
+	{
+		if (GetEntPropEnt(iOther, Prop_Send, "moveparent") == iEntity)
+			return iOther;
+	}
+	
+	return INVALID_ENT_REFERENCE;
+}
+
 stock void AddEntityEffect(int iEntity, int iFlag)
 {
 	SetEntProp(iEntity, Prop_Send, "m_fEffects", GetEntProp(iEntity, Prop_Send, "m_fEffects") | iFlag);
@@ -524,6 +586,21 @@ stock void AddEntityEffect(int iEntity, int iFlag)
 stock void RemoveEntityEffect(int iEntity, int iFlag)
 {
 	SetEntProp(iEntity, Prop_Send, "m_fEffects", GetEntProp(iEntity, Prop_Send, "m_fEffects") & ~iFlag);
+}
+
+stock float DistanceFromEntityToPoint(int iEntity, const float vecOrigin[3])
+{
+	float vecOther[3];
+	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOther);
+	return GetVectorDistance(vecOther, vecOrigin);
+}
+
+stock float DistanceFromEntities(int iEntity1, int iEntity2)
+{
+	float vecOrigin1[3], vecOrigin2[3];
+	GetEntPropVector(iEntity1, Prop_Send, "m_vecOrigin", vecOrigin1);
+	GetEntPropVector(iEntity2, Prop_Send, "m_vecOrigin", vecOrigin2);
+	return GetVectorDistance(vecOrigin1, vecOrigin2);
 }
 
 ////////////////
@@ -706,16 +783,7 @@ stock int TF2_CreateWeapon(int iClient, int iIndex, const char[] sAttribs = NULL
 	
 	if (IsValidEntity(iWeapon))
 	{
-		//Attribute shittery inbound
-		if (sAttribs[0])
-		{
-			char sAttribs2[32][32];
-			int iCount = ExplodeString(sAttribs, " ; ", sAttribs2, 32, 32);
-			if (iCount > 1)
-				for (int i = 0; i < iCount; i+= 2)
-					TF2Attrib_SetByDefIndex(iWeapon, StringToInt(sAttribs2[i]), StringToFloat(sAttribs2[i+1]));
-		}
-		
+		TF2_WeaponApplyAttribute(iWeapon, sAttribs);
 		DispatchSpawn(iWeapon);
 	}
 	
@@ -745,6 +813,14 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttrib
 	return iWeapon;
 }
 
+stock void TF2_WeaponApplyAttribute(int iWeapon, const char[] sAttrib)
+{
+	char sAttribs[32][32];
+	int iCount = ExplodeString(sAttrib, " ; ", sAttribs, sizeof(sAttribs), sizeof(sAttribs));
+	for (int i = 0; i < iCount - 1; i+= 2)
+		TF2Attrib_SetByDefIndex(iWeapon, StringToInt(sAttribs[i]), StringToFloat(sAttribs[i+1]));
+}
+
 stock bool TF2_WeaponFindAttribute(int iWeapon, int iAttrib, float &flVal)
 {
 	Address addAttrib = TF2Attrib_GetByDefIndex(iWeapon, iAttrib);
@@ -754,6 +830,16 @@ stock bool TF2_WeaponFindAttribute(int iWeapon, int iAttrib, float &flVal)
 	flVal = TF2Attrib_GetValue(addAttrib);
 	
 	return true;
+}
+
+stock void TF2_RemoveAllAttributes(int iClient)
+{
+	for (int iSlot = 1; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
+	{
+		int iWeapon = TF2_GetItemInSlot(iClient, iSlot);
+		if (iWeapon != INVALID_ENT_REFERENCE)
+			TF2Attrib_RemoveAll(iWeapon);
+	}
 }
 
 stock bool TF2_DefIndexFindAttribute(int iDefIndex, int iAttrib, float &flVal)
@@ -784,10 +870,8 @@ stock void CheckClientWeapons(int iClient)
 		int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
 		if (iWeapon > MaxClients)
 		{
-			char sClassname[256];
-			GetEntityClassname(iWeapon, sClassname, sizeof(sClassname));
 			int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
-			if (OnGiveNamedItem(iClient, sClassname, iIndex) >= Plugin_Handled)
+			if (OnGiveNamedItem(iClient, iIndex) >= Plugin_Handled)
 				TF2_RemoveItemInSlot(iClient, iSlot);
 		}
 	}
@@ -798,10 +882,8 @@ stock void CheckClientWeapons(int iClient)
 	{
 		if (GetEntPropEnt(iWearable, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iWearable, Prop_Send, "moveparent") == iClient)
 		{
-			char sClassname[256];
-			GetEntityClassname(iWearable, sClassname, sizeof(sClassname));
 			int iIndex = GetEntProp(iWearable, Prop_Send, "m_iItemDefinitionIndex");
-			if (OnGiveNamedItem(iClient, sClassname, iIndex) >= Plugin_Handled)
+			if (OnGiveNamedItem(iClient, iIndex) >= Plugin_Handled)
 				TF2_RemoveWearable(iClient, iWearable);
 		}
 	}
@@ -812,7 +894,7 @@ stock void CheckClientWeapons(int iClient)
 	{
 		if (GetEntPropEnt(iPowerupBottle, Prop_Send, "m_hOwnerEntity") == iClient || GetEntPropEnt(iPowerupBottle, Prop_Send, "moveparent") == iClient)
 		{
-			if (OnGiveNamedItem(iClient, "tf_powerup_bottle", GetEntProp(iPowerupBottle, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
+			if (OnGiveNamedItem(iClient, GetEntProp(iPowerupBottle, Prop_Send, "m_iItemDefinitionIndex")) >= Plugin_Handled)
 				TF2_RemoveWearable(iClient, iPowerupBottle);
 		}
 	}
@@ -934,19 +1016,28 @@ stock bool ObstactleBetweenEntities(int iEntity1, int iEntity2)
 
 stock bool IsEntityStuck(int iEntity)
 {
-	float vecMin[3];
-	float vecMax[3];
-	float vecOrigin[3];
-	
-	GetEntPropVector(iEntity, Prop_Send, "m_vecMins", vecMin);
-	GetEntPropVector(iEntity, Prop_Send, "m_vecMaxs", vecMax);
+	float vecOrigin[3], vecMins[3], vecMaxs[3];
 	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMins", vecMins);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMaxs", vecMaxs);
 	
-	TR_TraceHullFilter(vecOrigin, vecOrigin, vecMin, vecMax, MASK_SOLID, Trace_DontHitEntity, iEntity);
+	TR_TraceHullFilter(vecOrigin, vecOrigin, vecMins, vecMaxs, MASK_SOLID, Trace_DontHitEntity, iEntity);
 	return (TR_DidHit());
 }
 
-public bool Trace_DontHitOtherEntities(int iEntity, int iMask, any iData)
+stock void GetEntityCenterPoint(int iEntity, float vecResult[3])
+{
+	float vecOrigin[3], vecMins[3], vecMaxs[3];
+	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMins", vecMins);
+	GetEntPropVector(iEntity, Prop_Send, "m_vecMaxs", vecMaxs);
+	
+	AddVectors(vecMins, vecMaxs, vecResult);
+	ScaleVector(vecResult, 0.5);
+	AddVectors(vecResult, vecOrigin, vecResult);
+}
+
+bool Trace_DontHitOtherEntities(int iEntity, int iMask, any iData)
 {
 	if (iEntity == iData)
 		return true;
@@ -957,12 +1048,20 @@ public bool Trace_DontHitOtherEntities(int iEntity, int iMask, any iData)
 	return true;
 }
 
-public bool Trace_DontHitEntity(int iEntity, int iMask, any iData)
+bool Trace_DontHitEntity(int iEntity, int iMask, any iData)
 {
 	if (iEntity == iData)
 		return false;
 	
 	return true;
+}
+
+bool Trace_DontHitTeammates(int iEntity, int iMask, any iData)
+{
+	if (iEntity <= 0 || iEntity > MaxClients)
+		return true;
+	
+	return GetClientTeam(iEntity) != GetClientTeam(iData);
 }
 
 ////////////////
@@ -1059,27 +1158,6 @@ stock void Shake(int iClient, float flAmplitude, float flDuration)
 	EndMessage();
 }
 
-stock int SpawnPickup(int iEntity, const char[] sClassname, bool bTemp=true)
-{
-	float vecOrigin[3];
-	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", vecOrigin);
-	vecOrigin[2] += 16.0;
-	
-	int iPickup = CreateEntityByName(sClassname);
-	
-	if (bTemp)
-		DispatchKeyValue(iPickup, "OnPlayerTouch", "!self,Kill,,0,-1");
-	
-	if (DispatchSpawn(iPickup))
-	{
-		SetEntProp(iPickup, Prop_Send, "m_iTeamNum", 0, 4);
-		TeleportEntity(iPickup, vecOrigin, NULL_VECTOR, NULL_VECTOR);
-		if (bTemp)
-			CreateTimer(0.15, Timer_KillEntity, EntIndexToEntRef(iPickup));
-	}
-	return iPickup;
-}
-
 public Action Timer_KillEntity(Handle hTimer, int iRef)
 {
 	int iEntity = EntRefToEntIndex(iRef);
@@ -1131,6 +1209,16 @@ stock void SayText2(int[] iClients, int iLength, int iEntity, bool bChat, const 
 	bf.WriteString(sParam4);
 	
 	EndMessage();
+}
+
+stock void CPrintToChatDebug(const char[] sFormat, any ...)
+{
+	if (!g_cvDebug.BoolValue)
+		return;
+	
+	char sBuffer[MAX_BUFFER_LENGTH];
+	VFormat(sBuffer, sizeof(sBuffer), sFormat, 2);
+	CPrintToChatAll("{orange}[SZF Debug]{default} %s", sBuffer);
 }
 
 /******************************************************************************************************/

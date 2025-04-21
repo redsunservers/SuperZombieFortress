@@ -50,14 +50,6 @@ forward void SZF_OnTankSpawn(int iTank);
 forward void SZF_OnTankDeath(int iTank, int iMVP, int iDamage);
 
 /**
- * Forward called when zombie use quick respawn to become special infected
- *
- * @param	iClient		Client whose use the quick respawn to become special infected
- * @noreturn
- */
-forward void SZF_OnQuickSpawnAsSpecialInfected(int iClient);
-
-/**
  * Forward called when charger charged to stun a survivor
  *
  * @param	iCharger	Client whose the charger to stun a survivor
@@ -74,6 +66,15 @@ forward void SZF_OnChargerHit(int iCharger, int iVictim);
  * @noreturn
  */
 forward void SZF_OnHunterHit(int iHunter, int iVictim);
+
+/**
+ * Forward called when smoker grabbed a survivor with tongue
+ *
+ * @param	iSmoker		Client whose the smoker to grab a survivor
+ * @param	iVictim		Client whose the victim grabbed from the smoker
+ * @noreturn
+ */
+forward void SZF_OnSmokerHit(int iSmoker, int iVictim);
 
 /**
  * Forward called when a boomer explodes

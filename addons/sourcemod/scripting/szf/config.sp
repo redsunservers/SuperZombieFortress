@@ -122,12 +122,14 @@ ArrayList Config_LoadWeaponData()
 				mRarity.GetValue(sBuffer, wep.nRarity);
 				
 				kv.GetString("model", wep.sModel, sizeof(wep.sModel));
-				if (wep.sModel[0] == '\0') 
+				if (!wep.sModel[0]) 
 				{
-					LogError("Weapon must have a model.");
+					LogError("Weapon index '%d' must have a model.", wep.iIndex);
 					continue;
 				}
-
+				
+				kv.GetString("model_attach", wep.sModelAttach, sizeof(wep.sModelAttach));
+				
 				if (wep.iIndex > -1)
 				{
 					//Skip weapon if weapon is not for any class enabled
@@ -153,7 +155,7 @@ ArrayList Config_LoadWeaponData()
 				{
 					aWeapons.GetArray(i, duplicate);
 					
-					if (StrEqual(wep.sModel, duplicate.sModel) && wep.iSkin == duplicate.iSkin)
+					if (StrEqual(wep.sModel, duplicate.sModel) && StrEqual(wep.sModelAttach, duplicate.sModelAttach) && wep.iSkin == duplicate.iSkin)
 					{
 						LogError("%i: Model \"%s\" with skin \"%d\" is already taken by weapon %i.", wep.iIndex, wep.sModel, wep.iSkin, duplicate.iIndex);
 						continue;
@@ -197,7 +199,8 @@ ArrayList Config_LoadWeaponData()
 				wep.iColor[1] = iColor[1];
 				wep.iColor[2] = iColor[2];
 				
-				wep.flHeightOffset = kv.GetFloat("height_offset");
+				wep.flScale = kv.GetFloat("scale", 1.0);
+				kv.GetVector("origin_offset", wep.vecOriginOffset);
 				kv.GetVector("angles_offset", wep.vecAnglesOffset);
 				
 				char sAnglesOffset[3][12];
@@ -268,9 +271,7 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	classes.iHealth = kv.GetNum("health", classes.iHealth);
 	classes.iDegen = kv.GetNum("degen", classes.iDegen);
 	classes.aWeapons = Config_GetWeaponClasses(kv);
-	classes.flSpree = kv.GetFloat("spree", classes.flSpree);
 	classes.flHorde = kv.GetFloat("horde", classes.flHorde);
-	classes.flMaxSpree = kv.GetFloat("maxspree", classes.flMaxSpree);
 	classes.flMaxHorde = kv.GetFloat("maxhorde", classes.flMaxHorde);
 	classes.bGlow = !!kv.GetNum("glow", classes.bGlow);
 	classes.bThirdperson = !!kv.GetNum("thirdperson", classes.bThirdperson);
@@ -292,6 +293,8 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	classes.callback_rage = Config_GetFunction(kv, "callback_rage", classes.callback_rage);
 	classes.callback_think = Config_GetFunction(kv, "callback_think", classes.callback_think);
 	classes.callback_touch = Config_GetFunction(kv, "callback_touch", classes.callback_touch);
+	classes.callback_damage = Config_GetFunction(kv, "callback_damage", classes.callback_damage);
+	classes.callback_attack = Config_GetFunction(kv, "callback_attack", classes.callback_attack);
 	classes.callback_death = Config_GetFunction(kv, "callback_death", classes.callback_death);
 	
 	return true;
@@ -405,6 +408,9 @@ StringMap Config_LoadMusic(KeyValues kv)
 {
 	StringMap mMusics = new StringMap();
 	
+	char sGroupNames[SoundGroup_MAX][32];
+	int iGroupCount;
+	
 	if (kv.GotoFirstSubKey(false))
 	{
 		do
@@ -455,6 +461,34 @@ StringMap Config_LoadMusic(KeyValues kv)
 			}
 			
 			music.iPriority = kv.GetNum("priority", 0);
+			
+			char sGroup[256], sGroupSplit[SoundGroup_MAX][32];
+			kv.GetString("group", sGroup, sizeof(sGroup));
+			int iCount = ExplodeString(sGroup, " ", sGroupSplit, sizeof(sGroupSplit), sizeof(sGroupSplit[]));
+			
+			for (int i = 0; i < iCount; i++)
+			{
+				bool bFound;
+				
+				for (int j = 0; j < iGroupCount; j++)
+				{
+					if (!StrEqual(sGroupSplit[i], sGroupNames[j]))
+						continue;
+					
+					music.bGroup[j] = true;
+					bFound = true;
+					break;
+				}
+				
+				if (!bFound)
+				{
+					// New group to add in
+					sGroupNames[iGroupCount] = sGroupSplit[i];
+					music.bGroup[iGroupCount] = true;
+					iGroupCount++;
+				}
+			}
+			
 			mMusics.SetArray(music.sName, music, sizeof(music));
 			
 		}
