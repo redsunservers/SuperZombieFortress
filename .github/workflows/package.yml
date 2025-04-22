@@ -36,8 +36,9 @@ jobs:
         run: |
           bash scripts/package.sh
       
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@master
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: SuperZombieFortress-${{env.PLUGIN_VERSION}}.${{env.PLUGIN_VERSION_REVISION}}
-          path: ./build/package
+          files: build/SuperZombieFortress-${{ env.PLUGIN_VERSION }}.${{ env.PLUGIN_VERSION_REVISION }}.zip
+          tag_name: ${{ env.PLUGIN_VERSION }}.${{ env.PLUGIN_VERSION_REVISION }}
+          generate_release_notes: true

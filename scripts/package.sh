@@ -14,3 +14,7 @@ cp -r ../addons/sourcemod/translations package/addons/sourcemod
 cp -r ../models package
 cp -r ../sound package
 cp -r ../LICENSE package
+
+# Create ZIP file
+cd package
+zip -r ../SuperZombieFortress-$PLUGIN_VERSION.$PLUGIN_VERSION_REVISION.zip *
