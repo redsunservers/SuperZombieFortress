@@ -64,38 +64,38 @@
 			}
 			"CBaseEntity::GetVelocity"
 			{
-				"linux" 	"147"
-				"windows" 	"146"
+				"linux" 	"148"
+				"windows" 	"147"
 			}
 			"CBaseEntity::GetDefaultItemChargeMeterValue"
 			{
-				"linux"		"197"
-				"windows"	"196"
+				"linux"		"198"
+				"windows"	"197"
 			}
 			"CTFPlayer::GiveNamedItem"
 			{
-				"linux"		"493"
-				"windows"	"486"
+				"linux"		"494"
+				"windows"	"487"
 			}
 			"CObjectDispenser::RefillThink"
 			{
-				"linux"		"419"
-				"windows"	"405"
+				"linux"		"420"
+				"windows"	"406"
 			}
 			"CObjectDispenser::DispenseAmmo"
 			{
-				"linux"		"424"
-				"windows"	"410"
+				"linux"		"425"
+				"windows"	"411"
 			}
 			"CObjectDispenser::GetHealRate"
 			{
-				"linux"		"428"
-				"windows"	"414"
+				"linux"		"429"
+				"windows"	"415"
 			}
 			"CTFJar::TossJarThink"
 			{
-				"linux"		"498"
-				"windows"	"491"
+				"linux"		"499"
+				"windows"	"492"
 			}
 			"CEconItemView::m_iItemDefinitionIndex"
 			{
