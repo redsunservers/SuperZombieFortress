@@ -94,8 +94,8 @@
 			}
 			"CTFJar::TossJarThink"
 			{
-				"linux"		"499"
-				"windows"	"492"
+				"linux"		"500"
+				"windows"	"493"
 			}
 			"CEconItemView::m_iItemDefinitionIndex"
 			{
