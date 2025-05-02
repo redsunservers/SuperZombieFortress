@@ -339,7 +339,7 @@ stock bool IsValidLivingZombie(int iClient)
 
 stock bool IsMapSZF()
 {
-	char sMap[8];
+	char sMap[PLATFORM_MAX_PATH];
 	GetCurrentMap(sMap, sizeof(sMap));
 	GetMapDisplayName(sMap, sMap, sizeof(sMap));
 	
