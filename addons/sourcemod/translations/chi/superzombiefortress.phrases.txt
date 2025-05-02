@@ -268,12 +268,12 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"chi"		"{green}你是CHARGER:\n{orange}- 呼叫'医生！'来冲锋！{yellow}(15秒冷却)"
+		"chi"		"{green}你是CHARGER:\n{orange}- 呼叫'医生！'来冲锋！{yellow}(16秒冷却)"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"chi"		"你是SCREAMER:\n{orange}- 呼叫'医生！'来强化队友感染者！{yellow}(20秒冷却){orange}\n- 靠近你的感染者会变强。"
+		"chi"		"{green}你是SCREAMER:\n{orange}- 呼叫'医生！'来强化队友感染者！{yellow}(21秒冷却){orange}\n- 靠近你的感染者会变强。"
 	}
 	
 	"SpecialInfected_Stalker"
@@ -283,17 +283,22 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}(未命中5秒冷却 & 命中20秒冷却)"
+		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}(未命中3秒冷却 & 命中21秒冷却)"
+	}
+	
+	"SpecialInfected_Smoker"
+	{
+		"chi"		"{green}你是SMOKER:\n{orange}- 右键发射一道光束拉扯敌人靠近你！{yellow}(没有冷却)"
 	}
 	
 	"SpecialInfected_Spitter"
 	{
-		"chi"		"{green}你是SPITTER:\N{orange}- 呼叫'医生！'来投掷你的毒气到幸存者中造成伤害！{yellow}(15秒冷却)"
+		"chi"		"{green}你是SPITTER:\n{orange}- 呼叫'医生！'来投掷你的毒气到幸存者中造成伤害！{yellow}(16秒冷却)"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"chi"		"{green}你是JOCKEY:\n{orange}- 呼叫'医生！'来飞扑感染者并控制其移动！{yellow}(5秒冷却)"
+		"chi"		"{green}你是JOCKEY:\n{orange}- 呼叫'医生！'来飞扑感染者并控制其移动！{yellow}(6秒冷却)"
 	}
 
 	"Melee_Atomizer"
@@ -527,17 +532,17 @@
 	
 	"Menu_ClassesInfectedSpecialBoomer"
 	{
-		"chi"		"他恶心，脏，很乐意把这些分享给幸存者。\n- 技能是自爆，让敌人被尿包围。\n- 死亡也会爆炸，但是威力和范围会减少。"
+		"chi"		"他既恶心又脏，并且很乐意把这些分享给幸存者。\n- 技能是自爆，让敌人被尿包围。\n- 死亡也会爆炸，但是威力和范围会减少。"
 	}
 	
 	"Menu_ClassesInfectedSpecialCharger"
 	{
-		"chi"		"内在的愤怒让它不顾一切的卡其脱离带，直到撞倒人。\n- 使用愤怒，Charger可以冲锋并且锁定幸存者的移动，推动他穿越区域。"
+		"chi"		"内在的愤怒让它不顾一切的冲锋，直到撞倒人。\n- 使用愤怒，Charger可以冲锋并且锁定幸存者的移动，推动他穿越区域。"
 	}
 	
 	"Menu_ClassesInfectedSpecialScreamer"
 	{
-		"chi"		"Screamer是感染者队长，可以让感染者们全副武装攻击幸存者。\n- 使用愤怒，Screamer会用一声刺破耳膜的尖叫声集结感染者，增加感染者的总体能力。\n- Screamer靠近感染者可以强化他们，增加强度。"
+		"chi"		"Screamer是感染者队长，可以让感染者们整装待发来攻击幸存者。\n- 使用愤怒，Screamer会用一声刺破耳膜的尖叫声集结感染者，增加感染者的总体能力。\n- Screamer靠近感染者可以强化他们，增加强度。"
 	}
 	
 	"Menu_ClassesInfectedSpecialStalker"
@@ -562,6 +567,66 @@
 	
 	"Menu_ClassesInfectedSpecialJockey"
 	{
-		"chi"		"Jockey到处爬，寻找幸存者骑上去。\n- 使用愤怒可以让它飞扑，抓住幸存者的头，但与Hunter不同。\n- 可以控制幸存者的头，控制行动。\n- 可以在控制幸存者的同时逐渐造成少量的伤害。"
+		"chi"		"Jockey爬来爬去，寻找幸存者骑上去。\n- 使用愤怒可以让它飞扑，抓住幸存者的头，但与Hunter不同。\n- 可以控制幸存者的头，控制行动。\n- 可以在控制幸存者的同时逐渐造成少量的伤害。"
+	}
+
+	"Menu_SoundTitle"
+	{
+		"chi"		"选择声音设置的首选项。"
+	}
+	
+	"Menu_SoundFull"
+	{
+		"chi"		"全部声音"
+	}
+	
+	"Menu_SoundNoMusic"
+	{
+		"chi"		"关闭音乐"
+	}
+	
+	"Menu_SoundNoSound"
+	{
+		"chi"		"关闭音效"
+	}
+	
+	"Menu_SoundNone"
+	{
+		"chi"		"关闭音乐和音效"
+	}
+	
+	"Menu_SoundSelected"
+	{
+		"chi"		"{1}{2}{3} 首选项已被选择。"
+	}
+
+	"Time_MonthsAgo"
+	{
+		"chi"		"{1} 月前"
+	}
+	
+	"Time_DaysAgo"
+	{
+		"chi"		"{1} 天前"
+	}
+	
+	"Time_HoursAgo"
+	{
+		"chi"		"{1} 小时前"
+	}
+	
+	"Time_MinuteAgo"
+	{
+		"chi"		"一分钟前"
+	}
+	
+	"Time_MinutesAgo"
+	{
+		"chi"		"{1} 分钟前"
+	}
+	
+	"Time_LessThanAMinuteAgo"
+	{
+		"chi"		"不到一分钟前"
 	}
 }
