@@ -421,7 +421,7 @@
 	
 	"Menu_ClassesSurvivorsScout"
 	{
-		"jp"		"最大ヘルスが25追加されます。\nキルごとに最初の武器で2弾薬を獲得し、弾薬容量を超えることができます。"
+		"jp"		"キルごとに最初の武器で2弾薬を獲得し、弾薬容量を超えることができます。"
 	}
 	
 	"Menu_ClassesSurvivorsSoldier"

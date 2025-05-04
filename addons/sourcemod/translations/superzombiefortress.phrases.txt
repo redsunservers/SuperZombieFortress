@@ -490,7 +490,7 @@
 	
 	"Menu_ClassesSurvivorsScout"
 	{
-		"en"		"Has 25 extra max health.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"en"		"Gains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
 	}
 	
 	"Menu_ClassesSurvivorsSoldier"

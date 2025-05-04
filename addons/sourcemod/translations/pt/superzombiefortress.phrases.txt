@@ -442,7 +442,7 @@
 
 	"Menu_ClassesSurvivorsScout"
 	{
-		"pt"		"Possui 25 de vida máxima adicional.\nGanha 2 munições primárias por kill, podendo ultrapassar a capacidade máxima usual de sua arma."
+		"pt"		"Ganha 2 munições primárias por kill, podendo ultrapassar a capacidade máxima usual de sua arma."
 	}
 
 	"Menu_ClassesSurvivorsSoldier"

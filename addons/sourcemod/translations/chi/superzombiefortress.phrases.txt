@@ -462,7 +462,7 @@
 	
 	"Menu_ClassesSurvivorsScout"
 	{
-		"chi"		"有额外25生命值。\n击杀后获得2主武器弹药，可以超过最大值。"
+		"chi"		"击杀后获得2主武器弹药，可以超过最大值。"
 	}
 	
 	"Menu_ClassesSurvivorsSoldier"

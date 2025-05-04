@@ -446,7 +446,7 @@
 	
 	"Menu_ClassesSurvivorsScout"
 	{
-		"hu"		"25 extra maximális életerővel rendelkezik.\nÖlésenként 2 elsődleges lőszert kap, ez meghaladhatja a fegyver szokásos maximális kapacitását."
+		"hu"		"Ölésenként 2 elsődleges lőszert kap, ez meghaladhatja a fegyver szokásos maximális kapacitását."
 	}
 	
 	"Menu_ClassesSurvivorsSoldier"
