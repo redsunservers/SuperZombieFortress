@@ -456,7 +456,7 @@
 	
 	"Menu_ClassesSurvivorsPyro"
 	{
-		"hu"		"Az égő zombik gyorsabban mozognak.\nA lángszóró lőszere 100-ra korlátozva."
+		"hu"		"A lángszóró lőszere 150-ra korlátozva."
 	}
 	
 	"Menu_ClassesSurvivorsDemoman"
@@ -466,22 +466,12 @@
 	
 	"Menu_ClassesSurvivorsHeavy"
 	{
-		"hu"		"A gépfegyver lőszere 100-ra korlátozva."
-	}
-	
-	"Menu_ClassesSurvivorsEngineer"
-	{
-		"hu"		"PDA-kkal kezd.\nCsak őrtornyokat és adagolókat építhet, és nem fejleszthetők.\nAz őrtorony lőszere korlátozott, idővel fogy és nem tölthető újra.\nAz adagolók falként működnek, magasabb életerővel, mint általában, de nem töltenek újra lőszert."
+		"hu"		"A gépfegyver lőszere 150-ra korlátozva."
 	}
 	
 	"Menu_ClassesSurvivorsMedic"
 	{
 		"hu"		"A Medigun gyógyítási sebessége csökkentett."
-	}
-	
-	"Menu_ClassesSurvivorsSniper"
-	{
-		"hu"		"Az SMG-t nem kell újratölteni.\nA Jarate lelassítja a Fertőzötteket.\n25 extra maximális életerővel rendelkezik.\nÖlésenként 2 elsődleges lőszert kap, ez meghaladhatja a fegyver szokásos maximális kapacitását."
 	}
 	
 	"Menu_ClassesSurvivorsSpy"

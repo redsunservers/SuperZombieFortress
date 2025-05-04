@@ -472,7 +472,7 @@
 	
 	"Menu_ClassesSurvivorsPyro"
 	{
-		"chi"		"燃烧僵尸移动更快。\n火焰喷射器弹药限制在100."
+		"chi"		"火焰喷射器弹药限制在150."
 	}
 	
 	"Menu_ClassesSurvivorsDemoman"
@@ -482,22 +482,12 @@
 	
 	"Menu_ClassesSurvivorsHeavy"
 	{
-		"chi"		"转轮机枪弹药限制为100."
-	}
-	
-	"Menu_ClassesSurvivorsEngineer"
-	{
-		"chi"		"以PDA开局。\n只可以建造步哨和补给器，不能升级。\n步哨枪弹药有限制，随时间消耗并且不可以补充。\n补给器充当墙的角色，有更高的生命值，但是不能补充弹药。"
+		"chi"		"转轮机枪弹药限制为150."
 	}
 	
 	"Menu_ClassesSurvivorsMedic"
 	{
 		"chi"		"医疗枪有治疗速率的负面效果。"
-	}
-	
-	"Menu_ClassesSurvivorsSniper"
-	{
-		"chi"		"SMG不用重新装填。\n尿瓶使感染者减速。\n有25额外生命值。\n击杀时获得2主武器弹药，可以超过最大值。"
 	}
 	
 	"Menu_ClassesSurvivorsSpy"

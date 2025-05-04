@@ -452,7 +452,7 @@
 
 	"Menu_ClassesSurvivorsPyro"
 	{
-		"pt"		"Zumbis em chamas se movem mais rápido.\nA munição do lança-chamas é limitada a 100."
+		"pt"		"A munição do lança-chamas é limitada a 150."
 	}
 
 	"Menu_ClassesSurvivorsDemoman"
@@ -462,22 +462,12 @@
 
 	"Menu_ClassesSurvivorsHeavy"
 	{
-		"pt"		"A munição da metralhadora giratória é limitada a 100."
-	}
-
-	"Menu_ClassesSurvivorsEngineer"
-	{
-		"pt"		"Começa com PDAs.\nSó pode construir torres e dispensadores, que não podem ser melhorados.\nA munição das torres é limitada, decai e não pode ser reabastecida.\nDispensadores atuam como paredes, com vida maior que o usual, mas sem reabastecimento de munição."
+		"pt"		"A munição da metralhadora giratória é limitada a 150."
 	}
 
 	"Menu_ClassesSurvivorsMedic"
 	{
 		"pt"		"A arma de cura tem uma penalidade na taxa de cura."
-	}
-
-	"Menu_ClassesSurvivorsSniper"
-	{
-		"pt"		"A SMG não precisa recarregar.\nO Jarate reduz a velocidade dos Infectados.\nPossui 25 de vida máxima adicional.\nGanha 2 munições primárias por kill, podendo ultrapassar a capacidade máxima usual de sua arma."
 	}
 
 	"Menu_ClassesSurvivorsSpy"

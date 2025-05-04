@@ -431,7 +431,7 @@
 	
 	"Menu_ClassesSurvivorsPyro"
 	{
-		"jp"		"燃えるゾンビはより速く移動します。\n火炎放射器の弾薬数は100に制限されています。"
+		"jp"		"火炎放射器の弾薬数は150に制限されています。"
 	}
 	
 	"Menu_ClassesSurvivorsDemoman"
@@ -441,22 +441,12 @@
 	
 	"Menu_ClassesSurvivorsHeavy"
 	{
-		"jp"		"ミニガンの弾薬数は100に制限されています。"
-	}
-	
-	"Menu_ClassesSurvivorsEngineer"
-	{
-		"jp"		"PDAで始まります。\nアップグレードできない歩哨とディスペンサーのみを構築できます。\nセントリーの弾薬は限られており、ゆっくりと消え、元に戻すことはできません。\nディスペンサーは壁として機能します。 彼らはより高い健康を持っていますが、弾薬を復元することはできません。"
+		"jp"		"ミニガンの弾薬数は150に制限されています。"
 	}
 	
 	"Menu_ClassesSurvivorsMedic"
 	{
 		"jp"		"メディガンには治癒率のペナルティがあります。"
-	}
-	
-	"Menu_ClassesSurvivorsSniper"
-	{
-		"jp"		"SMGをリロードする必要はありません。\nジャラテはゾンビを遅くします。\n最大ヘルスが25追加されます。\nキルごとに最初の武器で2弾薬を獲得し、弾薬容量を超えることができます。"
 	}
 	
 	"Menu_ClassesSurvivorsSpy"
