@@ -203,6 +203,7 @@ void SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
 	{
 		// No more unique weapons to pick, delete it
 		RemoveEntity(iEntity);
+		return;
 	}
 	
 	if (nClassFilter == TFClass_Unknown)
