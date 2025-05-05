@@ -1669,15 +1669,11 @@ void UpdateZombieDamageScale()
 	if (0.0 <= flProgress <= 1.0)
 		g_flZombieDamageScale += (flProgress * g_cvScaleProgress.FloatValue);
 	
-	float fl1 = g_flZombieDamageScale;
-	
 	//Lower damage scale as there are less survivors
 	float flSurvivorPercentage = float(iSurvivors) / float(iSurvivors + iZombies);
 	float flStartingPercentage = g_cvRatio.FloatValue;
 	float flMinScale = g_cvScaleSurvivors.FloatValue;
 	g_flZombieDamageScale *= (flSurvivorPercentage + flMinScale) / (flStartingPercentage + flMinScale);
-	
-	float fl2 = g_flZombieDamageScale;
 	
 	//Zombie rage increases damage
 	if (g_bZombieRage)
