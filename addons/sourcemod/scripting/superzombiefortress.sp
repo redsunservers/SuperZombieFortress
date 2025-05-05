@@ -1680,7 +1680,7 @@ void UpdateZombieDamageScale()
 	
 	//Post-calculation
 	if (g_flZombieDamageScale < 1.0)
-		g_flZombieDamageScale = Pow(g_flZombieDamageScale, 3.0);
+		g_flZombieDamageScale = Pow(g_flZombieDamageScale, 4.0);
 	
 	if (g_flZombieDamageScale < 0.2)
 		g_flZombieDamageScale = 0.2;

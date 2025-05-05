@@ -1226,9 +1226,6 @@ stock void CPrintToChatDebug(const char[] sFormat, any ...)
 //SDKHooks_TakeDamage doesn't call OnTakeDamage, so we need to scale separately for 'indirect' damage
 stock void DealDamage(int iAttacker, int iVictim, float flDamage)
 {
-	if (g_flZombieDamageScale < 1.0)
-		flDamage *= g_flZombieDamageScale;
-	
 	SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, flDamage, DMG_PREVENT_PHYSICS_FORCE);
 }
 
