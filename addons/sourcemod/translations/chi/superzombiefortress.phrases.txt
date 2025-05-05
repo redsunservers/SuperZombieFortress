@@ -82,7 +82,7 @@
 
 	"Infected_ForceStart"
 	{
-		"en"		"{1}您已被强制设置为感染者队伍，因为您在{2}、{3}时尝试避免游戏。"
+		"chi"		"{1}您已被强制设置为感染者队伍，因为您在{2}、{3}时尝试避免游戏。"
 	}
 	
 	"Infected_RageReady"
@@ -273,7 +273,7 @@
 
 	"SpecialInfected_Tank"
 	{
-		"en"		"{green}你是TANK:\n{orange}- 一股几乎势不可挡的力量。\n- 呼叫'医生！'捡起碎石往前方投掷，伤害沿途的所有人！{yellow}(5 秒冷却)"
+		"chi"		"{green}你是TANK:\n{orange}- 一股几乎势不可挡的力量。\n- 呼叫'医生！'捡起碎石往前方投掷，伤害沿途的所有人！{yellow}(5 秒冷却)"
 	}
 	
 	"SpecialInfected_Boomer"
