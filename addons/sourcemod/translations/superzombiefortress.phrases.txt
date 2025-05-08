@@ -397,6 +397,11 @@
 	{
 		"en"		"{orange}The Fists of Steel {green}gives 10%% melee resistance while active."
 	}
+
+	"Melee_EvictionNotice"
+	{
+		"en"		"{orange}The Eviction Notice {green}has its health drain disabled. {red}Marked-For-Death while active."
+	}
 	
 	"Melee_EurekaEffect"
 	{
