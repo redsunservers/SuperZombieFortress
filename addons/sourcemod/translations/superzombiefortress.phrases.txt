@@ -3,699 +3,567 @@
 	"Welcome"
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
-		"en"		"{1}Welcome to Super Zombie Fortress.\nYou can open the instruction menu using {2}/szf{3}."
+		"en"	"{1}Welcome to Super Zombie Fortress.\nYou can open the instruction menu using {2}/szf{3}."
 	}
-	
 	"Grace_Start"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Grace period begun. Survivors can change classes."
+		"en"	"{1}Grace period begun. Survivors can change classes."
 	}
-	
 	"Grace_End"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Grace period complete. Survivors can no longer change classes."
+		"en"	"{1}Grace period complete. Survivors can no longer change classes."
 	}
-	
 	"Frenzy_Start"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Zombies are frenzied: they respawn faster and are more powerful!"
+		"en"	"{1}Zombies are frenzied: they respawn faster and are more powerful!"
 	}
-	
 	"Frenzy_End"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Zombies are resting..."
+		"en"	"{1}Zombies are resting..."
 	}
-	
 	"Tank_Chosen"
 	{
 		"#format"	"{1:s},{2:s}"
-		"en"		"{1} {2}was chosen to become the TANK!"
+		"en"	"{1} {2}was chosen to become the TANK!"
 	}
-	
 	"Tank_Called"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Called tank."
+		"en"	"{1}Called tank."
 	}
-	
 	"Tank_Spawn"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Incoming TAAAAANK!"
+		"en"	"{1}Incoming TAAAAANK!"
 	}
-	
 	"Tank_Died"
 	{
 		"#format"	"{1:N},{2:N},{3:d}"
-		"en"		"The Tank '{1}' has died\nMost damage: {2} ({3})"
+		"en"	"The Tank '{1}' has died\nMost damage: {2} ({3})"
 	}
-	
 	"Tank_Multi_Died"
 	{
 		"#format"	"{1:d},{2:N},{3:d}"
-		"en"		"{1} tanks has died\nMost damage: {2} ({3})"
+		"en"	"{1} tanks has died\nMost damage: {2} ({3})"
 	}
-	
 	"Carry_Pickup"
 	{
-		"en"		"Call 'MEDIC!' to drop your item!\nYou can attack while wielding an item."
+		"en"	"Call 'MEDIC!' to drop your item!\nYou can attack while wielding an item."
 	}
-	
 	"Weapon_Pickup"
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
-		"en"		"I have picked up a {1}{2}{3}!"
+		"en"	"I have picked up a {1}{2}{3}!"
 	}
-	
 	"Weapon_Callout"
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
-		"en"		"{1}{2} {3}here!"
+		"en"	"{1}{2} {3}here!"
 	}
-	
 	"Survivor_Last"
 	{
 		"#format"	"{1:s},{2:s}"
-		"en"		"{1}{2} is the last survivor!"
+		"en"	"{1}{2} is the last survivor!"
 	}
-	
 	"Infected_Zombify"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}You have perished and turned into a zombie..."
+		"en"	"{1}You have perished and turned into a zombie..."
 	}
-	
 	"Infected_ForceStart_LastRound"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}You have been forcibly set to the Infected team because you avoided participating in the last round."
+		"en"	"{1}You have been forcibly set to the Infected team because you avoided participating in the last round."
 	}
-	
 	"Infected_ForceStart"
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
-		"en"		"{1}You have been forcibly set to the Infected team because you avoided participating when playing on {2}, {3}."
+		"en"	"{1}You have been forcibly set to the Infected team because you avoided participating when playing on {2}, {3}."
 	}
-	
 	"Infected_RageReady"
 	{
-		"en"		"Rage is ready!"
+		"en"	"Rage is ready!"
 	}
-	
 	"Infected_RageReadyInSec"
 	{
 		"#format"	"{1:d}"
-		"en"		"Rage is ready in {1} seconds!"
+		"en"	"Rage is ready in {1} seconds!"
 	}
-	
 	"Infected_CantUseRage"
 	{
-		"en"		"Can't Activate Rage!"
+		"en"	"Can't Activate Rage!"
 	}
-	
 	"Infected_RageUsed"
 	{
-		"en"		"Rage Activated!"
+		"en"	"Rage Activated!"
 	}
-	
 	"Tutorial_SurvivorStart1"
 	{
-		"en"		"Welcome to Super Zombie Fortress!"
+		"en"	"Welcome to Super Zombie Fortress!"
 	}
-	
 	"Tutorial_SurvivorStart2"
 	{
-		"en"		"You are currently playing as a Survivor."
+		"en"	"You are currently playing as a Survivor."
 	}
-	
 	"Tutorial_SurvivorStart3"
 	{
-		"en"		"As a Survivor, your goal is to complete the map objective."
+		"en"	"As a Survivor, your goal is to complete the map objective."
 	}
-	
 	"Tutorial_SurvivorStart4"
 	{
-		"en"		"You may have noticed you do not have any weapons."
+		"en"	"You may have noticed you do not have any weapons."
 	}
-	
 	"Tutorial_SurvivorStart5"
 	{
-		"en"		"You can pick up weapons by calling for medic or attacking it."
+		"en"	"You can pick up weapons by calling for medic or attacking it."
 	}
-	
 	"Tutorial_SurvivorStart6"
 	{
-		"en"		"There are normal infected but also special infected, so watch out for those!"
+		"en"	"There are normal infected but also special infected, so watch out for those!"
 	}
-	
 	"Tutorial_SurvivorStart7"
 	{
-		"en"		"You can check out more information by typing '/szf' into the chat."
+		"en"	"You can check out more information by typing '/szf' into the chat."
 	}
-	
 	"Tutorial_SurvivorStart8"
 	{
-		"en"		"Enjoy the round and good luck out there!"
+		"en"	"Enjoy the round and good luck out there!"
 	}
-	
 	"Tutorial_ZombieStart1"
 	{
-		"en"		"Welcome to Super Zombie Fortress!"
+		"en"	"Welcome to Super Zombie Fortress!"
 	}
-	
 	"Tutorial_ZombieStart2"
 	{
-		"en"		"You are currently playing as a Zombie."
+		"en"	"You are currently playing as a Zombie."
 	}
-	
 	"Tutorial_ZombieStart3"
 	{
-		"en"		"As a Zombie, your goal is to kill the Survivors."
+		"en"	"As a Zombie, your goal is to kill the Survivors."
 	}
-	
 	"Tutorial_ZombieStart4"
 	{
-		"en"		"You and your teammates may be selected to become special infected later on."
+		"en"	"You and your teammates may be selected to become special infected later on."
 	}
-	
 	"Tutorial_ZombieStart5"
 	{
-		"en"		"In addition, a tank may be spawned later in the round."
+		"en"	"In addition, a tank may be spawned later in the round."
 	}
-	
 	"Tutorial_ZombieStart6"
 	{
-		"en"		"You can check out more information by typing '/szf' into the chat."
+		"en"	"You can check out more information by typing '/szf' into the chat."
 	}
-	
 	"Tutorial_ZombieStart7"
 	{
-		"en"		"Enjoy the round and get them!"
+		"en"	"Enjoy the round and get them!"
 	}
-	
 	"Tutorial_PickupCommon1"
 	{
-		"en"		"You have picked up a weapon."
+		"en"	"You have picked up a weapon."
 	}
-	
 	"Tutorial_PickupCommon2"
 	{
-		"en"		"Finding weapons is crucial to ensure survival."
+		"en"	"Finding weapons is crucial to ensure survival."
 	}
-	
 	"Tutorial_PickupRare1"
 	{
-		"en"		"You have picked up a very effective weapon."
+		"en"	"You have picked up a very effective weapon."
 	}
-	
 	"Tutorial_PickupRare2"
 	{
-		"en"		"Some weapons have a lower chance of appearing, like this one."
+		"en"	"Some weapons have a lower chance of appearing, like this one."
 	}
-	
 	"Tutorial_Callout1"
 	{
-		"en"		"Calling out specific weapons allows other teammates to pick up the weapon."
+		"en"	"Calling out specific weapons allows other teammates to pick up the weapon."
 	}
-	
 	"Tutorial_TankSpawn1"
 	{
-		"en"		"Do not let the Tank get close to you, his attacks are very lethal."
+		"en"	"Do not let the Tank get close to you, his attacks are very lethal."
 	}
-	
 	"Tutorial_TankSpawn2"
 	{
-		"en"		"Run and shoot the Tank, it will slow the Tank down and kill it."
+		"en"	"Run and shoot the Tank, it will slow the Tank down and kill it."
 	}
-	
 	"Command_InfectedUsage"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Usage: sm_infected [target] [infected]"
+		"en"	"{1}Usage: sm_infected [target] [infected]"
 	}
-	
 	"Command_InfectedNoInfected"
 	{
 		"#format"	"{1:s},{2:s}"
-		"en"		"{1}Unable to find infected \"{2}\""
+		"en"	"{1}Unable to find infected \"{2}\""
 	}
-	
 	"Command_InfectedNoTarget"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Could not find anyone to set next infected."
+		"en"	"{1}Could not find anyone to set next infected."
 	}
-	
 	"Command_InfectedNoZombie"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Could not find any zombies to set next infected."
+		"en"	"{1}Could not find any zombies to set next infected."
 	}
-	
 	"Command_InfectedSet"
 	{
 		"#format"	"{1:s},{2:d},{3:s}"
-		"en"		"{1}Set {2} zombies to become next infected \"{3}\""
+		"en"	"{1}Set {2} zombies to become next infected \"{3}\""
 	}
-	
 	"Command_StunUsage"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Usage: sm_stun [target] [duration]"
+		"en"	"{1}Usage: sm_stun [target] [duration]"
 	}
-	
 	"Command_StunNoTarget"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Could not find anyone to stun."
+		"en"	"{1}Could not find anyone to stun."
 	}
-	
 	"Command_StunSet"
 	{
 		"#format"	"{1:s},{2:d}"
-		"en"		"{1}Stunned {2} players."
+		"en"	"{1}Stunned {2} players."
 	}
-	
 	"JoinClass_ValidZombies"
 	{
 		"#format"	"{1:s},{2:s}"
-		"en"		"{1}Valid zombies:{2}."
+		"en"	"{1}Valid zombies:{2}."
 	}
-	
 	"JoinClass_ValidSurvivors"
 	{
 		"#format"	"{1:s},{2:s}"
-		"en"		"{1}Valid survivors:{2}."
+		"en"	"{1}Valid survivors:{2}."
 	}
-	
 	"JoinClass_SurvivorsCantChange"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}Survivors can't change classes during a round"
+		"en"	"{1}Survivors can't change classes during a round"
 	}
-	
 	"SpecialInfected_Tank"
 	{
-		"en"		"{green}YOU ARE A TANK:\n{orange}- A nearly-unstoppable force.\n- Call 'MEDIC!' to pick up and THROW DEBRIS ahead of you, hurting EVERYONE in its path! {yellow}(5 second cooldown)"
+		"en"	"{green}YOU ARE A TANK:\n{orange}- A nearly-unstoppable force.\n- Call 'MEDIC!' to pick up and THROW DEBRIS ahead of you, hurting EVERYONE in its path! {yellow}(5 second cooldown)"
 	}
-	
 	"SpecialInfected_Boomer"
 	{
-		"en"		"{green}YOU ARE A BOOMER:\n{orange}- Call 'MEDIC!' to EXPLODE and JARATE nearby enemies!\n- You also explode upon dying, coating the killer and assister in JARATE."
+		"en"	"{green}YOU ARE A BOOMER:\n{orange}- Call 'MEDIC!' to EXPLODE and JARATE nearby enemies!\n- You also explode upon dying, coating the killer and assister in JARATE."
 	}
-	
 	"SpecialInfected_Charger"
 	{
-		"en"		"{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}(15 second cooldown)"
+		"en"	"{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}(15 second cooldown)"
 	}
-	
 	"SpecialInfected_Screamer"
 	{
-		"en"		"{green}YOU ARE A SCREAMER:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(20 second cooldown){orange}\n- Zombies standing near you are more powerful."
+		"en"	"{green}YOU ARE A SCREAMER:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(20 second cooldown){orange}\n- Zombies standing near you are more powerful."
 	}
-	
 	"SpecialInfected_Stalker"
 	{
-		"en"		"{green}YOU ARE A STALKER:\n{orange}- If not close to any survivors, you will be cloaked and gain super speed!\n- Increased the duration of the stun on backstab."
+		"en"	"{green}YOU ARE A STALKER:\n{orange}- If not close to any survivors, you will be cloaked and gain super speed!\n- Increased the duration of the stun on backstab."
 	}
-	
 	"SpecialInfected_Hunter"
 	{
-		"en"		"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}(5 on miss & 20 on hit second cooldown)"
+		"en"	"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}(5 on miss & 20 on hit second cooldown)"
 	}
-	
 	"SpecialInfected_Smoker"
 	{
-		"en"		"{green}YOU ARE A SMOKER:\n{orange}- Call 'MEDIC!' to fire a beam to enemy players and pull them towards you! {yellow}(no cooldown)"
+		"en"	"{green}YOU ARE A SMOKER:\n{orange}- Call 'MEDIC!' to fire a beam to enemy players and pull them towards you! {yellow}(no cooldown)"
 	}
-	
 	"SpecialInfected_Spitter"
 	{
-		"en"		"{green}YOU ARE A SPITTER:\n{orange}- Call 'MEDIC!' to throw your GAS to pile of survivors to deal damage! {yellow}(15 second cooldown)"
+		"en"	"{green}YOU ARE A SPITTER:\n{orange}- Call 'MEDIC!' to throw your GAS to pile of survivors to deal damage! {yellow}(15 second cooldown)"
 	}
-	
 	"SpecialInfected_Jockey"
 	{
-		"en"		"{green}YOU ARE A JOCKEY:\n{orange}- Call 'MEDIC!' to LEAP into SURVIVORS and control movements! {yellow}(5 second cooldown)"
+		"en"	"{green}YOU ARE A JOCKEY:\n{orange}- Call 'MEDIC!' to LEAP into SURVIVORS and control movements! {yellow}(5 second cooldown)"
 	}
-
 	"Melee_Atomizer"
 	{
-		"en"		"{orange}The Atomizer {green}pushes enemies back. {red}Triple jump and airborne minicrits are disabled."
+		"en"	"{orange}The Atomizer {green}pushes enemies back. {red}Triple jump and airborne minicrits are disabled."
 	}
-	
 	"Melee_CandyCane"
 	{
-		"en"		"{orange}The Candy Cane {red}makes you take 10%% additional damage."
+		"en"	"{orange}The Candy Cane {red}makes you take 10%% additional damage."
 	}
-	
 	"Melee_PainTrain"
 	{
-		"en"		"{orange}The Pain Train {red}makes you take 10%% additional damage."
+		"en"	"{orange}The Pain Train {red}makes you take 10%% additional damage."
 	}
-	
 	"Melee_HalfZatochi"
 	{
-		"en"		"{orange}The Half-Zatoichi {red}has its health restored on kill decreased to 15%%."
+		"en"	"{orange}The Half-Zatoichi {red}has its health restored on kill decreased to 15%%."
 	}
-	
 	"Melee_MarketGardener"
 	{
-		"en"		"{orange}The Market Gardener {green}makes you rocket jump 25%% higher."
+		"en"	"{orange}The Market Gardener {green}makes you rocket jump 25%% higher."
 	}
-	
 	"Melee_ThirdDegree"
 	{
-		"en"		"{orange}The Third Degree {green}deals 30%% extra damage while being healed."
+		"en"	"{orange}The Third Degree {green}deals 30%% extra damage while being healed."
 	}
-	
 	"Melee_Eyelander"
 	{
-		"en"		"{orange}The Eyelander {red}makes you move 15%% slower."
+		"en"	"{orange}The Eyelander {red}makes you move 15%% slower."
 	}
-	
 	"Melee_ScotsmansSkullcutter"
 	{
-		"en"		"{orange}The Scotsman's Skullcutter {green}has its damage bonus increased to 30%%."
+		"en"	"{orange}The Scotsman's Skullcutter {green}has its damage bonus increased to 30%%."
 	}
-	
 	"Melee_KillingGlovesofBoxing"
 	{
-		"en"		"{orange}The Killing Gloves of Boxing {red}gives 5 seconds of minicrits on kill."
+		"en"	"{orange}The Killing Gloves of Boxing {red}gives 5 seconds of minicrits on kill."
 	}
-
 	"Melee_GlovesofRunningUrgently"
 	{
-		"en"		"{orange}The Gloves of Running Urgently {green}has health drain replaced with Marked-For-Death while active."
+		"en"	"{orange}The Gloves of Running Urgently {green}has its health drain disabled. {red}Marked-For-Death while active."
 	}
-	
 	"Melee_WarriorsSpirit"
 	{
-		"en"		"{orange}The Warrior's Spirit {red}has its health restored on kill decreased to +25."
+		"en"	"{orange}The Warrior's Spirit {red}has its health restored on kill decreased to +25."
 	}
-	
 	"Melee_FistsofSteel"
 	{
-		"en"		"{orange}The Fists of Steel {green}gives 10%% melee resistance while active."
+		"en"	"{orange}The Fists of Steel {green}gives 10%% melee resistance while active."
 	}
-
 	"Melee_EvictionNotice"
 	{
-		"en"		"{orange}The Eviction Notice {green}has health drain replaced with Marked-For-Death while active."
+		"en"	"{orange}The Eviction Notice {green}has its health drain disabled. {red}Marked-For-Death while active."
 	}
-	
 	"Melee_EurekaEffect"
 	{
-		"en"		"{orange}The Eureka Effect {green}periodically regenerates metal. {red}Teleportation is disabled."
+		"en"	"{orange}The Eureka Effect {green}periodically regenerates metal. {red}Teleportation is disabled."
 	}
-	
 	"Melee_Ubersaw"
 	{
-		"en"		"{orange}The Ubersaw {red}gives 10%% uber on hit."
+		"en"	"{orange}The Ubersaw {red}gives 10%% uber on hit."
 	}
-
 	"Melee_VitaSaw"
 	{
-		"en"		"{orange}The Vita-Saw {green}increases uber rate by 15%%"
+		"en"	"{orange}The Vita-Saw {green}increases uber rate by 15%%"
 	}
-	
 	"Melee_Amputator"
 	{
-		"en"		"{orange}The Amputator {red}does not heal in an area when taunting."
+		"en"	"{orange}The Amputator {red}does not heal in an area when taunting."
 	}
-	
 	"Melee_TribalmansShiv"
 	{
-		"en"		"{orange}The Tribalman's Shiv {green}has its damage penalty reduced to 20%%."
+		"en"	"{orange}The Tribalman's Shiv {green}has its damage penalty reduced to 20%%."
 	}
-	
 	"PDA_DeadRinger"
 	{
-		"en"		"{orange}The Dead Ringer {red}has no increased cloak duration."
+		"en"	"{orange}The Dead Ringer {red}has no increased cloak duration."
 	}
 	"PDA_CloakAndDagger"
 	{
-		"en"		"{orange}The Cloak and Dagger {red}is disabled."
+		"en"	"{orange}The Cloak and Dagger {red}is disabled."
 	}
-	
 	"Menu_MainTitle"
 	{
 		"#format"	"{1:s},{2:s}"
-		"en"		"Super Zombie Fortress - {1}.{2}"
+		"en"	"Super Zombie Fortress - {1}.{2}"
 	}
-	
 	"Menu_MainOverview"
 	{
-		"en"		"Overview"
+		"en"	"Overview"
 	}
-	
 	"Menu_MainTeamSurvivor"
 	{
-		"en"		"Team: Survivors"
+		"en"	"Team: Survivors"
 	}
-	
 	"Menu_MainTeamZombie"
 	{
-		"en"		"Team: Infected"
+		"en"	"Team: Infected"
 	}
-	
 	"Menu_MainClassesSurvivor"
 	{
-		"en"		"Classes: Survivors"
+		"en"	"Classes: Survivors"
 	}
-	
 	"Menu_MainClassesZombie"
 	{
-		"en"		"Classes: Infected"
+		"en"	"Classes: Infected"
 	}
-	
 	"Menu_MainClassesInfected"
 	{
-		"en"		"Classes: Infected (Special)"
+		"en"	"Classes: Infected (Special)"
 	}
-	
 	"Menu_MainBack"
 	{
-		"en"		"Back"
+		"en"	"Back"
 	}
-	
 	"Menu_Overview"
 	{
-		"en"		"Survivors must survive the endless hoarde of Infected.\nWhen a Survivor dies, they join the Zombie team and play as a Zombie.\nZombies need to work together to take down the survivors.\nSurvivor gain access to weapon pickups, while zombies gain access to special infected."
+		"en"	"Survivors must survive the endless hoarde of Infected.\nWhen a Survivor dies, they join the Zombie team and play as a Zombie.\nZombies need to work together to take down the survivors.\nSurvivor gain access to weapon pickups, while zombies gain access to special infected."
 	}
-	
 	"Menu_TeamSurvivors"
 	{
-		"en"		"Survivors gain regeneration and a small bonus to their damage based on Morale.\nMorale is gained by doing objectives and killing infected but is also lost over time and by negative events.\nSurvivors only start with a melee weapon and pick up weapons (using CALL 'MEDIC!', 'mouse1' or 'mouse2') as they progress through the map."
+		"en"	"Survivors gain regeneration and a small bonus to their damage based on Morale.\nMorale is gained by doing objectives and killing infected but is also lost over time and by negative events.\nSurvivors only start with a melee weapon and pick up weapons (using CALL 'MEDIC!', 'mouse1' or 'mouse2') as they progress through the map."
 	}
-	
 	"Menu_TeamZombie"
 	{
-		"en"		"Infected gain bonuses when sticking together as a hoarde and can enrage which boost health or activate special abilities as special infected.\nEnrage is used by calling for a 'medic' and has a cooldown after use.\nYou may be given the option to respawn as a special infected using 'medic'."
+		"en"	"Infected gain bonuses when sticking together as a hoarde and can enrage which boost health or activate special abilities as special infected.\nEnrage is used by calling for a 'medic' and has a cooldown after use.\nYou may be given the option to respawn as a special infected using 'medic'."
 	}
-	
 	"Menu_ClassesSurvivorsScout"
 	{
-		"en"		"Gains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"en"	"Gains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
 	}
-	
 	"Menu_ClassesSurvivorsSoldier"
 	{
-		"en"		"Gains 1 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"en"	"Gains 1 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
 	}
-	
 	"Menu_ClassesSurvivorsPyro"
 	{
-		"en"		"Flamethrower ammo limited to 150."
+		"en"	"Flamethrower ammo limited to 150."
 	}
-	
 	"Menu_ClassesSurvivorsDemoman"
 	{
-		"en"		"Gains 1 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"en"	"Gains 1 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
 	}
-	
 	"Menu_ClassesSurvivorsHeavy"
 	{
-		"en"		"Minigun ammo limited to 150."
+		"en"	"Minigun ammo limited to 150."
 	}
-	
 	"Menu_ClassesSurvivorsEngineer"
 	{
-		"en"		"Starts with PDAs.\nCan only build sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished.\nDispensers are minis, decays on health and ammo dispenses."
+		"en"	"Starts with PDAs.\nCan only build sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished.\nDispensers are minis, decays on health and ammo dispenses."
 	}
-	
 	"Menu_ClassesSurvivorsMedic"
 	{
-		"en"		"Medigun has a heal rate penalty."
+		"en"	"Medigun has a heal rate penalty."
 	}
-	
 	"Menu_ClassesSurvivorsSniper"
 	{
-		"en"		"SMG ammo increased to 125.\nJarate slows down Infected.\nHas 25 extra max health.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"en"	"SMG ammo increased to 125.\nJarate slows down Infected.\nHas 25 extra max health.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
 	}
-	
 	"Menu_ClassesSurvivorsSpy"
 	{
-		"en"		"Starts with cloak watches and disguise kit.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"en"	"Starts with cloak watches and disguise kit.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
 	}
-	
 	"Menu_ClassesInfectedScout"
 	{
-		"en"		"Has Sandman to slow down survivors.\nAble to keep drinks in secondary slot to use."
+		"en"	"Has Sandman to slow down survivors.\nAble to keep drinks in secondary slot to use."
 	}
-	
 	"Menu_ClassesInfectedSoldier"
 	{
-		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep banners in secondary slot to use."
+		"en"	"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep banners in secondary slot to use."
 	}
-	
 	"Menu_ClassesInfectedPyro"
 	{
-		"en"		"Has Sharpened Volcano Fragment to ignite survivors.\nAfterburn damage is reduced.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
+		"en"	"Has Sharpened Volcano Fragment to ignite survivors.\nAfterburn damage is reduced.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
 	}
-	
 	"Menu_ClassesInfectedDemoman"
 	{
-		"en"		"Has Eyelander to damage survivors with long range.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
+		"en"	"Has Eyelander to damage survivors with long range.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
 	}
-	
 	"Menu_ClassesInfectedHeavy"
 	{
-		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep foods in secondary slot to use, and damage survivors."
+		"en"	"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep foods in secondary slot to use, and damage survivors."
 	}
-	
 	"Menu_ClassesInfectedEngineer"
 	{
-		"en"		"Gunslinger third critical punch stuns survivor with reduced damage.\nCan only build mini-sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished."
+		"en"	"Gunslinger third critical punch stuns survivor with reduced damage.\nCan only build mini-sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished."
 	}
-	
 	"Menu_ClassesInfectedMedic"
 	{
-		"en"		"Has Amputator to heal nearby infected on taunt.\nBenefits less from health regeneration bonuses while in a horde."
+		"en"	"Has Amputator to heal nearby infected on taunt.\nBenefits less from health regeneration bonuses while in a horde."
 	}
-	
 	"Menu_ClassesInfectedSniper"
 	{
-		"en"		"Has Bushwacka to crit damage survivors who are under mini-crit effect.\nAble to keep wearables in secondary slot to use."
+		"en"	"Has Bushwacka to crit damage survivors who are under mini-crit effect.\nAble to keep wearables in secondary slot to use."
 	}
-	
 	"Menu_ClassesInfectedSpy"
 	{
-		"en"		"Backstabs put the victim into a 'scared' state, slowing and disabling weapon usage for few seconds.\nSurvivors has small resistant while backstabbed."
+		"en"	"Backstabs put the victim into a 'scared' state, slowing and disabling weapon usage for few seconds.\nSurvivors has small resistant while backstabbed."
 	}
-	
 	"Menu_ClassesInfectedSpecialTank"
 	{
-		"en"		"As one of the strongest and brutal infected he has the ability to quickly take down an unsuspecting team of survivors.\n- The Tank has a lot of health which he eventually loses after a while.\n- The Tank has full knockback resistance.\n- The Tank starts of fast but is slowed down if damaged by the survivors.\n- The Tank spawns if certain conditions are met."
+		"en"	"As one of the strongest and brutal infected he has the ability to quickly take down an unsuspecting team of survivors.\n- The Tank has a lot of health which he eventually loses after a while.\n- The Tank has full knockback resistance.\n- The Tank starts of fast but is slowed down if damaged by the survivors.\n- The Tank spawns if certain conditions are met."
 	}
-	
 	"Menu_ClassesInfectedSpecialBoomer"
 	{
-		"en"		"He is gross, he is dirty and is not afraid to share this with any unlucky survivors.\n- Upon raging the Boomer explodes, covering survivors close to him in Jarate.\n- Also explodes on death, but weaker and covering less range."
+		"en"	"He is gross, he is dirty and is not afraid to share this with any unlucky survivors.\n- Upon raging the Boomer explodes, covering survivors close to him in Jarate.\n- Also explodes on death, but weaker and covering less range."
 	}
-	
 	"Menu_ClassesInfectedSpecialCharger"
 	{
-		"en"		"His inner rage and insanity has caused him to lose any care for how he uses his body, as long as he can take somebody with it.\n- Using rage to charge the Charger is able to lock survivor movement and keeps pushing across the area."
+		"en"	"His inner rage and insanity has caused him to lose any care for how he uses his body, as long as he can take somebody with it.\n- Using rage to charge the Charger is able to lock survivor movement and keeps pushing across the area."
 	}
-	
 	"Menu_ClassesInfectedSpecialScreamer"
 	{
-		"en"		"The Screamer is the director of the pack, he makes sure that the Zombies give their fullest in taking down the survivors.\n- Using rage, the Screamer will rally up the Zombies with an ear-piercing yell, increasing the overall power of the zombies.\n- The Screamer motivates zombies by standing near them, increasing their efficiency."
+		"en"	"The Screamer is the director of the pack, he makes sure that the Zombies give their fullest in taking down the survivors.\n- Using rage, the Screamer will rally up the Zombies with an ear-piercing yell, increasing the overall power of the zombies.\n- The Screamer motivates zombies by standing near them, increasing their efficiency."
 	}
-	
 	"Menu_ClassesInfectedSpecialStalker"
 	{
-		"en"		"The Stalker is elusive, being able to get close to survivors and back away in the blink of an eye.\n- The Stalker is always cloaked if not close to any survivor.\n- Backstabs deal 50 health damage to a survivor, making it 2.5x stronger than a normal backstab."
+		"en"	"The Stalker is elusive, being able to get close to survivors and back away in the blink of an eye.\n- The Stalker is always cloaked if not close to any survivor.\n- Backstabs deal 50 health damage to a survivor, making it 2.5x stronger than a normal backstab."
 	}
-	
 	"Menu_ClassesInfectedSpecialHunter"
 	{
-		"en"		"The Hunter is a fast being, being very agile they can easily reach beyond the level's obstacles.\n- Using rage will perform a swift leap which can pounce enemies when making physical contact while leaping.\n- Upon pounce, you will be 'stuck' inside the enemy, making you a very dangerous encounter to face when the opponent is alone."
+		"en"	"The Hunter is a fast being, being very agile they can easily reach beyond the level's obstacles.\n- Using rage will perform a swift leap which can pounce enemies when making physical contact while leaping.\n- Upon pounce, you will be 'stuck' inside the enemy, making you a very dangerous encounter to face when the opponent is alone."
 	}
-	
 	"Menu_ClassesInfectedSpecialSmoker"
 	{
-		"en"		"The Smoker relies on his toxic beam which damages survivors can pulls them towards the Smoker.\n- The pull power grows stronger the less health the victim has.\n- Cannot use rage."
+		"en"	"The Smoker relies on his toxic beam which damages survivors can pulls them towards the Smoker.\n- The pull power grows stronger the less health the victim has.\n- Cannot use rage."
 	}
-	
 	"Menu_ClassesInfectedSpecialSpitter"
 	{
-		"en"		"The Spitter has a long neck filled with nasty gas survivors couldn't take it.\n- Using rage froze the spitter, spewing out to ground damaging nearby survivors.\n- Also releases gas on death.\n- This gives a bigger threat to horde of survivors in small room."
+		"en"	"The Spitter has a long neck filled with nasty gas survivors couldn't take it.\n- Using rage froze the spitter, spewing out to ground damaging nearby survivors.\n- Also releases gas on death.\n- This gives a bigger threat to horde of survivors in small room."
 	}
-	
 	"Menu_ClassesInfectedSpecialJockey"
 	{
-		"en"		"The Jockey creeps around, eager to lead survivors to their demise.\n- Using rage will perform a short leap, latching onto a survivor's head when making physical contact.\n- Controls a survivor's movement and deals damage while on top of them."
+		"en"	"The Jockey creeps around, eager to lead survivors to their demise.\n- Using rage will perform a short leap, latching onto a survivor's head when making physical contact.\n- Controls a survivor's movement and deals damage while on top of them."
 	}
-	
 	"Menu_SoundTitle"
 	{
-		"en"		"Select a preference for sound setting."
+		"en"	"Select a preference for sound setting."
 	}
-	
 	"Menu_SoundFull"
 	{
-		"en"		"All Sounds"
+		"en"	"All Sounds"
 	}
-	
 	"Menu_SoundNoMusic"
 	{
-		"en"		"No Musics"
+		"en"	"No Musics"
 	}
-	
 	"Menu_SoundNoSound"
 	{
-		"en"		"No Sounds"
+		"en"	"No Sounds"
 	}
-	
 	"Menu_SoundNone"
 	{
-		"en"		"No Musics and Sounds"
+		"en"	"No Musics and Sounds"
 	}
-	
 	"Menu_SoundSelected"
 	{
 		"#format"	"{1:s},{2:s},{3:s}"
-		"en"		"{1}{2}{3} preference has been selected."
+		"en"	"{1}{2}{3} preference has been selected."
 	}
-	
 	"Time_MonthsAgo"
 	{
 		"#format"	"{1:d}"
-		"en"		"{1} months ago"
+		"en"	"{1} months ago"
 	}
-	
 	"Time_DaysAgo"
 	{
 		"#format"	"{1:d}"
-		"en"		"{1} days ago"
+		"en"	"{1} days ago"
 	}
-	
 	"Time_HoursAgo"
 	{
 		"#format"	"{1:d}"
-		"en"		"{1} hours ago"
+		"en"	"{1} hours ago"
 	}
-	
 	"Time_MinuteAgo"
 	{
 		// "#format"	"{1:d}"
-		"en"		"a minute ago"
+		"en"	"a minute ago"
 	}
-	
 	"Time_MinutesAgo"
 	{
 		"#format"	"{1:d}"
-		"en"		"{1} minutes ago"
+		"en"	"{1} minutes ago"
 	}
-	
 	"Time_LessThanAMinuteAgo"
 	{
-		"en"		"less than a minute ago"
-	}
-}
+		"en"	"less than a minute ago"
+}}
