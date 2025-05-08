@@ -1681,7 +1681,7 @@ void UpdateZombieDamageScale()
 	
 	//If the last point is being captured, increase damage scale
 	if (g_bCapturingLastPoint && !g_bSurvival)
-		g_flZombieDamageScale += g_cvScaleLastCP.FloatValue;
+		g_flZombieDamageScale *= g_cvScaleLastCP.FloatValue;
 	
 	//Post-calculation
 	if (g_flZombieDamageScale < 0.2)
