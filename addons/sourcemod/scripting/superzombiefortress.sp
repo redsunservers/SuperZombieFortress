@@ -1391,6 +1391,9 @@ void SZFEnable()
 	// Map pickup
 	PrecacheSound("ui/item_paint_can_pickup.wav");
 	
+	// Disable holiday lights from ropes for Smoker tongue
+	GameRules_SetProp("m_bRopesHolidayLightsAllowed", false);
+	
 	if (GameRules_GetRoundState() < RoundState_Preround)
 	{
 		g_nRoundState = SZFRoundState_Setup;
