@@ -515,7 +515,7 @@
 	
 	"Menu_ClassesSurvivorsEngineer"
 	{
-		"en"		"Starts with PDAs.\nCan only build sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished.\nDispensers are minis, decays on health and ammo dispenses."
+		"en"		"Has 25 extra max health.\nStarts with PDAs.\nCan only build sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished.\nDispensers are minis, decays on health and ammo dispenses."
 	}
 	
 	"Menu_ClassesSurvivorsMedic"
