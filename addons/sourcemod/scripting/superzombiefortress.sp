@@ -19,7 +19,7 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.7.1"
+#define PLUGIN_VERSION				"4.7.2"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define MAX_CONTROL_POINTS	8
@@ -343,6 +343,13 @@ char g_sInfectedNames[view_as<int>(Infected_Count)][] = {
 	"Smoker",
 	"Spitter",
 	"Jockey",
+};
+
+#define SPITTER_SPIT_MODEL	"models/weapons/w_bugbait.mdl"
+
+char g_sSpitterParticles[][] = {
+	"unusual_risingstar_green_glow",
+	"unusual_meteor_fireball_small_green",
 };
 
 Cookie g_cFirstTimeSurvivor;
@@ -1369,13 +1376,19 @@ void SZFEnable()
 	DetermineControlPoints();
 	PrecacheZombieSouls();
 	
+	// Generic Rage
 	PrecacheParticle("spell_cast_wheel_blue");
 	
-	//Boomer
+	// Boomer
 	PrecacheParticle("asplode_hoodoo_debris");
 	PrecacheParticle("asplode_hoodoo_dust");
 	
-	//Map pickup
+	// Spitter
+	PrecacheModel(SPITTER_SPIT_MODEL);
+	for (int i = 0; i < sizeof(g_sSpitterParticles); i++)
+		PrecacheParticle(g_sSpitterParticles[i]);
+	
+	// Map pickup
 	PrecacheSound("ui/item_paint_can_pickup.wav");
 	
 	if (GameRules_GetRoundState() < RoundState_Preround)
