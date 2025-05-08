@@ -392,6 +392,9 @@ Handle g_hTimerProgress;
 ConVar g_cvForceOn;
 ConVar g_cvDebug;
 ConVar g_cvRatio;
+ConVar g_cvScaleProgress;
+ConVar g_cvScaleSurvivors;
+ConVar g_cvScaleLastCP;
 ConVar g_cvWeaponSpawnReappear;
 ConVar g_cvWeaponPickupChance;
 ConVar g_cvWeaponRareChance;
@@ -1680,24 +1683,23 @@ void UpdateZombieDamageScale()
 	
 	//If progress found, calculate add progress to damage scale
 	if (0.0 <= flProgress <= 1.0)
-		g_flZombieDamageScale += flProgress;
+		g_flZombieDamageScale += (flProgress * g_cvScaleProgress.FloatValue);
 	
 	//Lower damage scale as there are less survivors
 	float flSurvivorPercentage = float(iSurvivors) / float(iSurvivors + iZombies);
-	g_flZombieDamageScale = (g_flZombieDamageScale * flSurvivorPercentage * 0.6) + 0.5;
+	float flStartingPercentage = g_cvRatio.FloatValue;
+	float flMinScale = g_cvScaleSurvivors.FloatValue;
+	g_flZombieDamageScale *= (flSurvivorPercentage + flMinScale) / (flStartingPercentage + flMinScale);
 	
 	//Zombie rage increases damage
 	if (g_bZombieRage)
 		g_flZombieDamageScale *= 1.15;
 	
-	//If the last point is being captured, increase damage scale if lower than 100%
-	if (g_bCapturingLastPoint && g_flZombieDamageScale < 1.0 && !g_bSurvival)
-		g_flZombieDamageScale += (1.0 - g_flZombieDamageScale) * 0.5;
+	//If the last point is being captured, increase damage scale
+	if (g_bCapturingLastPoint && !g_bSurvival)
+		g_flZombieDamageScale *= g_cvScaleLastCP.FloatValue;
 	
 	//Post-calculation
-	if (g_flZombieDamageScale < 1.0)
-		g_flZombieDamageScale = Pow(g_flZombieDamageScale, 3.0);
-	
 	if (g_flZombieDamageScale < 0.2)
 		g_flZombieDamageScale = 0.2;
 	

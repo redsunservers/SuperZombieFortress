@@ -16,6 +16,9 @@ void ConVar_Init()
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Force enable SZF for next map.", _, true, 0.0, true, 1.0);
 	g_cvDebug = CreateConVar("sm_szf_debug", "0", "Enable debugs?", _, true, 0.0, true, 1.0);
 	g_cvRatio = CreateConVar("sm_szf_ratio", "0.80", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
+	g_cvScaleProgress = CreateConVar("sm_szf_scale_progress", "0.4", "Max amount of scale to add from map progress.", _, true, 0.0);
+	g_cvScaleSurvivors = CreateConVar("sm_szf_scale_survivors", "0.1", "Min amount to multiply the scale from % of survivors", _, true, 0.0, true, 1.0);
+	g_cvScaleLastCP = CreateConVar("sm_szf_scale_lastcp", "1.25", "Scale multiplier to apply when the last control point is being captured", _, true, 0.0);
 	g_cvWeaponSpawnReappear = CreateConVar("sm_szf_weapon_spawn_reappear", "0.25", "% chance for spawn weapons to reappear.", _, true, 0.0, true, 1.0);
 	g_cvWeaponPickupChance = CreateConVar("sm_szf_weapon_pickup_chance", "0.07", "% chance for normal weapons to be pickups.", _, true, 0.0, true, 1.0);
 	g_cvWeaponRareChance = CreateConVar("sm_szf_weapon_rare_chance", "0.2", "% chance for normal weapons to be rare.", _, true, 0.0, true, 1.0);
