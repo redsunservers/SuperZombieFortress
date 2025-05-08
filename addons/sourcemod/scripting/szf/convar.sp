@@ -16,6 +16,9 @@ void ConVar_Init()
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Force enable SZF for next map.", _, true, 0.0, true, 1.0);
 	g_cvDebug = CreateConVar("sm_szf_debug", "0", "Enable debugs?", _, true, 0.0, true, 1.0);
 	g_cvRatio = CreateConVar("sm_szf_ratio", "0.80", "<0.01-1.00> Percentage of players that start as survivors.", _, true, 0.01, true, 1.0);
+	g_cvScaleProgress = CreateConVar("sm_szf_scale_progress", "0.4", "Max amount of scale to add from map progress.", _, true, 0.0);
+	g_cvScaleSurvivors = CreateConVar("sm_szf_scale_survivors", "0.1", "Min amount to multiply the scale from % of survivors", _, true, 0.0, true, 1.0);
+	g_cvScaleLastCP = CreateConVar("sm_szf_scale_lastcp", "1.25", "Scale multiplier to apply when the last control point is being captured", _, true, 0.0);
 	g_cvWeaponSpawnReappear = CreateConVar("sm_szf_weapon_spawn_reappear", "0.25", "% chance for spawn weapons to reappear.", _, true, 0.0, true, 1.0);
 	g_cvWeaponPickupChance = CreateConVar("sm_szf_weapon_pickup_chance", "0.07", "% chance for normal weapons to be pickups.", _, true, 0.0, true, 1.0);
 	g_cvWeaponRareChance = CreateConVar("sm_szf_weapon_rare_chance", "0.2", "% chance for normal weapons to be rare.", _, true, 0.0, true, 1.0);
@@ -42,8 +45,9 @@ void ConVar_Init()
 	g_cvMeleeIgnoreTeammates = CreateConVar("sm_szf_melee_ignores_teammates", "1.0", "<0/1> If enabled, melee hits will ignore teammates.", _, true, 0.0, true, 1.0);
 	g_cvPunishAvoidingPlayers = CreateConVar("sm_szf_punish_avoiding_players", "1.0", "<0/1> If enabled, players who avoid playing on the Infected team will be forced back into it in the next round they play.", _, true, 0.0, true, 1.0);
 	
-	ConVar_InitEvent(g_FrenzyEvent, "frenzy", "60.0", "150.0", "0.1", "50");
-	ConVar_InitEvent(g_TankEvent, "tank", "120.0", "240.0", "0.1", "80");
+	//                              syntax    cooldown interval threshold killspree progress
+	ConVar_InitEvent(g_FrenzyEvent, "frenzy", "60.0",  "150.0", "0.1",    "50",     "0.2");
+	ConVar_InitEvent(g_TankEvent,   "tank",   "120.0", "240.0", "0.1",    "80",     "0.3");
 	
 	g_aConVar = new ArrayList(sizeof(ConVarInfo));
 	
@@ -62,13 +66,14 @@ void ConVar_Init()
 	ConVar_Add("tf_weapon_criticals", 0.0);
 }
 
-void ConVar_InitEvent(ConVarEvent event, const char[] sSyntax, const char[] sCooldown, const char[] sInterval, const char[] sThreshold, const char[] sKillSpree)
+void ConVar_InitEvent(ConVarEvent event, const char[] sSyntax, const char[] sCooldown, const char[] sInterval, const char[] sThreshold, const char[] sKillSpree, const char[] sProgress)
 {
 	event.cvCooldown = CreateConVar(ConVar_FormatString(sSyntax, "sm_szf_%s_cooldown"), sCooldown, ConVar_FormatString(sSyntax, "Cooldown in seconds for %s."), _, true, 0.0);
 	event.cvSurvivorDeathInterval = CreateConVar(ConVar_FormatString(sSyntax, "sm_szf_%s_survivor_death_interval"), sInterval, ConVar_FormatString(sSyntax, "Check in the past seconds on how many survivors died to trigger %s."), _, true, 0.0);
 	event.cvSurvivorDeathThreshold = CreateConVar(ConVar_FormatString(sSyntax, "sm_szf_%s_survivor_death_threshold"), sThreshold, ConVar_FormatString(sSyntax, "Min %% amount of survivors who have died in the past seconds to trigger %s."), _, true, 0.0, true, 1.0);
 	event.cvKillSpree = CreateConVar(ConVar_FormatString(sSyntax, "sm_szf_%s_killspree"), sKillSpree, ConVar_FormatString(sSyntax, "Amount of infected deaths to trigger %s, multiplied by %% of infecteds."), _, true, 0.0);
-	event.cvChance = CreateConVar(ConVar_FormatString(sSyntax, "sm_szf_%s_chance"), "0.0", ConVar_FormatString(sSyntax, "%% Chance of a %s frenzy."), _, true, 0.0, true, 1.0);
+	event.cvProgress = CreateConVar(ConVar_FormatString(sSyntax, "sm_szf_%s_progress"), sProgress, ConVar_FormatString(sSyntax, "Min %% of playerbase being survivor to trigger %s by map progress."), _, true, 0.0, true, 1.0);
+	event.cvChance = CreateConVar(ConVar_FormatString(sSyntax, "sm_szf_%s_chance"), "0.0", ConVar_FormatString(sSyntax, "%% Chance of a random %s."), _, true, 0.0, true, 1.0);
 }
 
 char[] ConVar_FormatString(const char[] sSyntax, const char[] sName)

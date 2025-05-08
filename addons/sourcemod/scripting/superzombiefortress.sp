@@ -19,7 +19,7 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.7.1"
+#define PLUGIN_VERSION				"4.7.2"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define MAX_CONTROL_POINTS	8
@@ -345,6 +345,13 @@ char g_sInfectedNames[view_as<int>(Infected_Count)][] = {
 	"Jockey",
 };
 
+#define SPITTER_SPIT_MODEL	"models/weapons/w_bugbait.mdl"
+
+char g_sSpitterParticles[][] = {
+	"unusual_risingstar_green_glow",
+	"unusual_meteor_fireball_small_green",
+};
+
 Cookie g_cFirstTimeSurvivor;
 Cookie g_cFirstTimeZombie;
 Cookie g_cSoundPreference;
@@ -385,6 +392,9 @@ Handle g_hTimerProgress;
 ConVar g_cvForceOn;
 ConVar g_cvDebug;
 ConVar g_cvRatio;
+ConVar g_cvScaleProgress;
+ConVar g_cvScaleSurvivors;
+ConVar g_cvScaleLastCP;
 ConVar g_cvWeaponSpawnReappear;
 ConVar g_cvWeaponPickupChance;
 ConVar g_cvWeaponRareChance;
@@ -417,6 +427,7 @@ enum struct ConVarEvent
 	ConVar cvSurvivorDeathInterval;		// Seconds interval to consider for survivor deaths
 	ConVar cvSurvivorDeathThreshold;	// Min threshold for % of survivors died within interval
 	ConVar cvKillSpree;					// Killing spree requirement since last survivor death, multiplied by % of zombies in playerbase
+	ConVar cvProgress;					// Min % of playerbase being survivor to trigger by map progress
 	ConVar cvChance;					// % Chance to randomly trigger it
 	
 	float flCooldown;
@@ -470,11 +481,26 @@ enum struct ConVarEvent
 		
 		// Check if there too many zombie kills since last survivor death
 		
-		float flPercentage = float(iZombies) / float(iSurvivors + iZombies);
-		if (g_iZombiesKilledSpree >= this.cvKillSpree.FloatValue * flPercentage)
+		float flZombiePercentage = float(iZombies) / float(iSurvivors + iZombies);
+		if (g_iZombiesKilledSpree >= this.cvKillSpree.FloatValue * flZombiePercentage)
 		{
-			CPrintToChatDebug("Triggered event from killing spree (%d killed >= threshold %.2f)", g_iZombiesKilledSpree, this.cvKillSpree.FloatValue * flPercentage);
+			CPrintToChatDebug("Triggered event from killing spree (%d killed >= threshold %.2f)", g_iZombiesKilledSpree, this.cvKillSpree.FloatValue * flZombiePercentage);
 			return true;
+		}
+		
+		// Check if there too many survivors and map has progressed fast (flMinPercentage from 1.0 to flMinCooldown)
+		float flProgress = GetMapProgress();
+		if (0.0 <= flProgress <= 1.0)
+		{
+			float flMinCooldown = this.cvProgress.FloatValue;
+			float flMinPercentage = 1.0 - (flProgress * (1.0 - flMinCooldown));
+			
+			float flSurvivorPercentage = 1.0 - flZombiePercentage;
+			if (flSurvivorPercentage >= flMinPercentage)
+			{
+				CPrintToChatDebug("Triggered event from too many survivors (%.2f >= threshold %.2f)", flSurvivorPercentage, flMinPercentage);
+				return true;
+			}
 		}
 		
 		return false;
@@ -1369,14 +1395,23 @@ void SZFEnable()
 	DetermineControlPoints();
 	PrecacheZombieSouls();
 	
+	// Generic Rage
 	PrecacheParticle("spell_cast_wheel_blue");
 	
-	//Boomer
+	// Boomer
 	PrecacheParticle("asplode_hoodoo_debris");
 	PrecacheParticle("asplode_hoodoo_dust");
 	
-	//Map pickup
+	// Spitter
+	PrecacheModel(SPITTER_SPIT_MODEL);
+	for (int i = 0; i < sizeof(g_sSpitterParticles); i++)
+		PrecacheParticle(g_sSpitterParticles[i]);
+	
+	// Map pickup
 	PrecacheSound("ui/item_paint_can_pickup.wav");
+	
+	// Disable holiday lights from ropes for Smoker tongue
+	GameRules_SetProp("m_bRopesHolidayLightsAllowed", false);
 	
 	if (GameRules_GetRoundState() < RoundState_Preround)
 	{
@@ -1604,84 +1639,27 @@ void UpdateZombieDamageScale()
 	if (iZombies < 1)
 		iZombies = 1; //Division by 0 error
 	
-	float flProgress = -1.0;
-	
-	//Check if it been force set
-	if (0.0 <= g_flCapScale <= 1.0)
-	{
-		flProgress = g_flCapScale;
-	}
-	else if (g_bSurvival)
-	{
-		int iTimer = FindEntityByClassname(INVALID_ENT_REFERENCE, "team_round_timer");
-		if (iTimer != INVALID_ENT_REFERENCE)
-		{
-			float flTimerInitialLength = float(GetEntProp(iTimer, Prop_Send, "m_nTimerInitialLength"));
-			float flTimerEndTime = GetEntPropFloat(iTimer, Prop_Send, "m_flTimerEndTime");
-			float flGameTime = GetGameTime();
-			if (flGameTime > flTimerEndTime)
-			{
-				flProgress = 1.0;
-			}
-			else
-			{
-				float flTimeLeft = flTimerEndTime - flGameTime;
-				flProgress = 1.0 - (flTimeLeft / flTimerInitialLength);
-				if (flProgress < 0.0)
-					flProgress = 0.0;
-			}
-		}
-	}
-	else
-	{
-		//iCurrentCP: +1 if CP currently capping, +2 if CP capped
-		int iCurrentCP = 0;
-		int iMaxCP = g_iControlPoints * 2;
-		
-		for (int i = 0; i < g_iControlPoints; i++)
-			iCurrentCP += g_iControlPointsInfo[i][1];
-		
-		//If there atleast 1 CP, set progress by amount of CP capped
-		if (iMaxCP > 0)
-			flProgress = float(iCurrentCP) / float(iMaxCP);
-		
-		//If the map is too big for the amount of CPs, progress incerases with time
-		if (g_flTimeProgress > flProgress)
-		{
-			//Failsafe : Cannot exceed current CP (and a half)
-			float flProgressMax = (float(iCurrentCP)+1.0) / float(iMaxCP);
-			
-			//Cannot go above 1.0
-			if (flProgressMax > 1.0)
-				flProgressMax = 1.0;
-			
-			if (g_flTimeProgress > flProgressMax)
-				flProgress = flProgressMax;
-			else
-				flProgress = g_flTimeProgress;
-		}
-	}
+	float flProgress = GetMapProgress();
 	
 	//If progress found, calculate add progress to damage scale
 	if (0.0 <= flProgress <= 1.0)
-		g_flZombieDamageScale += flProgress;
+		g_flZombieDamageScale += (flProgress * g_cvScaleProgress.FloatValue);
 	
 	//Lower damage scale as there are less survivors
 	float flSurvivorPercentage = float(iSurvivors) / float(iSurvivors + iZombies);
-	g_flZombieDamageScale = (g_flZombieDamageScale * flSurvivorPercentage * 0.6) + 0.5;
+	float flStartingPercentage = g_cvRatio.FloatValue;
+	float flMinScale = g_cvScaleSurvivors.FloatValue;
+	g_flZombieDamageScale *= (flSurvivorPercentage + flMinScale) / (flStartingPercentage + flMinScale);
 	
 	//Zombie rage increases damage
 	if (g_bZombieRage)
 		g_flZombieDamageScale *= 1.15;
 	
-	//If the last point is being captured, increase damage scale if lower than 100%
-	if (g_bCapturingLastPoint && g_flZombieDamageScale < 1.0 && !g_bSurvival)
-		g_flZombieDamageScale += (1.0 - g_flZombieDamageScale) * 0.5;
+	//If the last point is being captured, increase damage scale
+	if (g_bCapturingLastPoint && !g_bSurvival)
+		g_flZombieDamageScale *= g_cvScaleLastCP.FloatValue;
 	
 	//Post-calculation
-	if (g_flZombieDamageScale < 1.0)
-		g_flZombieDamageScale = Pow(g_flZombieDamageScale, 3.0);
-	
 	if (g_flZombieDamageScale < 0.2)
 		g_flZombieDamageScale = 0.2;
 	
@@ -1703,6 +1681,72 @@ void UpdateZombieDamageScale()
 				ZombieRage();
 		}
 	}
+}
+
+float GetMapProgress()
+{
+	//Check if it been force set
+	if (0.0 <= g_flCapScale <= 1.0)
+	{
+		return g_flCapScale;
+	}
+	else if (g_bSurvival)
+	{
+		int iTimer = FindEntityByClassname(INVALID_ENT_REFERENCE, "team_round_timer");
+		if (iTimer != INVALID_ENT_REFERENCE)
+		{
+			float flTimerInitialLength = float(GetEntProp(iTimer, Prop_Send, "m_nTimerInitialLength"));
+			float flTimerEndTime = GetEntPropFloat(iTimer, Prop_Send, "m_flTimerEndTime");
+			float flGameTime = GetGameTime();
+			if (flGameTime > flTimerEndTime)
+			{
+				return 1.0;
+			}
+			else
+			{
+				float flTimeLeft = flTimerEndTime - flGameTime;
+				float flProgress = 1.0 - (flTimeLeft / flTimerInitialLength);
+				if (flProgress < 0.0)
+					flProgress = 0.0;
+				
+				return flProgress;
+			}
+		}
+	}
+	else
+	{
+		//iCurrentCP: +1 if CP currently capping, +2 if CP capped
+		int iCurrentCP = 0;
+		int iMaxCP = g_iControlPoints * 2;
+		
+		for (int i = 0; i < g_iControlPoints; i++)
+			iCurrentCP += g_iControlPointsInfo[i][1];
+		
+		//If there atleast 1 CP, set progress by amount of CP capped
+		float flProgress = 0.0;
+		if (iMaxCP > 0)
+			flProgress = float(iCurrentCP) / float(iMaxCP);
+		
+		//If the map is too big for the amount of CPs, progress incerases with time
+		if (g_flTimeProgress > flProgress)
+		{
+			//Failsafe : Cannot exceed current CP (and a half)
+			float flProgressMax = (float(iCurrentCP)+1.0) / float(iMaxCP);
+			
+			//Cannot go above 1.0
+			if (flProgressMax > 1.0)
+				flProgressMax = 1.0;
+			
+			if (g_flTimeProgress > flProgressMax)
+				flProgress = flProgressMax;
+			else
+				flProgress = g_flTimeProgress;
+		}
+		
+		return flProgress;
+	}
+	
+	return -1.0;
 }
 
 public Action Timer_RespawnPlayer(Handle hTimer, int iClient)

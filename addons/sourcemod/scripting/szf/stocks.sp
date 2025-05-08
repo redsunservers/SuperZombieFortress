@@ -1068,7 +1068,7 @@ bool Trace_DontHitTeammates(int iEntity, int iMask, any iData)
 // Particles
 ////////////////
 
-stock int ShowParticle(char[] sParticle, float flDuration, float vecPos[3], float vecAngles[3] = NULL_VECTOR)
+stock int ShowParticle(const char[] sParticle, float flDuration, float vecPos[3], float vecAngles[3] = NULL_VECTOR)
 {
 	int iParticle = CreateEntityByName("info_particle_system");
 	if (IsValidEdict(iParticle))
@@ -1086,6 +1086,44 @@ stock int ShowParticle(char[] sParticle, float flDuration, float vecPos[3], floa
 	}
 	
 	return iParticle;
+}
+
+stock void AttachParticle(int iEntity, const char[] sParticle)
+{
+	// find string table
+	int iTable = FindStringTable("ParticleEffectNames");
+	if (iTable == INVALID_STRING_TABLE)
+		return;
+	
+	// find particle index
+	char sBuffer[256];
+	int iCount = GetStringTableNumStrings(iTable);
+	int iIndex = INVALID_STRING_INDEX;
+	for (int i; i < iCount; i++)
+	{
+		ReadStringTable(iTable, i, sBuffer, sizeof(sBuffer));
+		if (StrEqual(sBuffer, sParticle, false))
+		{
+			iIndex = i;
+			break;
+		}
+	}
+
+	if (iIndex == INVALID_STRING_INDEX)
+		return;
+	
+	TE_Start("TFParticleEffect");
+	TE_WriteFloat("m_vecOrigin[0]", 100000.0);
+	TE_WriteFloat("m_vecOrigin[1]", 100000.0);
+	TE_WriteFloat("m_vecOrigin[2]", 100000.0);
+	TE_WriteNum("m_iParticleSystemIndex", iIndex);
+
+	TE_WriteNum("entindex", iEntity);
+	TE_WriteNum("m_iAttachType", -1);
+	TE_WriteNum("m_iAttachmentPointIndex", 6);
+	TE_WriteNum("m_bResetParticles", false);
+
+	TE_SendToAll(0.0);
 }
 
 stock void PrecacheParticle(char[] sParticleName)

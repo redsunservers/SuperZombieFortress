@@ -12,6 +12,10 @@ void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 	{
 		SDKHook(iEntity, SDKHook_SpawnPost, Pickup_SpawnPost);
 	}
+	else if (StrEqual(sClassname, "tf_projectile_jar_gas"))
+	{
+		SDKHook(iEntity, SDKHook_SpawnPost, GasProjectile_SpawnPost);
+	}
 	else if (StrEqual(sClassname, "tf_gas_manager"))
 	{
 		SDKHook(iEntity, SDKHook_Touch, GasManager_Touch);
@@ -364,6 +368,21 @@ public Action Pickup_BananaTouch(int iEntity, int iToucher)
 	}
 	
 	return Plugin_Continue;
+}
+
+public void GasProjectile_SpawnPost(int iGasProjectile)
+{
+	int iOwner = GetEntPropEnt(iGasProjectile, Prop_Send, "m_hOwnerEntity");
+	if (!IsValidZombie(iOwner))
+		return;
+	
+	SetEntityRenderMode(iGasProjectile, RENDER_TRANSCOLOR);
+	SetEntityRenderColor(iGasProjectile, 0, 255, 0, 255);
+	SetEntPropFloat(iGasProjectile, Prop_Send, "m_flModelScale", 1.5);
+	
+	SetEntityModel(iGasProjectile, SPITTER_SPIT_MODEL);
+	for (int i = 0; i < sizeof(g_sSpitterParticles); i++)
+		AttachParticle(iGasProjectile, g_sSpitterParticles[i]);
 }
 
 public Action GasManager_Touch(int iGasManager, int iClient)
