@@ -387,6 +387,11 @@
 	{
 		"en"		"{orange}The Killing Gloves of Boxing {red}gives 5 seconds of minicrits on kill."
 	}
+
+	"Melee_GlovesofRunningUrgently"
+	{
+		"en"		"{orange}The Gloves of Running Urgently {green}has health drain replaced with Marked-For-Death while active."
+	}
 	
 	"Melee_WarriorsSpirit"
 	{
@@ -396,6 +401,11 @@
 	"Melee_FistsofSteel"
 	{
 		"en"		"{orange}The Fists of Steel {green}gives 10%% melee resistance while active."
+	}
+
+	"Melee_EvictionNotice"
+	{
+		"en"		"{orange}The Eviction Notice {green}has health drain replaced with Marked-For-Death while active."
 	}
 	
 	"Melee_EurekaEffect"
