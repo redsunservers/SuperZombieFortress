@@ -397,6 +397,11 @@
 	{
 		"en"		"{orange}The Fists of Steel {green}gives 10%% melee resistance while active."
 	}
+
+	"Melee_EvictionNotice"
+	{
+		"en"		"{orange}The Eviction Notice {green}has its health drain disabled. {red}Marked-For-Death while active."
+	}
 	
 	"Melee_EurekaEffect"
 	{
@@ -515,7 +520,7 @@
 	
 	"Menu_ClassesSurvivorsEngineer"
 	{
-		"en"		"Starts with PDAs.\nCan only build sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished.\nDispensers are minis, decays on health and ammo dispenses."
+		"en"		"Has 25 extra max health.\nStarts with PDAs.\nCan only build sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished.\nDispensers are minis, decays on health and ammo dispenses."
 	}
 	
 	"Menu_ClassesSurvivorsMedic"
