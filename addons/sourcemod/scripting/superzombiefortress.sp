@@ -19,7 +19,7 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.7.2"
+#define PLUGIN_VERSION				"4.7.3"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define MAX_CONTROL_POINTS	8
@@ -193,6 +193,7 @@ enum struct ClientClasses
 	bool bEnabled;
 	int iHealth;
 	int iRegen;
+	float flSpeed;
 	
 	//Survivor
 	int iAmmo;
