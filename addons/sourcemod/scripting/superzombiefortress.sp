@@ -2039,21 +2039,7 @@ void FastRespawnDataCollect()
 	{
 		float vecPos[3];
 		g_aFastRespawn.GetArray(i, vecPos);
-		
-		bool bDelete = true;
-		for (int iClient = 1; iClient <= MaxClients; iClient++)
-		{
-			if (!IsValidLivingClient(iClient))
-				continue;
-			
-			if (DistanceFromEntityToPoint(iClient, vecPos) > 1250.0)
-				continue;
-			
-			bDelete = false;
-			break;
-		}
-		
-		if (bDelete)
+		if (!IsValidFastRespawnSpot(vecPos))
 			g_aFastRespawn.Erase(i);
 	}
 	
@@ -2071,9 +2057,27 @@ void FastRespawnDataCollect()
 		{
 			float vecPos[3];
 			GetClientAbsOrigin(iClient, vecPos);
-			g_aFastRespawn.PushArray(vecPos);
+			if (IsValidFastRespawnSpot(vecPos))
+				g_aFastRespawn.PushArray(vecPos);
 		}
 	}
+}
+
+bool IsValidFastRespawnSpot(const float vecPos[3])
+{
+	// Is any survivors nearby it?
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (!IsValidLivingSurvivor(iClient))
+			continue;
+		
+		if (DistanceFromEntityToPoint(iClient, vecPos) > 1250.0)
+			continue;
+		
+		return true;
+	}
+	
+	return false;
 }
 
 void HandleSurvivorLoadout(int iClient)
