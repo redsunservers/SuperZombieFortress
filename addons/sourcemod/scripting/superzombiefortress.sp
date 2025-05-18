@@ -2045,7 +2045,7 @@ void FastRespawnDataCollect()
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (!IsValidLivingClient(iClient) || GetEntityFlags(iClient) & FL_DUCKING || !(GetEntityFlags(iClient) & FL_ONGROUND))
+		if (!IsValidLivingClient(iClient) || !(GetEntityFlags(iClient) & FL_ONGROUND))
 			continue;
 		
 		ArrayList aPos = FastRespawnNearby(0.0, 100.0, iClient);
@@ -2065,6 +2065,14 @@ void FastRespawnDataCollect()
 
 bool IsValidFastRespawnSpot(const float vecPos[3])
 {
+	// Is spot not stuck in something, like func_respawnroomvisualizer?
+	Handle hTrace = TR_TraceHullFilterEx(vecPos, vecPos, { -24.0, -24.0, 0.0 }, { 24.0, 24.0, 83.0 }, MASK_PLAYERSOLID, Trace_DontHitClients);
+	bool bHit = TR_DidHit(hTrace);
+	delete hTrace;
+	
+	if (bHit)
+		return false;
+	
 	// Is any survivors nearby it?
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
