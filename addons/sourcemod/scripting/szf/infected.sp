@@ -194,8 +194,6 @@ public void Infected_DoTankThrow(int iClient)
 	
 	DispatchSpawn(iDebris);
 	
-	SetEntPropFloat(iDebris, Prop_Data, "m_impactEnergyScale", 0.0);	//After DispatchSpawn, otherwise 1 would be set
-	
 	g_iTankDebris[iClient] = EntIndexToEntRef(iDebris);
 	
 	CreateTimer(flThrow, Infected_DebrisTimer, GetClientSerial(iClient));
@@ -313,15 +311,18 @@ void Infected_DebrisFrameFadeOut(int iDebris)
 
 public Action Infected_DebrisStartTouch(int iDebris, int iToucher)
 {
+	if (iToucher <= 0 || iToucher > MaxClients)
+		return Plugin_Continue;
+		
 	int iClient = GetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity");
 	
 	float vecVelocity[3];
 	SDKCall_GetVelocity(iDebris, vecVelocity);
 	float flSpeed = GetVectorLength(vecVelocity);
+	if (flSpeed < 100.0)
+		return Plugin_Continue;
 	
-	if (0 < iToucher <= MaxClients && flSpeed >= 100.0)
-		SDKHooks_TakeDamage(iToucher, iDebris, iClient, flSpeed / 4.0);
-	
+	SDKHooks_TakeDamage(iToucher, iDebris, iClient, flSpeed / 4.0);
 	return Plugin_Continue;
 }
 

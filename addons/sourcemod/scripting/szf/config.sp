@@ -607,8 +607,14 @@ void Config_GetRandomDebris(Debris debris)
 	delete aList;
 }
 
-bool Config_GetDebrisFromModel(const char[] sModel, Debris debris)
+bool Config_GetDebrisFromEntity(int iEntity, Debris debris)
 {
+	if (!IsClassname(iEntity, "prop_physics"))
+		return false;
+	
+	char sModel[256];
+	GetEntityModel(iEntity, sModel, sizeof(sModel));
+	
 	int iLength = g_aConfigDebris.Length;
 	for (int i = 0; i < iLength; i++)
 	{
