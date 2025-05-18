@@ -1930,7 +1930,7 @@ ArrayList FastRespawnNearby(float flMinDistance, float flMaxDistance, int iForce
 		g_aFastRespawn.GetArray(i, vecPosOrigin);
 		
 		bool bAllow = true;
-		bool bDistance = false;
+		int iDistanceCount = 0;
 		
 		//Check if survivors can see it
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
@@ -1948,14 +1948,15 @@ ArrayList FastRespawnNearby(float flMinDistance, float flMaxDistance, int iForce
 				vecPosClient[2] += (vecPosClient[2] - vecPosOrigin[2]) * 4.0;
 			
 			float flDistance = GetVectorDistance(vecPosClient, vecPosOrigin);
-			if (flDistance < flMinDistance)
+			if (flMinDistance < flDistance)
 			{
+				// Never allow spawn if too close to any clients
 				bAllow = false;
 				break;
 			}
 			else if (flDistance <= flMaxDistance)
 			{
-				bDistance = true;
+				iDistanceCount++;
 			}
 			
 			if (!iForceClient)
@@ -1976,7 +1977,11 @@ ArrayList FastRespawnNearby(float flMinDistance, float flMaxDistance, int iForce
 				break;
 		}
 		
-		if (bAllow && bDistance)
+		if (!bAllow)
+			continue;
+		
+		// Require to be nearby atleast 33% of survivors
+		if (iForceClient || float(iDistanceCount) >= float(GetSurvivorCount()) * 0.33)
 			aTombola.PushArray(vecPosOrigin);
 	}
 	
@@ -2048,7 +2053,7 @@ void FastRespawnDataCollect()
 		if (!IsValidLivingClient(iClient) || !(GetEntityFlags(iClient) & FL_ONGROUND))
 			continue;
 		
-		ArrayList aPos = FastRespawnNearby(0.0, 100.0, iClient);
+		ArrayList aPos = FastRespawnNearby(0.0, 50.0, iClient);
 		if (aPos)
 		{
 			delete aPos;
