@@ -1056,6 +1056,11 @@ bool Trace_DontHitEntity(int iEntity, int iMask, any iData)
 	return true;
 }
 
+bool Trace_DontHitClients(int iEntity, int iMask, any iData)
+{
+	return iEntity <= 0 || iEntity > MaxClients;
+}
+
 bool Trace_DontHitTeammates(int iEntity, int iMask, any iData)
 {
 	if (iEntity <= 0 || iEntity > MaxClients)

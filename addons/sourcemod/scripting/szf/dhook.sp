@@ -147,6 +147,8 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 	{
 		float flSpeed = hReturn.Value;
 		
+		flSpeed += g_ClientClasses[iClient].flSpeed;
+		
 		if (IsZombie(iClient))
 		{
 			if (g_nInfected[iClient] == Infected_None)

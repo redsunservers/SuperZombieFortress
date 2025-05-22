@@ -102,6 +102,10 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	if (!CanRecieveDamage(iVictim))
 		return Plugin_Continue;
 	
+	Debris debris;
+	if (Config_GetDebrisFromEntity(iInflicter, debris) && GetEntPropEnt(iInflicter, Prop_Send, "m_hOwnerEntity") != iAttacker)
+		return Plugin_Stop;	// Prevent TF2 game allowing debris to damage victim, we want to handle our own damages
+	
 	bool bChanged = false;
 	
 	if (g_ClientClasses[iVictim].callback_damage != INVALID_FUNCTION)

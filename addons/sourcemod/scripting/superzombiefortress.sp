@@ -19,7 +19,7 @@
 
 #include "include/superzombiefortress.inc"
 
-#define PLUGIN_VERSION				"4.7.2"
+#define PLUGIN_VERSION				"4.7.3"
 #define PLUGIN_VERSION_REVISION		"manual"
 
 #define MAX_CONTROL_POINTS	8
@@ -193,6 +193,7 @@ enum struct ClientClasses
 	bool bEnabled;
 	int iHealth;
 	int iRegen;
+	float flSpeed;
 	
 	//Survivor
 	int iAmmo;
@@ -1929,7 +1930,7 @@ ArrayList FastRespawnNearby(float flMinDistance, float flMaxDistance, int iForce
 		g_aFastRespawn.GetArray(i, vecPosOrigin);
 		
 		bool bAllow = true;
-		bool bDistance = false;
+		int iDistanceCount = 0;
 		
 		//Check if survivors can see it
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
@@ -1947,14 +1948,15 @@ ArrayList FastRespawnNearby(float flMinDistance, float flMaxDistance, int iForce
 				vecPosClient[2] += (vecPosClient[2] - vecPosOrigin[2]) * 4.0;
 			
 			float flDistance = GetVectorDistance(vecPosClient, vecPosOrigin);
-			if (flDistance < flMinDistance)
+			if (flMinDistance < flDistance)
 			{
+				// Never allow spawn if too close to any clients
 				bAllow = false;
 				break;
 			}
 			else if (flDistance <= flMaxDistance)
 			{
-				bDistance = true;
+				iDistanceCount++;
 			}
 			
 			if (!iForceClient)
@@ -1975,7 +1977,11 @@ ArrayList FastRespawnNearby(float flMinDistance, float flMaxDistance, int iForce
 				break;
 		}
 		
-		if (bAllow && bDistance)
+		if (!bAllow)
+			continue;
+		
+		// Require to be nearby atleast 33% of survivors
+		if (iForceClient || float(iDistanceCount) >= float(GetSurvivorCount()) * 0.33)
 			aTombola.PushArray(vecPosOrigin);
 	}
 	
@@ -2038,30 +2044,16 @@ void FastRespawnDataCollect()
 	{
 		float vecPos[3];
 		g_aFastRespawn.GetArray(i, vecPos);
-		
-		bool bDelete = true;
-		for (int iClient = 1; iClient <= MaxClients; iClient++)
-		{
-			if (!IsValidLivingClient(iClient))
-				continue;
-			
-			if (DistanceFromEntityToPoint(iClient, vecPos) > 1250.0)
-				continue;
-			
-			bDelete = false;
-			break;
-		}
-		
-		if (bDelete)
+		if (!IsValidFastRespawnSpot(vecPos))
 			g_aFastRespawn.Erase(i);
 	}
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (!IsValidLivingClient(iClient) || GetEntityFlags(iClient) & FL_DUCKING || !(GetEntityFlags(iClient) & FL_ONGROUND))
+		if (!IsValidLivingClient(iClient) || !(GetEntityFlags(iClient) & FL_ONGROUND))
 			continue;
 		
-		ArrayList aPos = FastRespawnNearby(0.0, 100.0, iClient);
+		ArrayList aPos = FastRespawnNearby(0.0, 50.0, iClient);
 		if (aPos)
 		{
 			delete aPos;
@@ -2070,9 +2062,35 @@ void FastRespawnDataCollect()
 		{
 			float vecPos[3];
 			GetClientAbsOrigin(iClient, vecPos);
-			g_aFastRespawn.PushArray(vecPos);
+			if (IsValidFastRespawnSpot(vecPos))
+				g_aFastRespawn.PushArray(vecPos);
 		}
 	}
+}
+
+bool IsValidFastRespawnSpot(const float vecPos[3])
+{
+	// Is spot not stuck in something, like func_respawnroomvisualizer?
+	Handle hTrace = TR_TraceHullFilterEx(vecPos, vecPos, { -24.0, -24.0, 0.0 }, { 24.0, 24.0, 83.0 }, MASK_PLAYERSOLID, Trace_DontHitClients);
+	bool bHit = TR_DidHit(hTrace);
+	delete hTrace;
+	
+	if (bHit)
+		return false;
+	
+	// Is any survivors nearby it?
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (!IsValidLivingSurvivor(iClient))
+			continue;
+		
+		if (DistanceFromEntityToPoint(iClient, vecPos) > 1250.0)
+			continue;
+		
+		return true;
+	}
+	
+	return false;
 }
 
 void HandleSurvivorLoadout(int iClient)

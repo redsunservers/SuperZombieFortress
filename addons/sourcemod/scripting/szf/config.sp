@@ -263,6 +263,7 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	//Survivor, Zombie and Infected
 	classes.bEnabled = !!kv.GetNum("enable", classes.bEnabled);
 	classes.iRegen = kv.GetNum("regen", classes.iRegen);
+	classes.flSpeed = kv.GetFloat("speed", classes.flSpeed);
 	
 	//Survivor
 	classes.iAmmo = kv.GetNum("ammo", classes.iAmmo);
@@ -606,8 +607,14 @@ void Config_GetRandomDebris(Debris debris)
 	delete aList;
 }
 
-bool Config_GetDebrisFromModel(const char[] sModel, Debris debris)
+bool Config_GetDebrisFromEntity(int iEntity, Debris debris)
 {
+	if (!IsClassname(iEntity, "prop_physics"))
+		return false;
+	
+	char sModel[256];
+	GetEntityModel(iEntity, sModel, sizeof(sModel));
+	
 	int iLength = g_aConfigDebris.Length;
 	for (int i = 0; i < iLength; i++)
 	{
