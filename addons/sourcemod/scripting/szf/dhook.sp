@@ -146,6 +146,8 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 	if (IsClientInGame(iClient) && IsPlayerAlive(iClient))
 	{
 		float flSpeed = hReturn.Value;
+		if (flSpeed <= 1.0)
+			return MRES_Ignored;
 		
 		flSpeed += g_ClientClasses[iClient].flSpeed;
 		
@@ -222,6 +224,9 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 				}
 			}
 		}
+		
+		if (flSpeed <= 1.0)	// Do not set speed to negative or you'll send em to the backrooms
+			flSpeed = 1.0;
 		
 		hReturn.Value = flSpeed;
 		return MRES_Override;
