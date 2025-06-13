@@ -867,6 +867,39 @@ stock bool TF2_DefIndexFindAttribute(int iDefIndex, int iAttrib, float &flVal)
 	return false;
 }
 
+stock float TF2_TranslateAttributeValue(int iIndex, float flValue)
+{
+	enum
+	{
+		ATTDESCFORM_VALUE_IS_PERCENTAGE,			// Printed as:	((m_flValue*100)-100.0)
+		ATTDESCFORM_VALUE_IS_INVERTED_PERCENTAGE,	// Printed as:	((m_flValue*100)-100.0) if it's > 1.0, or ((1.0-m_flModifier)*100) if it's < 1.0
+		ATTDESCFORM_VALUE_IS_ADDITIVE,				// Printed as:	m_flValue
+		ATTDESCFORM_VALUE_IS_ADDITIVE_PERCENTAGE,	// Printed as:	(m_flValue*100)
+		ATTDESCFORM_VALUE_IS_OR,					// Printed as:  m_flValue, but results are ORd together instead of added
+		ATTDESCFORM_VALUE_IS_DATE,					// Printed as a date
+		ATTDESCFORM_VALUE_IS_ACCOUNT_ID,			// Printed as steam user name
+		ATTDESCFORM_VALUE_IS_PARTICLE_INDEX,		// Printed as a particle description
+		ATTDESCFORM_VALUE_IS_KILLSTREAKEFFECT_INDEX,// Printed as killstreak effect description
+		ATTDESCFORM_VALUE_IS_KILLSTREAK_IDLEEFFECT_INDEX,  // Printed as idle effect description
+		ATTDESCFORM_VALUE_IS_ITEM_DEF,				// Printed as item name
+		ATTDESCFORM_VALUE_IS_FROM_LOOKUP_TABLE,		// Printed as a string from a lookup table, specified by the attribute definition name
+	};
+	
+	Address pAttrib = TF2Econ_GetAttributeDefinitionAddress(iIndex);
+	int iFormat = LoadFromAddress(pAttrib + view_as<Address>(0x24), NumberType_Int32);
+	
+	switch (iFormat)
+	{
+		case ATTDESCFORM_VALUE_IS_PERCENTAGE: return (flValue * 100.0) - 100.0;
+		case ATTDESCFORM_VALUE_IS_INVERTED_PERCENTAGE: return flValue > 1.0 ? (flValue * 100.0) - 100.0 : (1.0 - flValue) * 100.0;
+		case ATTDESCFORM_VALUE_IS_ADDITIVE: return flValue;
+		case ATTDESCFORM_VALUE_IS_ADDITIVE_PERCENTAGE: return flValue * 100.0;
+		case ATTDESCFORM_VALUE_IS_OR: return flValue;
+	}
+	
+	return 0.0;
+}
+
 stock void CheckClientWeapons(int iClient)
 {
 	//Weapons

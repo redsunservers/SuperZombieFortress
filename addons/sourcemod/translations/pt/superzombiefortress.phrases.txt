@@ -312,42 +312,42 @@
 
 	"Melee_CandyCane"
 	{
-		"pt"		"{orange}O Candy Cane {red}faz você receber 10%% de dano adicional."
+		"pt"		"{orange}O Candy Cane {red}faz você receber {1}％ de dano adicional."
 	}
 
 	"Melee_PainTrain"
 	{
-		"pt"		"{orange}O Pain Train {red}faz você receber 10%% de dano adicional."
+		"pt"		"{orange}O Pain Train {red}faz você receber {1}％ de dano adicional."
 	}
 
 	"Melee_MarketGardener"
 	{
-		"pt"		"{orange}O Market Gardener {green}faz você saltar 25%% mais alto com foguetes."
+		"pt"		"{orange}O Market Gardener {green}faz você saltar {1}％ mais alto com foguetes."
 	}
 
 	"Melee_Eyelander"
 	{
-		"pt"		"{orange}O Eyelander {red}faz você se mover 15%% mais devagar."
+		"pt"		"{orange}O Eyelander {red}faz você se mover {1}％ mais devagar."
 	}
 
 	"Melee_ScotsmansSkullcutter"
 	{
-		"pt"		"{orange}O Scotsman's Skullcutter {green}tem seu bônus de dano aumentado para 30%%."
+		"pt"		"{orange}O Scotsman's Skullcutter {green}tem seu bônus de dano aumentado para {1}％."
 	}
 
 	"Melee_KillingGlovesofBoxing"
 	{
-	        "pt"		"{orange}As Killing Gloves of Boxing {red}dão 5 segundos de minicrits ao matar."
+	        "pt"		"{orange}As Killing Gloves of Boxing {red}dão {1} segundos de minicrits ao matar."
 	}
 
 	"Melee_WarriorsSpirit"
 	{
-		"pt"		"{orange}O Warrior's Spirit {red}tem sua saúde restaurada ao matar reduzida para +25."
+		"pt"		"{orange}O Warrior's Spirit {red}tem sua saúde restaurada ao matar reduzida para +{1}."
 	}
 
 	"Melee_FistsofSteel"
 	{
-		"pt"		"{orange}Os Fists of Steel {green}dão 10%% de resistência a ataques corpo a corpo enquanto ativos."
+		"pt"		"{orange}Os Fists of Steel {green}dão {1}％ de resistência a ataques corpo a corpo enquanto ativos."
 	}
 
 	"Melee_EurekaEffect"
@@ -357,12 +357,12 @@
 
 	"Melee_Ubersaw"
 	{
-		"pt"		"{orange}O Ubersaw {red}dá 10%% de uber ao acertar."
+		"pt"		"{orange}O Ubersaw {red}dá {1}％ de uber ao acertar."
 	}
 
 	"Melee_VitaSaw"
 	{
-		"pt"		"{orange}O Vita-Saw {green}aumenta a taxa de uber em 15%%."
+		"pt"		"{orange}O Vita-Saw {green}aumenta a taxa de uber em {1}％."
 	}
 
 	"Melee_Amputator"
@@ -372,7 +372,7 @@
 
 	"Melee_TribalmansShiv"
 	{
-		"pt"		"{orange}O Tribalman's Shiv {green}reduziu sua penalidade de dano para 20%%."
+		"pt"		"{orange}O Tribalman's Shiv {green}reduziu sua penalidade de dano para {1}％."
 	}
 
 	"PDA_DeadRinger"
