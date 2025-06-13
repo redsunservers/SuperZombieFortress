@@ -180,7 +180,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		SetEntityRenderColor(iClient, g_ClientClasses[iClient].iColor[0], g_ClientClasses[iClient].iColor[1], g_ClientClasses[iClient].iColor[2], g_ClientClasses[iClient].iColor[3]);
 		
 		if (g_ClientClasses[iClient].sMessage[0])
-			CPrintToChat(iClient, "%t", g_ClientClasses[iClient].sMessage);
+			CPrintToChat(iClient, "%t", g_ClientClasses[iClient].sMessage, g_ClientClasses[iClient].iRageCooldown);
 		
 		if (g_nInfected[iClient] != Infected_None && g_nInfected[iClient] != Infected_Tank && g_iInfectedCooldown[g_nInfected[iClient]] != iClient)
 		{

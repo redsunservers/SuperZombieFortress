@@ -272,7 +272,7 @@
 	
 	"SpecialInfected_Tank"
 	{
-		"hu"		"{green}TE EGY TANK VAGY:\n{orange}- Egy szinte megállíthatatlan bestia.\n- Kiálts 'MEDIC!'-et, hogy felvegyél és dobj előre egy TÖRMELÉKET, ami MINDENKIT megsebez az útjában! {yellow}(5 másodperc várakozási idő)"
+		"hu"		"{green}TE EGY TANK VAGY:\n{orange}- Egy szinte megállíthatatlan bestia.\n- Kiálts 'MEDIC!'-et, hogy felvegyél és dobj előre egy TÖRMELÉKET, ami MINDENKIT megsebez az útjában! {yellow}({1} másodperc várakozási idő)"
 	}
 	
 	"SpecialInfected_Boomer"
@@ -282,12 +282,12 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"hu"		"{green}TE EGY CHARGER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ROHAMOZZ! {yellow}(15 másodperc várakozási idő)"
+		"hu"		"{green}TE EGY CHARGER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ROHAMOZZ! {yellow}({1} másodperc várakozási idő)"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"hu"		"{green}TE EGY SCREAMER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ÖSSZEGYŰJTSD A SZÖVETSÉGES ZOMBIKAT! {yellow}(20 másodperc várakozási idő){orange}\n- A közeledben álló zombik erősebbek."
+		"hu"		"{green}TE EGY SCREAMER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ÖSSZEGYŰJTSD A SZÖVETSÉGES ZOMBIKAT! {yellow}({1} másodperc várakozási idő){orange}\n- A közeledben álló zombik erősebbek."
 	}
 	
 	"SpecialInfected_Stalker"
@@ -297,17 +297,17 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"hu"		"{green}TE EGY HUNTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy UGORJ és RÁVESD MAGAD AZ ELLENSÉGES TÚLÉLŐKRE! {yellow}(5 másodperc várakozási idő mellé és 20 találat esetén)"
+		"hu"		"{green}TE EGY HUNTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy UGORJ és RÁVESD MAGAD AZ ELLENSÉGES TÚLÉLŐKRE! {yellow}({1} másodperc várakozási idő)"
 	}
 	
 	"SpecialInfected_Spitter"
 	{
-		"hu"		"{green}TE EGY SPITTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy GÁZT dobj a túlélők csoportjára, sebzést okozva! {yellow}(15 másodperc várakozási idő)"
+		"hu"		"{green}TE EGY SPITTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy GÁZT dobj a túlélők csoportjára, sebzést okozva! {yellow}({1} másodperc várakozási idő)"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"hu"		"{green}TE EGY JOCKEY VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy RÁUGORJ a TÚLÉLŐKRE és irányítsd a mozgásukat! {yellow}(5 másodperc várakozási idő)"
+		"hu"		"{green}TE EGY JOCKEY VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy RÁUGORJ a TÚLÉLŐKRE és irányítsd a mozgásukat! {yellow}({1} másodperc várakozási idő)"
 	}
 
 	"Melee_Atomizer"

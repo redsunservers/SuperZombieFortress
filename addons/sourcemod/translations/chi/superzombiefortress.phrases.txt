@@ -273,7 +273,7 @@
 
 	"SpecialInfected_Tank"
 	{
-		"chi"		"{green}你是TANK:\n{orange}- 一股几乎势不可挡的力量。\n- 呼叫'医生！'捡起碎石往前方投掷，伤害沿途的所有人！{yellow}(5 秒冷却)"
+		"chi"		"{green}你是TANK:\n{orange}- 一股几乎势不可挡的力量。\n- 呼叫'医生！'捡起碎石往前方投掷，伤害沿途的所有人！{yellow}({1} 秒冷却)"
 	}
 	
 	"SpecialInfected_Boomer"
@@ -283,12 +283,12 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"chi"		"{green}你是CHARGER:\n{orange}- 呼叫'医生！'来冲锋！{yellow}(15秒冷却)"
+		"chi"		"{green}你是CHARGER:\n{orange}- 呼叫'医生！'来冲锋！{yellow}({1}秒冷却)"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"chi"		"{green}你是SCREAMER:\n{orange}- 呼叫'医生！'来强化队友感染者！{yellow}(20秒冷却){orange}\n- 靠近你的感染者会变强。"
+		"chi"		"{green}你是SCREAMER:\n{orange}- 呼叫'医生！'来强化队友感染者！{yellow}({1}秒冷却){orange}\n- 靠近你的感染者会变强。"
 	}
 	
 	"SpecialInfected_Stalker"
@@ -298,7 +298,7 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}(未命中5秒冷却 & 命中20秒冷却)"
+		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}({1}秒冷却)"
 	}
 	
 	"SpecialInfected_Smoker"
@@ -308,12 +308,12 @@
 	
 	"SpecialInfected_Spitter"
 	{
-		"chi"		"{green}你是SPITTER:\n{orange}- 呼叫'医生！'来投掷你的毒气到幸存者中造成伤害！{yellow}(15秒冷却)"
+		"chi"		"{green}你是SPITTER:\n{orange}- 呼叫'医生！'来投掷你的毒气到幸存者中造成伤害！{yellow}({1}秒冷却)"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"chi"		"{green}你是JOCKEY:\n{orange}- 呼叫'医生！'来飞扑感染者并控制其移动！{yellow}(5秒冷却)"
+		"chi"		"{green}你是JOCKEY:\n{orange}- 呼叫'医生！'来飞扑感染者并控制其移动！{yellow}({1}秒冷却)"
 	}
 
 	"Melee_Atomizer"
