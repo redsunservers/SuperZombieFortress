@@ -22,8 +22,8 @@
 #define PLUGIN_VERSION				"4.8.0"
 #define PLUGIN_VERSION_REVISION		"manual"
 
-#define MAX_CONTROL_POINTS	8
-
+#define MAX_ATTRIBUTES_PER_ITEM		20
+#define MAX_CONTROL_POINTS			8
 #define MINI_DISPENSER_MAX_METAL	200	// It's actually still DISPENSER_MAX_METAL_AMMO of 400 the max for mini dispenser, this value is only used on hud displays
 
 #define ATTRIB_VISION		406
@@ -179,12 +179,20 @@ enum Infected
 	Infected_Count
 }
 
+enum struct ConfigAttributes
+{
+	int iCount;
+	int iIndex[MAX_ATTRIBUTES_PER_ITEM];
+	float flValue[MAX_ATTRIBUTES_PER_ITEM];
+	TFClassType nClass[MAX_ATTRIBUTES_PER_ITEM];
+}
+
 enum struct WeaponClasses
 {
 	int iIndex;
-	char sAttribs[256];
 	char sLogName[64];
 	char sIconName[64];
+	ConfigAttributes attribs;
 }
 
 enum struct ClientClasses
@@ -565,7 +573,6 @@ Cookie g_cWeaponsCalled;
 //SDK offsets
 int g_iOffsetItemDefinitionIndex;
 
-#include "szf/weapons.sp"
 #include "szf/sound.sp"
 
 #include "szf/classes.sp"
@@ -585,6 +592,7 @@ int g_iOffsetItemDefinitionIndex;
 #include "szf/stocks.sp"
 #include "szf/stun.sp"
 #include "szf/viewmodel.sp"
+#include "szf/weapons.sp"
 
 public Plugin myinfo =
 {
@@ -2133,7 +2141,7 @@ void HandleSurvivorLoadout(int iClient)
 				}
 					
 				//Apply attribute
-				TF2_WeaponApplyAttribute(iEntity, melee.sAttrib);
+				TF2_WeaponApplyAttribute(iClient, iEntity, melee.attribs);
 			}
 			
 			//This will refresh health max calculation and other attributes
@@ -2183,7 +2191,7 @@ void HandleZombieLoadout(int iClient)
 			if (!g_ClientClasses[iClient].GetWeaponFromIndex(GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex"), weapon))
 				continue;	// how could this happen?
 			
-			TF2_WeaponApplyAttribute(iWeapon, weapon.sAttribs);
+			TF2_WeaponApplyAttribute(iClient, iWeapon, weapon.attribs);
 			continue;
 		}
 		
@@ -2191,7 +2199,7 @@ void HandleZombieLoadout(int iClient)
 		if (!g_ClientClasses[iClient].GetWeaponSlot(iSlot, weapon))	// picks one of the available weapon in slot at random
 			continue;
 		
-		TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.sAttribs);
+		TF2_CreateAndEquipWeapon(iClient, weapon.iIndex, weapon.attribs);
 	}
 	
 	ViewModel_UpdateClient(iClient);

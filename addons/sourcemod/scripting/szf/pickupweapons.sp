@@ -1,5 +1,8 @@
 #define PICKUP_COOLDOWN 	2.0
 
+#define ENT_ONPICKUP	"FireUser1"
+#define ENT_ONKILL		"FireUser2"
+
 enum WeaponType
 {
 	WeaponType_Invalid,
@@ -511,15 +514,8 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	//If player already have item in his inv, remove it before we generate new weapon for him
 	TF2_RemoveItemInSlot(iClient, iSlot);
 	
-	//Check if the player has specific attributes for their class for this weapon
-	char sAttribs[256];
-	sAttribs = wep.sAttribs;
-	
-	if (wep.aClassSpecific[iClass])
-		wep.aClassSpecific[iClass].GetString(0, sAttribs, sizeof(sAttribs));
-	
 	//Generate and equip weapon, allowing reskins
-	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, sAttribs, true);
+	int iWeapon = TF2_CreateAndEquipWeapon(iClient, wep.iIndex, wep.attribs, true);
 	
 	char sClassname[256];
 	TF2Econ_GetItemClassName(wep.iIndex, sClassname, sizeof(sClassname));

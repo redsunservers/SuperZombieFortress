@@ -736,7 +736,9 @@ stock void SetTeamRespawnTime(TFTeam nTeam, float flTime)
 // Weapon
 ////////////////
 
-stock int TF2_CreateWeapon(int iClient, int iIndex, const char[] sAttribs = NULL_STRING, bool bAllowReskin = false)
+static ConfigAttributes g_AttribsNone;
+
+stock int TF2_CreateWeapon(int iClient, int iIndex, ConfigAttributes attribs = g_AttribsNone, bool bAllowReskin = false)
 {
 	TFClassType iClass = TF2_GetPlayerClass(iClient);
 	char sClassname[256];
@@ -783,7 +785,7 @@ stock int TF2_CreateWeapon(int iClient, int iIndex, const char[] sAttribs = NULL
 	
 	if (IsValidEntity(iWeapon))
 	{
-		TF2_WeaponApplyAttribute(iWeapon, sAttribs);
+		TF2_WeaponApplyAttribute(iClient, iWeapon, attribs);
 		DispatchSpawn(iWeapon);
 	}
 	
@@ -802,9 +804,9 @@ stock void TF2_EquipWeapon(int iClient, int iWeapon)
 		EquipPlayerWeapon(iClient, iWeapon);
 }
 
-stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttribs = NULL_STRING, bool bAllowReskin = false)
+stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, ConfigAttributes attribs = g_AttribsNone, bool bAllowReskin = false)
 {
-	int iWeapon = TF2_CreateWeapon(iClient, iIndex, sAttribs, bAllowReskin);
+	int iWeapon = TF2_CreateWeapon(iClient, iIndex, attribs, bAllowReskin);
 	if (iWeapon == INVALID_ENT_REFERENCE)
 		return iWeapon;
 	
@@ -813,12 +815,15 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttrib
 	return iWeapon;
 }
 
-stock void TF2_WeaponApplyAttribute(int iWeapon, const char[] sAttrib)
+stock void TF2_WeaponApplyAttribute(int iClient, int iWeapon, ConfigAttributes attribs)
 {
-	char sAttribs[32][32];
-	int iCount = ExplodeString(sAttrib, " ; ", sAttribs, sizeof(sAttribs), sizeof(sAttribs));
-	for (int i = 0; i < iCount - 1; i+= 2)
-		TF2Attrib_SetByDefIndex(iWeapon, StringToInt(sAttribs[i]), StringToFloat(sAttribs[i+1]));
+	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	
+	for (int i = 0; i < attribs.iCount; i++)
+	{
+		if (!attribs.nClass[i] || attribs.nClass[i] == nClass)
+			TF2Attrib_SetByDefIndex(iWeapon, attribs.iIndex[i], attribs.flValue[i]);
+	}
 }
 
 stock bool TF2_WeaponFindAttribute(int iWeapon, int iAttrib, float &flVal)
