@@ -539,6 +539,7 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 			GivePlayerAmmo(iClient, 9999, iAmmoType, true);
 		}
 		
+		TF2Attrib_SetByName(iWeapon, "projectile penetration heavy", 1.0);	// TODO make this less harcody
 		TF2_SwitchActiveWeapon(iClient, iWeapon);
 	}
 	
