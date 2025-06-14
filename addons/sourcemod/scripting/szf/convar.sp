@@ -43,6 +43,7 @@ void ConVar_Init()
 	g_cvDispenserHealMax = CreateConVar("sm_szf_dispenser_heal_max", "400", "Max amount of health dispenser could dispense before self-destructs.", _, true, 0.0);
 	g_cvBannerRequirement = CreateConVar("sm_szf_banner_requirement", "200.0", "Total damage requirement to build banner meter.", _, true, 0.0);
 	g_cvMeleeIgnoreTeammates = CreateConVar("sm_szf_melee_ignores_teammates", "1.0", "<0/1> If enabled, melee hits will ignore teammates.", _, true, 0.0, true, 1.0);
+	g_cvMeleeCleaveMultipler = CreateConVar("sm_szf_melee_cleave_multiplier", "0.33", "Damage multiplier for every melee cleave hit.", _, true, 0.0);
 	g_cvPunishAvoidingPlayers = CreateConVar("sm_szf_punish_avoiding_players", "1.0", "<0/1> If enabled, players who avoid playing on the Infected team will be forced back into it in the next round they play.", _, true, 0.0, true, 1.0);
 	
 	//                              syntax    cooldown interval threshold killspree progress

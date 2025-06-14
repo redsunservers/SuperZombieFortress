@@ -5,6 +5,7 @@ static Handle g_hSDKCallGetEquippedWearable;
 static Handle g_hSDKCallGiveNamedItem;
 static Handle g_hSDKCallGetLoadoutItem;
 static Handle g_hSDKCallSetSpeed;
+static Handle g_hSDKCallSmack;
 static Handle g_hSDKCallTossJarThink;
 static Handle g_hSDKCallGetVelocity;
 static Handle g_hSDKCallGetDefaultItemChargeMeterValue;
@@ -71,6 +72,12 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 		LogError("Failed to create call: CTFPlayer::TeamFortress_SetSpeed");
 	
 	StartPrepSDKCall(SDKCall_Entity);
+	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CTFWeaponBaseMelee::Smack");
+	g_hSDKCallSmack = EndPrepSDKCall();
+	if (!g_hSDKCallSmack)
+		LogError("Failed to create call: CTFWeaponBaseMelee::Smack");
+	
+	StartPrepSDKCall(SDKCall_Entity);
 	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CTFJar::TossJarThink");
 	g_hSDKCallTossJarThink = EndPrepSDKCall();
 	if (!g_hSDKCallTossJarThink)
@@ -128,6 +135,11 @@ Address SDKCall_GetLoadoutItem(int iClient, TFClassType iClass, int iSlot)
 void SDKCall_SetSpeed(int iClient)
 {
 	SDKCall(g_hSDKCallSetSpeed, iClient);
+}
+
+void SDKCall_Smack(int iMelee)
+{
+	SDKCall(g_hSDKCallSmack, iMelee);
 }
 
 void SDKCall_TossJarThink(int iEntity)

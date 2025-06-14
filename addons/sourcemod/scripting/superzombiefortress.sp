@@ -428,6 +428,7 @@ ConVar g_cvDispenserHealRate;
 ConVar g_cvDispenserHealMax;
 ConVar g_cvBannerRequirement;
 ConVar g_cvMeleeIgnoreTeammates;
+ConVar g_cvMeleeCleaveMultipler;
 ConVar g_cvPunishAvoidingPlayers;
 
 enum struct ConVarEvent
@@ -572,6 +573,8 @@ Cookie g_cWeaponsCalled;
 
 //SDK offsets
 int g_iOffsetItemDefinitionIndex;
+int g_iClientTakenDamage;
+float g_flMeleeDmgMultiplier = 1.0;
 
 #include "szf/sound.sp"
 

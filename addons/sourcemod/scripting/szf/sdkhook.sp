@@ -38,6 +38,7 @@ void SDKHook_HookClient(int iClient)
 	SDKHook(iClient, SDKHook_Touch, Client_Touch);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	SDKHook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
+	SDKHook(iClient, SDKHook_WeaponEquipPost, Client_WeaponEquipPost);
 	SDKHook(iClient, SDKHook_WeaponSwitchPost, Client_WeaponSwitchPost);
 	
 	g_bLunchboxTouched[iClient] = false;
@@ -51,6 +52,7 @@ void SDKHook_UnhookClient(int iClient)
 	SDKUnhook(iClient, SDKHook_Touch, Client_Touch);
 	SDKUnhook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
 	SDKUnhook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
+	SDKUnhook(iClient, SDKHook_WeaponEquipPost, Client_WeaponEquipPost);
 	SDKUnhook(iClient, SDKHook_WeaponSwitchPost, Client_WeaponSwitchPost);
 }
 
@@ -99,6 +101,8 @@ public Action Client_Touch(int iClient, int iToucher)
 
 public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
 {
+	g_iClientTakenDamage = iVictim;
+	
 	if (!CanRecieveDamage(iVictim))
 		return Plugin_Continue;
 	
@@ -204,6 +208,8 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			if (IsClassname(iInflicter, "obj_sentrygun"))
 				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
 		}
+		
+		flDamage *= g_flMeleeDmgMultiplier;
 	}
 	
 	if (Stun_IsPlayerStunned(iVictim))
@@ -232,6 +238,12 @@ public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
 	}
 	
 	return Plugin_Continue;
+}
+
+public void Client_WeaponEquipPost(int iClient, int iWeapon)
+{
+	if (GetPlayerWeaponSlot(iClient, WeaponSlot_Melee) == iWeapon)
+		DHook_HookMelee(iWeapon);
 }
 
 public void Client_WeaponSwitchPost(int iClient, int iWeapon)

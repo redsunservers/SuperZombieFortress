@@ -92,6 +92,11 @@
 				"linux"		"429"
 				"windows"	"415"
 			}
+			"CTFWeaponBaseMelee::Smack"
+			{
+				"linux"		"480"
+				"windows"	"473"
+			}
 			"CTFJar::TossJarThink"
 			{
 				"linux"		"501"
@@ -266,6 +271,13 @@
 				"offset"	"CObjectDispenser::GetHealRate"
 				"hooktype"	"entity"
 				"return"	"float"
+				"this"		"entity"
+			}
+			"CTFWeaponBaseMelee::Smack"
+			{
+				"offset"	"CTFWeaponBaseMelee::Smack"
+				"hooktype"	"entity"
+				"return"	"void"
 				"this"		"entity"
 			}
 		}

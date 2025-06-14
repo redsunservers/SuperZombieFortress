@@ -16,6 +16,7 @@ static DynamicHook g_hDHookGiveNamedItem;
 static DynamicHook g_hDHookRefillThink;
 static DynamicHook g_hDHookDispenseAmmo;
 static DynamicHook g_hDHookGetHealRate;
+static DynamicHook g_hDHookSmack;
 
 static TFTeam g_iOldClientTeam[MAXPLAYERS+1];
 static float g_flLastDispenserUsed[MAXPLAYERS + 1];
@@ -37,6 +38,7 @@ void DHook_Init(GameData hSZF)
 	g_hDHookRefillThink = DHook_CreateVirtual(hSZF, "CObjectDispenser::RefillThink");
 	g_hDHookDispenseAmmo = DHook_CreateVirtual(hSZF, "CObjectDispenser::DispenseAmmo");
 	g_hDHookGetHealRate = DHook_CreateVirtual(hSZF, "CObjectDispenser::GetHealRate");
+	g_hDHookSmack = DHook_CreateVirtual(hSZF, "CTFWeaponBaseMelee::Smack");
 }
 
 static void DHook_CreateDetour(GameData hGameData, const char[] sName, DHookCallback callbackPre = INVALID_FUNCTION, DHookCallback callbackPost = INVALID_FUNCTION)
@@ -98,6 +100,11 @@ void DHook_OnEntityCreated(int iEntity, const char[] sClassname)
 		g_hDHookDispenseAmmo.HookEntity(Hook_Post, iEntity, DHook_DispenseAmmoPost);
 		g_hDHookGetHealRate.HookEntity(Hook_Post, iEntity, DHook_GetHealRatePost);
 	}
+}
+
+void DHook_HookMelee(int iEntity)
+{
+	g_hDHookSmack.HookEntity(Hook_Pre, iEntity, DHook_SmackPre);
 }
 
 void DHook_Enable()
@@ -387,6 +394,48 @@ public MRESReturn DHook_GetHealRatePost(int iDispenser, DHookReturn hReturn, DHo
 	}
 	
 	return MRES_Ignored;
+}
+
+public MRESReturn DHook_SmackPre(int iMelee)
+{
+	static bool bLoop;
+	if (bLoop)
+		return MRES_Ignored;
+	
+	bLoop = true;
+	
+	// Keep looping to see how many we'll hit until when we miss
+	int iPrevSolid[MAXPLAYERS+1];
+	
+	// TODO fix boston basher
+	
+	do
+	{
+		g_iClientTakenDamage = 0;
+		
+		SDKCall_Smack(iMelee);
+		
+		if (!g_iClientTakenDamage)
+			break;	// didn't hit anyone
+		
+		if (GetEntPropEnt(iMelee, Prop_Send, "m_hOwnerEntity") == g_iClientTakenDamage)
+			break;	// Hit yourself, idiot (Boston Basher)
+		
+		// Prevent victim able to get hit again, to see who else is in the way
+		iPrevSolid[g_iClientTakenDamage] = GetEntProp(g_iClientTakenDamage, Prop_Send, "m_nSolidType");
+		SetEntProp(g_iClientTakenDamage, Prop_Send, "m_nSolidType", SOLID_NONE);
+		
+		g_flMeleeDmgMultiplier *= g_cvMeleeCleaveMultipler.FloatValue;
+	}
+	while (g_iClientTakenDamage);
+	
+	for (int i = 1; i <= MaxClients; i++)
+		if (iPrevSolid[i])
+			SetEntProp(i, Prop_Send, "m_nSolidType", iPrevSolid[i]);
+	
+	bLoop = false;
+	g_flMeleeDmgMultiplier = 1.0;
+	return MRES_Supercede;
 }
 
 public MRESReturn DHook_GetCaptureValueForPlayerPost(DHookReturn hReturn, DHookParam hParams)
