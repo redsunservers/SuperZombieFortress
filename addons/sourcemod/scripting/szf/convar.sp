@@ -26,7 +26,7 @@ void ConVar_Init()
 	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "500", "Amount of health the Tank gets per alive survivor.", _, true, 10.0);
 	g_cvTankHealthMin = CreateConVar("sm_szf_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with.", _, true, 0.0);
 	g_cvTankHealthMax = CreateConVar("sm_szf_tank_health_max", "10000", "Maximum amount of health the Tank can spawn with.", _, true, 0.0);
-	g_cvTankTime = CreateConVar("sm_szf_tank_time", "35.0", "Adjusts the damage the Tank takes per second. 0 to disable.", _, true, 0.0);
+	g_cvTankTime = CreateConVar("sm_szf_tank_time", "60.0", "Adjusts the damage the Tank takes per second. 0 to disable.", _, true, 0.0);
 	g_cvTankStab = CreateConVar("sm_szf_tank_stab", "500", "Flat Damage dealt to the Tank from a backstab.", _, true, 0.0);
 	g_cvTankDebrisLifetime = CreateConVar("sm_szf_tank_debris_lifetime", "20.0", "Amount of time (in seconds) it takes for debris thrown by Tanks to despawn. Use 0 to prevent despawning.", _, true, 0.0);
 	g_cvSpecialInfectedInterval = CreateConVar("sm_szf_special_infected_interval", "40.0", "Seconds interval to select a random infected to be special infected. -1 to disable it.", _, true, -1.0);
