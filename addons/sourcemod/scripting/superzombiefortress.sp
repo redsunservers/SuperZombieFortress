@@ -162,6 +162,14 @@ enum SZFRoundState
 	SZFRoundState_End,
 };
 
+enum ControlPointState
+{
+	CPState_Invalid = -1,
+	CPState_NotCapped = 0,
+	CPState_Capping,
+	CPState_Capped,
+};
+
 enum Infected
 {
 	Infected_Unknown = -1,
@@ -531,8 +539,7 @@ int g_iDamageDealtLife[MAXPLAYERS + 1];
 float g_flDamageDealtAgainstTank[MAXPLAYERS + 1];
 bool g_bTankRefreshed;
 
-int g_iControlPointsInfo[MAX_CONTROL_POINTS][2];
-int g_iControlPoints;
+ControlPointState g_iControlPointsInfo[MAX_CONTROL_POINTS];
 bool g_bCapturingLastPoint;
 int g_iCarryingItem[MAXPLAYERS + 1] = {INVALID_ENT_REFERENCE, ...};
 
@@ -1729,10 +1736,28 @@ float GetMapProgress()
 	{
 		//iCurrentCP: +1 if CP currently capping, +2 if CP capped
 		int iCurrentCP = 0;
-		int iMaxCP = g_iControlPoints * 2;
+		int iMaxCP = 0;
 		
-		for (int i = 0; i < g_iControlPoints; i++)
-			iCurrentCP += g_iControlPointsInfo[i][1];
+		for (int i = 0; i < MAX_CONTROL_POINTS; i++)
+		{
+			switch (g_iControlPointsInfo[i])
+			{
+				case CPState_NotCapped:
+				{
+					iMaxCP += 2;
+				}
+				case CPState_Capping:
+				{
+					iCurrentCP += 1;
+					iMaxCP += 2;
+				}
+				case CPState_Capped:
+				{
+					iCurrentCP += 2;
+					iMaxCP += 2;
+				}
+			}
+		}
 		
 		//If there atleast 1 CP, set progress by amount of CP capped
 		float flProgress = 0.0;
@@ -2405,10 +2430,9 @@ void ZombieTank(int iCaller = -1)
 void DetermineControlPoints()
 {
 	g_bCapturingLastPoint = false;
-	g_iControlPoints = 0;
 	
-	for (int i = 0; i < sizeof(g_iControlPointsInfo); i++)
-		g_iControlPointsInfo[i][0] = -1;
+	for (int i = 0; i < MAX_CONTROL_POINTS; i++)
+		g_iControlPointsInfo[i] = CPState_Invalid;
 	
 	int iMaster = -1;
 	int iEntity = -1;
@@ -2421,13 +2445,8 @@ void DetermineControlPoints()
 	iEntity = -1;
 	while ((iEntity = FindEntityByClassname(iEntity, "team_control_point")) != -1)
 	{
-		if (g_iControlPoints < sizeof(g_iControlPointsInfo))
-		{
-			int iIndex = GetEntProp(iEntity, Prop_Data, "m_iPointIndex");
-			g_iControlPointsInfo[g_iControlPoints][0] = iIndex;
-			g_iControlPointsInfo[g_iControlPoints][1] = 0;
-			g_iControlPoints++;
-		}
+		int iIndex = GetEntProp(iEntity, Prop_Data, "m_iPointIndex");
+		g_iControlPointsInfo[iIndex] = CPState_NotCapped;
 	}
 	
 	CheckRemainingCP();
@@ -2437,21 +2456,29 @@ void CheckRemainingCP()
 {
 	g_bCapturingLastPoint = false;
 	
-	if (g_iControlPoints <= 0)
-		return;
-	
-	int iCaptureCount = 0;
-	int iCapturing = 0;
-	for (int i = 0; i < g_iControlPoints; i++)
+	int iTotal, iCapturing, iCapped;
+	for (int i = 0; i < MAX_CONTROL_POINTS; i++)
 	{
-		if (g_iControlPointsInfo[i][1] >= 2)
-			iCaptureCount++;
-		
-		if (g_iControlPointsInfo[i][1] == 1)
-			iCapturing++;
+		switch (g_iControlPointsInfo[i])
+		{
+			case CPState_NotCapped:
+			{
+				iTotal++;
+			}
+			case CPState_Capping:
+			{
+				iTotal++;
+				iCapturing++;
+			}
+			case CPState_Capped:
+			{
+				iTotal++;
+				iCapped++;
+			}
+		}
 	}
 	
-	if (iCaptureCount == g_iControlPoints-1 && iCapturing > 0)
+	if (iCapped == iTotal-1 && iCapturing > 0)
 	{
 		g_bCapturingLastPoint = true;
 		Sound_PlayMusicToAll("laststand");
