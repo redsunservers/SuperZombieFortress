@@ -23,7 +23,7 @@ void ConVar_Init()
 	g_cvWeaponPickupChance = CreateConVar("sm_szf_weapon_pickup_chance", "0.07", "% chance for normal weapons to be pickups.", _, true, 0.0, true, 1.0);
 	g_cvWeaponRareChance = CreateConVar("sm_szf_weapon_rare_chance", "0.2", "% chance for normal weapons to be rare.", _, true, 0.0, true, 1.0);
 	g_cvWeaponRareCap = CreateConVar("sm_szf_weapon_rare_cap", "22", "Max amount of rare weapons to generate", _, true, 0.0);
-	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "400", "Amount of health the Tank gets per alive survivor.", _, true, 10.0);
+	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "350", "Amount of health the Tank gets per alive survivor.", _, true, 10.0);
 	g_cvTankHealthMin = CreateConVar("sm_szf_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with.", _, true, 0.0);
 	g_cvTankHealthMax = CreateConVar("sm_szf_tank_health_max", "10000", "Maximum amount of health the Tank can spawn with.", _, true, 0.0);
 	g_cvTankTime = CreateConVar("sm_szf_tank_time", "60.0", "Adjusts the damage the Tank takes per second. 0 to disable.", _, true, 0.0);
