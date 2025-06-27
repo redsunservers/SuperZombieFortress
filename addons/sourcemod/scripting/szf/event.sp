@@ -180,7 +180,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		SetEntityRenderColor(iClient, g_ClientClasses[iClient].iColor[0], g_ClientClasses[iClient].iColor[1], g_ClientClasses[iClient].iColor[2], g_ClientClasses[iClient].iColor[3]);
 		
 		if (g_ClientClasses[iClient].sMessage[0])
-			CPrintToChat(iClient, "%t", g_ClientClasses[iClient].sMessage);
+			CPrintToChat(iClient, "%t", g_ClientClasses[iClient].sMessage, g_ClientClasses[iClient].iRageCooldown);
 		
 		if (g_nInfected[iClient] != Infected_None && g_nInfected[iClient] != Infected_Tank && g_iInfectedCooldown[g_nInfected[iClient]] != iClient)
 		{
@@ -503,18 +503,11 @@ public Action Event_CPCapture(Event event, const char[] name, bool dontBroadcast
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
-	if (g_iControlPoints <= 0) 
-		return Plugin_Continue;
-	
 	int iCaptureIndex = event.GetInt("cp");
-	if (iCaptureIndex < 0 || iCaptureIndex >= g_iControlPoints)
+	if (iCaptureIndex < 0 || iCaptureIndex >= MAX_CONTROL_POINTS)
 		return Plugin_Continue;
 	
-	for (int i = 0; i < g_iControlPoints; i++)
-	{
-		if (g_iControlPointsInfo[i][0] == iCaptureIndex)
-			g_iControlPointsInfo[i][1] = 2;
-	}
+	g_iControlPointsInfo[iCaptureIndex] = CPState_Capped;
 	
 	for (int iClient = 0; iClient < MaxClients; iClient++)
 	{
@@ -532,16 +525,11 @@ public Action Event_CPCaptureStart(Event event, const char[] name, bool dontBroa
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
-	if (g_iControlPoints <= 0)
-		return Plugin_Continue;
-	
 	int iCaptureIndex = event.GetInt("cp");
-	if (iCaptureIndex < 0 || iCaptureIndex >= g_iControlPoints)
+	if (iCaptureIndex < 0 || iCaptureIndex >= MAX_CONTROL_POINTS)
 		return Plugin_Continue;
 	
-	for (int i = 0; i < g_iControlPoints; i++)
-		if (g_iControlPointsInfo[i][0] == iCaptureIndex)
-			g_iControlPointsInfo[i][1] = 1;
+	g_iControlPointsInfo[iCaptureIndex] = CPState_Capping;
 	
 	CheckRemainingCP();
 	

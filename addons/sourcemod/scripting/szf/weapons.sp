@@ -1,6 +1,3 @@
-#define ENT_ONPICKUP	"FireUser1"
-#define ENT_ONKILL		"FireUser2"
-
 typedef Weapon_OnPickup = function bool (int client); //Return false to prevent client from picking up the item.
 typedef Weapon_OnSpawn = function void (int entity);
 
@@ -16,35 +13,20 @@ enum struct Weapon
 	char sModelAttach[PLATFORM_MAX_PATH];
 	int iSkin;
 	char sSound[PLATFORM_MAX_PATH];
-	char sAttribs[256];
-	ArrayList aClassSpecific[view_as<int>(TFClass_Engineer) + 1];
 	int iColor[3];
 	float flScale;
 	float vecOriginOffset[3];
 	float vecAnglesOffset[3];
 	float vecAnglesConst[3];
 	bool bAnglesConst[3];
+	ConfigAttributes attribs;
 	Function pickupCallback;
 	Function spawnCallback;
 }
 
 void Weapons_Refresh()
 {
-	if (g_Weapons)
-	{
-		int iLength = g_Weapons.Length;
-		for (int i = 0; i < iLength; i++)
-		{
-			Weapon wep;
-			g_Weapons.GetArray(i, wep);
-			
-			for (int iClass; iClass < view_as<int>(TFClass_Engineer) + 1; iClass++)
-				delete wep.aClassSpecific[iClass];
-		}
-		
-		delete g_Weapons;
-	}
-	
+	delete g_Weapons;
 	delete g_WeaponsReskin;
 	
 	for (int i = 0; i < sizeof(g_WepIndexesByRarity); i++)

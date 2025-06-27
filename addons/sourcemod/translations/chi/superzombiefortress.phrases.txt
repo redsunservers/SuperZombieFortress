@@ -273,7 +273,7 @@
 
 	"SpecialInfected_Tank"
 	{
-		"chi"		"{green}你是TANK:\n{orange}- 一股几乎势不可挡的力量。\n- 呼叫'医生！'捡起碎石往前方投掷，伤害沿途的所有人！{yellow}(5 秒冷却)"
+		"chi"		"{green}你是TANK:\n{orange}- 一股几乎势不可挡的力量。\n- 呼叫'医生！'捡起碎石往前方投掷，伤害沿途的所有人！{yellow}({1} 秒冷却)"
 	}
 	
 	"SpecialInfected_Boomer"
@@ -283,12 +283,12 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"chi"		"{green}你是CHARGER:\n{orange}- 呼叫'医生！'来冲锋！{yellow}(15秒冷却)"
+		"chi"		"{green}你是CHARGER:\n{orange}- 呼叫'医生！'来冲锋！{yellow}({1}秒冷却)"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"chi"		"{green}你是SCREAMER:\n{orange}- 呼叫'医生！'来强化队友感染者！{yellow}(20秒冷却){orange}\n- 靠近你的感染者会变强。"
+		"chi"		"{green}你是SCREAMER:\n{orange}- 呼叫'医生！'来强化队友感染者！{yellow}({1}秒冷却){orange}\n- 靠近你的感染者会变强。"
 	}
 	
 	"SpecialInfected_Stalker"
@@ -298,7 +298,7 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}(未命中5秒冷却 & 命中20秒冷却)"
+		"chi"		"{green}你是HUNTER:\n{orange}- 呼叫'医生！'来进行飞扑感染者！{yellow}({1}秒冷却)"
 	}
 	
 	"SpecialInfected_Smoker"
@@ -308,12 +308,12 @@
 	
 	"SpecialInfected_Spitter"
 	{
-		"chi"		"{green}你是SPITTER:\n{orange}- 呼叫'医生！'来投掷你的毒气到幸存者中造成伤害！{yellow}(15秒冷却)"
+		"chi"		"{green}你是SPITTER:\n{orange}- 呼叫'医生！'来投掷你的毒气到幸存者中造成伤害！{yellow}({1}秒冷却)"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"chi"		"{green}你是JOCKEY:\n{orange}- 呼叫'医生！'来飞扑感染者并控制其移动！{yellow}(5秒冷却)"
+		"chi"		"{green}你是JOCKEY:\n{orange}- 呼叫'医生！'来飞扑感染者并控制其移动！{yellow}({1}秒冷却)"
 	}
 
 	"Melee_Atomizer"
@@ -323,52 +323,52 @@
 	
 	"Melee_CandyCane"
 	{
-		"chi"		"{orange}糖果手杖{red}使你受到额外10%%的伤害。"
+		"chi"		"{orange}糖果手杖{red}使你受到额外{1}的伤害。"
 	}
 	
 	"Melee_PainTrain"
 	{
-		"chi"		"{orange}钉棍{red}使你受到额外10%%的伤害。"
+		"chi"		"{orange}钉棍{red}使你受到额外{1}的伤害。"
 	}
 
 	"Melee_HalfZatochi"
 	{
-		"chi"		"{orange}座头市之刀{red}使你击杀后恢复15%%生命值。"
+		"chi"		"{orange}座头市之刀{red}使你击杀后恢复{1}生命值。"
 	}
 	
 	"Melee_MarketGardener"
 	{
-		"chi"		"{orange}市场花园铁铲{green}让你火箭跳高度增加25%%。"
+		"chi"		"{orange}市场花园铁铲{green}让你火箭跳高度增加{1}。"
 	}
 
 	"Melee_ThirdDegree"
 	{
-		"chi"		"{orange}三度烧伤{green}在你被治疗的时候造成30%%额外伤害。"
+		"chi"		"{orange}三度烧伤{green}在你被治疗的时候造成{1}额外伤害。"
 	}
 	
 	"Melee_Eyelander"
 	{
-		"chi"		"{orange}苏格兰长剑{red}会使你的移动速度降低15%%。"
+		"chi"		"{orange}苏格兰长剑{red}会使你的移动速度降低{1}。"
 	}
 	
 	"Melee_ScotsmansSkullcutter"
 	{
-		"chi"		"{orange}苏格兰颅骨切割者{green}会额外获得30%%的伤害加成。"
+		"chi"		"{orange}苏格兰颅骨切割者{green}会额外获得{1}的伤害加成。"
 	}
 	
 	"Melee_KillingGlovesofBoxing"
 	{
-		"chi"		"{orange}杀戮拳击手套{red}击杀后获得5秒的迷你爆击。"
+		"chi"		"{orange}杀戮拳击手套{red}击杀后获得{1}秒的迷你爆击。"
 	}
 	
 	"Melee_WarriorsSpirit"
 	{
-		"chi"		"{orange}战士精神{red}杀死后恢复的生命值降至+25。"
+		"chi"		"{orange}战士精神{red}杀死后恢复的生命值降至+{1}。"
 	}
 	
 	"Melee_FistsofSteel"
 	{
-		"chi"		"{orange}钢铁全套{green}部署时获得10%%的近战抗性。"
+		"chi"		"{orange}钢铁全套{green}部署时获得{1}的近战抗性。"
 	}
 	
 	"Melee_EurekaEffect"
@@ -378,12 +378,12 @@
 	
 	"Melee_Ubersaw"
 	{
-		"chi"		"{orange}过载充能锯{red}击中后获得10%%的uber。"
+		"chi"		"{orange}过载充能锯{red}击中后获得{1}的uber。"
 	}
 
 	"Melee_VitaSaw"
 	{
-		"chi"		"{orange}维塔锯{green}增加你的uber充能效率15%%。"
+		"chi"		"{orange}维塔锯{green}增加你的uber充能效率{1}。"
 	}
 	
 	"Melee_Amputator"
@@ -393,13 +393,14 @@
 	
 	"Melee_TribalmansShiv"
 	{
-		"chi"		"{orange}部落者刮刀{green}的伤害减少20%%。"
+		"chi"		"{orange}部落者刮刀{green}的伤害减少{1}。"
 	}
 	
 	"PDA_DeadRinger"
 	{
 		"chi"		"{orange}假死之铃{red}没有增加的隐身时间。"
 	}
+	
 	"PDA_CloakAndDagger"
 	{
 		"chi"		"{orange}隐形刺客{red}被禁用。"

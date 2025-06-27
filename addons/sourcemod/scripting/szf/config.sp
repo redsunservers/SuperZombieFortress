@@ -8,7 +8,7 @@ enum struct ConfigMelee
 	int iIndexPrefab;
 	int iIndexReplace;
 	char sText[256];
-	char sAttrib[256];
+	ConfigAttributes attribs;
 }
 
 enum struct Debris
@@ -62,7 +62,7 @@ void Config_Refresh()
 					Melee.iIndexPrefab = kv.GetNum("prefab", -1);
 					Melee.iIndexReplace = kv.GetNum("weapon", -1);
 					kv.GetString("text", Melee.sText, sizeof(Melee.sText));
-					kv.GetString("attrib", Melee.sAttrib, sizeof(Melee.sAttrib));
+					Config_LoadAttributes(kv, Melee.attribs);
 					
 					//Push all into arraylist
 					g_aConfigMelee.PushArray(Melee);
@@ -162,29 +162,7 @@ ArrayList Config_LoadWeaponData()
 					}
 				}
 				
-				kv.GetString("attrib", wep.sAttribs, sizeof(wep.sAttribs));
 				kv.GetString("sound", wep.sSound, sizeof(wep.sSound));
-				
-				//Exceptions for specific classes
-				char sClassName[16];
-				if (kv.GotoFirstSubKey(false))
-				{
-					do
-					{
-						kv.GetSectionName(sClassName, sizeof(sClassName));
-						
-						TFClassType iClass = TF2_GetClass(sClassName);
-						
-						char sClassAttribs[256];
-						kv.GetString("attrib", sClassAttribs, sizeof(sClassAttribs));
-						
-						wep.aClassSpecific[iClass] = new ArrayList(256);
-						wep.aClassSpecific[iClass].PushString(sClassAttribs);
-						
-					}
-					while(kv.GotoNextKey(false));
-					kv.GoBack();
-				}
 				
 				kv.GetString("callback_pickup", sBuffer, sizeof(sBuffer));
 				wep.pickupCallback = GetFunctionByName(null, sBuffer);
@@ -217,6 +195,8 @@ ArrayList Config_LoadWeaponData()
 						}
 					}
 				}
+				
+				Config_LoadAttributes(kv, wep.attribs);
 				
 				aWeapons.PushArray(wep);
 				iLength++;
@@ -301,6 +281,49 @@ bool Config_LoadClassesSection(KeyValues kv, ClientClasses classes)
 	return true;
 }
 
+void Config_LoadAttributes(KeyValues kv, ConfigAttributes attribs, TFClassType nClass = TFClass_Unknown)
+{
+	if (!nClass && !kv.JumpToKey("attribs"))
+		return;
+	
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			char sKey[64];
+			kv.GetSectionName(sKey, sizeof(sKey));
+			
+			if (!nClass)
+			{
+				TFClassType nFilter = TF2_GetClass(sKey);
+				if (nFilter)
+				{
+					// Were doing class specific attribs
+					Config_LoadAttributes(kv, attribs, nFilter);
+					continue;
+				}
+			}
+			
+			int iIndex = TF2Econ_TranslateAttributeNameToDefinitionIndex(sKey);
+			if (iIndex == -1)
+			{
+				LogError("Invalid key name \"%s\" at Attributes config secton", sKey);
+				continue;
+			}
+			
+			attribs.iIndex[attribs.iCount] = iIndex;
+			attribs.flValue[attribs.iCount] = kv.GetFloat(NULL_STRING);
+			attribs.nClass[attribs.iCount] = nClass;
+			attribs.iCount++;
+		} 
+		while (kv.GotoNextKey(false));
+		kv.GoBack();
+	}
+	
+	if (!nClass)
+		kv.GoBack();	// from kv.JumpToKey("attribs")
+}
+
 Function Config_GetFunction(KeyValues kv, const char[] sKey, Function defaultFunction)
 {
 	char sBuffer[64];
@@ -329,9 +352,9 @@ ArrayList Config_GetWeaponClasses(KeyValues kv)
 			{
 				WeaponClasses weapon;
 				weapon.iIndex = kv.GetNum("index", 5);
-				kv.GetString("attrib", weapon.sAttribs, sizeof(weapon.sAttribs));
 				kv.GetString("logname", weapon.sLogName, sizeof(weapon.sLogName));
 				kv.GetString("iconname", weapon.sIconName, sizeof(weapon.sIconName));
+				Config_LoadAttributes(kv, weapon.attribs);
 				
 				aWeapons.PushArray(weapon);
 			}

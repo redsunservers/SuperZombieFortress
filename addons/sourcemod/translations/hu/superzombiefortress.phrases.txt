@@ -272,7 +272,7 @@
 	
 	"SpecialInfected_Tank"
 	{
-		"hu"		"{green}TE EGY TANK VAGY:\n{orange}- Egy szinte megállíthatatlan bestia.\n- Kiálts 'MEDIC!'-et, hogy felvegyél és dobj előre egy TÖRMELÉKET, ami MINDENKIT megsebez az útjában! {yellow}(5 másodperc várakozási idő)"
+		"hu"		"{green}TE EGY TANK VAGY:\n{orange}- Egy szinte megállíthatatlan bestia.\n- Kiálts 'MEDIC!'-et, hogy felvegyél és dobj előre egy TÖRMELÉKET, ami MINDENKIT megsebez az útjában! {yellow}({1} másodperc várakozási idő)"
 	}
 	
 	"SpecialInfected_Boomer"
@@ -282,12 +282,12 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"hu"		"{green}TE EGY CHARGER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ROHAMOZZ! {yellow}(15 másodperc várakozási idő)"
+		"hu"		"{green}TE EGY CHARGER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ROHAMOZZ! {yellow}({1} másodperc várakozási idő)"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"hu"		"{green}TE EGY SCREAMER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ÖSSZEGYŰJTSD A SZÖVETSÉGES ZOMBIKAT! {yellow}(20 másodperc várakozási idő){orange}\n- A közeledben álló zombik erősebbek."
+		"hu"		"{green}TE EGY SCREAMER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy ÖSSZEGYŰJTSD A SZÖVETSÉGES ZOMBIKAT! {yellow}({1} másodperc várakozási idő){orange}\n- A közeledben álló zombik erősebbek."
 	}
 	
 	"SpecialInfected_Stalker"
@@ -297,17 +297,17 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"hu"		"{green}TE EGY HUNTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy UGORJ és RÁVESD MAGAD AZ ELLENSÉGES TÚLÉLŐKRE! {yellow}(5 másodperc várakozási idő mellé és 20 találat esetén)"
+		"hu"		"{green}TE EGY HUNTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy UGORJ és RÁVESD MAGAD AZ ELLENSÉGES TÚLÉLŐKRE! {yellow}({1} másodperc várakozási idő)"
 	}
 	
 	"SpecialInfected_Spitter"
 	{
-		"hu"		"{green}TE EGY SPITTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy GÁZT dobj a túlélők csoportjára, sebzést okozva! {yellow}(15 másodperc várakozási idő)"
+		"hu"		"{green}TE EGY SPITTER VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy GÁZT dobj a túlélők csoportjára, sebzést okozva! {yellow}({1} másodperc várakozási idő)"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"hu"		"{green}TE EGY JOCKEY VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy RÁUGORJ a TÚLÉLŐKRE és irányítsd a mozgásukat! {yellow}(5 másodperc várakozási idő)"
+		"hu"		"{green}TE EGY JOCKEY VAGY:\n{orange}- Kiálts 'MEDIC!'-et, hogy RÁUGORJ a TÚLÉLŐKRE és irányítsd a mozgásukat! {yellow}({1} másodperc várakozási idő)"
 	}
 
 	"Melee_Atomizer"
@@ -317,42 +317,42 @@
 	
 	"Melee_CandyCane"
 	{
-		"hu"		"{orange}A Candy Cane {red}miatt 10%%-kal több sebzést szenvedsz."
+		"hu"		"{orange}A Candy Cane {red}miatt {1}％-kal több sebzést szenvedsz."
 	}
 	
 	"Melee_PainTrain"
 	{
-		"hu"		"{orange}A Pain Train {red}miatt 10%%-kal több sebzést szenvedsz."
+		"hu"		"{orange}A Pain Train {red}miatt {1}％-kal több sebzést szenvedsz."
 	}
 	
 	"Melee_MarketGardener"
 	{
-		"hu"		"{orange}A Market Gardener {green}25%%-kal magasabbra enged rocket jump-olni."
+		"hu"		"{orange}A Market Gardener {green}{1}％-kal magasabbra enged rocket jump-olni."
 	}
 	
 	"Melee_Eyelander"
 	{
-		"hu"		"{orange}Az Eyelander {red}15%%-kal lassabban mozogsz."
+		"hu"		"{orange}Az Eyelander {red}{1}％-kal lassabban mozogsz."
 	}
 	
 	"Melee_ScotsmansSkullcutter"
 	{
-		"hu"		"{orange}A Scotsman's Skullcutter {green}sebzésbónusza 30%%-ra növekedett."
+		"hu"		"{orange}A Scotsman's Skullcutter {green}sebzésbónusza {1}％-ra növekedett."
 	}
 	
 	"Melee_KillingGlovesofBoxing"
 	{
-		"hu"		"{orange}A Killing Gloves of Boxing {red}5 másodperc minikritikus találatot ad ölés után."
+		"hu"		"{orange}A Killing Gloves of Boxing {red}{1} másodperc minikritikus találatot ad ölés után."
 	}
 	
 	"Melee_WarriorsSpirit"
 	{
-		"hu"		"{orange}A Warrior's Spirit {red}ölésenkénti életerő-visszaállítása +25-re csökkent."
+		"hu"		"{orange}A Warrior's Spirit {red}ölésenkénti életerő-visszaállítása +{1}-re csökkent."
 	}
 	
 	"Melee_FistsofSteel"
 	{
-		"hu"		"{orange}A Fists of Steel {green}10%% közelharci ellenállást ad, amíg aktív."
+		"hu"		"{orange}A Fists of Steel {green}{1}％ közelharci ellenállást ad, amíg aktív."
 	}
 	
 	"Melee_EurekaEffect"
@@ -362,12 +362,12 @@
 	
 	"Melee_Ubersaw"
 	{
-		"hu"		"{orange}Az Ubersaw {red}10%% übert ad találatonként."
+		"hu"		"{orange}Az Ubersaw {red}{1}％ übert ad találatonként."
 	}
 
 	"Melee_VitaSaw"
 	{
-		"hu"		"{orange}A Vita-Saw {green}15%%-kal növeli az über sebességét"
+		"hu"		"{orange}A Vita-Saw {green}{1}％-kal növeli az über sebességét"
 	}
 	
 	"Melee_Amputator"
@@ -377,13 +377,14 @@
 	
 	"Melee_TribalmansShiv"
 	{
-		"hu"		"{orange}A Tribalman's Shiv {green}sebzésbüntetése 20%%-ra csökkent."
+		"hu"		"{orange}A Tribalman's Shiv {green}sebzésbüntetése {1}％-ra csökkent."
 	}
 	
 	"PDA_DeadRinger"
 	{
 		"hu"		"{orange}A Dead Ringer {red}nem növeli a láthatatlanság időtartamát."
 	}
+	
 	"PDA_CloakAndDagger"
 	{
 		"hu"		"{orange}A Cloak and Dagger {red}le van tiltva."

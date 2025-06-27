@@ -267,12 +267,12 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"jp"		"{green}あなたは充電器です：\n{orange}- 「メディック！」 充電する！ {yellow}（15秒のクールダウン）"
+		"jp"		"{green}あなたは充電器です：\n{orange}- 「メディック！」 充電する！ {yellow}（{1}秒のクールダウン）"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"jp"		"{green}あなたはスクリーマーです：\n{orange}- 「メディック！」 近くのゾンビを結集させる！ {yellow}（20秒のクールダウン）{orange}\n- あなたの近くに立つゾンビはより強力になります。"
+		"jp"		"{green}あなたはスクリーマーです：\n{orange}- 「メディック！」 近くのゾンビを結集させる！ {yellow}（{1}秒のクールダウン）{orange}\n- あなたの近くに立つゾンビはより強力になります。"
 	}
 	
 	"SpecialInfected_Stalker"
@@ -282,17 +282,17 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"jp"		"{green}あなたはハンターです：\n{orange}- 「メディック！」 敵の生存者をつかむために！ {yellow}（ミス時に5秒のクールダウン、ヒット時に20秒のクールダウン）"
+		"jp"		"{green}あなたはハンターです：\n{orange}- 「メディック！」 敵の生存者をつかむために！ {yellow}（{1}秒のクールダウン）"
 	}
 	
 	"SpecialInfected_Spitter"
 	{
-		"jp"		"{green}あなたはつばです：\n{orange}- 「メディック！」 生存者に有害なガスを投げる！ {yellow}（15秒のクールダウン）"
+		"jp"		"{green}あなたはつばです：\n{orange}- 「メディック！」 生存者に有害なガスを投げる！ {yellow}（{1}秒のクールダウン）"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"jp"		"{green}あなたはジョッキーです：\n{orange}- 「メディック！」 生存者をつかみ、彼らの動きを制御する！ {yellow}（5秒のクールダウン）"
+		"jp"		"{green}あなたはジョッキーです：\n{orange}- 「メディック！」 生存者をつかみ、彼らの動きを制御する！ {yellow}（{1}秒のクールダウン）"
 	}
 
 	"Melee_Atomizer"
@@ -302,32 +302,32 @@
 	
 	"Melee_CandyCane"
 	{
-		"jp"		"{orange}The キャンディー･ケーン {red}10%%の追加ダメージを与えます。"
+		"jp"		"{orange}The キャンディー･ケーン {red}{1}％の追加ダメージを与えます。"
 	}
 	
 	"Melee_PainTrain"
 	{
-		"jp"		"{orange}The ペイン・トレイン {red}10%%の追加ダメージを与えます。"
+		"jp"		"{orange}The ペイン・トレイン {red}{1}％の追加ダメージを与えます。"
 	}
 	
 	"Melee_MarketGardener"
 	{
-		"jp"		"{orange}The マーケット・ガーデナー {green}ロケットジャンプが25%%高くなります。"
+		"jp"		"{orange}The マーケット・ガーデナー {green}ロケットジャンプが{1}％高くなります。"
 	}
 	
 	"Melee_KillingGlovesofBoxing"
 	{
-		"jp"		"{orange}The キリング・グローブ・オブ・ボクシング {red}キル時にミニクリットを5秒与えます。"
+		"jp"		"{orange}The キリング・グローブ・オブ・ボクシング {red}キル時にミニクリットを{1}秒与えます。"
 	}
 	
 	"Melee_WarriorsSpirit"
 	{
-		"jp"		"{orange}ウォリアー・スピリット {red}のキル時の体力回復量が+25に減少。"
+		"jp"		"{orange}ウォリアー・スピリット {red}のキル時の体力回復量が+{1}に減少。"
 	}
 	
 	"Melee_FistsofSteel"
 	{
-		"jp"		"{orange}The フィスツ・オブ・スチール {green}保持されている間、10%%の近接武器耐性を提供します。"
+		"jp"		"{orange}The フィスツ・オブ・スチール {green}保持されている間、{1}％の近接武器耐性を提供します。"
 	}
 	
 	"Melee_EurekaEffect"
@@ -337,12 +337,12 @@
 	
 	"Melee_Ubersaw"
 	{
-		"jp"		"{orange}The ユーバーソウ {red}ヒット時に10%%のユーバーチャージを与えます。"
+		"jp"		"{orange}The ユーバーソウ {red}ヒット時に{1}％のユーバーチャージを与えます。"
 	}
 
 	"Melee_VitaSaw"
 	{
-		"jp"		"{orange}The ヴィタ・ソウ {green}ユーバーチャージ率を15%%増加させます。"
+		"jp"		"{orange}The ヴィタ・ソウ {green}ユーバーチャージ率を{1}％増加させます。"
 	}
 	
 	"Melee_Amputator"
@@ -352,13 +352,14 @@
 	
 	"Melee_TribalmansShiv"
 	{
-		"jp"		"{orange}The トライバルマンズ・シブ {green}損害ペナルティが20 %%に減少しました。"
+		"jp"		"{orange}The トライバルマンズ・シブ {green}損害ペナルティが{1} %%に減少しました。"
 	}
 	
 	"PDA_DeadRinger"
 	{
 		"jp"		"{orange}The デッドリンガー {red}クロークの持続時間は増加していません。"
 	}
+	
 	"PDA_CloakAndDagger"
 	{
 		"jp"		"{orange}The クロークアンドダガー {red}無効になっています。"

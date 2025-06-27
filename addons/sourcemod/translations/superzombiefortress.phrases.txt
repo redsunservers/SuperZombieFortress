@@ -300,7 +300,8 @@
 	
 	"SpecialInfected_Tank"
 	{
-		"en"		"{green}YOU ARE A TANK:\n{orange}- A nearly-unstoppable force.\n- Call 'MEDIC!' to pick up and THROW DEBRIS ahead of you, hurting EVERYONE in its path! {yellow}(5 second cooldown)"
+		"#format"	"{1:d}"
+		"en"		"{green}YOU ARE A TANK:\n{orange}- A nearly-unstoppable force.\n- Call 'MEDIC!' to pick up and THROW DEBRIS ahead of you, hurting EVERYONE in its path! {yellow}({1} second cooldown)"
 	}
 	
 	"SpecialInfected_Boomer"
@@ -310,12 +311,14 @@
 	
 	"SpecialInfected_Charger"
 	{
-		"en"		"{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}(15 second cooldown)"
+		"#format"	"{1:d}"
+		"en"		"{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}({1} second cooldown)"
 	}
 	
 	"SpecialInfected_Screamer"
 	{
-		"en"		"{green}YOU ARE A SCREAMER:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}(20 second cooldown){orange}\n- Zombies standing near you are more powerful."
+		"#format"	"{1:d}"
+		"en"		"{green}YOU ARE A SCREAMER:\n{orange}- Call 'MEDIC!' to RALLY ALLIED ZOMBIES! {yellow}({1} second cooldown){orange}\n- Zombies standing near you are more powerful."
 	}
 	
 	"SpecialInfected_Stalker"
@@ -325,7 +328,8 @@
 	
 	"SpecialInfected_Hunter"
 	{
-		"en"		"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}(5 on miss & 20 on hit second cooldown)"
+		"#format"	"{1:d}"
+		"en"		"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}({1} second cooldown)"
 	}
 	
 	"SpecialInfected_Smoker"
@@ -335,12 +339,14 @@
 	
 	"SpecialInfected_Spitter"
 	{
-		"en"		"{green}YOU ARE A SPITTER:\n{orange}- Call 'MEDIC!' to throw your GAS to pile of survivors to deal damage! {yellow}(15 second cooldown)"
+		"#format"	"{1:d}"
+		"en"		"{green}YOU ARE A SPITTER:\n{orange}- Call 'MEDIC!' to throw your GAS to pile of survivors to deal damage! {yellow}({1} second cooldown)"
 	}
 	
 	"SpecialInfected_Jockey"
 	{
-		"en"		"{green}YOU ARE A JOCKEY:\n{orange}- Call 'MEDIC!' to LEAP into SURVIVORS and control movements! {yellow}(5 second cooldown)"
+		"#format"	"{1:d}"
+		"en"		"{green}YOU ARE A JOCKEY:\n{orange}- Call 'MEDIC!' to LEAP into SURVIVORS and control movements! {yellow}({1} second cooldown)"
 	}
 
 	"Melee_Atomizer"
@@ -350,52 +356,62 @@
 	
 	"Melee_CandyCane"
 	{
-		"en"		"{orange}The Candy Cane {red}makes you take 10%% additional damage."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Candy Cane {red}makes you take {1}％ additional damage."
 	}
 	
 	"Melee_PainTrain"
 	{
-		"en"		"{orange}The Pain Train {red}makes you take 10%% additional damage."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Pain Train {red}makes you take {1}％ additional damage."
 	}
 	
 	"Melee_HalfZatochi"
 	{
-		"en"		"{orange}The Half-Zatoichi {red}has its health restored on kill decreased to 15%%."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Half-Zatoichi {red}has its health restored on kill decreased to {1}％."
 	}
 	
 	"Melee_MarketGardener"
 	{
-		"en"		"{orange}The Market Gardener {green}makes you rocket jump 25%% higher."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Market Gardener {green}makes you rocket jump {1}％ higher."
 	}
 	
 	"Melee_ThirdDegree"
 	{
-		"en"		"{orange}The Third Degree {green}deals 30%% extra damage while being healed."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Third Degree {green}deals {1}％ extra damage while being healed."
 	}
 	
 	"Melee_Eyelander"
 	{
-		"en"		"{orange}The Eyelander {red}makes you move 15%% slower."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Eyelander {red}makes you move {1}％ slower."
 	}
 	
 	"Melee_ScotsmansSkullcutter"
 	{
-		"en"		"{orange}The Scotsman's Skullcutter {green}has its damage bonus increased to 30%%."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Scotsman's Skullcutter {green}has its damage bonus increased to {1}％."
 	}
 	
 	"Melee_KillingGlovesofBoxing"
 	{
-		"en"		"{orange}The Killing Gloves of Boxing {red}gives 5 seconds of minicrits on kill."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Killing Gloves of Boxing {red}gives {1} seconds of minicrits on kill."
 	}
 	
 	"Melee_WarriorsSpirit"
 	{
-		"en"		"{orange}The Warrior's Spirit {red}has its health restored on kill decreased to +25."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Warrior's Spirit {red}has its health restored on kill decreased to +{1}."
 	}
 	
 	"Melee_FistsofSteel"
 	{
-		"en"		"{orange}The Fists of Steel {green}gives 10%% melee resistance while active."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Fists of Steel {green}gives {1}％ melee resistance while active."
 	}
 
 	"Melee_EvictionNotice"
@@ -410,12 +426,14 @@
 	
 	"Melee_Ubersaw"
 	{
-		"en"		"{orange}The Ubersaw {red}gives 10%% uber on hit."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Ubersaw {red}gives {1}％ uber on hit."
 	}
 
 	"Melee_VitaSaw"
 	{
-		"en"		"{orange}The Vita-Saw {green}increases uber rate by 15%%"
+		"#format"	"{1:d}"
+		"en"		"{orange}The Vita-Saw {green}increases uber rate by {1}％"
 	}
 	
 	"Melee_Amputator"
@@ -425,13 +443,15 @@
 	
 	"Melee_TribalmansShiv"
 	{
-		"en"		"{orange}The Tribalman's Shiv {green}has its damage penalty reduced to 20%%."
+		"#format"	"{1:d}"
+		"en"		"{orange}The Tribalman's Shiv {green}has its damage penalty reduced to {1}％."
 	}
 	
 	"PDA_DeadRinger"
 	{
 		"en"		"{orange}The Dead Ringer {red}has no increased cloak duration."
 	}
+	
 	"PDA_CloakAndDagger"
 	{
 		"en"		"{orange}The Cloak and Dagger {red}is disabled."

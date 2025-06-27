@@ -432,9 +432,8 @@ public Action CaptureArea_StartTouch(int iEntity, int iClient)
 	{
 		int iCP = GetCapturePointFromTrigger(iEntity);
 		int iIndex = GetEntProp(iCP, Prop_Data, "m_iPointIndex");
-		for (int j = 0; j < g_iControlPoints; j++)
-			if (g_iControlPointsInfo[j][0] == iIndex && g_iControlPointsInfo[j][1] != 2)	//Check if that capture have not already been captured
-				g_iCapturingPoint[iClient] = iIndex;
+		if (g_iControlPointsInfo[iIndex] != CPState_Capped)	//Check if that capture have not already been captured
+			g_iCapturingPoint[iClient] = iIndex;
 	}
 	
 	return Plugin_Continue;

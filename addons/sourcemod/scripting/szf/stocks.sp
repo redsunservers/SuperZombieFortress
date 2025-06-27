@@ -736,7 +736,9 @@ stock void SetTeamRespawnTime(TFTeam nTeam, float flTime)
 // Weapon
 ////////////////
 
-stock int TF2_CreateWeapon(int iClient, int iIndex, const char[] sAttribs = NULL_STRING, bool bAllowReskin = false)
+static ConfigAttributes g_AttribsNone;
+
+stock int TF2_CreateWeapon(int iClient, int iIndex, ConfigAttributes attribs = g_AttribsNone, bool bAllowReskin = false)
 {
 	TFClassType iClass = TF2_GetPlayerClass(iClient);
 	char sClassname[256];
@@ -783,7 +785,7 @@ stock int TF2_CreateWeapon(int iClient, int iIndex, const char[] sAttribs = NULL
 	
 	if (IsValidEntity(iWeapon))
 	{
-		TF2_WeaponApplyAttribute(iWeapon, sAttribs);
+		TF2_WeaponApplyAttribute(iClient, iWeapon, attribs);
 		DispatchSpawn(iWeapon);
 	}
 	
@@ -802,9 +804,9 @@ stock void TF2_EquipWeapon(int iClient, int iWeapon)
 		EquipPlayerWeapon(iClient, iWeapon);
 }
 
-stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttribs = NULL_STRING, bool bAllowReskin = false)
+stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, ConfigAttributes attribs = g_AttribsNone, bool bAllowReskin = false)
 {
-	int iWeapon = TF2_CreateWeapon(iClient, iIndex, sAttribs, bAllowReskin);
+	int iWeapon = TF2_CreateWeapon(iClient, iIndex, attribs, bAllowReskin);
 	if (iWeapon == INVALID_ENT_REFERENCE)
 		return iWeapon;
 	
@@ -813,12 +815,15 @@ stock int TF2_CreateAndEquipWeapon(int iClient, int iIndex, const char[] sAttrib
 	return iWeapon;
 }
 
-stock void TF2_WeaponApplyAttribute(int iWeapon, const char[] sAttrib)
+stock void TF2_WeaponApplyAttribute(int iClient, int iWeapon, ConfigAttributes attribs)
 {
-	char sAttribs[32][32];
-	int iCount = ExplodeString(sAttrib, " ; ", sAttribs, sizeof(sAttribs), sizeof(sAttribs));
-	for (int i = 0; i < iCount - 1; i+= 2)
-		TF2Attrib_SetByDefIndex(iWeapon, StringToInt(sAttribs[i]), StringToFloat(sAttribs[i+1]));
+	TFClassType nClass = TF2_GetPlayerClass(iClient);
+	
+	for (int i = 0; i < attribs.iCount; i++)
+	{
+		if (!attribs.nClass[i] || attribs.nClass[i] == nClass)
+			TF2Attrib_SetByDefIndex(iWeapon, attribs.iIndex[i], attribs.flValue[i]);
+	}
 }
 
 stock bool TF2_WeaponFindAttribute(int iWeapon, int iAttrib, float &flVal)
@@ -860,6 +865,39 @@ stock bool TF2_DefIndexFindAttribute(int iDefIndex, int iAttrib, float &flVal)
 	
 	delete attribs;
 	return false;
+}
+
+stock float TF2_TranslateAttributeValue(int iIndex, float flValue)
+{
+	enum
+	{
+		ATTDESCFORM_VALUE_IS_PERCENTAGE,			// Printed as:	((m_flValue*100)-100.0)
+		ATTDESCFORM_VALUE_IS_INVERTED_PERCENTAGE,	// Printed as:	((m_flValue*100)-100.0) if it's > 1.0, or ((1.0-m_flModifier)*100) if it's < 1.0
+		ATTDESCFORM_VALUE_IS_ADDITIVE,				// Printed as:	m_flValue
+		ATTDESCFORM_VALUE_IS_ADDITIVE_PERCENTAGE,	// Printed as:	(m_flValue*100)
+		ATTDESCFORM_VALUE_IS_OR,					// Printed as:  m_flValue, but results are ORd together instead of added
+		ATTDESCFORM_VALUE_IS_DATE,					// Printed as a date
+		ATTDESCFORM_VALUE_IS_ACCOUNT_ID,			// Printed as steam user name
+		ATTDESCFORM_VALUE_IS_PARTICLE_INDEX,		// Printed as a particle description
+		ATTDESCFORM_VALUE_IS_KILLSTREAKEFFECT_INDEX,// Printed as killstreak effect description
+		ATTDESCFORM_VALUE_IS_KILLSTREAK_IDLEEFFECT_INDEX,  // Printed as idle effect description
+		ATTDESCFORM_VALUE_IS_ITEM_DEF,				// Printed as item name
+		ATTDESCFORM_VALUE_IS_FROM_LOOKUP_TABLE,		// Printed as a string from a lookup table, specified by the attribute definition name
+	};
+	
+	Address pAttrib = TF2Econ_GetAttributeDefinitionAddress(iIndex);
+	int iFormat = LoadFromAddress(pAttrib + view_as<Address>(0x24), NumberType_Int32);
+	
+	switch (iFormat)
+	{
+		case ATTDESCFORM_VALUE_IS_PERCENTAGE: return (flValue * 100.0) - 100.0;
+		case ATTDESCFORM_VALUE_IS_INVERTED_PERCENTAGE: return flValue > 1.0 ? (flValue * 100.0) - 100.0 : (1.0 - flValue) * 100.0;
+		case ATTDESCFORM_VALUE_IS_ADDITIVE: return flValue;
+		case ATTDESCFORM_VALUE_IS_ADDITIVE_PERCENTAGE: return flValue * 100.0;
+		case ATTDESCFORM_VALUE_IS_OR: return flValue;
+	}
+	
+	return 0.0;
 }
 
 stock void CheckClientWeapons(int iClient)
