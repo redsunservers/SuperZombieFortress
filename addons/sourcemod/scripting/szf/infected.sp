@@ -303,14 +303,12 @@ public void Infected_DebrisTimerInteractBuildings(int iDebris)
 		return;
 	}
 	
-	ScaleVector(vecVelocity, 0.2);
+	ScaleVector(vecVelocity, GetGameFrameTime() * 1.2);
 	float vecOrigin[3];
 	GetEntPropVector(iDebris, Prop_Data, "m_vecAbsOrigin", vecOrigin);
 	float vecGoal[3];
 	vecGoal = vecOrigin;
-	vecGoal[0] += vecVelocity[0];
-	vecGoal[1] += vecVelocity[1];
-	vecGoal[2] += vecVelocity[2];
+	AddVectors(vecGoal, vecVelocity, vecGoal);
 	float vecMins[3], vecMaxs[3];
 	GetEntPropVector(iDebris, Prop_Send, "m_vecMins", vecMins);
 	GetEntPropVector(iDebris, Prop_Send, "m_vecMaxs", vecMaxs);
@@ -326,8 +324,11 @@ bool Infected_TraceHitAllBuildings(int iEntity, int iMask, any iData)
 		return false;
 
 	if(IsIn_HitDetectionCooldown(iData, iEntity, HitCooldown))
+	{
+		//they are still in our "touch" so keep the cooldown up.
+		Set_HitDetectionCooldown(iData, iEntity, GetGameTime() + 0.1);
 		return false;
-		//dont hit too much.
+	}
 
 	char strAttacker[32];
 	GetEntityClassname(iEntity, strAttacker, sizeof(strAttacker))
@@ -391,7 +392,7 @@ public Action Infected_DebrisStartTouchInternal(int iDebris, int iToucher, bool 
 	if(bypassfilter)
 	{
 		//0.15 is a good enough time.
-		Set_HitDetectionCooldown(iDebris, iToucher, GetGameTime() + 0.15);
+		Set_HitDetectionCooldown(iDebris, iToucher, GetGameTime() + 0.1);
 	}
 	if(GetEntProp(iToucher, Prop_Data, "m_iTeamNum") == GetEntProp(iDebris, Prop_Data, "m_iTeamNum"))
 	{
