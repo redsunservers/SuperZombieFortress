@@ -590,6 +590,7 @@ int g_iOffsetItemDefinitionIndex;
 #include "szf/dhook.sp"
 #include "szf/event.sp"
 #include "szf/forward.sp"
+#include "szf/hit_detection_cooldown.sp"
 #include "szf/infected.sp"
 #include "szf/menu.sp"
 #include "szf/native.sp"
@@ -841,24 +842,12 @@ public void OnClientDisconnect(int iClient)
 	
 	Weapons_ClientDisconnect(iClient);
 }
-
-public void OnEntityCreated(int iEntity, const char[] sClassname)
-{
-	if (!g_bEnabled)
-		return;
-	
-	DHook_OnEntityCreated(iEntity, sClassname);
-	SDKHook_OnEntityCreated(iEntity, sClassname);
-	
-	if (StrEqual(sClassname, "tf_dropped_weapon") || StrEqual(sClassname, "item_powerup_rune"))	//Never allow dropped weapon and rune dropped from survivors
-		RemoveEntity(iEntity);
-}
-
 public void OnEntityDestroyed(int iEntity)
 {
 	if (!g_bEnabled || iEntity == INVALID_ENT_REFERENCE)
 		return;
 	
+	EntityKilled_HitDetectionCooldown(iEntity);
 	char sClassname[256];
 	GetEntityClassname(iEntity, sClassname, sizeof(sClassname));
 	if (StrEqual(sClassname, "tf_gas_manager"))
