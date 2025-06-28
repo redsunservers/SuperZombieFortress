@@ -842,6 +842,17 @@ public void OnClientDisconnect(int iClient)
 	
 	Weapons_ClientDisconnect(iClient);
 }
+public void OnEntityCreated(int iEntity, const char[] sClassname)
+{
+	if (!g_bEnabled)
+		return;
+	
+	DHook_OnEntityCreated(iEntity, sClassname);
+	SDKHook_OnEntityCreated(iEntity, sClassname);
+	
+	if (StrEqual(sClassname, "tf_dropped_weapon") || StrEqual(sClassname, "item_powerup_rune"))	//Never allow dropped weapon and rune dropped from survivors
+		RemoveEntity(iEntity);
+}
 public void OnEntityDestroyed(int iEntity)
 {
 	if (!g_bEnabled || iEntity == INVALID_ENT_REFERENCE)
