@@ -336,6 +336,7 @@ bool Infected_TraceHitAllBuildings(int iEntity, int iMask, any iData)
 		Infected_DebrisStartTouchInternal(iData, iEntity, true);
 	}
 	//pierce any buldings, its like a shockwave! get it???
+	return false;
 }
 public Action Infected_DebrisTimerFadeOutStart(Handle hTimer, int iDebris)
 {
