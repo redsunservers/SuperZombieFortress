@@ -6,7 +6,7 @@ enum struct ConVarInfo
 }
 
 static ArrayList g_aConVar;
-
+ConVar mp_friendlyfire;
 void ConVar_Init()
 {
 	char sBuffer[32];
@@ -64,6 +64,8 @@ void ConVar_Init()
 	ConVar_Add("tf_player_movement_restart_freeze", 0.0);
 	ConVar_Add("tf_sentrygun_metal_per_shell", 201.0);
 	ConVar_Add("tf_weapon_criticals", 0.0);
+	mp_friendlyfire = FindConVar("mp_friendlyfire");
+	
 }
 
 void ConVar_InitEvent(ConVarEvent event, const char[] sSyntax, const char[] sCooldown, const char[] sInterval, const char[] sThreshold, const char[] sKillSpree, const char[] sProgress)
