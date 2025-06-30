@@ -392,12 +392,12 @@ public Action Infected_DebrisStartTouchInternal(int iDebris, int iToucher, bool 
 	{
 		//friendly fire!
 		int iPreviousValue;
-		if(iToucher <= MaxClients)
+		if (iToucher <= MaxClients)
 		{
-			iPreviousValue = mp_friendlyfire.IntValue;
-			mp_friendlyfire.IntValue = 1;
+			iPreviousValue = g_cvFriendlyFire.IntValue;
+			g_cvFriendlyFire.IntValue = 1;
 			SDKHooks_TakeDamage(iToucher, iDebris, iClient, flSpeed / 4.0);
-			mp_friendlyfire.IntValue = iPreviousValue;
+			g_cvFriendlyFire.IntValue = iPreviousValue;
 		}
 		else
 		{
@@ -485,8 +485,8 @@ public Action Infected_OnTankDamage(int iClient, int &iAttacker, int &iInflicter
 	if (MaxClients < iAttacker)
 	{
 		char sAttacker[32];
-		GetEntityClassname(iAttacker, strAttacker, sizeof(strAttacker));
-		if (StrContains(strAttacker, "trigger_hurt") == 0 && flDamage >= 450.0)
+		GetEntityClassname(iAttacker, sAttacker, sizeof(sAttacker));
+		if (StrContains(sAttacker, "trigger_hurt") == 0 && flDamage >= 450.0)
 			ForcePlayerSuicide(iClient);
 	}
 	

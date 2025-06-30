@@ -17,7 +17,7 @@ bool IsIn_HitDetectionCooldown(int iAttacker, int iVictim, int iOffset = 0)
 		return false;
 	
 	HitDetectionEnum data;
-	int iLength = g_aHitDetections.iLength;
+	int iLength = g_aHitDetections.Length;
 	for (int i = 0; i < iLength; i++)
 	{
 		// Loop through the arraylist to find the right iAttacker and iVictim
@@ -37,7 +37,7 @@ void Set_HitDetectionCooldown(int iAttacker, int iVictim, float flTime, int iOff
 		g_aHitDetections = new ArrayList(sizeof(HitDetectionEnum));
 	
 	HitDetectionEnum data;
-	int iLength = g_aHitDetections.iLength;
+	int iLength = g_aHitDetections.Length;
 	for (int i = 0; i < iLength; i++)
 	{
 		// Loop through the arraylist to find the right iAttacker and iVictim
@@ -67,7 +67,7 @@ void EntityKilled_HitDetectionCooldown(int entity, int iOffset = -1)
 		return;
 	
 	HitDetectionEnum data;
-	int iLength = g_aHitDetections.iLength;
+	int iLength = g_aHitDetections.Length;
 	for (int i = 0; i < iLength; i++)
 	{
 		// Loop through the arraylist to find the right iAttacker and iVictim
