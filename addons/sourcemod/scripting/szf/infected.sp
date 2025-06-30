@@ -174,7 +174,7 @@ public void Infected_DoTankThrow(int iClient)
 	SetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity", iClient);
 	SetEntProp(iDebris, Prop_Data, "m_spawnflags", SF_PHYSPROP_START_ASLEEP|SF_PHYSPROP_MOTIONDISABLED);
 	SetEntProp(iDebris, Prop_Data, "m_takedamage", DAMAGE_NO);
-	SetEntityCollisionGroup(iDebris, COLLISION_GROUP_PLAYER);
+	SetEntityCollisionGroup(iDebris, COLLISION_GROUP_PLAYER_MOVEMENT);
 	SetEntProp(iDebris, Prop_Send, "m_iTeamNum", GetClientTeam(iClient));
 	SetEntityRenderMode(iDebris, RENDER_TRANSCOLOR);
 	
@@ -247,7 +247,8 @@ void Infected_ActivateDebris(int iClient, bool bVel)
 	}
 	
 	CreateTimer(1.0, Infected_DebrisTimerMoving, iDebris, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
-
+	RequestFrame(Infected_DebrisTimerInteractBuildings, iDebris);
+	
 	float flLifetime = g_cvTankDebrisLifetime.FloatValue;
 	if (flLifetime > 0.0)
 		CreateTimer(flLifetime, Infected_DebrisTimerFadeOutStart, iDebris);
@@ -279,6 +280,56 @@ public Action Infected_DebrisTimerMoving(Handle hTimer, int iDebris)
 	return Plugin_Stop;
 }
 
+public void Infected_DebrisTimerInteractBuildings(int iDebris)
+{
+	if (!IsValidEntity(iDebris))
+		return;
+	
+	// Buildings have their own way of detecting logic, unless you want dhooks or even worse dependencies
+	// this is the only solution.
+	
+	RequestFrame(Infected_DebrisTimerInteractBuildings, iDebris);
+	
+	if (!GetEntProp(iDebris, Prop_Send, "m_bAwake"))
+		return;
+	
+	float vecVelocity[3];
+	SDKCall_GetVelocity(iDebris, vecVelocity);
+	float flSpeed = GetVectorLength(vecVelocity);
+	if (flSpeed < 100.0)
+		return;
+	
+	ScaleVector(vecVelocity, GetGameFrameTime() * 1.2);
+	float vecOrigin[3];
+	GetEntPropVector(iDebris, Prop_Data, "m_vecAbsOrigin", vecOrigin);
+	float vecGoal[3];
+	vecGoal = vecOrigin;
+	AddVectors(vecGoal, vecVelocity, vecGoal);
+	float vecMins[3], vecMaxs[3];
+	GetEntPropVector(iDebris, Prop_Send, "m_vecMins", vecMins);
+	GetEntPropVector(iDebris, Prop_Send, "m_vecMaxs", vecMaxs);
+	TR_TraceHullFilter(vecOrigin, vecGoal, vecMins, vecMaxs, MASK_PLAYERSOLID, Infected_TraceHitAllBuildings, iDebris);
+}
+bool Infected_TraceHitAllBuildings(int iEntity, int iMask, any iData)
+{
+	if (iEntity <= 0 || iEntity > 2048)
+		return false;
+
+	if (IsIn_HitDetectionCooldown(iData, iEntity))
+	{
+		//they are still in our "touch" so keep the cooldown up.
+		Set_HitDetectionCooldown(iData, iEntity, GetGameTime() + 0.1);
+		return false;
+	}
+
+	char sAttacker[32];
+	GetEntityClassname(iEntity, sAttacker, sizeof(sAttacker))
+	if (StrContains(sAttacker, "obj_", false) != -1)
+		Infected_DebrisStartTouchInternal(iData, iEntity, true);
+	
+	//pierce any buldings, its like a shockwave! get it???
+	return false;
+}
 public Action Infected_DebrisTimerFadeOutStart(Handle hTimer, int iDebris)
 {
 	if (!IsValidEntity(iDebris))
@@ -311,9 +362,14 @@ void Infected_DebrisFrameFadeOut(int iDebris)
 
 public Action Infected_DebrisStartTouch(int iDebris, int iToucher)
 {
-	if (iToucher <= 0 || iToucher > MaxClients)
+	return Infected_DebrisStartTouchInternal(iDebris, iToucher, false);
+}
+
+public Action Infected_DebrisStartTouchInternal(int iDebris, int iToucher, bool bBypassFilter)
+{
+	if ((iToucher <= 0 || iToucher > MaxClients) && !bBypassFilter)
 		return Plugin_Continue;
-		
+	
 	int iClient = GetEntPropEnt(iDebris, Prop_Send, "m_hOwnerEntity");
 	
 	float vecVelocity[3];
@@ -322,7 +378,43 @@ public Action Infected_DebrisStartTouch(int iDebris, int iToucher)
 	if (flSpeed < 100.0)
 		return Plugin_Continue;
 	
-	SDKHooks_TakeDamage(iToucher, iDebris, iClient, flSpeed / 4.0);
+	if (iClient == iToucher)
+		return Plugin_Continue;
+	
+	//do not kill self!
+	if (bBypassFilter)
+	{
+		//0.15 is a good enough time.
+		Set_HitDetectionCooldown(iDebris, iToucher, GetGameTime() + 0.1);
+	}
+	
+	float flDamage = flSpeed / 4.0;
+	
+	if (GetEntProp(iToucher, Prop_Data, "m_iTeamNum") == GetEntProp(iDebris, Prop_Data, "m_iTeamNum"))
+	{
+		//friendly fire!
+		int iPreviousValue;
+		if (iToucher <= MaxClients)
+		{
+			iPreviousValue = g_cvFriendlyFire.IntValue;
+			g_cvFriendlyFire.IntValue = 1;
+			SDKHooks_TakeDamage(iToucher, iDebris, iClient, flDamage);
+			g_cvFriendlyFire.IntValue = iPreviousValue;
+		}
+		else
+		{
+			//non players dont need this!
+			iPreviousValue = GetEntProp(iToucher, Prop_Data, "m_iTeamNum");
+			SetEntProp(iToucher, Prop_Data, "m_iTeamNum", 0);
+			SDKHooks_TakeDamage(iToucher, iDebris, iClient, flDamage);
+			SetEntProp(iToucher, Prop_Data, "m_iTeamNum", iPreviousValue);
+		}
+	}
+	else
+	{
+		SDKHooks_TakeDamage(iToucher, iDebris, iClient, flDamage);
+	}
+	
 	return Plugin_Continue;
 }
 
@@ -394,9 +486,9 @@ public Action Infected_OnTankDamage(int iClient, int &iAttacker, int &iInflicter
 	//Check if tank takes damage from map deathpit, if so kill him
 	if (MaxClients < iAttacker)
 	{
-		char strAttacker[32];
-		GetEntityClassname(iAttacker, strAttacker, sizeof(strAttacker));
-		if (StrContains(strAttacker, "trigger_hurt") == 0 && flDamage >= 450.0)
+		char sAttacker[32];
+		GetEntityClassname(iAttacker, sAttacker, sizeof(sAttacker));
+		if (StrContains(sAttacker, "trigger_hurt") == 0 && flDamage >= 450.0)
 			ForcePlayerSuicide(iClient);
 	}
 	

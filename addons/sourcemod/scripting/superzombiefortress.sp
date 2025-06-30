@@ -438,6 +438,8 @@ ConVar g_cvBannerRequirement;
 ConVar g_cvMeleeIgnoreTeammates;
 ConVar g_cvPunishAvoidingPlayers;
 
+ConVar g_cvFriendlyFire;
+
 enum struct ConVarEvent
 {
 	ConVar cvCooldown;
@@ -590,6 +592,7 @@ int g_iOffsetItemDefinitionIndex;
 #include "szf/dhook.sp"
 #include "szf/event.sp"
 #include "szf/forward.sp"
+#include "szf/hitcooldown.sp"
 #include "szf/infected.sp"
 #include "szf/menu.sp"
 #include "szf/native.sp"
@@ -858,6 +861,8 @@ public void OnEntityDestroyed(int iEntity)
 {
 	if (!g_bEnabled || iEntity == INVALID_ENT_REFERENCE)
 		return;
+	
+	EntityKilled_HitDetectionCooldown(iEntity);
 	
 	char sClassname[256];
 	GetEntityClassname(iEntity, sClassname, sizeof(sClassname));
