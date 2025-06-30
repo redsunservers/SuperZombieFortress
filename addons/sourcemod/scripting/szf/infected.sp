@@ -388,6 +388,8 @@ public Action Infected_DebrisStartTouchInternal(int iDebris, int iToucher, bool 
 		Set_HitDetectionCooldown(iDebris, iToucher, GetGameTime() + 0.1);
 	}
 	
+	float flDamage = flSpeed / 4.0;
+	
 	if (GetEntProp(iToucher, Prop_Data, "m_iTeamNum") == GetEntProp(iDebris, Prop_Data, "m_iTeamNum"))
 	{
 		//friendly fire!
@@ -396,7 +398,7 @@ public Action Infected_DebrisStartTouchInternal(int iDebris, int iToucher, bool 
 		{
 			iPreviousValue = g_cvFriendlyFire.IntValue;
 			g_cvFriendlyFire.IntValue = 1;
-			SDKHooks_TakeDamage(iToucher, iDebris, iClient, flSpeed / 4.0);
+			SDKHooks_TakeDamage(iToucher, iDebris, iClient, flDamage);
 			g_cvFriendlyFire.IntValue = iPreviousValue;
 		}
 		else
@@ -404,13 +406,13 @@ public Action Infected_DebrisStartTouchInternal(int iDebris, int iToucher, bool 
 			//non players dont need this!
 			iPreviousValue = GetEntProp(iToucher, Prop_Data, "m_iTeamNum");
 			SetEntProp(iToucher, Prop_Data, "m_iTeamNum", 0);
-			SDKHooks_TakeDamage(iToucher, iDebris, iClient, flSpeed / 4.0);
+			SDKHooks_TakeDamage(iToucher, iDebris, iClient, flDamage);
 			SetEntProp(iToucher, Prop_Data, "m_iTeamNum", iPreviousValue);
 		}
 	}
 	else
 	{
-		SDKHooks_TakeDamage(iToucher, iDebris, iClient, flSpeed / 4.0);
+		SDKHooks_TakeDamage(iToucher, iDebris, iClient, flDamage);
 	}
 	
 	return Plugin_Continue;
