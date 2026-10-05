@@ -135,9 +135,9 @@ void SDKCall_TossJarThink(int iEntity)
 	SDKCall(g_hSDKCallTossJarThink, iEntity);
 }
 
-void SDKCall_GetVelocity(int iEntity, float vecVelocity[3], Address pAngVelocity = Address_Null)
+void SDKCall_GetVelocity(int iEntity, float vecVelocity[3])
 {
-	SDKCall(g_hSDKCallGetVelocity, iEntity, vecVelocity, pAngVelocity);
+	SDKCall(g_hSDKCallGetVelocity, iEntity, vecVelocity, Address_Null);
 }
 
 float SDKCall_GetDefaultItemChargeMeterValue(int iWeapon)
