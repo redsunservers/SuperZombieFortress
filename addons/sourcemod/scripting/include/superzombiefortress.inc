@@ -77,6 +77,15 @@ forward void SZF_OnHunterHit(int iHunter, int iVictim);
 forward void SZF_OnSmokerHit(int iSmoker, int iVictim);
 
 /**
+ * Forward called when hunter pounced to stun a survivor
+ *
+ * @param	iJockey		Client whose the jockey to pounce a survivor
+ * @param	iVictim		Client whose the victim pounced from the jockey
+ * @noreturn
+ */
+forward void SZF_OnJockeyHit(int iJockey, int iVictim);
+
+/**
  * Forward called when a boomer explodes
  *
  * @param	iBoomer		Client whose the boomer explode
