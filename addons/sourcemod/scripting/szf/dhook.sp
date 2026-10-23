@@ -207,22 +207,14 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 			//If under 50 health, tick away one speed per hp lost
 			if (GetClientHealth(iClient) < 50)
 				flSpeed -= 50.0 - float(GetClientHealth(iClient));
+			
+			if (Infected_IsJockeyVictim(iClient))
+				flSpeed *= g_cvJockeyVictimSpeed.FloatValue;
 		}
 		
 		if (Stun_IsPlayerStunned(iClient))
 		{
 			flSpeed *= Stun_GetSpeedMulti(iClient);
-			if (GetEntityFlags(iClient) & FL_ONGROUND)
-			{
-				float vecVelocity[3];
-				GetEntPropVector(iClient, Prop_Data, "m_vecVelocity", vecVelocity);
-				if (GetVectorLength(vecVelocity) > flSpeed)
-				{
-					NormalizeVector(vecVelocity, vecVelocity);
-					ScaleVector(vecVelocity, flSpeed);
-					TeleportEntity(iClient, NULL_VECTOR, NULL_VECTOR, vecVelocity);
-				}
-			}
 		}
 		
 		if (flSpeed <= 1.0)	// Do not set speed to negative or you'll send em to the backrooms
@@ -432,6 +424,18 @@ public MRESReturn DHook_RoundRespawnPre()
 	if (g_nRoundState == SZFRoundState_Setup)
 		return MRES_Ignored;
 	
+	MapConfig_OnRoundRespawn();
+	
+	if (g_hTimerZombieRage)
+	{
+		delete g_hTimerZombieRage;
+		g_bZombieRage = false;
+	}
+	
+	Respawn_OnRoundRespawn();
+	Queue_OnRoundRespawn();
+	SpecialQueue_OnRoundRespawn();
+	
 	DetermineControlPoints();
 	
 	g_bLastSurvivor = false;
@@ -440,7 +444,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	{
 		g_iDamageZombie[iClient] = 0;
 		g_iKillsThisLife[iClient] = 0;
-		g_bSpawnAsSpecialInfected[iClient] = false;
+		g_bSpecialIgnoreCooldown[iClient] = false;
 		g_nInfected[iClient] = Infected_None;
 		g_nNextInfected[iClient] = Infected_None;
 		g_iMaxHealth[iClient] = -1;
@@ -478,14 +482,25 @@ public MRESReturn DHook_RoundRespawnPre()
 	}
 	
 	SortIntegers(iClients, iLength, Sort_Random);	//Randomize player list
-	SortCustom1D(iClients, iLength, Sort_LastPlayedZombie);	//Order by round last played as zombie
+	SortCustom1D(iClients, iLength, Sort_ZombieQueue);
 	
 	//Calculate team counts. At least one survivor must exist.
-	iSurvivorCount = RoundToFloor(iLength * g_cvRatio.FloatValue);
+	iSurvivorCount = iLength - MapConfig_GetStartingZombies(iLength);
 	if (iSurvivorCount == 0 && iLength > 0)
 		iSurvivorCount = 1;
 	
+	MapConfig_SplitBegin();
+	for (int i = 0; i < iLength; i++)
+		MapConfig_SplitAdd(iClients[i]);
+	
 	TFTeam[] nClientTeam = new TFTeam[MaxClients+1];
+	
+	int iZombieSlots;
+	for (int i = 0; i < iLength; i++)
+		if (TF2_GetClientTeam(iClients[i]) > TFTeam_Spectator)
+			iZombieSlots++;
+	
+	iZombieSlots -= iSurvivorCount;
 	
 	//Check if we need to force players to survivor or zombie team
 	for (int i = 0; i < iLength; i++)
@@ -525,7 +540,31 @@ public MRESReturn DHook_RoundRespawnPre()
 				nClientTeam[iClient] = TFTeam_Zombie;
 				g_flTimeStartAsZombie[iClient] = GetGameTime();
 				SetClientStartedAsZombie(iClient);
+				MapConfig_SplitSetForced(iClient);
+				iZombieSlots--;
 			}
+		}
+	}
+	
+	for (int i = iLength - 1; i >= 0; i--)
+	{
+		int iClient = iClients[i];
+		if (!g_bOptInZombie[iClient] || TF2_GetClientTeam(iClient) <= TFTeam_Spectator || nClientTeam[iClient] == TFTeam_Zombie)
+			continue;
+		
+		if (iZombieSlots > 0)
+		{
+			SpawnClient(iClient, TFTeam_Zombie, false);
+			nClientTeam[iClient] = TFTeam_Zombie;
+			g_flTimeStartAsZombie[iClient] = GetGameTime();
+			SetClientStartedAsZombie(iClient);
+			iZombieSlots--;
+			
+			CPrintToChat(iClient, "%t", "Infected_OptInStart", "{limegreen}", "{lightsalmon}");
+		}
+		else
+		{
+			CPrintToChat(iClient, "%t", "Infected_OptInFull", "{lightsalmon}");
 		}
 	}
 	
@@ -567,10 +606,9 @@ public MRESReturn DHook_RoundRespawnPre()
 	g_iRoundTimestamp = GetTime();
 	
 	//Handle grace period timers.
-	CreateTimer(0.5, Timer_GraceStartPost, TIMER_FLAG_NO_MAPCHANGE);
+	CreateTimer(0.5, Timer_GraceStartPost, _, TIMER_FLAG_NO_MAPCHANGE);
 	
 	SetGlow();
-	UpdateZombieDamageScale();
 	
 	return MRES_Ignored;
 }

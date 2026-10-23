@@ -1,6 +1,5 @@
 static int g_iOffsetDisguiseCompleteTime;
 static float g_flDisguiseCompleteTime;
-static bool g_bLunchboxTouched[MAXPLAYERS + 1];
 
 void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 {
@@ -11,6 +10,9 @@ void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 	else if (StrContains(sClassname, "item_healthkit") == 0 || StrContains(sClassname, "item_ammopack") == 0 || StrEqual(sClassname, "tf_ammo_pack"))
 	{
 		SDKHook(iEntity, SDKHook_SpawnPost, Pickup_SpawnPost);
+		
+		if (StrContains(sClassname, "item_healthkit") == 0)
+			SDKHook(iEntity, SDKHook_TouchPost, HealthKit_TouchPost);
 	}
 	else if (StrEqual(sClassname, "tf_projectile_jar_gas"))
 	{
@@ -35,12 +37,13 @@ void SDKHook_HookClient(int iClient)
 	SDKHook(iClient, SDKHook_Spawn, Client_Spawn);
 	SDKHook(iClient, SDKHook_PreThink, Client_PreThink);
 	SDKHook(iClient, SDKHook_PreThinkPost, Client_PreThinkPost);
+	SDKHook(iClient, SDKHook_PostThinkPost, Client_PostThinkPost);
 	SDKHook(iClient, SDKHook_Touch, Client_Touch);
 	SDKHook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
+	SDKHook(iClient, SDKHook_OnTakeDamagePost, Client_OnTakeDamagePost);
+	SDKHook(iClient, SDKHook_OnTakeDamageAlive, Client_OnTakeDamageAlive);
 	SDKHook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
 	SDKHook(iClient, SDKHook_WeaponSwitchPost, Client_WeaponSwitchPost);
-	
-	g_bLunchboxTouched[iClient] = false;
 }
 
 void SDKHook_UnhookClient(int iClient)
@@ -48,8 +51,11 @@ void SDKHook_UnhookClient(int iClient)
 	SDKUnhook(iClient, SDKHook_Spawn, Client_Spawn);
 	SDKUnhook(iClient, SDKHook_PreThink, Client_PreThink);
 	SDKUnhook(iClient, SDKHook_PreThinkPost, Client_PreThinkPost);
+	SDKUnhook(iClient, SDKHook_PostThinkPost, Client_PostThinkPost);
 	SDKUnhook(iClient, SDKHook_Touch, Client_Touch);
 	SDKUnhook(iClient, SDKHook_OnTakeDamage, Client_OnTakeDamage);
+	SDKUnhook(iClient, SDKHook_OnTakeDamagePost, Client_OnTakeDamagePost);
+	SDKUnhook(iClient, SDKHook_OnTakeDamageAlive, Client_OnTakeDamageAlive);
 	SDKUnhook(iClient, SDKHook_GetMaxHealth, Client_GetMaxHealth);
 	SDKUnhook(iClient, SDKHook_WeaponSwitchPost, Client_WeaponSwitchPost);
 }
@@ -58,6 +64,7 @@ public Action Client_Spawn(int iClient)
 {
 	// Reset arms so generated weapons don't get the wrong viewmodel
 	ViewModel_ResetArms(iClient);
+	ViewModel_TakePreference(iClient);
 	Classes_SetClient(iClient);
 	return Plugin_Continue;
 }
@@ -68,6 +75,8 @@ public Action Client_PreThink(int iClient)
 		g_iOffsetDisguiseCompleteTime = FindSendPropInfo("CTFPlayer", "m_unTauntSourceItemID_High") + 4;
 	
 	g_flDisguiseCompleteTime = GetEntDataFloat(iClient, g_iOffsetDisguiseCompleteTime);
+	
+	LastStand_OnPreThink(iClient);
 	return Plugin_Continue;
 }
 
@@ -82,6 +91,14 @@ public void Client_PreThinkPost(int iClient)
 	
 	if (g_flDisguiseCompleteTime && !GetEntDataFloat(iClient, g_iOffsetDisguiseCompleteTime))
 		OnClientDisguise(iClient);
+	
+	WeaponChanges_OnClientThink(iClient);
+}
+
+public void Client_PostThinkPost(int iClient)
+{
+	Stun_OnPostThinkPost(iClient);
+	LastStand_OnPostThinkPost(iClient);
 }
 
 public Action Client_Touch(int iClient, int iToucher)
@@ -99,6 +116,9 @@ public Action Client_Touch(int iClient, int iToucher)
 
 public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
 {
+	WeaponChanges_OnTakeDamagePre(iVictim, iDamageType);
+	LastStand_OnZombieDamagedPre(iVictim, iAttacker);
+	
 	if (!CanRecieveDamage(iVictim))
 		return Plugin_Continue;
 	
@@ -148,23 +168,21 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				bChanged = true;
 		}
 		
-		if (IsValidLivingClient(iAttacker) && flDamage < 300.0)
+		bool bLastStand = IsValidZombie(iAttacker) && IsLastManStanding(iVictim);
+		if (bLastStand && iDamageCustom == TF_CUSTOM_BACKSTAB)
 		{
-			if (IsValidZombie(iAttacker))
-			{
-				// Damage scaling Zombies, don't make it too crazy for higher dmg scale
-				float flScale = g_flZombieDamageScale;
-				if (flScale > 1.0)
-					flScale = Pow(flScale, 0.5);
-				
-				flDamage = flDamage * flScale * 0.7; // Default: 0.7
-			}
-			else if (IsValidSurvivor(iAttacker) && !IsClassname(iInflicter, "obj_sentrygun"))
-			{
-				// Damage scaling Survivors
-				flDamage /= g_flZombieDamageScale;
-			}
+			if (g_nInfected[iAttacker] == Infected_Stalker)
+				flDamage = Infected_GetStalkerBackstabDamage(false);
+			else
+				flDamage = LastStand_GetBackstabDamage(iWeapon);
 			
+			iDamageType &= ~DMG_CRIT;
+			bChanged = true;
+		}
+		
+		if (IsValidZombie(iAttacker) && (flDamage < 300.0 || bLastStand))
+		{
+			flDamage *= g_cvZombieDamage.FloatValue;
 			bChanged = true;
 		}
 		
@@ -173,14 +191,16 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			Sound_Attack(iVictim, iAttacker);
 			
 			//Taunt kill, backstabs and gunslinger combo punch
-			if (flDamage >= 300.0
+			if (!bLastStand && (flDamage >= 300.0
 				|| iDamageCustom == TF_CUSTOM_BACKSTAB
 				|| iDamageCustom == TF_CUSTOM_TAUNT_GRENADE
-				|| (TF2_GetPlayerClass(iAttacker) == TFClass_Engineer && GetEntProp(iAttacker, Prop_Send, "m_iNextMeleeCrit") == MELEE_CRIT))
+				|| (TF2_GetPlayerClass(iAttacker) == TFClass_Engineer && GetEntProp(iAttacker, Prop_Send, "m_iNextMeleeCrit") == MELEE_CRIT)))
 			{
 				
 				if (TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged) || (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB))
 					return Plugin_Continue;
+				
+				bool bWasStunned = Stun_IsPlayerStunned(iVictim);
 				
 				bool bStunned;
 				if (g_nInfected[iAttacker] == Infected_Stalker)
@@ -191,7 +211,16 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				if (bStunned)
 					Forward_OnBackstab(iVictim, iAttacker);
 				
-				flDamage = 1.0;
+				if (g_nInfected[iAttacker] == Infected_Stalker && iDamageCustom == TF_CUSTOM_BACKSTAB)
+				{
+					flDamage = Infected_GetStalkerBackstabDamage(bWasStunned) * g_cvZombieDamage.FloatValue;
+					iDamageType &= ~DMG_CRIT;
+				}
+				else
+				{
+					flDamage = 1.0;
+				}
+				
 				bChanged = true;
 			}
 			
@@ -211,10 +240,22 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	
 	SDKCall_SetSpeed(iVictim);
 	
+	WeaponChanges_OnTakeDamagePre(iVictim, iDamageType);
+	
 	if (bChanged)
 		return Plugin_Changed;
 	
 	return Plugin_Continue;
+}
+
+public void Client_OnTakeDamagePost(int iVictim, int iAttacker, int iInflicter, float flDamage, int iDamageType, int iWeapon, const float vecForce[3], const float vecForcePos[3], int iDamageCustom)
+{
+	LastStand_OnZombieDamagedPost(iVictim);
+}
+
+public Action Client_OnTakeDamageAlive(int iVictim, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
+{
+	return WeaponChanges_OnTakeDamageAlive(iVictim, flDamage, iDamageType);
 }
 
 public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
@@ -241,7 +282,9 @@ public void Client_WeaponSwitchPost(int iClient, int iWeapon)
 
 public Action Prop_SetSpawnedWeapon(int iWeapon)
 {
-	SetWeapon(iWeapon);
+	if (!Weapons_IsSpawningExtra())
+		SetWeapon(iWeapon);
+	
 	return Plugin_Continue;
 }
 
@@ -267,9 +310,7 @@ public void Pickup_SpawnPost(int iEntity)
 	{
 		if (IsClassname(iEntity, "item_healthkit_medium"))	//Lunchbox sandvich
 		{
-			//Dont allow anyone touch sandvich for first 3 seconds
-			SDKHook(iEntity, SDKHook_Touch, Pickup_BlockTouch);
-			CreateTimer(3.0, Timer_EnableSandvichTouch, EntIndexToEntRef(iEntity));
+			SDKHook(iEntity, SDKHook_Touch, Pickup_SandvichTouch);
 		}
 		else if (IsClassname(iEntity, "item_healthkit_small"))	//Lunchbox non-sandvich
 		{
@@ -286,23 +327,6 @@ public Action Pickup_BlockZombieTouch(int iEntity, int iToucher)
 	return Plugin_Continue;
 }
 
-public Action Pickup_BlockTouch(int iEntity, int iToucher)
-{
-	return Plugin_Handled;
-}
-
-public Action Timer_EnableSandvichTouch(Handle hTimer, int iRef)
-{
-	int iEntity = EntRefToEntIndex(iRef);
-	if (!IsValidEntity(iEntity))
-		return Plugin_Continue;
-	
-	SDKUnhook(iEntity, SDKHook_Touch, Pickup_BlockTouch);
-	SDKHook(iEntity, SDKHook_Touch, Pickup_SandvichTouch);
-	
-	return Plugin_Continue;
-}
-
 public Action Pickup_SandvichTouch(int iEntity, int iToucher)
 {
 	//Check if toucher is valid client
@@ -314,32 +338,15 @@ public Action Pickup_SandvichTouch(int iEntity, int iToucher)
 	if (iOwner == iToucher || g_nInfected[iToucher] == Infected_Tank)
 		return Plugin_Handled;
 	
-	//Don't stack lunchbox damages
-	if (g_bLunchboxTouched[iToucher])
-		return Plugin_Handled;
-	
 	if (IsSurvivor(iToucher))
 	{
 		//Kill it and deal damage
 		RemoveEntity(iEntity);
-		DealDamage(iOwner, iToucher, 55.0);
-		
-		g_bLunchboxTouched[iToucher] = true;
-		CreateTimer(2.0, Timer_ResetLunchboxTouched, GetClientUserId(iToucher));
+		DealDamage(iOwner, iToucher, 105.0);
 		
 		return Plugin_Handled;
 	}
 	
-	return Plugin_Continue;
-}
-
-public Action Timer_ResetLunchboxTouched(Handle hTimer, int iUserId)
-{
-	int iClient = GetClientOfUserId(iUserId);
-	if (iClient == 0)
-		return Plugin_Continue;
-	
-	g_bLunchboxTouched[iClient] = false;
 	return Plugin_Continue;
 }
 
@@ -353,20 +360,13 @@ public Action Pickup_BananaTouch(int iEntity, int iToucher)
 	if (g_nInfected[iToucher] == Infected_Tank)
 		return Plugin_Handled;
 	
-	//Don't stack lunchbox damages
-	if (g_bLunchboxTouched[iToucher])
-		return Plugin_Handled;
-	
 	if (IsSurvivor(iToucher))
 	{
 		int iOwner = GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity");
 		
 		//Kill it and deal damage
 		RemoveEntity(iEntity);
-		DealDamage(iOwner, iToucher, 30.0);
-		
-		g_bLunchboxTouched[iToucher] = true;
-		CreateTimer(1.0, Timer_ResetLunchboxTouched, GetClientUserId(iToucher));
+		DealDamage(iOwner, iToucher, 60.0);
 		
 		return Plugin_Handled;
 	}

@@ -52,10 +52,18 @@ bool Stun_IsPlayerStunned(int iClient)
 	return g_StunInfo[iClient].bStunned;
 }
 
+bool Stun_CanStartPlayer(int iClient)
+{
+	return !g_StunInfo[iClient].bStunned && !g_StunInfo[iClient].bCooldown && !IsLastManStanding(iClient);
+}
+
 bool Stun_StartPlayer(int iClient, float flDuration = 6.0)
 {
 	if (g_StunInfo[iClient].bStunned || g_StunInfo[iClient].bCooldown)
 		return false;	//Already stunned
+	
+	if (IsLastManStanding(iClient))
+		return false;
 	
 	g_StunInfo[iClient].bStunned = true;
 	g_StunInfo[iClient].aTimers = new ArrayList();
@@ -99,10 +107,26 @@ bool Stun_StartPlayer(int iClient, float flDuration = 6.0)
 	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD")|BLIND_HIDEHUD);
 	TF2Attrib_SetByName(iClient, "deploy time increased", 2.0);
 	
-	SDKHook(iClient, SDKHook_PostThinkPost, Stun_ClientThink);
 	hTimer = CreateTimer(flDuration, Stun_EndPlayerTimer, GetClientSerial(iClient));
 	g_StunInfo[iClient].aTimers.Push(hTimer);
 	return true;
+}
+
+void Stun_ResetClient(int iClient)
+{
+	if (g_StunInfo[iClient].bStunned && IsClientInGame(iClient))
+		ClientCommand(iClient, "r_screenoverlay\"\"");
+	
+	g_StunInfo[iClient].bStunned = false;
+	g_StunInfo[iClient].bCooldown = false;
+	g_StunInfo[iClient].iPreviousFogEnt = INVALID_ENT_REFERENCE;
+	delete g_StunInfo[iClient].aTimers;
+}
+
+void Stun_OnPostThinkPost(int iClient)
+{
+	if (g_StunInfo[iClient].bStunned)
+		Stun_ClientThink(iClient);
 }
 
 void Stun_EndPlayer(int iClient)
@@ -135,7 +159,6 @@ void Stun_EndPlayer(int iClient)
 	TF2Attrib_RemoveByName(iClient, "deploy time increased");
 	
 	TF2_RemoveCondition(iClient, TFCond_LostFooting);
-	SDKUnhook(iClient, SDKHook_PostThinkPost, Stun_ClientThink);
 	SDKCall_SetSpeed(iClient);
 }
 
@@ -270,6 +293,9 @@ float Stun_GetSpeedMulti(int iClient)
 	if (g_StunInfo[iClient].flCurrentBlinkStart <= flGameTime <= g_StunInfo[iClient].flCurrentBlinkStartHold)
 	{
 		float flDuration = g_StunInfo[iClient].flCurrentBlinkStartHold - g_StunInfo[iClient].flCurrentBlinkStart;
+		if (flDuration <= 0.0)
+			return BLIND_MULTI_SPEED_MIN;
+		
 		float flProgress = flGameTime - g_StunInfo[iClient].flCurrentBlinkStart;
 		float flPercentage = 1.0 - (flProgress / flDuration);
 		return (flPercentage * (1.0 - BLIND_MULTI_SPEED_MIN)) + BLIND_MULTI_SPEED_MIN;
@@ -281,6 +307,9 @@ float Stun_GetSpeedMulti(int iClient)
 	else if (g_StunInfo[iClient].flCurrentBlinkEndHold <= flGameTime <= g_StunInfo[iClient].flCurrentBlinkEnd)
 	{
 		float flDuration = g_StunInfo[iClient].flCurrentBlinkEnd - g_StunInfo[iClient].flCurrentBlinkEndHold;
+		if (flDuration <= 0.0)
+			return 1.0;
+		
 		float flProgress = flGameTime - g_StunInfo[iClient].flCurrentBlinkEndHold;
 		float flPercentage = (flProgress / flDuration);
 		return (flPercentage * (1.0 - BLIND_MULTI_SPEED_MIN)) + BLIND_MULTI_SPEED_MIN;
