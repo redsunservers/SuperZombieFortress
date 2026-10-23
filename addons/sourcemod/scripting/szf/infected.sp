@@ -1600,4 +1600,16 @@ void Infected_ResetJockey(int iClient)
 	
 	g_bJockeyIsUsingPounce[iClient] = false;
 	g_iJockeyTarget[iClient] = 0;
+	
+	if (!(0 < iTarget <= MaxClients))
+		return;
+	
+	if (IsClientInGame(iClient))
+	{
+		SetEntityMoveType(iClient, MOVETYPE_WALK);
+		SetEntityCollisionGroup(iClient, COLLISION_GROUP_PLAYER);
+	}
+	
+	if (IsValidLivingSurvivor(iTarget))
+		SDKCall_SetSpeed(iTarget);
 }
