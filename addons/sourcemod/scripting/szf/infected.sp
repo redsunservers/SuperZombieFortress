@@ -641,8 +641,22 @@ void Infected_DoBoomerExplosion(int iClient, float flRadius)
 // Charger
 ////////////////
 
+#define TF_COLLISIONGROUP_GRENADES							20
+#define TFCOLLISION_GROUP_OBJECT							21
+#define TFCOLLISION_GROUP_COMBATOBJECT						23
+#define TFCOLLISION_GROUP_ROCKETS							24
+#define TFCOLLISION_GROUP_RESPAWNROOMS						25
+#define TFCOLLISION_GROUP_ROCKET_BUT_NOT_WITH_OTHER_ROCKETS	27
+
+#define CHARGER_SLAM_DISTANCE	16.0
+#define CHARGER_SLAM_STEP		18.0
+#define CHARGER_SLAM_MAX_SLOPE	0.7
+#define CHARGER_SLAM_FACING		-0.5
+
 static float g_flChargerEndCharge[MAXPLAYERS+1];
 static bool g_bChargerHitSurvivor[MAXPLAYERS+1][MAXPLAYERS+1];
+static int g_iChargerSlamIgnore[8];
+static int g_iChargerSlamIgnoreCount;
 
 public void Infected_OnChargerSpawn(int iClient)
 {
@@ -705,6 +719,8 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 					vecVel[2] = 0.0;
 					TeleportEntity(iVictim, NULL_VECTOR, NULL_VECTOR, vecVel);
 					
+					Infected_CheckChargerSlam(iVictim, vecVel);
+					
 					if (!TF2_IsPlayerInCondition(iVictim, TFCond_Bleeding))
 						TF2_MakeBleed(iVictim, iClient, 0.5);
 					
@@ -717,6 +733,97 @@ public void Infected_OnChargerThink(int iClient, int &iButtons)
 			}
 		}
 	}
+}
+
+static void Infected_CheckChargerSlam(int iVictim, const float vecPush[3])
+{
+	float flDuration = g_cvChargerSlamStun.FloatValue;
+	if (flDuration <= 0.0 || Stun_IsPlayerStunned(iVictim) || TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged))
+		return;
+	
+	if (Infected_IsChargerSlam(iVictim, vecPush))
+		Stun_StartPlayer(iVictim, flDuration);
+}
+
+static bool Infected_IsChargerSlam(int iVictim, const float vecPush[3])
+{
+	float vecDir[3];
+	if (NormalizeVector(vecPush, vecDir) <= 0.0)
+		return false;
+	
+	float vecStart[3], vecEnd[3], vecMins[3], vecMaxs[3];
+	GetClientAbsOrigin(iVictim, vecStart);
+	GetClientMins(iVictim, vecMins);
+	GetClientMaxs(iVictim, vecMaxs);
+	vecMins[2] += CHARGER_SLAM_STEP;
+	
+	for (int i = 0; i < 3; i++)
+		vecEnd[i] = vecStart[i] + vecDir[i] * CHARGER_SLAM_DISTANCE;
+	
+	g_iChargerSlamIgnoreCount = 0;
+	while (g_iChargerSlamIgnoreCount < sizeof(g_iChargerSlamIgnore))
+	{
+		TR_TraceHullFilter(vecStart, vecEnd, vecMins, vecMaxs, MASK_PLAYERSOLID|CONTENTS_TEAM1|CONTENTS_TEAM2, Trace_ChargerSlam);
+		if (!TR_DidHit())
+			return false;
+		
+		int iHit = TR_GetEntityIndex();
+		if (!Infected_BlocksSurvivorMovement(iHit, iVictim))
+		{
+			g_iChargerSlamIgnore[g_iChargerSlamIgnoreCount++] = iHit;
+			continue;
+		}
+		
+		if (TR_StartSolid())
+			return false;
+		
+		float vecNormal[3];
+		TR_GetPlaneNormal(null, vecNormal);
+		return vecNormal[2] < CHARGER_SLAM_MAX_SLOPE && GetVectorDotProduct(vecNormal, vecDir) < CHARGER_SLAM_FACING;
+	}
+	
+	return false;
+}
+
+bool Trace_ChargerSlam(int iEntity, int iMask)
+{
+	for (int i = 0; i < g_iChargerSlamIgnoreCount; i++)
+	{
+		if (g_iChargerSlamIgnore[i] == iEntity)
+			return false;
+	}
+	
+	return true;
+}
+
+static bool Infected_BlocksSurvivorMovement(int iEntity, int iSurvivor)
+{
+	if (iEntity == 0)
+		return true;
+	
+	if (0 < iEntity <= MaxClients)
+		return false;
+	
+	if (!IsValidEntity(iEntity))
+		return true;
+	
+	switch (GetEntProp(iEntity, Prop_Data, "m_CollisionGroup"))
+	{
+		case COLLISION_GROUP_DEBRIS, COLLISION_GROUP_DEBRIS_TRIGGER, COLLISION_GROUP_INTERACTIVE_DEBRIS, COLLISION_GROUP_IN_VEHICLE,
+			COLLISION_GROUP_WEAPON, COLLISION_GROUP_VEHICLE_CLIP, COLLISION_GROUP_PROJECTILE, COLLISION_GROUP_DOOR_BLOCKER,
+			COLLISION_GROUP_DISSOLVING, COLLISION_GROUP_PUSHAWAY, TF_COLLISIONGROUP_GRENADES, TFCOLLISION_GROUP_COMBATOBJECT,
+			TFCOLLISION_GROUP_ROCKETS, TFCOLLISION_GROUP_ROCKET_BUT_NOT_WITH_OTHER_ROCKETS:
+		{
+			return false;
+		}
+		case TFCOLLISION_GROUP_OBJECT, TFCOLLISION_GROUP_RESPAWNROOMS:
+		{
+			int iTeam = GetEntProp(iEntity, Prop_Data, "m_iTeamNum");
+			return iTeam > view_as<int>(TFTeam_Spectator) && iTeam != GetClientTeam(iSurvivor);
+		}
+	}
+	
+	return true;
 }
 
 public Action Infected_OnChargerAttack(int iVictim, int &iClient, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
@@ -800,6 +907,15 @@ public void Infected_OnScreamerThink(int iClient, int &iButtons)
 // Stalker
 ////////////////
 
+#define STALKER_BACKSTAB_KNIFE_DAMAGE	40.0
+#define STALKER_BACKSTAB_MULT			2.0
+#define STALKER_BACKSTAB_STUNNED_MULT	5.0
+
+float Infected_GetStalkerBackstabDamage(bool bVictimStunned)
+{
+	return STALKER_BACKSTAB_KNIFE_DAMAGE * (bVictimStunned ? STALKER_BACKSTAB_STUNNED_MULT : STALKER_BACKSTAB_MULT);
+}
+
 public void Infected_OnStalkerThink(int iClient, int &iButtons)
 {
 	TF2_SetCloakMeter(iClient, 100.0);
@@ -876,19 +992,41 @@ public void Infected_OnHunterTouch(int iClient, int iToucher)
 	if (!g_bHunterIsUsingPounce[iClient] || !IsValidLivingSurvivor(iToucher))
 		return;
 	
-	const float flDuration = 5.5;
-	if (Stun_StartPlayer(iToucher, flDuration))
+	if (TF2_IsPlayerInCondition(iToucher, TFCond_Ubercharged))
 	{
-		SetEntityHealth(iToucher, GetClientHealth(iToucher) - 20);
-		SetNextAttack(iClient, GetGameTime() + 2.0);
+		g_bHunterIsUsingPounce[iClient] = false;
+		g_iRageTimer[iClient] = 21;
+		return;
+	}
+	
+	if (IsLastManStanding(iToucher))
+	{
+		LastStand_OnHunterPounce(iClient, iToucher);
 		
-		//Teleport hunter inside the target
-		float vecPosClient[3];
-		GetClientAbsOrigin(iToucher, vecPosClient);
-		TeleportEntity(iClient, vecPosClient, NULL_VECTOR, NULL_VECTOR);
+		g_bHunterIsUsingPounce[iClient] = false;
+		g_iRageTimer[iClient] = 21;
+		return;
+	}
+	
+	const float flDuration = 5.5;
+	if (Stun_CanStartPlayer(iToucher))
+	{
+		SDKHooks_TakeDamage(iToucher, iClient, iClient, 20.0, DMG_CLUB|DMG_PREVENT_PHYSICS_FORCE);
 		
-		TF2_StunPlayer(iToucher, flDuration, 0.5, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, 0);
-		TF2_StunPlayer(iClient, flDuration, 1.0, TF_STUNFLAG_SLOWDOWN, 0);
+		if (IsPlayerAlive(iToucher) && !TF2_IsPlayerInCondition(iToucher, TFCond_DeadRingered) && Stun_StartPlayer(iToucher, flDuration))
+		{
+			SetNextAttack(iClient, GetGameTime() + 2.0);
+			
+			//Teleport hunter inside the target
+			float vecPosClient[3];
+			GetClientAbsOrigin(iToucher, vecPosClient);
+			TeleportEntity(iClient, vecPosClient, NULL_VECTOR, NULL_VECTOR);
+			
+			SetPlayerIntangible(iClient);
+			
+			TF2_StunPlayer(iToucher, flDuration, 0.5, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, 0);
+			TF2_StunPlayer(iClient, flDuration, 1.0, TF_STUNFLAG_SLOWDOWN, 0);
+		}
 		
 		Forward_OnHunterHit(iClient, iToucher);
 	}
@@ -921,7 +1059,7 @@ static int g_iSmokerGrabVictim[MAXPLAYERS+1];
 
 static int g_iSmokerBeamHits[MAXPLAYERS+1];
 
-const float flSmokerSpeedExtend = 1000.0;
+const float flSmokerSpeedExtend = 1200.0;
 const float flSmokerSpeedGrabbing = 100.0;
 const float flSmokerSpeedRetract = 350.0;
 const float flSmokerZPosition = -8.0;
@@ -1179,7 +1317,16 @@ bool Infected_DoBeamTrace(int iClient)
 		int iVictim = TR_GetEntityIndex(hTrace);
 		if (IsValidLivingSurvivor(iVictim))
 		{
-			if (!g_iSmokerGrabVictim[iClient])
+			if (!g_iSmokerGrabVictim[iClient] && TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged))
+			{
+				if (g_nSmokerStatus[iClient] == SmokerStatus_Extend)
+				{
+					Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+					delete hTrace;
+					return false;
+				}
+			}
+			else if (!g_iSmokerGrabVictim[iClient])
 			{
 				g_flSmokerGrabStart[iClient] = GetGameTime();
 				g_iSmokerGrabVictim[iClient] = iVictim;
@@ -1219,6 +1366,13 @@ void Infected_SmokerGrabVictim(int iClient)
 {
 	int iVictim = g_iSmokerGrabVictim[iClient];
 	
+	if (TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged))
+	{
+		g_iSmokerGrabVictim[iClient] = 0;
+		Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
+		return;
+	}
+	
 	//Calculate pull velocity towards Smoker
 	float vecOriginVictim[3], vecOriginRopeStart[3], vecOriginRopeEnd[3];
 	GetEntityCenterPoint(iVictim, vecOriginVictim);
@@ -1235,7 +1389,7 @@ void Infected_SmokerGrabVictim(int iClient)
 	}
 	else if (g_nSmokerStatus[iClient] == SmokerStatus_Retract)
 	{
-		if (!TF2_IsPlayerInCondition(iVictim, TFCond_Dazed))
+		if (!TF2_IsPlayerInCondition(iVictim, TFCond_Dazed) && !IsLastManStanding(iVictim))
 		{
 			const float flDuration = 5.0;
 			Stun_StartPlayer(iVictim, flDuration);
@@ -1358,16 +1512,20 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			
 			float flSpeed = GetEntPropFloat(iTarget, Prop_Send, "m_flMaxspeed");
 			
-			//Move target by 75% jockey and 25% themself
 			float vecJockeyEye[3], vecTargetEye[3], vecJockeyVel[3], vecTargetVel[3], vecFinalVel[3];
 			GetClientEyeAngles(iClient, vecJockeyEye);
 			GetClientEyeAngles(iTarget, vecTargetEye);
-			vecJockeyEye[2] = 0.0;
-			vecTargetEye[2] = 0.0;
+			vecJockeyEye[0] = 0.0;
+			vecTargetEye[0] = 0.0;
 			AnglesToVelocity(vecJockeyEye, vecJockeyVel, flSpeed * g_cvJockeyMovementAttacker.FloatValue);
 			AnglesToVelocity(vecTargetEye, vecTargetVel, flSpeed * g_cvJockeyMovementVictim.FloatValue);
 			
 			AddVectors(vecJockeyVel, vecTargetVel, vecFinalVel);
+			
+			float vecTargetVelocity[3];
+			GetEntPropVector(iTarget, Prop_Data, "m_vecVelocity", vecTargetVelocity);
+			vecFinalVel[2] = vecTargetVelocity[2];
+			
 			TeleportEntity(iTarget, NULL_VECTOR, NULL_VECTOR, vecFinalVel);
 			
 			//Teleport jockey to target eye
@@ -1387,6 +1545,24 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 	}
 }
 
+int Infected_GetJockeyTarget(int iClient)
+{
+	int iTarget = g_iJockeyTarget[iClient];
+	if (0 < iTarget <= MaxClients && IsValidLivingSurvivor(iTarget))
+		return iTarget;
+	
+	return 0;
+}
+
+bool Infected_IsJockeyVictim(int iVictim)
+{
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (g_iJockeyTarget[iClient] == iVictim && IsValidLivingZombie(iClient) && g_nInfected[iClient] == Infected_Jockey)
+			return true;
+	
+	return false;
+}
+
 public void Infected_OnJockeyTouch(int iClient, int iToucher)
 {
 	//Must not already be latched onto someone and be pouncing
@@ -1404,6 +1580,7 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 	g_bJockeyIsUsingPounce[iClient] = false;
 	g_iJockeyTarget[iClient] = iToucher;
 	Shake(iToucher, 3.0, 3.0);
+	SDKCall_SetSpeed(iToucher);
 	
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
 	SetEntityCollisionGroup(iClient, COLLISION_GROUP_DEBRIS_TRIGGER);
@@ -1412,6 +1589,25 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 
 public void Infected_OnJockeyDeath(int iClient, int iKiller, int iAssist)
 {
+	Infected_ResetJockey(iClient);
+}
+
+void Infected_ResetJockey(int iClient)
+{
+	int iTarget = g_iJockeyTarget[iClient];
+	
 	g_bJockeyIsUsingPounce[iClient] = false;
 	g_iJockeyTarget[iClient] = 0;
+	
+	if (!(0 < iTarget <= MaxClients))
+		return;
+	
+	if (IsClientInGame(iClient))
+	{
+		SetEntityMoveType(iClient, MOVETYPE_WALK);
+		SetEntityCollisionGroup(iClient, COLLISION_GROUP_PLAYER);
+	}
+	
+	if (IsValidLivingSurvivor(iTarget))
+		SDKCall_SetSpeed(iTarget);
 }

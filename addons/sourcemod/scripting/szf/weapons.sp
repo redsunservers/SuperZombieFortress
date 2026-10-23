@@ -22,6 +22,8 @@ enum struct Weapon
 	ConfigAttributes attribs;
 	Function pickupCallback;
 	Function spawnCallback;
+	bool bSpawnOnly;
+	char sSpawnGroup[32];
 }
 
 void Weapons_Refresh()
@@ -101,7 +103,7 @@ bool GetWeaponFromEntity(Weapon buffer, int iEntity)
 	return false;
 }
 
-void GetWeaponFromIndex(Weapon buffer, int iIndex)
+bool GetWeaponFromIndex(Weapon buffer, int iIndex)
 {
 	int iLength = g_Weapons.Length;
 	for (int i = 0; i < iLength; i++) 
@@ -112,12 +114,14 @@ void GetWeaponFromIndex(Weapon buffer, int iIndex)
 		if (iIndex == wep.iIndex)
 		{
 			buffer = wep;
-			return;
+			return true;
 		}
 	}
+	
+	return false;
 }
 
-ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, ArrayList aSpawnWeapons = null, TFClassType nFilter = TFClass_Unknown)
+ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, ArrayList aSpawnWeapons = null, TFClassType nFilter = TFClass_Unknown, bool bIncludeSpawnOnly = false)
 {
 	ArrayList aList = new ArrayList(sizeof(Weapon));
 	
@@ -127,7 +131,10 @@ ArrayList GetAllWeaponsWithRarity(WeaponRarity iRarity, ArrayList aSpawnWeapons 
 		Weapon wep;
 		g_Weapons.GetArray(g_WepIndexesByRarity[iRarity].Get(i), wep);
 		
-		if (aSpawnWeapons && aSpawnWeapons.FindValue(wep.iIndex) != -1 && GetRandomFloat(0.0, 1.0) >= g_cvWeaponSpawnReappear.FloatValue)
+		if (wep.bSpawnOnly && !bIncludeSpawnOnly)
+			continue;
+		
+		if (iRarity != WeaponRarity_Rare && aSpawnWeapons && aSpawnWeapons.FindValue(wep.iIndex) != -1 && GetRandomFloat(0.0, 1.0) >= g_cvWeaponSpawnReappear.FloatValue)
 			continue;	// spawn weapons have a chance to not reappear
 		
 		if (nFilter == TFClass_Unknown)
@@ -168,6 +175,41 @@ int GetRarityWeaponCount(WeaponRarity iRarity)
 	return g_WepIndexesByRarity[iRarity].Length;
 }
 
+ArrayList Weapons_GetSpawnGroups()
+{
+	ArrayList aGroups = new ArrayList(ByteCountToCells(32));
+	
+	int iLength = g_Weapons.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		Weapon wep;
+		g_Weapons.GetArray(i, wep);
+		
+		if (wep.sSpawnGroup[0] && aGroups.FindString(wep.sSpawnGroup) == -1)
+			aGroups.PushString(wep.sSpawnGroup);
+	}
+	
+	return aGroups;
+}
+
+ArrayList Weapons_GetSpawnGroupMembers(const char[] sGroup)
+{
+	ArrayList aList = new ArrayList(sizeof(Weapon));
+	
+	int iLength = g_Weapons.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		Weapon wep;
+		g_Weapons.GetArray(i, wep);
+		
+		if (StrEqual(wep.sSpawnGroup, sGroup, false))
+			aList.PushArray(wep);
+	}
+	
+	aList.Sort(Sort_Random, Sort_Integer);
+	return aList;
+}
+
 int GetReskinIndex(char[] sModel)
 {
 	int iIndex = -1;
@@ -196,7 +238,11 @@ void Weapons_ReplaceEntityModel(int iEnt, int iIndex)
 // -----------------------------------------------------------
 public bool Weapons_OnPickup_Regen(int iClient)
 {
-	TF2_AddCondition(iClient, TFCond_HalloweenQuickHeal, 5.0);
+	int iOverheal = SDKCall_GetMaxHealth(iClient) * 2;
+	if (GetClientHealth(iClient) < iOverheal)
+		SetEntityHealth(iClient, iOverheal);
+	
+	LastStand_AllowHealth(iClient);
 	
 	GivePlayerAmmo(iClient, 9999, 1, true);	// TF_AMMO_PRIMARY
 	GivePlayerAmmo(iClient, 9999, 2, true);	// TF_AMMO_SECONDARY

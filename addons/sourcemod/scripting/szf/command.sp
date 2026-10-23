@@ -15,6 +15,7 @@ void Command_Init()
 	RegConsoleCmd("sm_zf", Command_MainMenu);
 	RegConsoleCmd("sm_szf", Command_MainMenu);
 	RegConsoleCmd("sm_music", Command_MusicToggle);
+	RegConsoleCmd("sm_queue", Command_Queue, "Show the zombie queue.");
 }
 
 public Action Command_ServerTank(int iArgs)
@@ -32,8 +33,11 @@ public Action Command_ServerRage(int iArgs)
 		return Plugin_Continue;
 	
 	char sDuration[256];
-	GetCmdArgString(sDuration, sizeof(sDuration));
+	GetCmdArg(1, sDuration, sizeof(sDuration));
 	float flDuration = StringToFloat(sDuration);
+	
+	if (flDuration <= 0.0)
+		flDuration = 20.0;
 	
 	ZombieRage(flDuration);
 	return Plugin_Handled;
@@ -128,6 +132,7 @@ public Action Command_ReloadConfigs(int iClient, int iArgs)
 	Config_Refresh();
 	Classes_Refresh();
 	Weapons_Refresh();
+	MapConfig_Load();
 	
 	return Plugin_Handled;
 }
@@ -184,6 +189,17 @@ public Action Command_MainMenu(int iClient, int iArgs)
 	
 	Menu_DisplayMain(iClient);
 
+	return Plugin_Handled;
+}
+
+public Action Command_Queue(int iClient, int iArgs)
+{
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	if (IsValidClient(iClient))
+		Menu_DisplayQueue(iClient);
+	
 	return Plugin_Handled;
 }
 

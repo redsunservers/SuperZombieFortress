@@ -11,6 +11,13 @@ char g_sViewModelsArms[][PLATFORM_MAX_PATH] = {
 	"models/weapons/c_models/c_engineer_arms.mdl",
 };
 
+static bool g_bCustomThisLife[MAXPLAYERS + 1] = {true, ...};
+
+void ViewModel_TakePreference(int iClient)
+{
+	g_bCustomThisLife[iClient] = g_bCustomViewModels[iClient];
+}
+
 void ViewModel_UpdateClient(int iClient)
 {
 	int iViewModel = GetEntPropEnt(iClient, Prop_Send, "m_hViewModel");
@@ -20,9 +27,17 @@ void ViewModel_UpdateClient(int iClient)
 		ViewModel_RemoveWearable(iClient);
 		AddEntityEffect(iViewModel, EF_NODRAW);
 	}
-	else if (!g_ClientClasses[iClient].sViewModel[0])
+	else if (!g_ClientClasses[iClient].sViewModel[0] || !g_bCustomThisLife[iClient])
 	{
 		ViewModel_RemoveWearable(iClient);
+		
+		if (g_ClientClasses[iClient].sViewModel[0])
+		{
+			if (iViewModel != INVALID_ENT_REFERENCE && GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon") != INVALID_ENT_REFERENCE)
+				RemoveEntityEffect(iViewModel, EF_NODRAW);
+			
+			ViewModel_SetForeignWeaponArms(iClient, iViewModel);
+		}
 	}
 	else if (!g_ClientClasses[iClient].bViewModelAnim)
 	{
@@ -92,6 +107,34 @@ void ViewModel_UpdateClient(int iClient)
 			SetEntProp(iWeapon, Prop_Send, "m_nCustomViewmodelModelIndex", iModelIndex);
 			AddEntityEffect(iWeapon, EF_NODRAW);
 		}
+	}
+}
+
+static void ViewModel_SetForeignWeaponArms(int iClient, int iViewModel)
+{
+	int iWeapon = GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon");
+	if (iWeapon == INVALID_ENT_REFERENCE || iViewModel == INVALID_ENT_REFERENCE)
+		return;
+	
+	int iIndex = GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex");
+	if (TF2Econ_GetItemLoadoutSlot(iIndex, TF2_GetPlayerClass(iClient)) >= 0)
+		return;
+	
+	for (int i = 1; i < sizeof(g_sViewModelsArms); i++)
+	{
+		if (!g_sViewModelsArms[i][0] || TF2Econ_GetItemLoadoutSlot(iIndex, view_as<TFClassType>(i)) < 0)
+			continue;
+		
+		int iModelIndex = PrecacheModel(g_sViewModelsArms[i]);
+		
+		SetEntityModel(iViewModel, g_sViewModelsArms[i]);
+		RemoveEntityEffect(iViewModel, EF_NODRAW);
+		
+		SetEntityModel(iWeapon, g_sViewModelsArms[i]);
+		SetEntProp(iWeapon, Prop_Send, "m_iViewModelIndex", iModelIndex);
+		SetEntProp(iWeapon, Prop_Send, "m_nCustomViewmodelModelIndex", iModelIndex);
+		AddEntityEffect(iWeapon, EF_NODRAW);
+		return;
 	}
 }
 
@@ -168,7 +211,7 @@ void ViewModel_ResetArms(int iClient)
 void ViewModel_SetAnimation(int iClient, const char[] sActivity)
 {
 	char sBuffer[256];
-	Format(sBuffer, sizeof(sBuffer), "self.ResetSequence(self.LookupSequence(`%s`))", sActivity);	// SetSequence/ResetSequence
+	Format(sBuffer, sizeof(sBuffer), "local s = self.LookupSequence(`%s`); if (s >= 0) self.ResetSequence(s)", sActivity);	// SetSequence/ResetSequence
 	SetVariantString(sBuffer);
 	AcceptEntityInput(GetEntPropEnt(iClient, Prop_Send, "m_hViewModel"), "RunScriptCode");
 }

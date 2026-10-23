@@ -164,6 +164,9 @@ ArrayList Config_LoadWeaponData()
 				
 				kv.GetString("sound", wep.sSound, sizeof(wep.sSound));
 				
+				wep.bSpawnOnly = kv.GetNum("spawn_only", 0) != 0;
+				kv.GetString("spawn_group", wep.sSpawnGroup, sizeof(wep.sSpawnGroup));
+				
 				kv.GetString("callback_pickup", sBuffer, sizeof(sBuffer));
 				wep.pickupCallback = GetFunctionByName(null, sBuffer);
 				
