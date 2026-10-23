@@ -211,10 +211,20 @@ public int Menu_SelectClassesInfo(Menu hMenu, MenuAction action, int iClient, in
 }
 
 #define QUEUE_LIST_ROWS	8
+#define QUEUE_LIST_ROWS_PAGED	7
+
+enum PanelSound
+{
+	PanelSound_Item,
+	PanelSound_ExitBack,
+	PanelSound_Exit,
+}
 
 static bool g_bQueuePanelBack[MAXPLAYERS+1];
+static int g_iQueuePanelPage[MAXPLAYERS+1];
+static int g_iQueuePanelPages[MAXPLAYERS+1];
 
-void Menu_DisplayQueue(int iClient, bool bFromMain = false)
+void Menu_DisplayQueue(int iClient, bool bFromMain = false, int iPage = 0)
 {
 	if (!Queue_IsEnabled())
 	{
@@ -228,13 +238,28 @@ void Menu_DisplayQueue(int iClient, bool bFromMain = false)
 	int[] iClients = new int[MaxClients];
 	int iLength = Queue_GetOrder(iClients);
 	
+	int iRows = QUEUE_LIST_ROWS;
+	int iPages = 1;
+	if (iLength > QUEUE_LIST_ROWS)
+	{
+		iRows = QUEUE_LIST_ROWS_PAGED;
+		iPages = (iLength + iRows - 1) / iRows;
+	}
+	
+	if (iPage > iPages - 1)
+		iPage = iPages - 1;
+	
+	if (iPage < 0)
+		iPage = 0;
+	
 	char sBuffer[128];
 	Panel hPanel = new Panel();
 	
 	Format(sBuffer, sizeof(sBuffer), "%T", "Menu_QueueTitle", iClient);
 	hPanel.SetTitle(sBuffer);
 	
-	for (int iRow = 1; iRow <= QUEUE_LIST_ROWS; iRow++)
+	int iFirstRow = iPage * iRows + 1;
+	for (int iRow = iFirstRow; iRow < iFirstRow + iRows; iRow++)
 	{
 		if (iRow <= iLength)
 		{
@@ -260,12 +285,30 @@ void Menu_DisplayQueue(int iClient, bool bFromMain = false)
 		iKeys |= (1 << 0);
 	}
 	
+	if (iPage > 0)
+	{
+		Format(sBuffer, sizeof(sBuffer), "%T", "Menu_QueuePrevious", iClient);
+		hPanel.CurrentKey = 8;
+		hPanel.DrawItem(sBuffer);
+		iKeys |= (1 << 7);
+	}
+	
+	if (iPage < iPages - 1)
+	{
+		Format(sBuffer, sizeof(sBuffer), "%T", "Menu_QueueNext", iClient);
+		hPanel.CurrentKey = 9;
+		hPanel.DrawItem(sBuffer);
+		iKeys |= (1 << 8);
+	}
+	
 	hPanel.DrawText(" ");
 	Format(sBuffer, sizeof(sBuffer), "%T", "Menu_QueueExit", iClient);
 	hPanel.DrawText(sBuffer);
 	hPanel.SetKeys(iKeys);
 	
 	g_bQueuePanelBack[iClient] = bFromMain;
+	g_iQueuePanelPage[iClient] = iPage;
+	g_iQueuePanelPages[iClient] = iPages;
 	hPanel.Send(iClient, Menu_SelectQueue, MENU_TIME_FOREVER);
 	delete hPanel;
 }
@@ -277,23 +320,34 @@ public int Menu_SelectQueue(Menu hMenu, MenuAction action, int iClient, int iSel
 	
 	if (iSelect == 1 && g_bQueuePanelBack[iClient])
 	{
-		Menu_PlayPanelSound(iClient, true);
+		Menu_PlayPanelSound(iClient, PanelSound_ExitBack);
 		Menu_DisplayMain(iClient);
+	}
+	else if (iSelect == 8 && g_iQueuePanelPage[iClient] > 0)
+	{
+		Menu_PlayPanelSound(iClient, PanelSound_Item);
+		Menu_DisplayQueue(iClient, g_bQueuePanelBack[iClient], g_iQueuePanelPage[iClient] - 1);
+	}
+	else if (iSelect == 9 && g_iQueuePanelPage[iClient] < g_iQueuePanelPages[iClient] - 1)
+	{
+		Menu_PlayPanelSound(iClient, PanelSound_Item);
+		Menu_DisplayQueue(iClient, g_bQueuePanelBack[iClient], g_iQueuePanelPage[iClient] + 1);
 	}
 	else if (iSelect == 10)
 	{
-		Menu_PlayPanelSound(iClient, false);
+		Menu_PlayPanelSound(iClient, PanelSound_Exit);
 	}
 	
 	return 0;
 }
 
+static char g_sMenuSoundItem[PLATFORM_MAX_PATH];
 static char g_sMenuSoundExit[PLATFORM_MAX_PATH];
 static char g_sMenuSoundExitBack[PLATFORM_MAX_PATH];
 static bool g_bMenuSoundsRead;
 static ConVar g_cvMenuSounds;
 
-static void Menu_PlayPanelSound(int iClient, bool bExitBack)
+static void Menu_PlayPanelSound(int iClient, PanelSound nSound)
 {
 	if (!g_bMenuSoundsRead)
 	{
@@ -303,6 +357,7 @@ static void Menu_PlayPanelSound(int iClient, bool bExitBack)
 		GameData hCore = new GameData("core.games");
 		if (hCore)
 		{
+			hCore.GetKeyValue("MenuItemSound", g_sMenuSoundItem, sizeof(g_sMenuSoundItem));
 			hCore.GetKeyValue("MenuExitSound", g_sMenuSoundExit, sizeof(g_sMenuSoundExit));
 			hCore.GetKeyValue("MenuExitBackSound", g_sMenuSoundExitBack, sizeof(g_sMenuSoundExitBack));
 			delete hCore;
@@ -312,14 +367,23 @@ static void Menu_PlayPanelSound(int iClient, bool bExitBack)
 	if (g_cvMenuSounds && !g_cvMenuSounds.BoolValue)
 		return;
 	
-	if (bExitBack)
+	switch (nSound)
 	{
-		if (g_sMenuSoundExitBack[0])
-			EmitSoundToClient(iClient, g_sMenuSoundExitBack);
-	}
-	else if (g_sMenuSoundExit[0])
-	{
-		EmitSoundToClient(iClient, g_sMenuSoundExit);
+		case PanelSound_Item:
+		{
+			if (g_sMenuSoundItem[0])
+				EmitSoundToClient(iClient, g_sMenuSoundItem);
+		}
+		case PanelSound_ExitBack:
+		{
+			if (g_sMenuSoundExitBack[0])
+				EmitSoundToClient(iClient, g_sMenuSoundExitBack);
+		}
+		case PanelSound_Exit:
+		{
+			if (g_sMenuSoundExit[0])
+				EmitSoundToClient(iClient, g_sMenuSoundExit);
+		}
 	}
 }
 

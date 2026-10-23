@@ -1057,7 +1057,7 @@ void EndGracePeriod()
 	
 	Respawn_OnRoundActive();
 	
-	CheckLastSurvivor();
+	LastStand_OnRoundActive();
 }
 
 ////////////////////////////////////////////////////////////
@@ -1877,7 +1877,7 @@ public Action Timer_RespawnPlayer(Handle hTimer, int iClient)
 
 void CheckLastSurvivor(int iIgnoredClient = 0)
 {
-	if (g_bLastSurvivor)
+	if (g_bLastSurvivor || g_nRoundState != SZFRoundState_Active)
 		return;
 	
 	int iLastSurvivor;
@@ -1895,6 +1895,14 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	if (!iLastSurvivor)
 		return;
 	
+	if (LastStand_IsLoneSurvivor(iLastSurvivor) && !IsValidSurvivor(iIgnoredClient))
+		return;
+	
+	StartLastSurvivor(iLastSurvivor);
+}
+
+void StartLastSurvivor(int iLastSurvivor)
+{
 	TF2_AddCondition(iLastSurvivor, TFCond_KingRune, g_cvLastStandKingRuneDuration.FloatValue);
 	TF2_AddCondition(iLastSurvivor, TFCond_DefenseBuffNoCritBlock, g_cvLastStandDefenseDuration.FloatValue);
 	SetEntityHealth(iLastSurvivor, SDKCall_GetMaxHealth(iLastSurvivor));

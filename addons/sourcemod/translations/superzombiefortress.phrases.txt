@@ -784,6 +784,16 @@
 		"en"		"<- Back"
 	}
 	
+	"Menu_QueuePrevious"
+	{
+		"en"		"Previous page"
+	}
+	
+	"Menu_QueueNext"
+	{
+		"en"		"Next page"
+	}
+	
 	"Menu_QueueExit"
 	{
 		"en"		"0. Exit"

@@ -12,7 +12,7 @@ void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 		SDKHook(iEntity, SDKHook_SpawnPost, Pickup_SpawnPost);
 		
 		if (StrContains(sClassname, "item_healthkit") == 0)
-			SDKHook(iEntity, SDKHook_TouchPost, HealthKit_TouchPost);
+			SDKHook(iEntity, SDKHook_Touch, HealthKit_Touch);
 	}
 	else if (StrEqual(sClassname, "tf_projectile_jar_gas"))
 	{

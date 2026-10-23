@@ -1,5 +1,6 @@
 #define LASTSTAND_HUNTER_DAMAGE		20.0
 #define LASTSTAND_INTANGIBLE_MIN	0.5
+#define LASTSTAND_LONE_HEALTH		0.25
 
 static int g_iLastStandHealth[MAXPLAYERS + 1] = {-1, ...};
 static int g_iLastStandHitHealth[MAXPLAYERS + 1] = {-1, ...};
@@ -9,6 +10,7 @@ static float g_flIntangibleStart[MAXPLAYERS + 1];
 static float g_flBonkEnd[MAXPLAYERS + 1];
 static float g_flLastStandStart;
 static bool g_bLastStandTankSent;
+static int g_iLoneSurvivor;
 
 bool IsLastManStanding(int iClient)
 {
@@ -47,6 +49,51 @@ void LastStand_Update()
 			TF2_RespawnPlayer2(iClient);
 }
 
+void LastStand_OnRoundActive()
+{
+	g_iLoneSurvivor = LastStand_GetOnlySurvivor();
+	if (g_iLoneSurvivor)
+		LastStand_CheckLoneSurvivor(g_iLoneSurvivor);
+}
+
+bool LastStand_IsLoneSurvivor(int iClient)
+{
+	return iClient && iClient == g_iLoneSurvivor;
+}
+
+void LastStand_CheckLoneSurvivor(int iClient)
+{
+	if (!LastStand_IsLoneSurvivor(iClient) || g_bLastSurvivor || g_nRoundState != SZFRoundState_Active)
+		return;
+	
+	if (LastStand_GetOnlySurvivor() != iClient)
+		return;
+	
+	int iHealth = GetClientHealth(iClient);
+	if (float(iHealth) >= float(SDKCall_GetMaxHealth(iClient)) * LASTSTAND_LONE_HEALTH)
+		return;
+	
+	g_iLoneSurvivor = 0;
+	StartLastSurvivor(iClient);
+}
+
+static int LastStand_GetOnlySurvivor()
+{
+	int iSurvivor;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (IsValidLivingSurvivor(iClient))
+		{
+			if (iSurvivor)
+				return 0;
+			
+			iSurvivor = iClient;
+		}
+	}
+	
+	return iSurvivor;
+}
+
 void LastStand_AllowHealth(int iClient)
 {
 	if (IsLastManStanding(iClient))
@@ -73,12 +120,17 @@ void LastStand_ClientDisconnect(int iClient)
 	g_iLastStandHitHealth[iClient] = -1;
 	g_bIntangible[iClient] = false;
 	g_flBonkEnd[iClient] = 0.0;
+	
+	if (g_iLoneSurvivor == iClient)
+		g_iLoneSurvivor = 0;
 }
 
-public void HealthKit_TouchPost(int iEntity, int iOther)
+public Action HealthKit_Touch(int iEntity, int iOther)
 {
-	if (0 < iOther <= MaxClients)
-		LastStand_AllowHealth(iOther);
+	if (0 < iOther <= MaxClients && IsLastManStanding(iOther))
+		return Plugin_Handled;
+	
+	return Plugin_Continue;
 }
 
 void LastStand_OnPreThink(int iClient)

@@ -446,7 +446,10 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 	int iDamageAmount = event.GetInt("damageamount");
 	
 	if (IsValidClient(iVictim))
+	{
 		LastStand_OnHurt(iVictim);
+		LastStand_CheckLoneSurvivor(iVictim);
+	}
 	
 	if (IsValidClient(iVictim) && IsValidClient(iAttacker) && iAttacker != iVictim)
 	{
