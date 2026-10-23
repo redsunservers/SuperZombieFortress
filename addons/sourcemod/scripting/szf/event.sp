@@ -34,6 +34,7 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	
 	//Prepare for a completely new round
 	TFTeam nTeam = view_as<TFTeam>(event.GetInt("team"));
+	Queue_OnRoundEnd(nTeam);
 	g_bNewFullRound = event.GetBool("full_round");
 	g_nRoundState = SZFRoundState_End;
 	
@@ -43,8 +44,10 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 		Sound_PlayMusicToAll("win");
 	
 	SetGlow();
-	UpdateZombieDamageScale();
 	g_bTankRefreshed = false;
+	
+	MapConfig_OnRoundEnd();
+	Respawn_OnRoundEnd();
 	
 	return Plugin_Continue;
 }
@@ -75,7 +78,9 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 	g_iDamageTakenLife[iClient] = 0;
 	g_iDamageDealtLife[iClient] = 0;
 	
+	Respawn_OnSpawn(iClient);
 	ResetClientState(iClient);
+	LastStand_ResetClient(iClient);
 	DropCarryingItem(iClient, false);
 	
 	SetEntityRenderColor(iClient, 255, 255, 255, 255);
@@ -93,9 +98,14 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		{
 			nInfected  = g_nNextInfected[iClient];
 		}
-		else if (g_bSpawnAsSpecialInfected[iClient])
+		else if (nInfected == Infected_None && SpecialQueue_CanTake(iClient))
 		{
-			g_bSpawnAsSpecialInfected[iClient] = false;
+			bool bIgnoreCooldown = SpecialQueue_IsGuaranteed(iClient);
+			if (!bIgnoreCooldown)
+			{
+				bIgnoreCooldown = g_bSpecialIgnoreCooldown[iClient];
+				g_bSpecialIgnoreCooldown[iClient] = false;
+			}
 			
 			//Create list of all special infected to randomize, apart from tank and non-special infected
 			int iLength = view_as<int>(Infected_Count) - 2;
@@ -118,6 +128,24 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 				
 				i++;
 			}
+			
+			if (nInfected == Infected_None && bIgnoreCooldown)
+			{
+				for (i = 0; i < iLength && nInfected == Infected_None; i++)
+					if (IsValidInfected(nSpecialInfected[i]))
+						nInfected = nSpecialInfected[i];
+			}
+			
+			if (nInfected != Infected_None)
+			{
+				SpecialQueue_Take(iClient);
+				
+				Respawn_OnSpecialPicked(iClient, nInfected);
+			}
+		}
+		else if (nInfected == Infected_None && !SpecialQueue_Has(iClient))
+		{
+			nInfected = Respawn_TakePendingPartner(iClient);
 		}
 		
 		g_nNextInfected[iClient] = Infected_None;
@@ -146,9 +174,18 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 	}
 	else if (IsZombie(iClient))
 	{
+		bool bForcedSniper = Respawn_TakeForcedSniper(iClient);
+		
 		if (g_nInfected[iClient] != Infected_None && nClass != GetInfectedClass(g_nInfected[iClient]))
 		{
 			TF2_SetPlayerClass(iClient, GetInfectedClass(g_nInfected[iClient]));
+			TF2_RespawnPlayer(iClient);
+			return Plugin_Continue;
+		}
+		
+		if (bForcedSniper && g_nInfected[iClient] == Infected_None && nClass != TFClass_Sniper && IsValidZombieClass(TFClass_Sniper))
+		{
+			TF2_SetPlayerClass(iClient, TFClass_Sniper);
 			TF2_RespawnPlayer(iClient);
 			return Plugin_Continue;
 		}
@@ -176,13 +213,18 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 			Call_PushCell(iClient);
 			Call_Finish();
 		}
+		
+		if (g_nInfected[iClient] == Infected_Boomer)
+			Respawn_OnBoomerSpawn(iClient);
+		
 		SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
 		SetEntityRenderColor(iClient, g_ClientClasses[iClient].iColor[0], g_ClientClasses[iClient].iColor[1], g_ClientClasses[iClient].iColor[2], g_ClientClasses[iClient].iColor[3]);
 		
 		if (g_ClientClasses[iClient].sMessage[0])
 			CPrintToChat(iClient, "%t", g_ClientClasses[iClient].sMessage, g_ClientClasses[iClient].iRageCooldown);
 		
-		if (g_nInfected[iClient] != Infected_None && g_nInfected[iClient] != Infected_Tank && g_iInfectedCooldown[g_nInfected[iClient]] != iClient)
+		bool bPartner = Respawn_TakePartnerSpawn(iClient);
+		if (g_nInfected[iClient] != Infected_None && g_nInfected[iClient] != Infected_Tank && !bPartner && g_iInfectedCooldown[g_nInfected[iClient]] != iClient)
 		{
 			//Set new cooldown
 			g_flInfectedCooldown[g_nInfected[iClient]] = GetGameTime();	//time for cooldown
@@ -203,6 +245,8 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 			g_bShouldBacteriaPlay[iClient] = false;
 		}
 	}
+	
+	SpecialQueue_OnSpawned(iClient);
 	
 	SetGlow();
 	
@@ -230,9 +274,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	{
 		g_iKillsThisLife[iKillers[0]]++;
 		
-		//50%
-		if (g_nNextInfected[iKillers[0]] == Infected_None && !GetRandomInt(0, 1) && g_nRoundState == SZFRoundState_Active)
-			g_bSpawnAsSpecialInfected[iKillers[0]] = true;
+		if (g_nRoundState == SZFRoundState_Active && IsValidSurvivor(iVictim))
+			SpecialQueue_Add(iKillers[0], "kill");
 		
 		if (g_iKillsThisLife[iKillers[0]] == 3 && g_nInfected[iKillers[0]] != Infected_Tank)
 			TF2_AddCondition(iKillers[0], TFCond_DefenseBuffed, TFCondDuration_Infinite);
@@ -240,9 +283,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	
 	if (!bDeadRinger && IsValidZombie(iKillers[1]) && iKillers[1] != iVictim)
 	{
-		//20%
-		if (g_nNextInfected[iVictim] == Infected_None && !GetRandomInt(0, 4) && g_nRoundState == SZFRoundState_Active)
-			g_bSpawnAsSpecialInfected[iKillers[1]] = true;
+		if (!GetRandomInt(0, 1) && g_nRoundState == SZFRoundState_Active && IsValidSurvivor(iVictim))
+			SpecialQueue_Add(iKillers[1], "assist");
 	}
 	
 	if (iVictim != iKillers[0] && iKillers[0] == iInflictor)
@@ -277,6 +319,11 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	g_iMaxHealth[iVictim] = -1;
 	g_bShouldBacteriaPlay[iVictim] = true;
 	
+	if (!bDeadRinger)
+		SpecialQueue_OnPlayerDeath(iVictim);
+	
+	Queue_OnPlayerDeath(iVictim, iKillers[0], bDeadRinger);
+	
 	//Handle zombie death logic, all round states.
 	if (IsValidZombie(iVictim))
 	{
@@ -296,7 +343,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		
 		//10%
 		if (IsValidSurvivor(iKillers[0]) && !GetRandomInt(0, 9) && g_nRoundState == SZFRoundState_Active)
-			g_bSpawnAsSpecialInfected[iVictim] = true;
+			SpecialQueue_Add(iVictim, "killed by survivor");
 		
 		//Set special infected state
 		g_nInfected[iVictim] = Infected_None;
@@ -312,17 +359,27 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			}
 		}
 		
-		//Zombie rage: instant respawn
-		if (g_bZombieRage && g_nRoundState == SZFRoundState_Active)
+		if (g_nRoundState == SZFRoundState_Active && !bDeadRinger)
 		{
-			float flTimer = 0.1;
+			float flTimer;
+			if (g_bZombieRage)
+			{
+				flTimer = 0.1;
+				
+				//Check if respawn stress reaches time limit, if so add cooldown/timer so we dont instant respawn too much zombies at once
+				if (g_flRageRespawnStress > GetGameTime())
+					flTimer += g_flRageRespawnStress - GetGameTime();
+				
+				g_flRageRespawnStress += g_cvFrenzyRespawnStress.FloatValue / GetActivePlayerCount();	// Add stress time for every respawns
+				
+				Respawn_OnFrenzyZombieDeath(iVictim);
+			}
+			else
+			{
+				flTimer = Respawn_GetTime();
+			}
 			
-			//Check if respawn stress reaches time limit, if so add cooldown/timer so we dont instant respawn too much zombies at once
-			if (g_flRageRespawnStress > GetGameTime())
-				flTimer += g_flRageRespawnStress - GetGameTime();
-			
-			g_flRageRespawnStress += g_cvFrenzyRespawnStress.FloatValue / GetActivePlayerCount();	// Add stress time for every respawns
-			CreateTimer(flTimer, Timer_RespawnPlayer, iVictim);
+			Respawn_ScheduleZombie(iVictim, flTimer);
 		}
 		
 		//Check for spec bypass from AFK manager
@@ -348,6 +405,9 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		
 		//Set zombie time to iVictim as he started playing zombie
 		g_flTimeStartAsZombie[iVictim] = GetGameTime();
+		
+		if (IsValidZombie(iKillers[0]))
+			DroppedWeapon_OnSurvivorDeath(iVictim);
 		
 		//Transfer player to zombie team.
 		CreateTimer(6.0, Timer_Zombify, iVictim, TIMER_FLAG_NO_MAPCHANGE);
@@ -385,10 +445,19 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 	int iAttacker = GetClientOfUserId(event.GetInt("attacker"));
 	int iDamageAmount = event.GetInt("damageamount");
 	
+	if (IsValidClient(iVictim))
+	{
+		LastStand_OnHurt(iVictim);
+		LastStand_CheckLoneSurvivor(iVictim);
+	}
+	
 	if (IsValidClient(iVictim) && IsValidClient(iAttacker) && iAttacker != iVictim)
 	{
 		g_iDamageTakenLife[iVictim] += iDamageAmount;
 		g_iDamageDealtLife[iAttacker] += iDamageAmount;
+		
+		Queue_OnPlayerHurt(iVictim, iAttacker);
+		SpecialQueue_OnPlayerHurt(iVictim, iAttacker, iDamageAmount);
 		
 		if (IsValidZombie(iAttacker))
 		{
@@ -429,7 +498,7 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 			// Starting half of max health due to side effect of mini building
 			int iOffset = FindSendPropInfo("CObjectDispenser", "m_flPercentageConstructed") + 4;	// m_flHealth
 			
-			const iMaxHealth = 100;	// TF2 game forces it to be 100 due to mini building
+			int iMaxHealth = g_cvDispenserHealth.IntValue;
 			
 			SetEntProp(iEntity, Prop_Send, "m_iMaxHealth", iMaxHealth);
 			SetEntDataFloat(iEntity, iOffset, float(iMaxHealth) * 0.5);
@@ -447,6 +516,8 @@ public Action Event_PlayerHealed(Event event, const char[] name, bool dontBroadc
 	
 	// Don't think there a better way to do this in a simple way
 	int iClient = GetClientOfUserId(event.GetInt("healer"));
+	Queue_OnPlayerHealed(GetClientOfUserId(event.GetInt("patient")), iClient, event.GetInt("amount"));
+	
 	if (!IsValidSurvivor(iClient))
 		return Plugin_Continue;
 	

@@ -718,6 +718,20 @@ stock void TF2_RespawnPlayer2(int iClient)
 	TF2_RespawnPlayer(iClient);
 }
 
+stock void SetTeamRespawnWaveTime(TFTeam nTeam, float flWaveTime)
+{
+	int iEntity = FindEntityByClassname(-1, "tf_gamerules");
+	if (iEntity != -1)
+	{
+		SetVariantFloat(flWaveTime);
+		switch (nTeam)
+		{
+			case TFTeam_Blue: AcceptEntityInput(iEntity, "SetBlueTeamRespawnWaveTime", -1, -1, 0);
+			case TFTeam_Red: AcceptEntityInput(iEntity, "SetRedTeamRespawnWaveTime", -1, -1, 0);
+		}
+	}
+}
+
 stock void SetTeamRespawnTime(TFTeam nTeam, float flTime)
 {
 	int iEntity = FindEntityByClassname(-1, "tf_gamerules");
@@ -886,6 +900,9 @@ stock float TF2_TranslateAttributeValue(int iIndex, float flValue)
 	};
 	
 	Address pAttrib = TF2Econ_GetAttributeDefinitionAddress(iIndex);
+	if (pAttrib == Address_Null)
+		return flValue;
+	
 	int iFormat = LoadFromAddress(pAttrib + view_as<Address>(0x24), NumberType_Int32);
 	
 	switch (iFormat)
@@ -1307,9 +1324,6 @@ stock void CPrintToChatDebug(const char[] sFormat, any ...)
 //SDKHooks_TakeDamage doesn't call OnTakeDamage, so we need to scale separately for 'indirect' damage
 stock void DealDamage(int iAttacker, int iVictim, float flDamage)
 {
-	if (g_flZombieDamageScale < 1.0)
-		flDamage *= g_flZombieDamageScale;
-	
 	SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, flDamage, DMG_PREVENT_PHYSICS_FORCE);
 }
 

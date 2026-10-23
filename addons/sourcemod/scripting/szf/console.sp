@@ -30,7 +30,7 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 	else if (StrEqual(sCommand, "spectate", false))
 		strcopy(sArg, sizeof(sArg), "spectate");	
 	else if (StrEqual(sCommand, "autoteam", false))
-		strcopy(sArg, sizeof(sArg), "autoteam");		
+		strcopy(sArg, sizeof(sArg), "auto");
 	
 	//Check if client is trying to skip playing as zombie by joining spectator
 	if (StrEqual(sArg, "spectate", false))

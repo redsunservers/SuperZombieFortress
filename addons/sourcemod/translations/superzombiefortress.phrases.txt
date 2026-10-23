@@ -101,6 +101,42 @@
 		"en"		"{1}You have been forcibly set to the Infected team because you avoided participating when playing on {2}, {3}."
 	}
 	
+	"Infected_OptInStart"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}You opted in to always play as zombie. {2}Change this in /szf > Settings and Preferences."
+	}
+	
+	"Infected_OptInFull"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}All zombie slots are taken this round, so you start as a Survivor."
+	}
+	
+	"Queue_RoundZombie"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}[Super Zombie Fortress] {2}Your queue points have been set to 0 for starting as zombie"
+	}
+	
+	"Queue_RoundSurvivor"
+	{
+		"#format"	"{1:s},{2:s},{3:d},{4:d}"
+		"en"		"{1}[Super Zombie Fortress] {2}You have been given {3} queue points (Total: {4})"
+	}
+	
+	"Queue_SaveConfirmed"
+	{
+		"#format"	"{1:s},{2:s},{3:N},{4:d}"
+		"en"		"{1}Save! {2}{3} survived thanks to you. Saves this round: {4}."
+	}
+	
+	"Queue_Disabled"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}The zombie queue is turned off on this server."
+	}
+	
 	"Infected_RageReady"
 	{
 		"en"		"Rage is ready!"
@@ -312,7 +348,7 @@
 	"SpecialInfected_Charger"
 	{
 		"#format"	"{1:d}"
-		"en"		"{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}({1} second cooldown)"
+		"en"		"{green}YOU ARE A CHARGER:\n{orange}- Call 'MEDIC!' to CHARGE! {yellow}({1} second cooldown)\n{orange}- Push survivors into walls or objects to STUN them!"
 	}
 	
 	"SpecialInfected_Screamer"
@@ -493,6 +529,16 @@
 		"en"		"Classes: Infected (Special)"
 	}
 	
+	"Menu_MainSettings"
+	{
+		"en"		"Settings and Preferences"
+	}
+	
+	"Menu_MainQueue"
+	{
+		"en"		"Zombie queue"
+	}
+	
 	"Menu_MainBack"
 	{
 		"en"		"Back"
@@ -515,7 +561,7 @@
 	
 	"Menu_ClassesSurvivorsScout"
 	{
-		"en"		"Gains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"en"		"Moves at 360 speed instead of 400.\nCounts as one player when capturing, instead of two.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
 	}
 	
 	"Menu_ClassesSurvivorsSoldier"
@@ -535,12 +581,12 @@
 	
 	"Menu_ClassesSurvivorsHeavy"
 	{
-		"en"		"Minigun ammo limited to 150."
+		"en"		"Has 50 extra max health.\nMoves at 240 speed instead of 230.\nMinigun ammo limited to 150."
 	}
 	
 	"Menu_ClassesSurvivorsEngineer"
 	{
-		"en"		"Has 25 extra max health.\nStarts with PDAs.\nCan only build sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished.\nDispensers are minis, decays on health and ammo dispenses."
+		"en"		"Has 25 extra max health.\nStarts with PDAs.\nCan only build sentries and dispensers, and cannot be upgraded.\nSentries hold 80 shells that can't be refilled, and lose them twice as fast while idle.\nDispensers are minis with 200 health, and break after healing 800 health or giving ammo 20 times."
 	}
 	
 	"Menu_ClassesSurvivorsMedic"
@@ -555,7 +601,7 @@
 	
 	"Menu_ClassesSurvivorsSpy"
 	{
-		"en"		"Starts with cloak watches and disguise kit.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"en"		"Has 25 extra max health.\nStarts with cloak watches and disguise kit.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
 	}
 	
 	"Menu_ClassesInfectedScout"
@@ -615,7 +661,7 @@
 	
 	"Menu_ClassesInfectedSpecialCharger"
 	{
-		"en"		"His inner rage and insanity has caused him to lose any care for how he uses his body, as long as he can take somebody with it.\n- Using rage to charge the Charger is able to lock survivor movement and keeps pushing across the area."
+		"en"		"His inner rage and insanity has caused him to lose any care for how he uses his body, as long as he can take somebody with it.\n- Using rage to charge the Charger is able to lock survivor movement and keeps pushing across the area.\n- A survivor pushed into a wall or object is stunned."
 	}
 	
 	"Menu_ClassesInfectedSpecialScreamer"
@@ -646,6 +692,111 @@
 	"Menu_ClassesInfectedSpecialJockey"
 	{
 		"en"		"The Jockey creeps around, eager to lead survivors to their demise.\n- Using rage will perform a short leap, latching onto a survivor's head when making physical contact.\n- Controls a survivor's movement and deals damage while on top of them."
+	}
+	
+	"Menu_SettingsTitle"
+	{
+		"en"		"Settings and Preferences"
+	}
+	
+	"Menu_SettingsAlwaysZombie"
+	{
+		"#format"	"{1:s}"
+		"en"		"Opt in to always play as zombie {1}"
+	}
+	
+	"Menu_SettingsCustomViewModels"
+	{
+		"#format"	"{1:s}"
+		"en"		"Custom view models {1}"
+	}
+	
+	"Menu_SettingsOn"
+	{
+		"en"		"[ON]"
+	}
+	
+	"Menu_SettingsOff"
+	{
+		"en"		"[OFF]"
+	}
+	
+	"Menu_SettingsMusic"
+	{
+		"en"		"Music and sounds"
+	}
+	
+	"Menu_SettingsNotLoaded"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Your preferences are still loading, try again in a moment."
+	}
+	
+	"Menu_SettingsAlwaysZombieOn"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}Opted in: {2}from the next round, you will start every round as a zombie."
+	}
+	
+	"Menu_SettingsAlwaysZombieOff"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}Opted out: {2}from the next round, you will be placed on a team as normal."
+	}
+	
+	"Menu_SettingsCustomViewModelsOn"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}Custom view models on: {2}from your next spawn, zombies and special infected use their custom view models."
+	}
+	
+	"Menu_SettingsCustomViewModelsOff"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}Custom view models off: {2}from your next spawn, you will see the default TF2 view models."
+	}
+	
+	"Menu_QueueTitle"
+	{
+		"en"		"Queue List:"
+	}
+	
+	"Menu_QueueEntry"
+	{
+		"#format"	"{1:d},{2:N},{3:d}"
+		"en"		"{1}) - {2} ({3})"
+	}
+	
+	"Menu_QueueEntryNone"
+	{
+		"#format"	"{1:d}"
+		"en"		"{1}) -"
+	}
+	
+	"Menu_QueuePoints"
+	{
+		"#format"	"{1:d}"
+		"en"		"Your queue points: {1}"
+	}
+	
+	"Menu_QueueBack"
+	{
+		"en"		"<- Back"
+	}
+	
+	"Menu_QueuePrevious"
+	{
+		"en"		"Previous page"
+	}
+	
+	"Menu_QueueNext"
+	{
+		"en"		"Next page"
+	}
+	
+	"Menu_QueueExit"
+	{
+		"en"		"0. Exit"
 	}
 	
 	"Menu_SoundTitle"

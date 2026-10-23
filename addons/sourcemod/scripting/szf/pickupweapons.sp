@@ -16,8 +16,15 @@ enum WeaponType
 	WeaponType_Common,
 	WeaponType_Uncommon,
 	WeaponType_UncommonSpawn,
+	WeaponType_Powerup,
+	WeaponType_Dropped,
 };
 
+#define WEAPON_EXTRA_HEIGHT				50.0
+#define WEAPON_RARE_COMPANION_PLAYERS	20
+#define WEAPON_POWERUP_NAME				"szf_weapon_powerup"
+
+static bool g_bSpawningExtraWeapon;
 static bool g_bCanPickup[MAXPLAYERS] = {false, ...};
 static bool g_bTriggerEntity[2048] = {true, ...};
 static float g_flWeaponCallout[2048][MAXPLAYERS];
@@ -51,14 +58,16 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	int iEntity = -1;
 	g_iAvailableRareCount = g_iMaxRareWeapons;
 	
+	DroppedWeapon_Reset();
+	
 	delete g_aWeaponsCommon;
 	delete g_aWeaponsUncommon;
 	delete g_aWeaponsRares;
 	delete g_aWeaponsSpawn;
 	
-	g_aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common);
-	g_aWeaponsUncommon = GetAllWeaponsWithRarity(WeaponRarity_Uncommon);
-	g_aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare);
+	g_aWeaponsCommon = GetAllWeaponsWithRarity(WeaponRarity_Common, _, _, true);
+	g_aWeaponsUncommon = GetAllWeaponsWithRarity(WeaponRarity_Uncommon, _, _, true);
+	g_aWeaponsRares = GetAllWeaponsWithRarity(WeaponRarity_Rare, _, _, true);
 	g_aWeaponsSpawn = new ArrayList();
 	
 	// Loop through spawn weapons first to fill up spawn array
@@ -76,6 +85,8 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 	aSpawns.Sort(Sort_Random, Sort_Integer);
 	aNonSpawns.Sort(Sort_Random, Sort_Integer);
 	
+	Weapons_ApplySpawnGuarantees(aSpawns);
+	
 	for (int i = 0; i < aSpawns.Length; i++)
 		SetWeapon(aSpawns.Get(i));
 	
@@ -91,56 +102,52 @@ public Action Event_WeaponsRoundStart(Event event, const char[] name, bool dontB
 public void SetWeapon(int iEntity)
 {
 	WeaponType nWeaponType = GetWeaponType(iEntity);
-		
+	bool bValid = true;
+	
 	switch (nWeaponType)
 	{
 		case WeaponType_Spawn:
 		{
-			SetUniqueWeapon(iEntity, g_aWeaponsCommon, WeaponRarity_Common);
+			bValid = SetUniqueWeapon(iEntity, g_aWeaponsCommon, WeaponRarity_Common);
 		}
 		case WeaponType_Rare:
 		{
 			//If rare weapon cap is unreached, make it a "rare" weapon
-			if (g_iAvailableRareCount > 0)
+			if (g_iAvailableRareCount > 0 && CanSetUniqueWeapon(iEntity, g_aWeaponsRares))
 			{
-				SetUniqueWeapon(iEntity, g_aWeaponsRares, WeaponRarity_Rare);
+				bValid = SetUniqueWeapon(iEntity, g_aWeaponsRares, WeaponRarity_Rare);
 				
 				g_iAvailableRareCount--;
 			}
 			//Else make it a uncommon weapon
 			else
 			{
-				SetRandomWeapon(iEntity, WeaponRarity_Uncommon);
+				bValid = SetRandomWeapon(iEntity, WeaponRarity_Uncommon);
 			}
 		}
 		case WeaponType_RareSpawn:
 		{
-			SetUniqueWeapon(iEntity, g_aWeaponsRares, WeaponRarity_Rare);
+			bValid = SetUniqueWeapon(iEntity, g_aWeaponsRares, WeaponRarity_Rare);
 		}
 		case WeaponType_UncommonSpawn:
 		{
-			SetUniqueWeapon(iEntity, g_aWeaponsUncommon, WeaponRarity_Uncommon);
+			bValid = SetUniqueWeapon(iEntity, g_aWeaponsUncommon, WeaponRarity_Uncommon);
 		}
 		case WeaponType_Common:
 		{
-			SetRandomWeapon(iEntity, WeaponRarity_Common);
+			bValid = SetRandomWeapon(iEntity, WeaponRarity_Common);
 		}
 		case WeaponType_Uncommon:
 		{
-			SetRandomWeapon(iEntity, WeaponRarity_Uncommon);
+			bValid = SetRandomWeapon(iEntity, WeaponRarity_Uncommon);
 		}
 		case WeaponType_Default, WeaponType_DefaultNoPickup:
 		{
 			//If rare weapon cap is unreached and a dice roll is met, make it a "rare" weapon
-			if (g_iAvailableRareCount > 0 && GetRandomFloat(0.0, 1.0) < g_cvWeaponRareChance.FloatValue)
+			if (g_iAvailableRareCount > 0 && GetRandomFloat(0.0, 1.0) < g_cvWeaponRareChance.FloatValue && CanSetUniqueWeapon(iEntity, g_aWeaponsRares))
 			{
-				SetUniqueWeapon(iEntity, g_aWeaponsRares, WeaponRarity_Rare);
+				bValid = SetUniqueWeapon(iEntity, g_aWeaponsRares, WeaponRarity_Rare);
 				g_iAvailableRareCount--;
-			}
-			//Pick-ups
-			else if (nWeaponType != WeaponType_DefaultNoPickup && GetRandomFloat(0.0, 1.0) < g_cvWeaponPickupChance.FloatValue)
-			{
-				SetRandomPickup(iEntity);
 			}
 			//Else make it either common or uncommon weapon
 			else
@@ -153,12 +160,23 @@ public void SetWeapon(int iEntity)
 					aList = GetAllCommonAndUncommonWeapons(g_aWeaponsSpawn);
 				}
 				
+				if (aList.Length == 0)
+				{
+					delete aList;
+					RemoveEntity(iEntity);
+					return;
+				}
+				
 				Weapon wep;
 				aList.GetArray(GetRandomInt(0, aList.Length - 1), wep);
 				delete aList;
 				
 				SetWeaponModel(iEntity, wep);
 			}
+		}
+		case WeaponType_Powerup:
+		{
+			bValid = SetRandomPickup(iEntity);
 		}
 		case WeaponType_Static, WeaponType_StaticSpawn:
 		{
@@ -176,12 +194,236 @@ public void SetWeapon(int iEntity)
 		}
 	}
 	
+	if (!bValid)
+		return;
+	
+	Weapons_SetupProp(iEntity);
+	
+	if (g_bSpawningExtraWeapon)
+		return;
+	
+	float flHeight = 0.0;
+	
+	Weapon spawned;
+	if (nWeaponType != WeaponType_Static && nWeaponType != WeaponType_StaticSpawn && GetWeaponFromEntity(spawned, iEntity) && spawned.nRarity == WeaponRarity_Rare && GetActivePlayerCount() >= WEAPON_RARE_COMPANION_PLAYERS)
+	{
+		if (SpawnRareCompanion(iEntity, spawned, flHeight + WEAPON_EXTRA_HEIGHT))
+			flHeight += WEAPON_EXTRA_HEIGHT;
+	}
+	
+	if (nWeaponType == WeaponType_Default && GetRandomFloat(0.0, 1.0) < g_cvWeaponPickupChance.FloatValue)
+		SpawnExtraPowerup(iEntity, flHeight + WEAPON_EXTRA_HEIGHT);
+}
+
+void Weapons_SetupProp(int iEntity)
+{
 	SetEntProp(iEntity, Prop_Send, "m_nSolidType", SOLID_OBB);
 	SetEntityCollisionGroup(iEntity, COLLISION_GROUP_DEBRIS_TRIGGER);
 	AcceptEntityInput(iEntity, "DisableShadow");
 	AcceptEntityInput(iEntity, "EnableCollision");
 	
 	g_bTriggerEntity[iEntity] = true; //Indicate reset of the OnUser triggers
+}
+
+bool Weapons_IsSpawningExtra()
+{
+	return g_bSpawningExtraWeapon;
+}
+
+void Weapons_ApplySpawnGuarantees(ArrayList aSpawns)
+{
+	ArrayList aGroups = Weapons_GetSpawnGroups();
+	aGroups.Sort(Sort_Random, Sort_String);
+	
+	int iGroupCount = aGroups.Length;
+	for (int i = 0; i < iGroupCount; i++)
+	{
+		char sGroup[32];
+		aGroups.GetString(i, sGroup, sizeof(sGroup));
+		
+		ArrayList aMembers = Weapons_GetSpawnGroupMembers(sGroup);
+		bool bPlaced = false;
+		
+		for (int iPass = 0; iPass < 2 && !bPlaced; iPass++)
+		{
+			for (int j = 0; j < aMembers.Length && !bPlaced; j++)
+			{
+				Weapon wep;
+				aMembers.GetArray(j, wep);
+				
+				for (int k = 0; k < aSpawns.Length; k++)
+				{
+					int iEntity = aSpawns.Get(k);
+					if (!Weapons_CanGuaranteeAtSpot(iEntity, wep, iPass == 0))
+						continue;
+					
+					SetWeaponModel(iEntity, wep);
+					Weapons_SetupProp(iEntity);
+					
+					Weapons_RemoveFromPools(wep.iIndex);
+					g_aWeaponsSpawn.Push(wep.iIndex);
+					
+					aSpawns.Erase(k);
+					bPlaced = true;
+					break;
+				}
+			}
+		}
+		
+		delete aMembers;
+	}
+	
+	delete aGroups;
+}
+
+bool Weapons_CanGuaranteeAtSpot(int iEntity, Weapon wep, bool bMatchRarity)
+{
+	WeaponType nWeaponType = GetWeaponType(iEntity);
+	if (nWeaponType != WeaponType_Spawn && nWeaponType != WeaponType_UncommonSpawn)
+		return false;
+	
+	if (bMatchRarity)
+	{
+		if (nWeaponType == WeaponType_Spawn && wep.nRarity != WeaponRarity_Common)
+			return false;
+		
+		if (nWeaponType == WeaponType_UncommonSpawn && wep.nRarity != WeaponRarity_Uncommon)
+			return false;
+	}
+	
+	TFClassType nClassFilter = GetWeaponClassFilter(iEntity);
+	if (nClassFilter != TFClass_Unknown && TF2_GetItemSlot(wep.iIndex, nClassFilter) < 0)
+		return false;
+	
+	return true;
+}
+
+void Weapons_RemoveFromPools(int iIndex)
+{
+	ArrayList aPools[3];
+	aPools[0] = g_aWeaponsCommon;
+	aPools[1] = g_aWeaponsUncommon;
+	aPools[2] = g_aWeaponsRares;
+	
+	for (int i = 0; i < sizeof(aPools); i++)
+	{
+		if (!aPools[i])
+			continue;
+		
+		int iPos = aPools[i].FindValue(iIndex, 0);
+		if (iPos != -1)
+			aPools[i].Erase(iPos);
+	}
+}
+
+bool SpawnRareCompanion(int iEntity, Weapon source, float flHeight)
+{
+	if (!g_aWeaponsRares)
+		return false;
+	
+	bool bSpawnSpot = IsSpawnWeapon(iEntity);
+	if (!bSpawnSpot && g_iAvailableRareCount <= 0)
+		return false;
+	
+	g_aWeaponsRares.Sort(Sort_Random, Sort_Integer);
+	
+	int iLength = g_aWeaponsRares.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		Weapon wep;
+		g_aWeaponsRares.GetArray(i, wep);
+		
+		if (wep.iIndex == source.iIndex || (wep.bSpawnOnly && !bSpawnSpot) || !Weapons_ShareClass(wep.iIndex, source.iIndex))
+			continue;
+		
+		if (Weapons_CreateExtraProp(iEntity, wep, flHeight) == INVALID_ENT_REFERENCE)
+			return false;
+		
+		g_aWeaponsRares.Erase(i);
+		g_aWeaponsSpawn.Push(wep.iIndex);
+		
+		if (!bSpawnSpot)
+			g_iAvailableRareCount--;
+		
+		return true;
+	}
+	
+	return false;
+}
+
+bool Weapons_ShareClass(int iIndex1, int iIndex2)
+{
+	for (TFClassType nClass = TFClass_Scout; nClass <= TFClass_Engineer; nClass++)
+	{
+		if (IsValidSurvivorClass(nClass) && TF2_GetItemSlot(iIndex1, nClass) >= 0 && TF2_GetItemSlot(iIndex2, nClass) >= 0)
+			return true;
+	}
+	
+	return false;
+}
+
+void SpawnExtraPowerup(int iEntity, float flHeight)
+{
+	ArrayList aList = GetAllWeaponsWithRarity(WeaponRarity_Pickup);
+	if (aList.Length > 0)
+	{
+		Weapon wep;
+		aList.GetArray(GetRandomInt(0, aList.Length - 1), wep);
+		Weapons_CreateExtraProp(iEntity, wep, flHeight, WEAPON_POWERUP_NAME, true);
+	}
+	
+	delete aList;
+}
+
+int Weapons_CreateExtraProp(int iSource, Weapon wep, float flHeight, const char[] sTargetName = "", bool bResetAngles = false)
+{
+	float vecOrigin[3], vecAngles[3];
+	GetEntPropVector(iSource, Prop_Send, "m_vecOrigin", vecOrigin);
+	GetEntPropVector(iSource, Prop_Send, "m_angRotation", vecAngles);
+	
+	Weapon source;
+	if (GetWeaponFromEntity(source, iSource))
+	{
+		float vecOffset[3];
+		RotateVector(source.vecOriginOffset, vecAngles, vecOffset);
+		AddVectors(vecOrigin, vecOffset, vecOrigin);
+		SubtractVectors(vecAngles, source.vecAnglesOffset, vecAngles);
+	}
+	
+	vecOrigin[2] += flHeight;
+	
+	if (bResetAngles)
+	{
+		vecAngles[0] = 0.0;
+		vecAngles[1] = 0.0;
+		vecAngles[2] = 0.0;
+	}
+	
+	char sName[256];
+	if (sTargetName[0])
+		strcopy(sName, sizeof(sName), sTargetName);
+	else
+		GetEntPropString(iSource, Prop_Data, "m_iName", sName, sizeof(sName));
+	
+	int iProp = CreateEntityByName("prop_dynamic");
+	if (iProp == INVALID_ENT_REFERENCE)
+		return INVALID_ENT_REFERENCE;
+	
+	DispatchKeyValue(iProp, "targetname", sName);
+	DispatchKeyValue(iProp, "model", wep.sModel);
+	DispatchKeyValue(iProp, "solid", "2");
+	DispatchKeyValueVector(iProp, "origin", vecOrigin);
+	DispatchKeyValueVector(iProp, "angles", vecAngles);
+	
+	g_bSpawningExtraWeapon = true;
+	DispatchSpawn(iProp);
+	g_bSpawningExtraWeapon = false;
+	
+	SetEntProp(iProp, Prop_Send, "m_nSkin", 99);
+	SetWeaponModel(iProp, wep);
+	Weapons_SetupProp(iProp);
+	
+	return iProp;
 }
 
 public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadcast)
@@ -197,55 +439,74 @@ public Action Event_ResetPickup(Event event, const char[] name, bool dontBroadca
 	return Plugin_Continue;
 }
 
-void SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
+bool SetUniqueWeapon(int iEntity, ArrayList &aWeapons, WeaponRarity iWepRarity)
 {
-	Weapon wep;
 	TFClassType nClassFilter = GetWeaponClassFilter(iEntity);
+	bool bSpawnSpot = IsSpawnWeapon(iEntity);
 	
-	if (aWeapons.Length == 0)
+	if (nClassFilter == TFClass_Unknown && bSpawnSpot)
+		aWeapons.SortCustom(Sort_SpawnWeapons);	// Priorise whoever class with fewest spawn weapons
+	else
+		aWeapons.Sort(Sort_Random, Sort_Integer);
+	
+	int iLength = aWeapons.Length;
+	for (int i = 0; i < iLength; i++)
 	{
-		// No more unique weapons to pick, delete it
-		RemoveEntity(iEntity);
-		return;
+		Weapon wep;
+		aWeapons.GetArray(i, wep);
+		
+		if (wep.bSpawnOnly && !bSpawnSpot)
+			continue;
+		
+		if (nClassFilter != TFClass_Unknown && TF2_GetItemSlot(wep.iIndex, nClassFilter) < 0)
+			continue;
+		
+		//This weapon is no longer in the pool
+		aWeapons.Erase(i);
+		g_aWeaponsSpawn.Push(wep.iIndex);
+		
+		SetWeaponModel(iEntity, wep);
+		return true;
 	}
 	
 	if (nClassFilter == TFClass_Unknown)
 	{
-		if (IsSpawnWeapon(iEntity))
-			aWeapons.SortCustom(Sort_SpawnWeapons);	// Priorise whoever class with fewest spawn weapons
-		else
-			aWeapons.Sort(Sort_Random, Sort_Integer);	// No class filter
-		
-		aWeapons.GetArray(0, wep);
-		SetWeaponModel(iEntity, wep);
-		
-		//This weapon is no longer in the pool
-		aWeapons.Erase(0);
-		g_aWeaponsSpawn.Push(wep.iIndex);
+		// No more unique weapons to pick, delete it
+		RemoveEntity(iEntity);
+		return false;
 	}
-	else
+	
+	if (iWepRarity == WeaponRarity_Rare && !Weapons_ClassHasRarity(nClassFilter, WeaponRarity_Rare, bSpawnSpot))
+		return SetRandomWeapon(iEntity, WeaponRarity_Uncommon, bSpawnSpot);
+	
+	return SetRandomWeapon(iEntity, iWepRarity, bSpawnSpot);
+}
+
+bool Weapons_ClassHasRarity(TFClassType nClass, WeaponRarity nRarity, bool bIncludeSpawnOnly)
+{
+	ArrayList aList = GetAllWeaponsWithRarity(nRarity, _, nClass, bIncludeSpawnOnly);
+	bool bFound = aList.Length > 0;
+	delete aList;
+	return bFound;
+}
+
+bool CanSetUniqueWeapon(int iEntity, ArrayList aWeapons)
+{
+	if (GetWeaponClassFilter(iEntity) != TFClass_Unknown)
+		return true;
+	
+	bool bSpawnSpot = IsSpawnWeapon(iEntity);
+	int iLength = aWeapons.Length;
+	for (int i = 0; i < iLength; i++)
 	{
-		// Filter specific class
-		aWeapons.Sort(Sort_Random, Sort_Integer);
+		Weapon wep;
+		aWeapons.GetArray(i, wep);
 		
-		for (int i = 0; i < aWeapons.Length; i++)
-		{
-			aWeapons.GetArray(i, wep);
-			int iSlot = TF2_GetItemSlot(wep.iIndex, nClassFilter);
-			if (iSlot >= 0)
-			{
-				//This weapon is no longer in the pool in the global array
-				aWeapons.Erase(i);
-				g_aWeaponsSpawn.Push(wep.iIndex);
-				
-				SetWeaponModel(iEntity, wep);
-				return;
-			}
-		}
-		
-		//If array empty, pick a random weapon
-		SetRandomWeapon(iEntity, iWepRarity);
+		if (!wep.bSpawnOnly || bSpawnSpot)
+			return true;
 	}
+	
+	return false;
 }
 
 int Sort_SpawnWeapons(int iIndex1, int iIndex2, Handle hArray, Handle hData)
@@ -284,12 +545,18 @@ int Sort_SpawnWeapons(int iIndex1, int iIndex2, Handle hArray, Handle hData)
 
 bool AttemptGrabItem(int iClient)
 {	
-	if (!IsSurvivor(iClient) || !g_bCanPickup[iClient] || TF2_IsPlayerInCondition(iClient, TFCond_Taunting))
+	if (!IsSurvivor(iClient) || !IsPlayerAlive(iClient) || !g_bCanPickup[iClient] || TF2_IsPlayerInCondition(iClient, TFCond_Taunting))
 		return false;
 	
 	int iTarget = GetClientPointVisible(iClient);
 	
-	if (iTarget <= 0 || !IsClassname(iTarget, "prop_dynamic") || GetWeaponType(iTarget) == WeaponType_Invalid)
+	if (0 < iTarget <= MaxClients)
+		return false;
+	
+	if (iTarget <= 0 || !IsWeaponPropClassname(iTarget) || GetWeaponType(iTarget) == WeaponType_Invalid)
+		iTarget = DroppedWeapon_FindAimTarget(iClient);
+	
+	if (iTarget <= 0 || GetWeaponType(iTarget) == WeaponType_Invalid)
 		return false;
 	
 	Weapon wep;
@@ -470,28 +737,40 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 		if (IsValidEntity(iEntity))
 		{
 			int iOldIndex = Config_GetOriginalItemDefIndex(GetEntProp(iEntity, Prop_Send, "m_iItemDefinitionIndex"));
-			GetWeaponFromIndex(oldwep, iOldIndex);
 			
-			if (oldwep.iIndex >= 0)
+			if (GetWeaponFromIndex(oldwep, iOldIndex) && oldwep.iIndex >= 0)
 			{
 				EmitSoundToClient(iClient, "ui/item_heavy_gun_drop.wav");
-				SetWeaponModel(iTarget, oldwep);
 				
-				//Kill the weapon glow with its model if it had one.
-				int iGlow = GetWeaponGlowEnt(iTarget);
-				if (iGlow != INVALID_ENT_REFERENCE)
-					RemoveEntity(iGlow);
-				
-				//Callout under a new weapon model
-				CalloutWeapon(iClient, iTarget, true);
-				
-				bKillEntity = false;
+				if (DroppedWeapon_IsPhysics(iTarget))
+				{
+					int iDrop = DroppedWeapon_Replace(iTarget, oldwep);
+					if (iDrop != INVALID_ENT_REFERENCE)
+						CalloutWeapon(iClient, iDrop, true);
+				}
+				else
+				{
+					SetWeaponModel(iTarget, oldwep);
+					
+					//Kill the weapon glow with its model if it had one.
+					int iGlow = GetWeaponGlowEnt(iTarget);
+					if (iGlow != INVALID_ENT_REFERENCE)
+						RemoveEntity(iGlow);
+					
+					RareOutline_Update(iTarget, oldwep);
+					
+					//Callout under a new weapon model
+					CalloutWeapon(iClient, iTarget, true);
+					
+					bKillEntity = false;
+				}
 			}
 		}
 		
 		if (bKillEntity)
 		{
 			AcceptEntityInput(iTarget, ENT_ONKILL, iClient, iClient);
+			RareOutline_Remove(iTarget);
 			RemoveEntity(iTarget);
 		}
 	}
@@ -606,6 +885,10 @@ WeaponType GetWeaponType(int iEntity)
 		return WeaponType_UncommonSpawn; //Guaranteed uncommon and non-expiring
 	else if (StrContains(sName, "szf_weapon_uncommon", false) == 0)
 		return WeaponType_Uncommon; //Guaranteed uncommon
+	else if (StrContains(sName, WEAPON_POWERUP_NAME, false) == 0)
+		return WeaponType_Powerup;
+	else if (StrContains(sName, DROPPED_WEAPON_NAME, false) == 0)
+		return WeaponType_Dropped;
 	else if (StrContains(sName, "szf_weapon", false) != -1)
 		return WeaponType_Default; //Normal
 	
@@ -624,6 +907,11 @@ TFClassType GetWeaponClassFilter(int iEntity)
 	return TFClass_Unknown;
 }
 
+bool IsWeaponPropClassname(int iEntity)
+{
+	return IsClassname(iEntity, "prop_dynamic") || IsClassname(iEntity, "prop_physics");
+}
+
 bool IsSpawnWeapon(int iEntity)
 {
 	WeaponType nWeaponType = GetWeaponType(iEntity);
@@ -633,26 +921,33 @@ bool IsSpawnWeapon(int iEntity)
 		return false;
 }
 
-void SetRandomPickup(int iEntity)
+bool SetRandomPickup(int iEntity)
 {
 	//Reset angle
 	float vecAngles[3];
 	
 	TeleportEntity(iEntity, NULL_VECTOR, vecAngles, NULL_VECTOR);
-	SetRandomWeapon(iEntity, WeaponRarity_Pickup);
+	return SetRandomWeapon(iEntity, WeaponRarity_Pickup);
 }
 
-void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
+bool SetRandomWeapon(int iEntity, WeaponRarity nRarity, bool bIncludeSpawnOnly = false)
 {
 	//Check if the weapon has a filter
 	TFClassType nClassFilter = GetWeaponClassFilter(iEntity);
-	ArrayList aList = GetAllWeaponsWithRarity(nRarity, g_aWeaponsSpawn, nClassFilter);
+	ArrayList aList = GetAllWeaponsWithRarity(nRarity, g_aWeaponsSpawn, nClassFilter, bIncludeSpawnOnly);
 	
 	if (aList.Length == 0)
 	{
 		//No weapons from given rarity and class, ignore class filter
 		delete aList;
-		aList = GetAllWeaponsWithRarity(nRarity, g_aWeaponsSpawn);
+		aList = GetAllWeaponsWithRarity(nRarity, g_aWeaponsSpawn, _, bIncludeSpawnOnly);
+	}
+	
+	if (aList.Length == 0)
+	{
+		delete aList;
+		RemoveEntity(iEntity);
+		return false;
 	}
 	
 	int iRandom = GetRandomInt(0, aList.Length - 1);
@@ -663,6 +958,7 @@ void SetRandomWeapon(int iEntity, WeaponRarity nRarity)
 	SetWeaponModel(iEntity, wep);
 	
 	delete aList;
+	return true;
 }
 
 void SetWeaponModel(int iEntity, Weapon wep)
@@ -743,7 +1039,7 @@ int GetWeaponGlowEnt(int iEntity)
 	int iGlow = INVALID_ENT_REFERENCE;
 	while ((iGlow = FindEntityByClassname(iGlow, "tf_taunt_prop")) != INVALID_ENT_REFERENCE)
 	{
-		if (GetEntPropEnt(iGlow, Prop_Data, "m_hEffectEntity") == iEntity)
+		if (GetEntPropEnt(iGlow, Prop_Data, "m_hEffectEntity") == iEntity && !RareOutline_IsOutline(iGlow))
 			return iGlow;
 	}
 	
