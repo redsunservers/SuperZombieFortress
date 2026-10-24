@@ -72,6 +72,9 @@ void DroppedWeapon_OnSurvivorDeath(int iVictim)
 
 int DroppedWeapon_Create(Weapon wep, const float vecOrigin[3], const float vecAngles[3], const float vecVelocity[3])
 {
+	if (!DroppedWeapon_HasCollisionModel(wep.sModel))
+		return DroppedWeapon_CreateStatic(wep, vecOrigin, vecAngles);
+	
 	int iProp = CreateEntityByName("prop_physics_override");
 	if (iProp == INVALID_ENT_REFERENCE)
 		return INVALID_ENT_REFERENCE;
@@ -82,7 +85,7 @@ int DroppedWeapon_Create(Weapon wep, const float vecOrigin[3], const float vecAn
 	DispatchKeyValue(iProp, "targetname", DROPPED_WEAPON_NAME);
 	DispatchKeyValue(iProp, "model", wep.sModel);
 	DispatchKeyValue(iProp, "skin", sSkin);
-	DispatchKeyValue(iProp, "spawnflags", "518");
+	DispatchKeyValue(iProp, "spawnflags", "6");
 	DispatchKeyValue(iProp, "physdamagescale", "0.0");
 	DispatchKeyValue(iProp, "nodamageforces", "1");
 	DispatchKeyValueVector(iProp, "origin", vecOrigin);
@@ -161,6 +164,19 @@ int DroppedWeapon_CreateStatic(Weapon wep, const float vecOrigin[3], const float
 		RareOutline_Set(iProp, wep);
 	
 	return iProp;
+}
+
+static bool DroppedWeapon_HasCollisionModel(const char[] sModel)
+{
+	char sPhy[PLATFORM_MAX_PATH];
+	strcopy(sPhy, sizeof(sPhy), sModel);
+	
+	int iExtension = strlen(sPhy) - 4;
+	if (iExtension <= 0 || !StrEqual(sPhy[iExtension], ".mdl", false))
+		return false;
+	
+	strcopy(sPhy[iExtension], sizeof(sPhy) - iExtension, ".phy");
+	return FileExists(sPhy, true);
 }
 
 int DroppedWeapon_Replace(int iTarget, Weapon wep)
