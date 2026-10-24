@@ -1585,6 +1585,8 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
 	SetEntityCollisionGroup(iClient, COLLISION_GROUP_DEBRIS_TRIGGER);
 	SDKCall_PlaySpecificSequence(iClient, "jockey_ride");
+
+	Forward_OnJockeyHit(iClient, iToucher);
 }
 
 public void Infected_OnJockeyDeath(int iClient, int iKiller, int iAssist)
