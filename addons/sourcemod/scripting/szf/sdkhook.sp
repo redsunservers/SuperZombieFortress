@@ -342,7 +342,7 @@ public Action Pickup_SandvichTouch(int iEntity, int iToucher)
 	{
 		//Kill it and deal damage
 		RemoveEntity(iEntity);
-		DealDamage(iOwner, iToucher, 105.0);
+		DealDamage(iOwner, iToucher, 45.0);
 		
 		return Plugin_Handled;
 	}
