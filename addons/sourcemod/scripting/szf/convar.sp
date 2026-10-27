@@ -15,7 +15,7 @@ void ConVar_Init()
 	
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Force enable SZF for next map.", _, true, 0.0, true, 1.0);
 	g_cvDebug = CreateConVar("sm_szf_debug", "0", "Enable debugs?", _, true, 0.0, true, 1.0);
-	g_cvZombieDamage = CreateConVar("sm_szf_zombie_damage", "0.7", "Multiplier on all damage zombies deal with their weapons. Survivors always deal normal damage.", _, true, 0.0);
+	g_cvZombieDamage = CreateConVar("sm_szf_zombie_damage", "0.6", "Multiplier on all damage zombies deal with their weapons. Survivors always deal normal damage.", _, true, 0.0);
 	g_cvDirectorFrenzy = CreateConVar("sm_szf_director_frenzy", "0", "<0/1> Let the old director start frenzies on its own. Frenzies come from the respawn timeline (maps.cfg) instead.", _, true, 0.0, true, 1.0);
 	g_cvDirectorTank = CreateConVar("sm_szf_director_tank", "0", "<0/1> Let the old director (and the last control point) call Tanks on their own. Tanks otherwise only come from maps, admins and a long Last Man Standing.", _, true, 0.0, true, 1.0);
 	g_cvLastStandTankTime = CreateConVar("sm_szf_laststand_tank_time", "300.0", "Seconds of Last Man Standing before a Tank is sent, once per round. 0 to disable.", _, true, 0.0);
@@ -29,18 +29,25 @@ void ConVar_Init()
 	g_cvTankTime = CreateConVar("sm_szf_tank_time", "60.0", "Adjusts the damage the Tank takes per second. 0 to disable.", _, true, 0.0);
 	g_cvTankStab = CreateConVar("sm_szf_tank_stab", "500", "Flat Damage dealt to the Tank from a backstab.", _, true, 0.0);
 	g_cvTankDebrisLifetime = CreateConVar("sm_szf_tank_debris_lifetime", "20.0", "Amount of time (in seconds) it takes for debris thrown by Tanks to despawn. Use 0 to prevent despawning.", _, true, 0.0);
-	g_cvSpecialInfectedInterval = CreateConVar("sm_szf_special_infected_interval", "40.0", "Seconds interval to select a random infected to be special infected, 1s less for every 2 active players. -1 to disable it.", _, true, -1.0);
-	g_cvSpecialInfectedIntervalMin = CreateConVar("sm_szf_special_infected_interval_min", "20.0", "Shortest the special infected interval gets with many players (20 = reached at 40 players).", _, true, 0.0);
-	g_cvBoomerPackWindow = CreateConVar("sm_szf_boomer_pack_window", "5.0", "When a Boomer spawns, dead zombies due to respawn within this many seconds respawn with it as Snipers. 0 to disable.", _, true, 0.0);
+	g_cvSpecialInfectedInterval = CreateConVar("sm_szf_special_infected_interval", "35.0", "Seconds between picks of a random zombie to be a special infected with 2 or fewer active players. It rises in a straight line to sm_szf_special_infected_interval_max at sm_szf_special_infected_interval_players. -1 to disable it.", _, true, -1.0);
+	g_cvSpecialInfectedIntervalMax = CreateConVar("sm_szf_special_infected_interval_max", "60.0", "Seconds between special infected picks with sm_szf_special_infected_interval_players or more active players.", _, true, 0.0);
+	g_cvSpecialInfectedIntervalPlayers = CreateConVar("sm_szf_special_infected_interval_players", "40", "Active players at which the special infected interval reaches sm_szf_special_infected_interval_max (it is sm_szf_special_infected_interval at 2).", _, true, 3.0);
+	g_cvBoomerPackWindow = CreateConVar("sm_szf_boomer_pack_window", "9.0", "When a Boomer spawns, dead zombies due to respawn within this many seconds respawn with it as Snipers, where it spawned. 0 to disable.", _, true, 0.0);
 	g_cvJockeyMovementVictim = CreateConVar("sm_szf_jockey_movement_victim", "0.0", "Share of the victim's max speed the victim steers with (look direction) during a jockey grab. Their movement keys are blocked either way.", _, true, 0.0);
 	g_cvJockeyMovementAttacker = CreateConVar("sm_szf_jockey_movement_attacker", "1.0", "Share of the victim's max speed the jockey steers the victim with during a grab.", _, true, 0.0);
-	g_cvJockeyVictimSpeed = CreateConVar("sm_szf_jockey_victim_speed", "1.2", "Max speed multiplier of a survivor ridden by a jockey (1.2 = +20%).", _, true, 0.0);
+	g_cvJockeyVictimSpeed = CreateConVar("sm_szf_jockey_victim_speed", "1.0", "Max speed multiplier of a survivor ridden by a jockey (1.0 = their normal speed).", _, true, 0.0);
+	g_cvJockeyRideScale = CreateConVar("sm_szf_jockey_ride_scale", "1.25", "Model and hitbox scale of a jockey while it rides a survivor, so it's easier to hit up there. 1 = normal size.", _, true, 0.5, true, 2.0);
+	g_cvZombieMinicritsCount = CreateConVar("sm_szf_zombie_minicrits_count", "3", "A round that starts with this many zombies or fewer gives every zombie mini-crits for sm_szf_zombie_minicrits_time seconds. 0 to disable.", _, true, 0.0);
+	g_cvZombieMinicritsTime = CreateConVar("sm_szf_zombie_minicrits_time", "360.0", "Seconds of zombie mini-crits from the end of setup, in a round that started with few zombies (sm_szf_zombie_minicrits_count).", _, true, 0.0);
+	g_cvSpectatorsJoin = CreateConVar("sm_szf_spectators_join", "1", "<0/1> Put players who are in spectator when a new round starts on a team, through the normal team split (zombie queue).", _, true, 0.0, true, 1.0);
+	g_cvJoinLockTime = CreateConVar("sm_szf_join_lock_time", "180.0", "Seconds after setup ends from which players who join (or come out of spectator) wait in spectator until the round ends. Before that they can still join the Infected. 0 = the whole round.", _, true, 0.0);
 	g_cvChargerSlamStun = CreateConVar("sm_szf_charger_slam_stun", "6.0", "How long a survivor is stunned when a charging Charger pushes them into a wall or object (6 = a normal backstab stun). 0 to disable.", _, true, 0.0);
 	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy.", _, true, 0.0, true, 1.0);
 	g_cvFrenzyRespawnStress = CreateConVar("sm_szf_frenzy_respawn_stress", "30.0", "Amount of seconds divided by playercount to add in frenzy respawn stress", _, true, 0.0, true, 120.0);
 	g_cvStunImmunity = CreateConVar("sm_szf_stun_immunity", "0.0", "How long until the survivor can be stunned again.", _, true, 0.0);
+	g_cvStunFogDistance = CreateConVar("sm_szf_stun_fog_distance", "500.0", "A stunned survivor sees black fog: everything this many units away is black, and the fog starts at half of it. Only the stunned player sees it.", _, true, 16.0);
 	g_cvLastStandKingRuneDuration = CreateConVar("sm_szf_laststand_kingrune_duration", "-1.0", "How long the last survivor gets the King Rune, -1.0 for infinite.", _, true, -1.0);
-	g_cvLastStandDefenseDuration = CreateConVar("sm_szf_laststand_defense_duration", "30.0", "How long the last survivor gets the Defense Buff, -1.0 for infinite.", _, true, -1.0);
+	g_cvLastStandDefenseDuration = CreateConVar("sm_szf_laststand_defense_duration", "-1.0", "How long the last survivor gets damage resistance (50% at 2 players to 95% at 40), -1.0 for the whole stand.", _, true, -1.0);
 	g_cvDispenserAmmoCooldown = CreateConVar("sm_szf_dispenser_ammo_cooldown", "4.0", "Cooldown before client could gain ammo from dispensers.", _, true, 0.0);
 	g_cvDispenserAmmoMax = CreateConVar("sm_szf_dispenser_ammo_max", "20", "Max amount of ticks dispenser could dispense before self-destructs.", _, true, 0.0);
 	g_cvDispenserHealRate = CreateConVar("sm_szf_dispenser_heal_rate", "0.8", "Heal rate multiplier for survivor's dispensers.", _, true, 0.0);
@@ -64,7 +71,8 @@ void ConVar_Init()
 	ConVar_Add("mp_autoteambalance", 0.0);
 	ConVar_Add("mp_teams_unbalance_limit", 0.0);
 	ConVar_Add("mp_scrambleteams_auto", 0.0);
-	ConVar_Add("mp_waitingforplayers_time", 70.0);
+	ConVar_Add("mp_waitingforplayers_time", 140.0);
+	ConVar_Add("mp_forceautoteam", 0.0);
 	
 	ConVar_Add("spec_freeze_time", -1.0);
 	

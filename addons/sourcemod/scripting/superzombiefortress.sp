@@ -428,15 +428,22 @@ ConVar g_cvTankTime;
 ConVar g_cvTankStab;
 ConVar g_cvTankDebrisLifetime;
 ConVar g_cvSpecialInfectedInterval;
-ConVar g_cvSpecialInfectedIntervalMin;
+ConVar g_cvSpecialInfectedIntervalMax;
+ConVar g_cvSpecialInfectedIntervalPlayers;
 ConVar g_cvBoomerPackWindow;
 ConVar g_cvJockeyMovementVictim;
 ConVar g_cvJockeyMovementAttacker;
 ConVar g_cvJockeyVictimSpeed;
+ConVar g_cvJockeyRideScale;
+ConVar g_cvZombieMinicritsCount;
+ConVar g_cvZombieMinicritsTime;
+ConVar g_cvSpectatorsJoin;
+ConVar g_cvJoinLockTime;
 ConVar g_cvChargerSlamStun;
 ConVar g_cvFrenzyTankChance;
 ConVar g_cvFrenzyRespawnStress;
 ConVar g_cvStunImmunity;
+ConVar g_cvStunFogDistance;
 ConVar g_cvLastStandKingRuneDuration;
 ConVar g_cvLastStandDefenseDuration;
 ConVar g_cvDispenserAmmoCooldown;
@@ -566,6 +573,8 @@ bool g_bZombieRage;
 Handle g_hTimerZombieRage;
 
 bool g_bSpecialIgnoreCooldown[MAXPLAYERS + 1];
+float g_flZombieMinicritsEnd;
+float g_flZombieDefenseEnd[MAXPLAYERS + 1];
 int g_iKillsThisLife[MAXPLAYERS + 1];
 int g_iMaxHealth[MAXPLAYERS + 1];
 bool g_bShouldBacteriaPlay[MAXPLAYERS + 1] = {true, ...};
@@ -608,6 +617,7 @@ int g_iOffsetItemDefinitionIndex;
 #include "szf/dhook.sp"
 #include "szf/event.sp"
 #include "szf/forward.sp"
+#include "szf/glow.sp"
 #include "szf/hitcooldown.sp"
 #include "szf/infected.sp"
 #include "szf/laststand.sp"
@@ -618,6 +628,7 @@ int g_iOffsetItemDefinitionIndex;
 #include "szf/droppedweapons.sp"
 #include "szf/prefsave.sp"
 #include "szf/queue.sp"
+#include "szf/rage.sp"
 #include "szf/respawn.sp"
 #include "szf/sdkcall.sp"
 #include "szf/sdkhook.sp"
@@ -802,6 +813,7 @@ public void OnConfigsExecuted()
 public void OnMapStart()
 {
 	g_iRoundTimestamp = GetTime();
+	Glow_Clear();
 }
 
 public void OnMapEnd()
@@ -859,6 +871,9 @@ public void OnClientPutInServer(int iClient)
 	Queue_OnClientPutInServer(iClient);
 	SpecialQueue_OnClientPutInServer(iClient);
 	Stun_ResetClient(iClient);
+	Rage_OnClientPutInServer(iClient);
+	WeaponChanges_ResetClient(iClient);
+	Pickup_ResetClient(iClient);
 	
 	if (AreClientCookiesCached(iClient))
 		OnClientCookiesCached(iClient);
@@ -889,6 +904,9 @@ public void OnClientDisconnect(int iClient)
 	Weapons_ClientDisconnect(iClient);
 	LastStand_ClientDisconnect(iClient);
 	Respawn_ClientDisconnect(iClient);
+	Rage_EndTimedEffect(iClient);
+	Glow_RemoveClient(iClient);
+	Stun_ResetClient(iClient);
 }
 
 public void OnEntityCreated(int iEntity, const char[] sClassname)
@@ -912,6 +930,7 @@ public void OnEntityDestroyed(int iEntity)
 	EntityKilled_HitDetectionCooldown(iEntity);
 	DroppedWeapon_OnEntityDestroyed(iEntity);
 	WeaponChanges_OnEntityDestroyed(iEntity);
+	Pickup_OnEntityDestroyed(iEntity);
 	
 	char sClassname[256];
 	GetEntityClassname(iEntity, sClassname, sizeof(sClassname));
@@ -980,6 +999,8 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 					TF2_RemoveCondition(iClient, TFCond_Dazed);
 			}
 		}
+		
+		WeaponChanges_OnSurvivorConditionAdded(iClient, nCond);
 	}
 	else if (IsZombie(iClient))
 	{
@@ -992,6 +1013,8 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 					TF2_RemoveCondition(iClient, nCond);
 			}
 		}
+		
+		WeaponChanges_OnZombieConditionAdded(iClient, nCond);
 	}
 }
 
@@ -1004,6 +1027,8 @@ public void TF2_OnConditionRemoved(int iClient, TFCond nCond)
 	
 	if (nCond == TFCond_Bonked)
 		LastStand_OnBonkEnd(iClient);
+	
+	Rage_OnConditionRemoved(iClient, nCond);
 	
 	if (nCond == TFCond_Taunting)
 		ViewModel_UpdateClient(iClient);	// taunting removes EF_NODRAW from weapon, readd it back
@@ -1058,6 +1083,58 @@ void EndGracePeriod()
 	Respawn_OnRoundActive();
 	
 	LastStand_OnRoundActive();
+	
+	g_flZombieMinicritsEnd = 0.0;
+	int iZombies = GetZombieCount();
+	float flMinicritsTime = g_cvZombieMinicritsTime.FloatValue;
+	if (0 < iZombies <= g_cvZombieMinicritsCount.IntValue && flMinicritsTime > 0.0)
+	{
+		g_flZombieMinicritsEnd = GetGameTime() + flMinicritsTime;
+		
+		int iSeconds = RoundToNearest(flMinicritsTime);
+		if (iSeconds % 60 == 0)
+			CPrintToChatAll("%t", "Zombie_StartMinicritsMinutes", "{green}", iZombies, iSeconds / 60);
+		else
+			CPrintToChatAll("%t", "Zombie_StartMinicritsSeconds", "{green}", iZombies, iSeconds);
+	}
+}
+
+bool AreZombieMinicritsActive()
+{
+	return g_flZombieMinicritsEnd > GetGameTime();
+}
+
+bool MinicritsBecomeCrits(int iWeapon)
+{
+	return iWeapon > MaxClients && IsValidEntity(iWeapon) && TF2Attrib_HookValueInt(0, "minicrits_become_crits", iWeapon) != 0;
+}
+
+bool ZombieHidesBuffs(int iClient)
+{
+	return IsValidZombie(iClient) && TF2_GetPlayerClass(iClient) == TFClass_Spy;
+}
+
+bool ZombieGetsPluginMinicrits(int iClient, int iWeapon)
+{
+	return ZombieHidesBuffs(iClient) || MinicritsBecomeCrits(iWeapon);
+}
+
+void AddZombieDefenseBuff(int iClient, float flDuration)
+{
+	if (!ZombieHidesBuffs(iClient))
+	{
+		TF2_AddCondition(iClient, TFCond_DefenseBuffed, flDuration);
+		return;
+	}
+	
+	float flEnd = flDuration < 0.0 ? 1.0e9 : GetGameTime() + flDuration;
+	if (flEnd > g_flZombieDefenseEnd[iClient])
+		g_flZombieDefenseEnd[iClient] = flEnd;
+}
+
+bool HasZombieDefenseBuff(int iClient)
+{
+	return g_flZombieDefenseEnd[iClient] > GetGameTime();
 }
 
 ////////////////////////////////////////////////////////////
@@ -1075,7 +1152,6 @@ public Action Timer_Main(Handle hTimer) //1 second
 	UpdateDirector();
 	Respawn_Update();
 	LastStand_Update();
-	Queue_Update();
 	Sound_Timer();
 	
 	if (g_nRoundState == SZFRoundState_Active)
@@ -1202,10 +1278,13 @@ public void OnGameFrame()
 	if (g_nRoundState == SZFRoundState_Active)
 	{
 		int iCount = GetSurvivorCount();
+		bool bZombieMinicrits = AreZombieMinicritsActive();
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 		{
 			//Last man gets minicrit boost if 6 players ingame
 			if (iCount == 1 && IsValidLivingSurvivor(iClient) && GetActivePlayerCount() >= 6)
+				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
+			else if (bZombieMinicrits && IsValidLivingZombie(iClient) && !ZombieGetsPluginMinicrits(iClient, GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon")))
 				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
 		}
 		
@@ -1238,21 +1317,18 @@ public void OnGameFrame()
 	}
 }
 
+#define SPECIAL_INTERVAL_MIN_PLAYERS	2
+
 float GetSpecialInfectedInterval()
 {
 	float flBase = g_cvSpecialInfectedInterval.FloatValue;
 	if (flBase < 0.0)
 		return -1.0;
 	
-	float flMin = g_cvSpecialInfectedIntervalMin.FloatValue;
-	if (flMin > flBase)
-		flMin = flBase;
+	float flFraction = float(GetActivePlayerCount() - SPECIAL_INTERVAL_MIN_PLAYERS) / float(g_cvSpecialInfectedIntervalPlayers.IntValue - SPECIAL_INTERVAL_MIN_PLAYERS);
+	flFraction = fMax(0.0, fMin(1.0, flFraction));
 	
-	float flInterval = flBase - float(GetActivePlayerCount() / 2);
-	if (flInterval < flMin)
-		flInterval = flMin;
-	
-	return flInterval;
+	return flBase + (g_cvSpecialInfectedIntervalMax.FloatValue - flBase) * flFraction;
 }
 
 void Handle_WinCondition()
@@ -1278,17 +1354,29 @@ void Handle_SurvivorAbilities()
 {
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
-		if (IsValidLivingSurvivor(iClient) && !IsLastManStanding(iClient))
+		if (IsValidLivingSurvivor(iClient))
 		{
 			//1. Survivor health regeneration.
 			int iHealth = GetClientHealth(iClient);
 			int iMaxHealth = SDKCall_GetMaxHealth(iClient);
 			int iRegen = g_ClientClasses[iClient].iRegen;
 			
-			if (iHealth < iMaxHealth && (iRegen < 0 || !TF2_IsPlayerInCondition(iClient, TFCond_Bleeding)))	// No regen while in spitter bleed
+			bool bLastStand = IsLastManStanding(iClient);
+			bool bBleeding = TF2_IsPlayerInCondition(iClient, TFCond_Bleeding);
+			
+			if (bLastStand && g_cvLastStandDefenseDuration.FloatValue < 0.0 && !TF2_IsPlayerInCondition(iClient, TFCond_DefenseBuffMmmph))
+				TF2_AddCondition(iClient, TFCond_DefenseBuffMmmph, TFCondDuration_Infinite);
+			
+			if (bLastStand)
+				iRegen = LastStand_GetRegen(iClient, bBleeding ? 0 : iRegen);
+			
+			if (iHealth < iMaxHealth && (bLastStand ? iRegen > 0 : (iRegen < 0 || !bBleeding)))	// No regen while in spitter bleed
 			{
 				iRegen = min(iRegen, iMaxHealth - iHealth);
 				SetEntityHealth(iClient, iHealth + iRegen);
+				
+				if (bLastStand)
+					LastStand_AllowHealth(iClient);
 				
 				Event event = CreateEvent("player_healonhit", true);
 				event.SetInt("amount", iRegen);
@@ -1365,9 +1453,6 @@ void Handle_ZombieAbilities()
 			if (iHealth < iMaxHealth && g_nInfected[iClient] != Infected_Tank)
 			{
 				int iRegen = g_ClientClasses[iClient].iRegen;
-				
-				if (g_nInfected[iClient] == Infected_Jockey && Infected_GetJockeyTarget(iClient))
-					iRegen *= 2;
 				
 				//Handle additional regeneration
 				iRegen += min(g_iHorde[iClient], 3); //Horde bonus
@@ -1520,6 +1605,10 @@ void SZFEnable()
 	
 	// Generic Rage
 	PrecacheParticle("spell_cast_wheel_blue");
+	Rage_Precache();
+	
+	PrecacheGeneric(ZOMBIE_FOOD_PARTICLE_FILE, true);
+	PrecacheParticle(ZOMBIE_FOOD_PARTICLE);
 	
 	// Boomer
 	PrecacheParticle("asplode_hoodoo_debris");
@@ -1581,6 +1670,9 @@ void SZFDisable()
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
+		if (IsClientInGame(iClient))
+			Stun_EndPlayer(iClient);
+		
 		ResetClientState(iClient);
 		DHook_UnhookGiveNamedItem(iClient);
 		
@@ -1619,6 +1711,11 @@ void ResetClientState(int iClient)
 	g_iCapturingPoint[iClient] = -1;
 	g_iRageTimer[iClient] = 0;
 	Infected_ResetJockey(iClient);
+	Rage_EndTimedEffect(iClient);
+	WeaponChanges_ResetClient(iClient);
+	Glow_RemoveClient(iClient);
+	Pickup_ResetClient(iClient);
+	g_flZombieDefenseEnd[iClient] = 0.0;
 }
 
 void PrintInfoChat(int iClient)
@@ -1904,7 +2001,8 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 void StartLastSurvivor(int iLastSurvivor)
 {
 	TF2_AddCondition(iLastSurvivor, TFCond_KingRune, g_cvLastStandKingRuneDuration.FloatValue);
-	TF2_AddCondition(iLastSurvivor, TFCond_DefenseBuffNoCritBlock, g_cvLastStandDefenseDuration.FloatValue);
+	
+	TF2_AddCondition(iLastSurvivor, TFCond_DefenseBuffMmmph, g_cvLastStandDefenseDuration.FloatValue);
 	SetEntityHealth(iLastSurvivor, SDKCall_GetMaxHealth(iLastSurvivor));
 	
 	g_bLastSurvivor = true;

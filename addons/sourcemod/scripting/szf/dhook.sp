@@ -149,6 +149,7 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 		if (flSpeed <= 1.0)
 			return MRES_Ignored;
 		
+		flSpeed = WeaponChanges_GetSteakSpeed(iClient, flSpeed);
 		flSpeed += g_ClientClasses[iClient].flSpeed;
 		
 		if (IsZombie(iClient))
@@ -168,6 +169,7 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 					flSpeedBonus += 40.0; //Map-wide zombie enrage event, but don't stack too much from other bonus
 				
 				flSpeed += flSpeedBonus;
+				flSpeed += Rage_GetSpeedBonus(iClient);
 				
 				//Movement speed decrease
 				if (TF2_IsPlayerInCondition(iClient, TFCond_Jarated))
@@ -460,8 +462,18 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	g_nRoundState = SZFRoundState_Grace;
 	g_iRoundPlayedCount++;
+	g_flZombieMinicritsEnd = 0.0;
 	
 	CPrintToChatAll("%t", "Grace_Start", "{green}");
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (Split_ShouldPlaceSpectator(iClient))
+		{
+			TF2_ChangeClientTeam(iClient, TFTeam_Survivor);
+			CPrintToChat(iClient, "%t", "Spectator_JoinRound", "{lightsalmon}");
+		}
+	}
 	
 	//Assign players to zombie and survivor teams.
 	int[] iClients = new int[MaxClients];
@@ -611,4 +623,9 @@ public MRESReturn DHook_RoundRespawnPre()
 	SetGlow();
 	
 	return MRES_Ignored;
+}
+
+bool Split_ShouldPlaceSpectator(int iClient)
+{
+	return g_cvSpectatorsJoin.BoolValue && IsClientInGame(iClient) && !IsFakeClient(iClient) && TF2_GetClientTeam(iClient) == TFTeam_Spectator;
 }

@@ -1,5 +1,14 @@
+#define ZOMBIE_FOOD_PARTICLE		"utaunt_hands_teamcolor_red"
+#define ZOMBIE_FOOD_PARTICLE_FILE	"particles/halloween2022_unusuals.pcf"
+#define ZOMBIE_FOOD_DAMAGE			70.0
+#define ZOMBIE_FOOD_DAMAGE_SMALL	40.0
+#define ZOMBIE_FOOD_IMMUNITY		10.0
+
 static int g_iOffsetDisguiseCompleteTime;
 static float g_flDisguiseCompleteTime;
+static float g_flFoodImmuneUntil[MAXPLAYERS + 1];
+static int g_iFoodParticle[2048] = {INVALID_ENT_REFERENCE, ...};
+static float g_flPluginDefenseDamage[MAXPLAYERS + 1];
 
 void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 {
@@ -118,6 +127,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 {
 	WeaponChanges_OnTakeDamagePre(iVictim, iDamageType);
 	LastStand_OnZombieDamagedPre(iVictim, iAttacker);
+	g_flPluginDefenseDamage[iVictim] = 0.0;
 	
 	if (!CanRecieveDamage(iVictim))
 		return Plugin_Continue;
@@ -169,14 +179,20 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		}
 		
 		bool bLastStand = IsValidZombie(iAttacker) && IsLastManStanding(iVictim);
-		if (bLastStand && iDamageCustom == TF_CUSTOM_BACKSTAB)
+		if (bLastStand && IsStunningHit(flDamage, iDamageCustom))
 		{
-			if (g_nInfected[iAttacker] == Infected_Stalker)
+			if (g_nInfected[iAttacker] == Infected_Stalker && iDamageCustom == TF_CUSTOM_BACKSTAB)
 				flDamage = Infected_GetStalkerBackstabDamage(false);
 			else
-				flDamage = LastStand_GetBackstabDamage(iWeapon);
+				flDamage = LastStand_GetMeleeDamage(iAttacker, iWeapon);
 			
 			iDamageType &= ~DMG_CRIT;
+			bChanged = true;
+		}
+		
+		if (bLastStand && (iDamageType & DMG_USEDISTANCEMOD) && TF2_IsPlayerInCondition(iVictim, TFCond_DefenseBuffMmmph))
+		{
+			iDamageType &= ~DMG_USEDISTANCEMOD;
 			bChanged = true;
 		}
 		
@@ -186,15 +202,24 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			bChanged = true;
 		}
 		
+		if (Rage_OnZombieHit(iVictim, iAttacker, iDamageCustom, flDamage))
+			bChanged = true;
+		
+		if (SpitterBleed_OnTakeDamage(iVictim, iAttacker, iDamageCustom, flDamage))
+			bChanged = true;
+		
+		if (flDamage < 300.0 && !(iDamageType & DMG_CRIT) && PluginMinicritApplies(iVictim, iAttacker, iWeapon))
+		{
+			flDamage *= 1.35;
+			bChanged = true;
+		}
+		
 		if (IsValidSurvivor(iVictim) && IsValidZombie(iAttacker))
 		{
 			Sound_Attack(iVictim, iAttacker);
 			
 			//Taunt kill, backstabs and gunslinger combo punch
-			if (!bLastStand && (flDamage >= 300.0
-				|| iDamageCustom == TF_CUSTOM_BACKSTAB
-				|| iDamageCustom == TF_CUSTOM_TAUNT_GRENADE
-				|| (TF2_GetPlayerClass(iAttacker) == TFClass_Engineer && GetEntProp(iAttacker, Prop_Send, "m_iNextMeleeCrit") == MELEE_CRIT)))
+			if (!bLastStand && IsStunningHit(flDamage, iDamageCustom))
 			{
 				
 				if (TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged) || (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB))
@@ -215,6 +240,9 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				{
 					flDamage = Infected_GetStalkerBackstabDamage(bWasStunned) * g_cvZombieDamage.FloatValue;
 					iDamageType &= ~DMG_CRIT;
+					
+					if (PluginMinicritApplies(iVictim, iAttacker, iWeapon))
+						flDamage *= 1.35;
 				}
 				else
 				{
@@ -235,6 +263,20 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		}
 	}
 	
+	if (Rage_OnTakeDamage(iVictim, flDamage))
+		bChanged = true;
+	
+	if (IsPluginDefenseHit(iVictim, iDamageType, iDamageCustom))
+	{
+		iDamageType &= ~DMG_CRIT;
+		
+		if (!(iWeapon > MaxClients && IsValidEntity(iWeapon) && TF2Attrib_HookValueInt(0, "mod_pierce_resists_absorbs", iWeapon) != 0))
+			flDamage *= IsClassname(iInflicter, "obj_sentrygun") ? 0.5 : 0.65;
+		
+		g_flPluginDefenseDamage[iVictim] = flDamage;
+		bChanged = true;
+	}
+	
 	if (Stun_IsPlayerStunned(iVictim))
 		Stun_Shake(iVictim, vecForce, flDamage * 8.0);
 	
@@ -248,14 +290,72 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	return Plugin_Continue;
 }
 
+static bool IsStunningHit(float flDamage, int iDamageCustom)
+{
+	return flDamage >= 300.0
+		|| iDamageCustom == TF_CUSTOM_BACKSTAB
+		|| iDamageCustom == TF_CUSTOM_TAUNT_GRENADE
+		|| iDamageCustom == TF_CUSTOM_COMBO_PUNCH;
+}
+
+static bool PluginMinicritApplies(int iVictim, int iAttacker, int iWeapon)
+{
+	return IsValidSurvivor(iVictim) && IsValidLivingZombie(iAttacker) && AreZombieMinicritsActive()
+		&& ZombieGetsPluginMinicrits(iAttacker, iWeapon) && !WillMinicritAnyway(iVictim, iAttacker)
+		&& !TF2_IsPlayerInCondition(iVictim, TFCond_DefenseBuffed) && !WeaponChanges_IsVaccinatorUbered(iVictim);
+}
+
+static bool IsPluginDefenseHit(int iVictim, int iDamageType, int iDamageCustom)
+{
+	return HasZombieDefenseBuff(iVictim) && !TF2_IsPlayerInCondition(iVictim, TFCond_DefenseBuffed)
+		&& iDamageCustom != TF_CUSTOM_BACKSTAB && !(iDamageType & DMG_CRUSH);
+}
+
+static float PluginDefenseCritMultiplier(int iVictim, float flDamage, int iWeapon, int iDamageCustom)
+{
+	float flBase = g_flPluginDefenseDamage[iVictim];
+	if (flBase <= 0.0 || iDamageCustom == TF_CUSTOM_AXTINGUISHER_BOOSTED)
+		return 1.35;
+	
+	float flFull = flBase * 3.0;
+	if (iWeapon > MaxClients && IsValidEntity(iWeapon))
+		flFull *= TF2Attrib_HookValueFloat(1.0, "mult_dmg_vs_players", iWeapon);
+	
+	return FloatAbs(flDamage - flFull) <= flFull * 0.02 ? 3.0 : 1.35;
+}
+
+static bool WillMinicritAnyway(int iVictim, int iAttacker)
+{
+	return TF2_IsPlayerInCondition(iVictim, TFCond_Jarated)
+		|| TF2_IsPlayerInCondition(iVictim, TFCond_MarkedForDeath)
+		|| TF2_IsPlayerInCondition(iVictim, TFCond_MarkedForDeathSilent)
+		|| TF2_IsPlayerInCondition(iAttacker, TFCond_Buffed)
+		|| TF2_IsPlayerInCondition(iAttacker, TFCond_CritCola);
+}
+
 public void Client_OnTakeDamagePost(int iVictim, int iAttacker, int iInflicter, float flDamage, int iDamageType, int iWeapon, const float vecForce[3], const float vecForcePos[3], int iDamageCustom)
 {
 	LastStand_OnZombieDamagedPost(iVictim);
+	Rage_OnTakeDamagePost(iVictim, iAttacker, flDamage);
 }
 
 public Action Client_OnTakeDamageAlive(int iVictim, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
 {
-	return WeaponChanges_OnTakeDamageAlive(iVictim, flDamage, iDamageType);
+	Action action = WeaponChanges_OnTakeDamageAlive(iVictim, flDamage, iDamageType);
+	
+	if (IsPluginDefenseHit(iVictim, iDamageType, iDamageCustom) && (iDamageType & DMG_CRIT))
+	{
+		flDamage /= PluginDefenseCritMultiplier(iVictim, flDamage, iWeapon, iDamageCustom);
+		iDamageType &= ~DMG_CRIT;
+		action = Plugin_Changed;
+	}
+	
+	g_flPluginDefenseDamage[iVictim] = 0.0;
+	
+	if (LastStand_OnTakeDamage(iVictim, flDamage, iDamageType, iDamageCustom))
+		action = Plugin_Changed;
+	
+	return action;
 }
 
 public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)
@@ -311,12 +411,66 @@ public void Pickup_SpawnPost(int iEntity)
 		if (IsClassname(iEntity, "item_healthkit_medium"))	//Lunchbox sandvich
 		{
 			SDKHook(iEntity, SDKHook_Touch, Pickup_SandvichTouch);
+			Pickup_AttachFoodParticle(iEntity);
 		}
 		else if (IsClassname(iEntity, "item_healthkit_small"))	//Lunchbox non-sandvich
 		{
 			SDKHook(iEntity, SDKHook_Touch, Pickup_BananaTouch);
+			Pickup_AttachFoodParticle(iEntity);
 		}
 	}
+}
+
+static void Pickup_AttachFoodParticle(int iEntity)
+{
+	if (iEntity >= sizeof(g_iFoodParticle))
+		return;
+	
+	int iParticle = CreateEntityByName("info_particle_system");
+	if (iParticle <= MaxClients)
+		return;
+	
+	float vecOrigin[3];
+	GetEntPropVector(iEntity, Prop_Data, "m_vecAbsOrigin", vecOrigin);
+	TeleportEntity(iParticle, vecOrigin, NULL_VECTOR, NULL_VECTOR);
+	DispatchKeyValue(iParticle, "effect_name", ZOMBIE_FOOD_PARTICLE);
+	DispatchSpawn(iParticle);
+	
+	SetVariantString("!activator");
+	AcceptEntityInput(iParticle, "SetParent", iEntity, iParticle);
+	ActivateEntity(iParticle);
+	AcceptEntityInput(iParticle, "Start");
+	
+	g_iFoodParticle[iEntity] = EntIndexToEntRef(iParticle);
+}
+
+void Pickup_OnEntityDestroyed(int iEntity)
+{
+	if (iEntity <= 0 || iEntity >= sizeof(g_iFoodParticle))
+		return;
+	
+	int iParticle = EntRefToEntIndex(g_iFoodParticle[iEntity]);
+	g_iFoodParticle[iEntity] = INVALID_ENT_REFERENCE;
+	if (iParticle > MaxClients)
+		RemoveEntity(iParticle);
+}
+
+void Pickup_ResetClient(int iClient)
+{
+	g_flFoodImmuneUntil[iClient] = 0.0;
+	SpitterBleed_ResetClient(iClient);
+}
+
+static bool Pickup_IsFoodImmune(int iClient)
+{
+	return g_flFoodImmuneUntil[iClient] > GetGameTime();
+}
+
+static void Pickup_FoodHit(int iEntity, int iOwner, int iSurvivor, float flDamage)
+{
+	RemoveEntity(iEntity);
+	DealDamage(iOwner, iSurvivor, flDamage);
+	g_flFoodImmuneUntil[iSurvivor] = GetGameTime() + ZOMBIE_FOOD_IMMUNITY;
 }
 
 public Action Pickup_BlockZombieTouch(int iEntity, int iToucher)
@@ -341,8 +495,8 @@ public Action Pickup_SandvichTouch(int iEntity, int iToucher)
 	if (IsSurvivor(iToucher))
 	{
 		//Kill it and deal damage
-		RemoveEntity(iEntity);
-		DealDamage(iOwner, iToucher, 45.0);
+		if (!Pickup_IsFoodImmune(iToucher))
+			Pickup_FoodHit(iEntity, iOwner, iToucher, ZOMBIE_FOOD_DAMAGE);
 		
 		return Plugin_Handled;
 	}
@@ -365,8 +519,8 @@ public Action Pickup_BananaTouch(int iEntity, int iToucher)
 		int iOwner = GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity");
 		
 		//Kill it and deal damage
-		RemoveEntity(iEntity);
-		DealDamage(iOwner, iToucher, 60.0);
+		if (!Pickup_IsFoodImmune(iToucher))
+			Pickup_FoodHit(iEntity, iOwner, iToucher, ZOMBIE_FOOD_DAMAGE_SMALL);
 		
 		return Plugin_Handled;
 	}
@@ -400,7 +554,10 @@ public Action GasManager_Touch(int iGasManager, int iClient)
 			int iOwner = GetEntPropEnt(iGasManager, Prop_Send, "m_hOwnerEntity");
 			
 			if (GetClientTeam(iClient) != GetClientTeam(iOwner))
+			{
 				TF2_MakeBleed(iClient, iOwner, 0.5);
+				SpitterBleed_Mark(iClient, iOwner, 0.5);
+			}
 		}
 		
 		return Plugin_Handled;
@@ -420,10 +577,37 @@ public Action GasManager_EndTouch(int iGasManager, int iClient)
 		{
 			TF2_RemoveCondition(iClient, TFCond_Bleeding);
 			TF2_MakeBleed(iClient, iOwner, 5.0);
+			SpitterBleed_Mark(iClient, iOwner, 5.0);
 		}
 	}
 	
 	return Plugin_Continue;
+}
+
+#define SPITTER_BLEED_MULTI		0.5
+
+static int g_iSpitterBleedAttacker[MAXPLAYERS + 1];
+static float g_flSpitterBleedEnd[MAXPLAYERS + 1];
+
+static void SpitterBleed_Mark(int iClient, int iSpitter, float flDuration)
+{
+	g_iSpitterBleedAttacker[iClient] = iSpitter;
+	g_flSpitterBleedEnd[iClient] = GetGameTime() + flDuration;
+}
+
+static bool SpitterBleed_OnTakeDamage(int iVictim, int iAttacker, int iDamageCustom, float &flDamage)
+{
+	if (iDamageCustom != TF_CUSTOM_BLEEDING || iAttacker != g_iSpitterBleedAttacker[iVictim] || g_flSpitterBleedEnd[iVictim] + 0.6 < GetGameTime())
+		return false;
+	
+	flDamage *= SPITTER_BLEED_MULTI;
+	return true;
+}
+
+static void SpitterBleed_ResetClient(int iClient)
+{
+	g_iSpitterBleedAttacker[iClient] = 0;
+	g_flSpitterBleedEnd[iClient] = 0.0;
 }
 
 public Action CaptureArea_StartTouch(int iEntity, int iClient)

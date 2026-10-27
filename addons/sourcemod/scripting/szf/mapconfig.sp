@@ -29,11 +29,11 @@ static const char g_sMapSettingKeys[][] =
 static const float g_flMapSettingDefaults[] =
 {
 	20.0,
-	30.0,
-	4.0,
+	25.0,
+	10.0,
 	20.0,
 	12.0,
-	60.0,
+	30.0,
 	4.0,
 	4.0
 };

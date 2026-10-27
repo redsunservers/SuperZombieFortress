@@ -1,0 +1,7 @@
+"UnlitGeneric"
+{
+	"$basetexture"	"szf/overlays/rage"
+	"$translucent"	"1"
+	"$ignorez"		"1"
+	"$nofog"		"1"
+}

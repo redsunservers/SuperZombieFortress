@@ -11,9 +11,12 @@ public void Infected_DoGenericRage(int iClient)
 	GetClientEyePosition(iClient, vecClientPos);
 	vecClientPos[2] -= 60.0; //Wheel goes down or smth, so thats why i did that i guess
 	
-	ShowParticle("spell_cast_wheel_blue", 4.0, vecClientPos);
+	if (TF2_GetPlayerClass(iClient) != TFClass_Spy)
+		ShowParticle("spell_cast_wheel_blue", 4.0, vecClientPos);
 	PrintHintText(iClient, "%t", "Infected_RageUsed");
 	Sound_PlayInfectedVo(iClient, Infected_None, SoundVo_Rage);
+	
+	Rage_OnRage(iClient);
 }
 
 public void Infected_DoNoRage(int iClient)
@@ -877,7 +880,7 @@ public void Infected_DoScreamerRage(int iClient)
 			float flDistance = GetVectorDistance(vecPosScreamer, vecPosZombie);
 			if (flDistance <= 600.0)
 			{
-				TF2_AddCondition(i, TFCond_DefenseBuffed, 7.0 - flDistance / 120.0);
+				AddZombieDefenseBuff(i, 7.0 - flDistance / 120.0);
 				Shake(i, 3.0, 3.0);
 			}
 		}
@@ -909,7 +912,7 @@ public void Infected_OnScreamerThink(int iClient, int &iButtons)
 
 #define STALKER_BACKSTAB_KNIFE_DAMAGE	40.0
 #define STALKER_BACKSTAB_MULT			2.0
-#define STALKER_BACKSTAB_STUNNED_MULT	5.0
+#define STALKER_BACKSTAB_STUNNED_MULT	3.5
 
 float Infected_GetStalkerBackstabDamage(bool bVictimStunned)
 {
@@ -1015,8 +1018,6 @@ public void Infected_OnHunterTouch(int iClient, int iToucher)
 		
 		if (IsPlayerAlive(iToucher) && !TF2_IsPlayerInCondition(iToucher, TFCond_DeadRingered) && Stun_StartPlayer(iToucher, flDuration))
 		{
-			SetNextAttack(iClient, GetGameTime() + 2.0);
-			
 			//Teleport hunter inside the target
 			float vecPosClient[3];
 			GetClientAbsOrigin(iToucher, vecPosClient);
@@ -1025,7 +1026,6 @@ public void Infected_OnHunterTouch(int iClient, int iToucher)
 			SetPlayerIntangible(iClient);
 			
 			TF2_StunPlayer(iToucher, flDuration, 0.5, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, 0);
-			TF2_StunPlayer(iClient, flDuration, 1.0, TF_STUNFLAG_SLOWDOWN, 0);
 		}
 		
 		Forward_OnHunterHit(iClient, iToucher);
@@ -1539,19 +1539,9 @@ public void Infected_OnJockeyThink(int iClient, int &iButtons)
 			//Jockey target no longer valid
 			g_iJockeyTarget[iClient] = 0;
 			
-			SetEntityMoveType(iClient, MOVETYPE_WALK);
-			SetEntityCollisionGroup(iClient, COLLISION_GROUP_PLAYER);
+			Infected_EndJockeyRide(iClient);
 		}
 	}
-}
-
-int Infected_GetJockeyTarget(int iClient)
-{
-	int iTarget = g_iJockeyTarget[iClient];
-	if (0 < iTarget <= MaxClients && IsValidLivingSurvivor(iTarget))
-		return iTarget;
-	
-	return 0;
 }
 
 bool Infected_IsJockeyVictim(int iVictim)
@@ -1583,10 +1573,30 @@ public void Infected_OnJockeyTouch(int iClient, int iToucher)
 	SDKCall_SetSpeed(iToucher);
 	
 	SetEntityMoveType(iClient, MOVETYPE_NONE);
-	SetEntityCollisionGroup(iClient, COLLISION_GROUP_DEBRIS_TRIGGER);
+	
+	SetEntityCollisionGroup(iClient, COLLISION_GROUP_PUSHAWAY);
+	Infected_SetJockeyScale(iClient, g_cvJockeyRideScale.FloatValue);
 	SDKCall_PlaySpecificSequence(iClient, "jockey_ride");
 
 	Forward_OnJockeyHit(iClient, iToucher);
+}
+
+static void Infected_EndJockeyRide(int iClient)
+{
+	Infected_SetJockeyScale(iClient, 1.0);
+	SetEntityMoveType(iClient, MOVETYPE_WALK);
+	SetEntityCollisionGroup(iClient, COLLISION_GROUP_PLAYER);
+}
+
+static void Infected_SetJockeyScale(int iClient, float flScale)
+{
+	if (GetEntPropFloat(iClient, Prop_Send, "m_flModelScale") == flScale)
+		return;
+	
+	float vecScale[3];
+	vecScale[0] = flScale;
+	SetVariantVector3D(vecScale);
+	AcceptEntityInput(iClient, "SetModelScale");
 }
 
 public void Infected_OnJockeyDeath(int iClient, int iKiller, int iAssist)
@@ -1605,10 +1615,7 @@ void Infected_ResetJockey(int iClient)
 		return;
 	
 	if (IsClientInGame(iClient))
-	{
-		SetEntityMoveType(iClient, MOVETYPE_WALK);
-		SetEntityCollisionGroup(iClient, COLLISION_GROUP_PLAYER);
-	}
+		Infected_EndJockeyRide(iClient);
 	
 	if (IsValidLivingSurvivor(iTarget))
 		SDKCall_SetSpeed(iTarget);

@@ -1,10 +1,19 @@
 #define LASTSTAND_HUNTER_DAMAGE		20.0
 #define LASTSTAND_INTANGIBLE_MIN	0.5
 #define LASTSTAND_LONE_HEALTH		0.25
+#define LASTSTAND_REGEN_MULTI		0.5
+#define LASTSTAND_RESIST_FEW			0.5
+#define LASTSTAND_RESIST_MANY			0.95
+#define LASTSTAND_RESIST_FEW_PLAYERS	2.0
+#define LASTSTAND_RESIST_MANY_PLAYERS	40.0
+#define LASTSTAND_TF2_TAKEN				0.25
 
 static int g_iLastStandHealth[MAXPLAYERS + 1] = {-1, ...};
 static int g_iLastStandHitHealth[MAXPLAYERS + 1] = {-1, ...};
 static int g_iLastStandHitAttacker[MAXPLAYERS + 1];
+static float g_flLastStandRegen[MAXPLAYERS + 1];
+static float g_flLastStandHurtTime[MAXPLAYERS + 1];
+static float g_flLastStandDamageCarry[MAXPLAYERS + 1];
 static bool g_bIntangible[MAXPLAYERS + 1];
 static float g_flIntangibleStart[MAXPLAYERS + 1];
 static float g_flBonkEnd[MAXPLAYERS + 1];
@@ -104,6 +113,9 @@ void LastStand_ResetClient(int iClient)
 {
 	g_iLastStandHealth[iClient] = -1;
 	g_iLastStandHitHealth[iClient] = -1;
+	g_flLastStandRegen[iClient] = 0.0;
+	g_flLastStandHurtTime[iClient] = 0.0;
+	g_flLastStandDamageCarry[iClient] = 0.0;
 	
 	if (g_bIntangible[iClient])
 	{
@@ -118,6 +130,9 @@ void LastStand_ClientDisconnect(int iClient)
 {
 	g_iLastStandHealth[iClient] = -1;
 	g_iLastStandHitHealth[iClient] = -1;
+	g_flLastStandRegen[iClient] = 0.0;
+	g_flLastStandHurtTime[iClient] = 0.0;
+	g_flLastStandDamageCarry[iClient] = 0.0;
 	g_bIntangible[iClient] = false;
 	g_flBonkEnd[iClient] = 0.0;
 	
@@ -131,6 +146,30 @@ public Action HealthKit_Touch(int iEntity, int iOther)
 		return Plugin_Handled;
 	
 	return Plugin_Continue;
+}
+
+int LastStand_GetRegen(int iClient, int iClassRegen)
+{
+	float flRegen = float(iClassRegen);
+	float flTimeSinceDamage = GetGameTime() - g_flLastStandHurtTime[iClient];
+	
+	if (TF2_GetPlayerClass(iClient) == TFClass_Medic)
+		flRegen += 3.0 * LastStand_Remap(flTimeSinceDamage, 5.0, 10.0, 1.0, 2.0);
+	
+	float flItemRegen = TF2Attrib_HookValueFloat(0.0, "add_health_regen", iClient);
+	if (flItemRegen > 0.0)
+		flRegen += flItemRegen * (flTimeSinceDamage < 5.0 ? 0.25 : LastStand_Remap(flTimeSinceDamage, 5.0, 10.0, 0.5, 1.0));
+	
+	g_flLastStandRegen[iClient] += flRegen * LASTSTAND_REGEN_MULTI;
+	int iRegen = RoundToZero(g_flLastStandRegen[iClient]);
+	g_flLastStandRegen[iClient] -= float(iRegen);
+	return iRegen;
+}
+
+static float LastStand_Remap(float flValue, float flInA, float flInB, float flOutA, float flOutB)
+{
+	float flFraction = fMax(0.0, fMin(1.0, (flValue - flInA) / (flInB - flInA)));
+	return flOutA + (flOutB - flOutA) * flFraction;
 }
 
 void LastStand_OnPreThink(int iClient)
@@ -157,6 +196,12 @@ void LastStand_OnPostThinkPost(int iClient)
 }
 
 void LastStand_OnHurt(int iClient)
+{
+	g_flLastStandHurtTime[iClient] = GetGameTime();
+	LastStand_LowerCap(iClient);
+}
+
+static void LastStand_LowerCap(int iClient)
 {
 	if (g_iLastStandHealth[iClient] < 0)
 		return;
@@ -192,7 +237,30 @@ void LastStand_OnZombieDamagedPost(int iVictim)
 	if (GetClientHealth(iAttacker) > iHealth)
 		SetEntityHealth(iAttacker, iHealth);
 	
-	LastStand_OnHurt(iAttacker);
+	LastStand_LowerCap(iAttacker);
+}
+
+float LastStand_GetResistance()
+{
+	return LastStand_Remap(float(GetActivePlayerCount()), LASTSTAND_RESIST_FEW_PLAYERS, LASTSTAND_RESIST_MANY_PLAYERS, LASTSTAND_RESIST_FEW, LASTSTAND_RESIST_MANY);
+}
+
+bool LastStand_OnTakeDamage(int iVictim, float &flDamage, int iDamageType, int iDamageCustom)
+{
+	if (!IsLastManStanding(iVictim) || !TF2_IsPlayerInCondition(iVictim, TFCond_DefenseBuffMmmph))
+		return false;
+	
+	if (iDamageCustom == TF_CUSTOM_BACKSTAB || (iDamageType & DMG_CRUSH))
+		return false;
+	
+	float flMulti = (1.0 - LastStand_GetResistance()) / LASTSTAND_TF2_TAKEN;
+	if (iDamageCustom == TF_CUSTOM_TRIGGER_HURT && flMulti < 1.0)
+		return false;
+	
+	g_flLastStandDamageCarry[iVictim] += flDamage * flMulti;
+	flDamage = float(RoundToFloor(g_flLastStandDamageCarry[iVictim]));
+	g_flLastStandDamageCarry[iVictim] -= flDamage;
+	return true;
 }
 
 void LastStand_OnBonkEnd(int iClient)
@@ -205,14 +273,19 @@ bool LastStand_IsBonkSlowdown(int iClient)
 	return GetGameTime() - g_flBonkEnd[iClient] < 0.5;
 }
 
-float LastStand_GetBackstabDamage(int iWeapon)
+float LastStand_GetMeleeDamage(int iAttacker, int iWeapon)
 {
-	const float flKnifeDamage = 40.0;
+	float flDamage = 65.0;
+	switch (TF2_GetPlayerClass(iAttacker))
+	{
+		case TFClass_Scout: flDamage = 35.0;
+		case TFClass_Spy: flDamage = 40.0;
+	}
 	
 	if (iWeapon > MaxClients && IsValidEntity(iWeapon))
-		return TF2Attrib_HookValueFloat(flKnifeDamage, "mult_dmg", iWeapon);
+		return TF2Attrib_HookValueFloat(flDamage, "mult_dmg", iWeapon);
 	
-	return flKnifeDamage;
+	return flDamage;
 }
 
 void LastStand_OnHunterPounce(int iHunter, int iVictim)

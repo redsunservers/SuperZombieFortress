@@ -13,6 +13,7 @@ cp -r ../addons/sourcemod/gamedata/szf.txt package/addons/sourcemod/gamedata
 cp -r ../addons/sourcemod/translations package/addons/sourcemod
 cp -r ../models package
 cp -r ../sound package
+cp -r ../materials package
 cp -r ../LICENSE package
 
 # Create ZIP file
