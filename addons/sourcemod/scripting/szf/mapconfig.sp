@@ -8,6 +8,7 @@ enum
 	MapSetting_FrenzyDuration,
 	MapSetting_PostFrenzyRespawnTime,
 	MapSetting_PostFrenzyRate,
+	MapSetting_Frenzy2RespawnTime,
 	MapSetting_Post2ndFrenzyRespawnTime,
 	MapSetting_StartingRatio,
 	
@@ -22,6 +23,7 @@ static const char g_sMapSettingKeys[][] =
 	"frenzyduration",
 	"postfrenzyrespawntime",
 	"postfrenzyrate",
+	"frenzy2respawntime",
 	"post2ndfrenzyrespawntime",
 	"startingratio"
 };
@@ -34,6 +36,7 @@ static const float g_flMapSettingDefaults[] =
 	20.0,
 	12.0,
 	30.0,
+	10.0,
 	4.0,
 	4.0
 };
@@ -330,7 +333,8 @@ static void MapConfig_RebalanceTeams()
 			iSurvivors++;
 	}
 	
-	int iWantSurvivors = iPlayers - MapConfig_GetStartingZombies(iPlayers);
+	g_iStartingZombies = MapConfig_GetStartingZombies(iPlayers);
+	int iWantSurvivors = iPlayers - g_iStartingZombies;
 	if (iWantSurvivors < 1)
 		iWantSurvivors = 1;
 	

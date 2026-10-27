@@ -16,6 +16,7 @@ void ConVar_Init()
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Force enable SZF for next map.", _, true, 0.0, true, 1.0);
 	g_cvDebug = CreateConVar("sm_szf_debug", "0", "Enable debugs?", _, true, 0.0, true, 1.0);
 	g_cvZombieDamage = CreateConVar("sm_szf_zombie_damage", "0.6", "Multiplier on all damage zombies deal with their weapons. Survivors always deal normal damage.", _, true, 0.0);
+	g_cvZombieDamageUnderstaffed = CreateConVar("sm_szf_zombie_damage_understaffed", "0.8", "Multiplier on zombie weapon damage, instead of sm_szf_zombie_damage, while fewer zombies are alive than the round's starting zombie count.", _, true, 0.0);
 	g_cvDirectorFrenzy = CreateConVar("sm_szf_director_frenzy", "0", "<0/1> Let the old director start frenzies on its own. Frenzies come from the respawn timeline (maps.cfg) instead.", _, true, 0.0, true, 1.0);
 	g_cvDirectorTank = CreateConVar("sm_szf_director_tank", "0", "<0/1> Let the old director (and the last control point) call Tanks on their own. Tanks otherwise only come from maps, admins and a long Last Man Standing.", _, true, 0.0, true, 1.0);
 	g_cvLastStandTankTime = CreateConVar("sm_szf_laststand_tank_time", "300.0", "Seconds of Last Man Standing before a Tank is sent, once per round. 0 to disable.", _, true, 0.0);
@@ -40,7 +41,7 @@ void ConVar_Init()
 	g_cvZombieMinicritsCount = CreateConVar("sm_szf_zombie_minicrits_count", "3", "A round that starts with this many zombies or fewer gives every zombie mini-crits for sm_szf_zombie_minicrits_time seconds. 0 to disable.", _, true, 0.0);
 	g_cvZombieMinicritsTime = CreateConVar("sm_szf_zombie_minicrits_time", "360.0", "Seconds of zombie mini-crits from the end of setup, in a round that started with few zombies (sm_szf_zombie_minicrits_count).", _, true, 0.0);
 	g_cvSpectatorsJoin = CreateConVar("sm_szf_spectators_join", "1", "<0/1> Put players who are in spectator when a new round starts on a team, through the normal team split (zombie queue).", _, true, 0.0, true, 1.0);
-	g_cvJoinLockTime = CreateConVar("sm_szf_join_lock_time", "180.0", "Seconds after setup ends from which players who join (or come out of spectator) wait in spectator until the round ends. Before that they can still join the Infected. 0 = the whole round.", _, true, 0.0);
+	g_cvJoinLockTime = CreateConVar("sm_szf_join_lock_time", "120.0", "Players who aren't on a team can't join the Infected during setup and for this many seconds after it ends, unless the Infected team has fewer players than the round's starting zombie count. 0 = only during setup.", _, true, 0.0);
 	g_cvChargerSlamStun = CreateConVar("sm_szf_charger_slam_stun", "6.0", "How long a survivor is stunned when a charging Charger pushes them into a wall or object (6 = a normal backstab stun). 0 to disable.", _, true, 0.0);
 	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy.", _, true, 0.0, true, 1.0);
 	g_cvFrenzyRespawnStress = CreateConVar("sm_szf_frenzy_respawn_stress", "30.0", "Amount of seconds divided by playercount to add in frenzy respawn stress", _, true, 0.0, true, 120.0);
@@ -71,7 +72,7 @@ void ConVar_Init()
 	ConVar_Add("mp_autoteambalance", 0.0);
 	ConVar_Add("mp_teams_unbalance_limit", 0.0);
 	ConVar_Add("mp_scrambleteams_auto", 0.0);
-	ConVar_Add("mp_waitingforplayers_time", 140.0);
+	ConVar_Add("mp_waitingforplayers_time", 50.0);
 	ConVar_Add("mp_forceautoteam", 0.0);
 	
 	ConVar_Add("spec_freeze_time", -1.0);

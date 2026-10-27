@@ -42,14 +42,17 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 		return Plugin_Handled;
 	}
 	
-	if (g_nRoundState == SZFRoundState_Active && GetGameTime() - g_flRoundStarted >= g_cvJoinLockTime.FloatValue
-		&& !IsSurvivor(iClient) && !IsZombie(iClient) && !IsFakeClient(iClient)
-		&& !StrEqual(sArg, "spectate", false) && GetZombieCount() > 0)
+	if (IsZombieJoinLocked() && !IsSurvivor(iClient) && !IsZombie(iClient) && !IsFakeClient(iClient)
+		&& !StrEqual(sArg, "spectate", false) && GetZombieCount() > 0 && !AreZombiesUnderstaffed())
 	{
 		if (TF2_GetClientTeam(iClient) != TFTeam_Spectator)
 			TF2_ChangeClientTeam(iClient, TFTeam_Spectator);
 		
-		CPrintToChat(iClient, "%t", "Team_JoinNextRound", "{lightsalmon}");
+		if (g_nRoundState == SZFRoundState_Grace)
+			CPrintToChat(iClient, "%t", "Team_ZombiesLockedSetup", "{lightsalmon}", RoundToCeil(g_cvJoinLockTime.FloatValue));
+		else
+			CPrintToChat(iClient, "%t", "Team_ZombiesLocked", "{lightsalmon}", RoundToCeil(g_flRoundStarted + g_cvJoinLockTime.FloatValue - GetGameTime()));
+		
 		return Plugin_Handled;
 	}
 	
@@ -275,4 +278,53 @@ public Action Console_Build(int iClient, const char[] sCommand, int iArgs)
 		return Plugin_Handled;
 	
 	return Plugin_Continue;
+}
+
+#define UNDERSTAFFED_NOTICE_GAP	15.0
+
+static bool g_bUnderstaffedTold[MAXPLAYERS + 1];
+static int g_iUnderstaffedUserId[MAXPLAYERS + 1];
+static float g_flUnderstaffedTime[MAXPLAYERS + 1];
+
+static bool IsZombieJoinLocked()
+{
+	if (g_iStartingZombies < 0)
+		return false;
+	
+	if (g_nRoundState == SZFRoundState_Grace)
+		return true;
+	
+	return g_nRoundState == SZFRoundState_Active && GetGameTime() - g_flRoundStarted < g_cvJoinLockTime.FloatValue;
+}
+
+static bool AreZombiesUnderstaffed()
+{
+	return GetZombieCount() < g_iStartingZombies;
+}
+
+void Console_UpdateUnderstaffed()
+{
+	bool bUnderstaffed = IsZombieJoinLocked() && AreZombiesUnderstaffed();
+	float flNow = GetEngineTime();
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (!bUnderstaffed)
+		{
+			g_bUnderstaffedTold[iClient] = false;
+			continue;
+		}
+		
+		if (!IsClientInGame(iClient) || IsFakeClient(iClient) || TF2_GetClientTeam(iClient) > TFTeam_Spectator)
+			continue;
+		
+		int iUserId = GetClientUserId(iClient);
+		if (g_iUnderstaffedUserId[iClient] == iUserId && (g_bUnderstaffedTold[iClient] || flNow - g_flUnderstaffedTime[iClient] < UNDERSTAFFED_NOTICE_GAP))
+			continue;
+		
+		g_bUnderstaffedTold[iClient] = true;
+		g_iUnderstaffedUserId[iClient] = iUserId;
+		g_flUnderstaffedTime[iClient] = flNow;
+		CPrintToChat(iClient, "%t", "Team_ZombiesUnderstaffed", "{lightsalmon}");
+	}
 }
