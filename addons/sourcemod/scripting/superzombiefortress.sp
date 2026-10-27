@@ -392,6 +392,7 @@ int g_iZombiesKilledSpree;
 
 float g_flRoundStarted;
 int g_iRoundTimestamp;
+int g_iStartingZombies = -1;
 
 //Client State
 int g_iHorde[MAXPLAYERS + 1];
@@ -414,6 +415,7 @@ Handle g_hTimerProgress;
 ConVar g_cvForceOn;
 ConVar g_cvDebug;
 ConVar g_cvZombieDamage;
+ConVar g_cvZombieDamageUnderstaffed;
 ConVar g_cvDirectorFrenzy;
 ConVar g_cvDirectorTank;
 ConVar g_cvLastStandTankTime;
@@ -961,6 +963,7 @@ public void TF2_OnWaitingForPlayersStart()
 		return;
 
 	g_nRoundState = SZFRoundState_Setup;
+	g_iStartingZombies = -1;
 }
 
 public void TF2_OnWaitingForPlayersEnd()
@@ -1151,6 +1154,8 @@ public Action Timer_Main(Handle hTimer) //1 second
 	Handle_ZombieAbilities();
 	UpdateDirector();
 	Respawn_Update();
+	Console_UpdateUnderstaffed();
+	ZombieDamage_Update();
 	LastStand_Update();
 	Sound_Timer();
 	
@@ -1657,6 +1662,7 @@ void SZFEnable()
 void SZFDisable()
 {
 	g_bSurvival = false;
+	g_iStartingZombies = -1;
 	g_bNoMusic = false;
 	g_bNoDirectorTanks = false;
 	g_bNoDirectorRages = false;

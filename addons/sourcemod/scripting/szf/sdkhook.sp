@@ -198,7 +198,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		
 		if (IsValidZombie(iAttacker) && (flDamage < 300.0 || bLastStand))
 		{
-			flDamage *= g_cvZombieDamage.FloatValue;
+			flDamage *= GetZombieDamageMulti();
 			bChanged = true;
 		}
 		
@@ -238,7 +238,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 				
 				if (g_nInfected[iAttacker] == Infected_Stalker && iDamageCustom == TF_CUSTOM_BACKSTAB)
 				{
-					flDamage = Infected_GetStalkerBackstabDamage(bWasStunned) * g_cvZombieDamage.FloatValue;
+					flDamage = Infected_GetStalkerBackstabDamage(bWasStunned) * GetZombieDamageMulti();
 					iDamageType &= ~DMG_CRIT;
 					
 					if (PluginMinicritApplies(iVictim, iAttacker, iWeapon))
@@ -647,4 +647,40 @@ public Action CaptureArea_Think(int iEntity)
 			TF2_RespawnPlayer2(iClient);	// Yes, force spawn now
 	
 	return Plugin_Continue;
+}
+
+static float g_flZombieDamageShown = -1.0;
+
+static float GetZombieDamageMulti()
+{
+	if (GetLivingZombieCount() < g_iStartingZombies)
+		return g_cvZombieDamageUnderstaffed.FloatValue;
+	
+	return g_cvZombieDamage.FloatValue;
+}
+
+static int GetLivingZombieCount()
+{
+	int iCount = 0;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidLivingZombie(iClient))
+			iCount++;
+	
+	return iCount;
+}
+
+void ZombieDamage_Update()
+{
+	if (g_nRoundState != SZFRoundState_Active)
+	{
+		g_flZombieDamageShown = -1.0;
+		return;
+	}
+	
+	float flMulti = GetZombieDamageMulti();
+	if (flMulti == g_flZombieDamageShown)
+		return;
+	
+	g_flZombieDamageShown = flMulti;
+	CPrintToChatDebug("Zombie damage x%.2f (%d of %d starting zombies alive)", flMulti, GetLivingZombieCount(), g_iStartingZombies);
 }

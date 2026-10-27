@@ -60,10 +60,22 @@
 		"en"		"{1}You were in spectator, so you've been put on a team for the new round."
 	}
 	
-	"Team_JoinNextRound"
+	"Team_ZombiesLockedSetup"
+	{
+		"#format"	"{1:s},{2:d}"
+		"en"		"{1}The zombie team is locked until {2} seconds after setup ends. You can join earlier if it runs short of players."
+	}
+	
+	"Team_ZombiesLocked"
+	{
+		"#format"	"{1:s},{2:d}"
+		"en"		"{1}The zombie team is locked for {2} more seconds. You can join earlier if it runs short of players."
+	}
+	
+	"Team_ZombiesUnderstaffed"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}You joined during a round, so you're spectating until it ends. You'll get a team when the next round starts."
+		"en"		"{1}Zombies are understaffed you can now join blue team early"
 	}
 	
 	"Rage_Scout"

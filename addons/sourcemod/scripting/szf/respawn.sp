@@ -72,12 +72,12 @@ void Respawn_Update()
 		{
 			case RespawnPhase_PreFrenzy:
 			{
-				if (Respawn_IsFrenzyDue(MapConfig_GetSetting(MapSetting_StartRespawnTime), MapConfig_GetSetting(MapSetting_PreFrenzyRate)))
+				if (Respawn_IsFrenzyDue(MapConfig_GetSetting(MapSetting_StartRespawnTime), MapConfig_GetSetting(MapSetting_PreFrenzyRate), MapConfig_GetSetting(MapSetting_FrenzyRespawnTime)))
 					Respawn_StartFrenzy(RespawnPhase_Frenzy1);
 			}
 			case RespawnPhase_PostFrenzy:
 			{
-				if (Respawn_IsFrenzyDue(MapConfig_GetSetting(MapSetting_PostFrenzyRespawnTime), MapConfig_GetSetting(MapSetting_PostFrenzyRate)))
+				if (Respawn_IsFrenzyDue(MapConfig_GetSetting(MapSetting_PostFrenzyRespawnTime), MapConfig_GetSetting(MapSetting_PostFrenzyRate), MapConfig_GetSetting(MapSetting_Frenzy2RespawnTime)))
 					Respawn_StartFrenzy(RespawnPhase_Frenzy2);
 			}
 		}
@@ -110,11 +110,11 @@ float Respawn_GetTime()
 	{
 		case RespawnPhase_PreFrenzy:
 		{
-			return Respawn_CountDown(MapConfig_GetSetting(MapSetting_StartRespawnTime), MapConfig_GetSetting(MapSetting_PreFrenzyRate));
+			return Respawn_CountDown(MapConfig_GetSetting(MapSetting_StartRespawnTime), MapConfig_GetSetting(MapSetting_PreFrenzyRate), MapConfig_GetSetting(MapSetting_FrenzyRespawnTime));
 		}
 		case RespawnPhase_PostFrenzy:
 		{
-			return Respawn_CountDown(MapConfig_GetSetting(MapSetting_PostFrenzyRespawnTime), MapConfig_GetSetting(MapSetting_PostFrenzyRate));
+			return Respawn_CountDown(MapConfig_GetSetting(MapSetting_PostFrenzyRespawnTime), MapConfig_GetSetting(MapSetting_PostFrenzyRate), MapConfig_GetSetting(MapSetting_Frenzy2RespawnTime));
 		}
 		case RespawnPhase_Frenzy1, RespawnPhase_Frenzy2:
 		{
@@ -137,9 +137,9 @@ static int Respawn_GetSteps(float flRate)
 	return RoundToFloor((GetGameTime() - g_flRespawnPhaseStart) / flRate);
 }
 
-static float Respawn_CountDown(float flStart, float flRate)
+static float Respawn_CountDown(float flStart, float flRate, float flFrenzyTime)
 {
-	float flHold = MapConfig_GetSetting(MapSetting_FrenzyRespawnTime);
+	float flHold = flFrenzyTime;
 	if (flHold > flStart)
 		flHold = flStart;
 	
@@ -150,10 +150,10 @@ static float Respawn_CountDown(float flStart, float flRate)
 	return fMax(0.0, flTime);
 }
 
-static bool Respawn_IsFrenzyDue(float flStart, float flRate)
+static bool Respawn_IsFrenzyDue(float flStart, float flRate, float flFrenzyTime)
 {
 	int iSteps = Respawn_GetSteps(flRate);
-	return iSteps > 0 && flStart - float(iSteps) <= MapConfig_GetSetting(MapSetting_FrenzyRespawnTime);
+	return iSteps > 0 && flStart - float(iSteps) <= flFrenzyTime;
 }
 
 static void Respawn_StartFrenzy(int iPhase)

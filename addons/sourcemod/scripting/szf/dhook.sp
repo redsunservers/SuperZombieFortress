@@ -497,7 +497,8 @@ public MRESReturn DHook_RoundRespawnPre()
 	SortCustom1D(iClients, iLength, Sort_ZombieQueue);
 	
 	//Calculate team counts. At least one survivor must exist.
-	iSurvivorCount = iLength - MapConfig_GetStartingZombies(iLength);
+	g_iStartingZombies = MapConfig_GetStartingZombies(iLength);
+	iSurvivorCount = iLength - g_iStartingZombies;
 	if (iSurvivorCount == 0 && iLength > 0)
 		iSurvivorCount = 1;
 	
