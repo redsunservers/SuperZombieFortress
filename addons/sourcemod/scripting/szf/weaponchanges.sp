@@ -1,5 +1,9 @@
 #define ITEM_RIGHTEOUS_BISON		442
 #define ITEM_POMSON					588
+#define ITEM_EQUALIZER				128
+#define ITEM_ESCAPE_PLAN			775
+
+#define TAUNT_INDEX_WEAPON			0
 
 #define ENERGY_RING_SPEED_BONUS		1.2
 #define BISON_DAMAGE				20.0
@@ -15,6 +19,11 @@
 
 #define VACCINATOR_UBER_RESIST		0.75
 #define MINICRIT_MULTIPLIER			1.35
+
+#define STEAK_DURATION				16.0
+#define STEAK_SPEED_MULT			1.3
+#define STEAK_SPEED_MAX				310.5
+#define STEAK_DAMAGE_TAKEN			1.2
 
 enum
 {
@@ -43,6 +52,7 @@ static ArrayList g_aBisonHits[2048];
 static bool g_bCritBeforeModify[MAXPLAYERS + 1];
 static int g_iHuoLongState[MAXPLAYERS + 1];
 static float g_flHuoLongNextRing[MAXPLAYERS + 1];
+static float g_flSteakEnd[MAXPLAYERS + 1];
 
 void WeaponChanges_OnEntityCreated(int iEntity, const char[] sClassname)
 {
@@ -85,8 +95,11 @@ public void Frame_EnergyRingSetup(int iRef)
 	TeleportEntity(iRing, NULL_VECTOR, NULL_VECTOR, vecVelocity);
 	SetEntPropVector(iRing, Prop_Send, "m_vInitialVelocity", vecVelocity);
 	
-	if (iIndex != ITEM_RIGHTEOUS_BISON)
+	if (iIndex == ITEM_POMSON)
+	{
+		SDKHook(iRing, SDKHook_Touch, PomsonRing_Touch);
 		return;
+	}
 	
 	int iOwner = GetEntPropEnt(iRing, Prop_Send, "m_hOwnerEntity");
 	g_bBisonCrit[iRing] = IsValidClient(iOwner) && WeaponChanges_IsCritBoosted(iOwner);
@@ -135,6 +148,27 @@ public Action BisonRing_Touch(int iRing, int iOther)
 	EmitGameSoundToAll("Weapon_Bison.ProjectileImpactWorld", iRing);
 	
 	return Plugin_Handled;
+}
+
+public Action PomsonRing_Touch(int iRing, int iOther)
+{
+	bool bPlayer = (0 < iOther <= MaxClients);
+	if (bPlayer || (iOther > MaxClients && WeaponChanges_IsBuilding(iOther)))
+	{
+		int iOwner = GetEntPropEnt(iRing, Prop_Send, "m_hOwnerEntity");
+		if (iOther == iOwner || GetEntProp(iOther, Prop_Send, "m_iTeamNum") == GetEntProp(iRing, Prop_Send, "m_iTeamNum"))
+			return Plugin_Handled;
+		
+		if (bPlayer && !IsPlayerAlive(iOther))
+			return Plugin_Handled;
+		
+		return Plugin_Continue;
+	}
+	
+	if (iOther > MaxClients && IsWeaponPropClassname(iOther) && GetWeaponType(iOther) != WeaponType_Invalid)
+		return Plugin_Handled;
+	
+	return Plugin_Continue;
 }
 
 static bool BisonRing_CanHit(int iRing, int iTarget, float flGameTime)
@@ -277,6 +311,12 @@ void WeaponChanges_OnTakeDamagePre(int iVictim, int iDamageType)
 
 Action WeaponChanges_OnTakeDamageAlive(int iVictim, float &flDamage, int &iDamageType)
 {
+	if (WeaponChanges_IsSteakActive(iVictim) && !(iDamageType & DMG_CRIT))
+	{
+		flDamage *= STEAK_DAMAGE_TAKEN;
+		return Plugin_Changed;
+	}
+	
 	if (!WeaponChanges_IsVaccinatorUbered(iVictim))
 		return Plugin_Continue;
 	
@@ -297,4 +337,61 @@ bool WeaponChanges_IsVaccinatorUbered(int iClient)
 	return TF2_IsPlayerInCondition(iClient, TFCond_UberBulletResist)
 		|| TF2_IsPlayerInCondition(iClient, TFCond_UberBlastResist)
 		|| TF2_IsPlayerInCondition(iClient, TFCond_UberFireResist);
+}
+
+void WeaponChanges_OnZombieConditionAdded(int iClient, TFCond nCond)
+{
+	if (nCond != TFCond_CritCola || TF2_GetPlayerClass(iClient) != TFClass_Heavy || !IsPlayerAlive(iClient))
+		return;
+	
+	g_flSteakEnd[iClient] = GetGameTime() + STEAK_DURATION;
+	TF2_RemoveCondition(iClient, TFCond_CritCola);
+	CreateTimer(STEAK_DURATION, Timer_SteakEnd, GetClientSerial(iClient));
+}
+
+public Action Timer_SteakEnd(Handle hTimer, int iSerial)
+{
+	int iClient = GetClientFromSerial(iSerial);
+	
+	if (iClient && g_flSteakEnd[iClient] > 0.0 && g_flSteakEnd[iClient] <= GetGameTime() + 0.05)
+	{
+		g_flSteakEnd[iClient] = 0.0;
+		if (IsPlayerAlive(iClient))
+			SDKCall_SetSpeed(iClient);
+	}
+	
+	return Plugin_Continue;
+}
+
+void WeaponChanges_ResetClient(int iClient)
+{
+	g_flSteakEnd[iClient] = 0.0;
+}
+
+bool WeaponChanges_IsSteakActive(int iClient)
+{
+	return g_flSteakEnd[iClient] > GetGameTime() && IsValidZombie(iClient);
+}
+
+float WeaponChanges_GetSteakSpeed(int iClient, float flSpeed)
+{
+	if (!WeaponChanges_IsSteakActive(iClient))
+		return flSpeed;
+	
+	return fMin(flSpeed * STEAK_SPEED_MULT, STEAK_SPEED_MAX);
+}
+
+void WeaponChanges_OnSurvivorConditionAdded(int iClient, TFCond nCond)
+{
+	if (nCond != TFCond_Taunting || TF2_GetPlayerClass(iClient) != TFClass_Soldier)
+		return;
+	
+	if (GetEntProp(iClient, Prop_Send, "m_iTauntIndex") != TAUNT_INDEX_WEAPON)
+		return;
+	
+	if (!TF2_IsWielding(iClient, ITEM_EQUALIZER) && !TF2_IsWielding(iClient, ITEM_ESCAPE_PLAN))
+		return;
+	
+	TF2_RemoveCondition(iClient, TFCond_Taunting);
+	CPrintToChat(iClient, "%t", "Survivor_CantSuicide", "{red}");
 }

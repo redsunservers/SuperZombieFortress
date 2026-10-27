@@ -34,7 +34,7 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	
 	//Prepare for a completely new round
 	TFTeam nTeam = view_as<TFTeam>(event.GetInt("team"));
-	Queue_OnRoundEnd(nTeam);
+	Queue_OnRoundEnd();
 	g_bNewFullRound = event.GetBool("full_round");
 	g_nRoundState = SZFRoundState_End;
 	
@@ -107,34 +107,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 				g_bSpecialIgnoreCooldown[iClient] = false;
 			}
 			
-			//Create list of all special infected to randomize, apart from tank and non-special infected
-			int iLength = view_as<int>(Infected_Count) - 2;
-			Infected[] nSpecialInfected = new Infected[iLength];
-			for (int i = 0; i < iLength; i++)
-				nSpecialInfected[i] = view_as<Infected>(i + 2);
-			
-			//Randomize, sort list of special infected
-			SortIntegers(view_as<int>(nSpecialInfected), iLength, Sort_Random);
-			
-			//Go through each special infected in the list and find the first one thats not in cooldown
-			int i = 0;
-			while (nInfected  == Infected_None && i < iLength)
-			{
-				if (IsValidInfected(nSpecialInfected[i]) && g_flInfectedCooldown[nSpecialInfected[i]] <= GetGameTime() - 12.0 && g_iInfectedCooldown[nSpecialInfected[i]] != iClient)
-				{
-					//We found it, set as that special infected
-					nInfected  = nSpecialInfected[i];
-				}
-				
-				i++;
-			}
-			
-			if (nInfected == Infected_None && bIgnoreCooldown)
-			{
-				for (i = 0; i < iLength && nInfected == Infected_None; i++)
-					if (IsValidInfected(nSpecialInfected[i]))
-						nInfected = nSpecialInfected[i];
-			}
+			nInfected = SpecialQueue_PickInfected(iClient, bIgnoreCooldown);
 			
 			if (nInfected != Infected_None)
 			{
@@ -197,7 +170,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		}
 		
 		if (g_nRoundState == SZFRoundState_Active)
-			if (g_nInfected[iClient] != Infected_Tank && !PerformFastRespawn(iClient))
+			if (!Respawn_PlacePackSniper(iClient) && g_nInfected[iClient] != Infected_Tank && !PerformFastRespawn(iClient))
 				TF2_AddCondition(iClient, TFCond_Ubercharged, 2.0);
 		
 		HandleZombieLoadout(iClient);
@@ -214,7 +187,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 			Call_Finish();
 		}
 		
-		if (g_nInfected[iClient] == Infected_Boomer)
+		if (g_nInfected[iClient] == Infected_Boomer && g_bShouldBacteriaPlay[iClient])
 			Respawn_OnBoomerSpawn(iClient);
 		
 		SetEntityRenderMode(iClient, RENDER_TRANSCOLOR);
@@ -274,11 +247,11 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	{
 		g_iKillsThisLife[iKillers[0]]++;
 		
-		if (g_nRoundState == SZFRoundState_Active && IsValidSurvivor(iVictim))
+		if (g_nRoundState == SZFRoundState_Active && IsValidSurvivor(iVictim) && !GetRandomInt(0, 1))
 			SpecialQueue_Add(iKillers[0], "kill");
 		
 		if (g_iKillsThisLife[iKillers[0]] == 3 && g_nInfected[iKillers[0]] != Infected_Tank)
-			TF2_AddCondition(iKillers[0], TFCond_DefenseBuffed, TFCondDuration_Infinite);
+			AddZombieDefenseBuff(iKillers[0], TFCondDuration_Infinite);
 	}
 	
 	if (!bDeadRinger && IsValidZombie(iKillers[1]) && iKillers[1] != iVictim)
@@ -320,7 +293,11 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	g_bShouldBacteriaPlay[iVictim] = true;
 	
 	if (!bDeadRinger)
+	{
 		SpecialQueue_OnPlayerDeath(iVictim);
+		Rage_EndTimedEffect(iVictim);
+		Glow_RemoveClient(iVictim);
+	}
 	
 	Queue_OnPlayerDeath(iVictim, iKillers[0], bDeadRinger);
 	
@@ -456,8 +433,7 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 		g_iDamageTakenLife[iVictim] += iDamageAmount;
 		g_iDamageDealtLife[iAttacker] += iDamageAmount;
 		
-		Queue_OnPlayerHurt(iVictim, iAttacker);
-		SpecialQueue_OnPlayerHurt(iVictim, iAttacker, iDamageAmount);
+		SpecialQueue_OnPlayerHurt(iVictim, iAttacker, iDamageAmount, event.GetInt("custom"));
 		
 		if (IsValidZombie(iAttacker))
 		{
@@ -465,7 +441,7 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 			
 			if (!GetEntProp(iAttacker, Prop_Send, "m_bRageDraining") && TF2_IsSlotClassname(iAttacker, WeaponSlot_Secondary, "tf_weapon_buff_item"))
 			{
-				g_flBannerMeter[iAttacker] += float(iDamageAmount) / g_cvBannerRequirement.FloatValue * 100.0;
+				g_flBannerMeter[iAttacker] += float(iDamageAmount) / g_cvBannerRequirement.FloatValue * 100.0 * Rage_GetBannerChargeMulti(iAttacker);
 				if (g_flBannerMeter[iAttacker] >= 100.0)
 					g_flBannerMeter[iAttacker] = 100.0;
 				

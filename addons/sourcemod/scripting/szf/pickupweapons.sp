@@ -21,7 +21,6 @@ enum WeaponType
 };
 
 #define WEAPON_EXTRA_HEIGHT				50.0
-#define WEAPON_RARE_COMPANION_PLAYERS	20
 #define WEAPON_POWERUP_NAME				"szf_weapon_powerup"
 
 static bool g_bSpawningExtraWeapon;
@@ -202,17 +201,8 @@ public void SetWeapon(int iEntity)
 	if (g_bSpawningExtraWeapon)
 		return;
 	
-	float flHeight = 0.0;
-	
-	Weapon spawned;
-	if (nWeaponType != WeaponType_Static && nWeaponType != WeaponType_StaticSpawn && GetWeaponFromEntity(spawned, iEntity) && spawned.nRarity == WeaponRarity_Rare && GetActivePlayerCount() >= WEAPON_RARE_COMPANION_PLAYERS)
-	{
-		if (SpawnRareCompanion(iEntity, spawned, flHeight + WEAPON_EXTRA_HEIGHT))
-			flHeight += WEAPON_EXTRA_HEIGHT;
-	}
-	
 	if (nWeaponType == WeaponType_Default && GetRandomFloat(0.0, 1.0) < g_cvWeaponPickupChance.FloatValue)
-		SpawnExtraPowerup(iEntity, flHeight + WEAPON_EXTRA_HEIGHT);
+		SpawnExtraPowerup(iEntity, WEAPON_EXTRA_HEIGHT);
 }
 
 void Weapons_SetupProp(int iEntity)
@@ -314,52 +304,6 @@ void Weapons_RemoveFromPools(int iIndex)
 		if (iPos != -1)
 			aPools[i].Erase(iPos);
 	}
-}
-
-bool SpawnRareCompanion(int iEntity, Weapon source, float flHeight)
-{
-	if (!g_aWeaponsRares)
-		return false;
-	
-	bool bSpawnSpot = IsSpawnWeapon(iEntity);
-	if (!bSpawnSpot && g_iAvailableRareCount <= 0)
-		return false;
-	
-	g_aWeaponsRares.Sort(Sort_Random, Sort_Integer);
-	
-	int iLength = g_aWeaponsRares.Length;
-	for (int i = 0; i < iLength; i++)
-	{
-		Weapon wep;
-		g_aWeaponsRares.GetArray(i, wep);
-		
-		if (wep.iIndex == source.iIndex || (wep.bSpawnOnly && !bSpawnSpot) || !Weapons_ShareClass(wep.iIndex, source.iIndex))
-			continue;
-		
-		if (Weapons_CreateExtraProp(iEntity, wep, flHeight) == INVALID_ENT_REFERENCE)
-			return false;
-		
-		g_aWeaponsRares.Erase(i);
-		g_aWeaponsSpawn.Push(wep.iIndex);
-		
-		if (!bSpawnSpot)
-			g_iAvailableRareCount--;
-		
-		return true;
-	}
-	
-	return false;
-}
-
-bool Weapons_ShareClass(int iIndex1, int iIndex2)
-{
-	for (TFClassType nClass = TFClass_Scout; nClass <= TFClass_Engineer; nClass++)
-	{
-		if (IsValidSurvivorClass(nClass) && TF2_GetItemSlot(iIndex1, nClass) >= 0 && TF2_GetItemSlot(iIndex2, nClass) >= 0)
-			return true;
-	}
-	
-	return false;
 }
 
 void SpawnExtraPowerup(int iEntity, float flHeight)

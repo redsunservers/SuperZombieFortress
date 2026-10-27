@@ -4,6 +4,10 @@ void Console_Init()
 	AddCommandListener(Console_JoinTeam, "spectate");
 	AddCommandListener(Console_JoinTeam, "autoteam");
 	AddCommandListener(Console_JoinClass, "joinclass");
+	AddCommandListener(Console_Suicide, "kill");
+	AddCommandListener(Console_Suicide, "explode");
+	AddCommandListener(Console_Suicide, "killvector");
+	AddCommandListener(Console_Suicide, "explodevector");
 	AddCommandListener(Console_VoiceMenu, "voicemenu");
 	AddCommandListener(Console_Build, "build");
 }
@@ -31,6 +35,23 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 		strcopy(sArg, sizeof(sArg), "spectate");	
 	else if (StrEqual(sCommand, "autoteam", false))
 		strcopy(sArg, sizeof(sArg), "auto");
+	
+	if (IsSurvivor(iClient) && (g_nRoundState == SZFRoundState_Grace || g_nRoundState == SZFRoundState_Active))
+	{
+		CPrintToChat(iClient, "%t", "Team_SurvivorLocked", "{red}");
+		return Plugin_Handled;
+	}
+	
+	if (g_nRoundState == SZFRoundState_Active && GetGameTime() - g_flRoundStarted >= g_cvJoinLockTime.FloatValue
+		&& !IsSurvivor(iClient) && !IsZombie(iClient) && !IsFakeClient(iClient)
+		&& !StrEqual(sArg, "spectate", false) && GetZombieCount() > 0)
+	{
+		if (TF2_GetClientTeam(iClient) != TFTeam_Spectator)
+			TF2_ChangeClientTeam(iClient, TFTeam_Spectator);
+		
+		CPrintToChat(iClient, "%t", "Team_JoinNextRound", "{lightsalmon}");
+		return Plugin_Handled;
+	}
 	
 	//Check if client is trying to skip playing as zombie by joining spectator
 	if (StrEqual(sArg, "spectate", false))
@@ -82,6 +103,18 @@ public Action Console_JoinTeam(int iClient, const char[] sCommand, int iArgs)
 	}
 	
 	return Plugin_Continue;
+}
+
+public Action Console_Suicide(int iClient, const char[] sCommand, int iArgs)
+{
+	if (!g_bEnabled || !iClient || !IsClientInGame(iClient))
+		return Plugin_Continue;
+	
+	if (!IsSurvivor(iClient) || !IsPlayerAlive(iClient))
+		return Plugin_Continue;
+	
+	CPrintToChat(iClient, "%t", "Survivor_CantSuicide", "{red}");
+	return Plugin_Handled;
 }
 
 public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)

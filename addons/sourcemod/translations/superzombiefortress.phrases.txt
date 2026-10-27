@@ -30,6 +30,96 @@
 		"en"		"{1}Zombies are resting..."
 	}
 	
+	"Zombie_StartMinicritsMinutes"
+	{
+		"#format"	"{1:s},{2:d},{3:d}"
+		"en"		"{1}Small zombie team this round: zombies deal mini-crits for the first {3} minutes!"
+	}
+	
+	"Zombie_StartMinicritsSeconds"
+	{
+		"#format"	"{1:s},{2:d},{3:d}"
+		"en"		"{1}Small zombie team this round: zombies deal mini-crits for the first {3} seconds!"
+	}
+	
+	"Team_SurvivorLocked"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Survivors can't switch teams during a round."
+	}
+	
+	"Survivor_CantSuicide"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Survivors can't kill themselves."
+	}
+	
+	"Spectator_JoinRound"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}You were in spectator, so you've been put on a team for the new round."
+	}
+	
+	"Team_JoinNextRound"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}You joined during a round, so you're spectating until it ends. You'll get a team when the next round starts."
+	}
+	
+	"Rage_Scout"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}[Rage]{default} Move faster, your sandman balls deal more damage"
+	}
+	
+	"Rage_Soldier"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}[Rage]{default} Your banner charges much faster"
+	}
+	
+	"Rage_Pyro"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}[Rage]{default} Ignite nearby targets"
+	}
+	
+	"Rage_Demoman"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}[Rage]{default} Your melee swings deal increased knockback"
+	}
+	
+	"Rage_Heavy"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}[Rage]{default} You gain 20％ damage resistance"
+	}
+	
+	"Rage_Engineer"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}[Rage]{default} Your sentries lifespan has been reset to when it was first placed"
+	}
+	
+	"Rage_Medic"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}[Rage]{default} Give health regeneration to nearby allies"
+	}
+	
+	"Rage_Sniper"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}[Rage]{default} Your melee range is increased"
+	}
+	
+	"Rage_Spy"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}[Rage]{default} Become invisible, you are able to attack while invisible although it gives away your position for a split second"
+	}
+	
 	"Tank_Chosen"
 	{
 		"#format"	"{1:s},{2:s}"
@@ -493,6 +583,16 @@
 		"en"		"{orange}The Cloak and Dagger {red}is disabled."
 	}
 	
+	"Melee_BostonBasher"
+	{
+		"en"		"{orange}The Boston Basher {red}is disabled{default}, you have the Bat instead."
+	}
+	
+	"Melee_ThreeRuneBlade"
+	{
+		"en"		"{orange}The Three-Rune Blade {red}is disabled{default}, you have the Bat instead."
+	}
+	
 	"Menu_MainTitle"
 	{
 		"#format"	"{1:s},{2:s}"
@@ -606,47 +706,47 @@
 	
 	"Menu_ClassesInfectedScout"
 	{
-		"en"		"Has Sandman to slow down survivors.\nAble to keep drinks in secondary slot to use."
+		"en"		"Has Sandman to slow down survivors.\nAble to keep drinks in secondary slot to use.\nRage: +20 movement speed for 5 seconds, and Sandman balls deal 30 damage."
 	}
 	
 	"Menu_ClassesInfectedSoldier"
 	{
-		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep banners in secondary slot to use."
+		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep banners in secondary slot to use.\nRage: your banner charges 3 times faster for 5 seconds."
 	}
 	
 	"Menu_ClassesInfectedPyro"
 	{
-		"en"		"Has Sharpened Volcano Fragment to ignite survivors.\nAfterburn damage is reduced.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
+		"en"		"Has Sharpened Volcano Fragment to ignite survivors.\nAfterburn damage is reduced.\nBenefits less from movement speed and health regeneration bonuses while in a horde.\nRage: 5 rings of fire burn and ignite survivors close to you."
 	}
 	
 	"Menu_ClassesInfectedDemoman"
 	{
-		"en"		"Has Eyelander to damage survivors with long range.\nBenefits less from movement speed and health regeneration bonuses while in a horde."
+		"en"		"Has Eyelander to damage survivors with long range.\nBenefits less from movement speed and health regeneration bonuses while in a horde.\nRage: your hits knock survivors back for 5 seconds."
 	}
 	
 	"Menu_ClassesInfectedHeavy"
 	{
-		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep foods in secondary slot to use, and damage survivors."
+		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep foods in secondary slot to use, and damage survivors.\nRage: 20％ damage resistance for 5 seconds."
 	}
 	
 	"Menu_ClassesInfectedEngineer"
 	{
-		"en"		"Gunslinger third critical punch stuns survivor with reduced damage.\nCan only build mini-sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished."
+		"en"		"Gunslinger third critical punch stuns survivor with reduced damage.\nCan only build mini-sentries and dispensers, and cannot be upgraded.\nSentry ammo is limited, decays and cannot be replenished.\nRage: your sentry lasts as long as a new one."
 	}
 	
 	"Menu_ClassesInfectedMedic"
 	{
-		"en"		"Has Amputator to heal nearby infected on taunt.\nBenefits less from health regeneration bonuses while in a horde."
+		"en"		"Has Amputator to heal nearby infected on taunt.\nBenefits less from health regeneration bonuses while in a horde.\nRage: zombies inside a circle around you regenerate 5 health a second for 5 seconds."
 	}
 	
 	"Menu_ClassesInfectedSniper"
 	{
-		"en"		"Has Bushwacka to crit damage survivors who are under mini-crit effect.\nAble to keep wearables in secondary slot to use."
+		"en"		"Has Bushwacka to crit damage survivors who are under mini-crit effect.\nAble to keep wearables in secondary slot to use.\nRage: +100 melee range for 10 seconds."
 	}
 	
 	"Menu_ClassesInfectedSpy"
 	{
-		"en"		"Backstabs put the victim into a 'scared' state, slowing and disabling weapon usage for few seconds.\nSurvivors has small resistant while backstabbed."
+		"en"		"Backstabs put the victim into a 'scared' state, slowing and disabling weapon usage for few seconds.\nSurvivors has small resistant while backstabbed.\nRage: invisible for 10 seconds, and you can still stab (each stab shows you for a moment)."
 	}
 	
 	"Menu_ClassesInfectedSpecialTank"
@@ -671,12 +771,12 @@
 	
 	"Menu_ClassesInfectedSpecialStalker"
 	{
-		"en"		"The Stalker is elusive, being able to get close to survivors and back away in the blink of an eye.\n- The Stalker is always cloaked if not close to any survivor.\n- Backstabs deal 50 health damage to a survivor, making it 2.5x stronger than a normal backstab."
+		"en"		"The Stalker is elusive, being able to get close to survivors and back away in the blink of an eye.\n- The Stalker is always cloaked if not close to any survivor.\n- Backstabs stun for 10 seconds and deal 48 damage, or 84 to a survivor who is already stunned."
 	}
 	
 	"Menu_ClassesInfectedSpecialHunter"
 	{
-		"en"		"The Hunter is a fast being, being very agile they can easily reach beyond the level's obstacles.\n- Using rage will perform a swift leap which can pounce enemies when making physical contact while leaping.\n- Upon pounce, you will be 'stuck' inside the enemy, making you a very dangerous encounter to face when the opponent is alone."
+		"en"		"The Hunter is a fast being, being very agile they can easily reach beyond the level's obstacles.\n- Using rage will perform a swift leap which can pounce enemies when making physical contact while leaping.\n- A pounce stuns the survivor, and you are free to keep attacking them or anyone else."
 	}
 	
 	"Menu_ClassesInfectedSpecialSmoker"

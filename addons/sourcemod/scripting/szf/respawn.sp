@@ -15,12 +15,19 @@ static int g_iRespawnPhase;
 static float g_flRespawnPhaseStart;
 static bool g_bRespawnTimelineFrenzy;
 static float g_flZombieRespawnAt[MAXPLAYERS + 1];
+static int g_iRespawnSchedule[MAXPLAYERS + 1];
 static int g_iRespawnPlayerManager = INVALID_ENT_REFERENCE;
 static int g_iFrenzyZombieDeaths;
 
 static bool g_bSpecialPartner[MAXPLAYERS + 1];
 static bool g_bForcedSniper[MAXPLAYERS + 1];
 static int g_iPendingPartners[view_as<int>(Infected_Count)];
+static int g_iPackBoomer[MAXPLAYERS + 1];
+static float g_vecBoomerSpawn[MAXPLAYERS + 1][3];
+static float g_vecBoomerSpawnAngles[MAXPLAYERS + 1][3];
+static bool g_bBoomerSpawnUber[MAXPLAYERS + 1];
+
+static const int g_iBoomerPackGlowColor[4] = {128, 255, 0, 255};
 
 void Respawn_OnRoundRespawn()
 {
@@ -30,8 +37,10 @@ void Respawn_OnRoundRespawn()
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		g_flZombieRespawnAt[iClient] = 0.0;
+		g_iRespawnSchedule[iClient]++;
 		g_bSpecialPartner[iClient] = false;
 		g_bForcedSniper[iClient] = false;
+		g_iPackBoomer[iClient] = 0;
 	}
 	
 	for (int i = 0; i < sizeof(g_iPendingPartners); i++)
@@ -71,6 +80,18 @@ void Respawn_Update()
 				if (Respawn_IsFrenzyDue(MapConfig_GetSetting(MapSetting_PostFrenzyRespawnTime), MapConfig_GetSetting(MapSetting_PostFrenzyRate)))
 					Respawn_StartFrenzy(RespawnPhase_Frenzy2);
 			}
+		}
+		
+		float flGameTime = GetGameTime();
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
+		{
+			if (!IsClientInGame(iClient) || IsPlayerAlive(iClient) || !IsZombie(iClient))
+				continue;
+			
+			if (g_flZombieRespawnAt[iClient] <= 0.0)
+				Respawn_ScheduleZombie(iClient, Respawn_GetTime(), "no respawn coming");
+			else if (g_flZombieRespawnAt[iClient] < flGameTime - 1.0)
+				Respawn_ScheduleZombie(iClient, 0.1, "overdue");
 		}
 	}
 	
@@ -159,36 +180,70 @@ void Respawn_OnFrenzyStart()
 
 void Respawn_OnFrenzyEnd()
 {
-	if (!g_bRespawnTimelineFrenzy)
+	if (g_bRespawnTimelineFrenzy)
+	{
+		g_bRespawnTimelineFrenzy = false;
+		
+		if (g_iRespawnPhase == RespawnPhase_Frenzy1)
+			Respawn_SetPhase(RespawnPhase_PostFrenzy);
+		else if (g_iRespawnPhase == RespawnPhase_Frenzy2)
+			Respawn_SetPhase(RespawnPhase_Final);
+	}
+	
+	if (g_nRoundState != SZFRoundState_Active)
 		return;
 	
-	g_bRespawnTimelineFrenzy = false;
-	
-	if (g_iRespawnPhase == RespawnPhase_Frenzy1)
-		Respawn_SetPhase(RespawnPhase_PostFrenzy);
-	else if (g_iRespawnPhase == RespawnPhase_Frenzy2)
-		Respawn_SetPhase(RespawnPhase_Final);
+	float flRespawnTime = Respawn_GetTime();
+	float flLatest = GetGameTime() + flRespawnTime;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (!IsClientInGame(iClient) || IsPlayerAlive(iClient) || !IsZombie(iClient))
+			continue;
+		
+		if (g_flZombieRespawnAt[iClient] > flLatest)
+			Respawn_ScheduleZombie(iClient, flRespawnTime, "frenzy ended");
+	}
 }
 
-void Respawn_ScheduleZombie(int iClient, float flDelay)
+void Respawn_ScheduleZombie(int iClient, float flDelay, const char[] sReason = "died")
 {
 	if (flDelay < 0.1)
 		flDelay = 0.1;
 	
 	g_flZombieRespawnAt[iClient] = GetGameTime() + flDelay;
-	CreateTimer(flDelay, Timer_RespawnZombie, GetClientSerial(iClient), TIMER_FLAG_NO_MAPCHANGE);
+	g_iRespawnSchedule[iClient]++;
+	
+	DataPack hPack;
+	CreateDataTimer(flDelay, Timer_RespawnZombie, hPack, TIMER_FLAG_NO_MAPCHANGE);
+	hPack.WriteCell(GetClientSerial(iClient));
+	hPack.WriteCell(g_iRespawnSchedule[iClient]);
+	
+	Respawn_DebugLog("%N: respawn in %.1fs (%s), phase %d, timeline %.1fs, frenzy %d", iClient, flDelay, sReason, g_iRespawnPhase, Respawn_GetTime(), g_bZombieRage);
 }
 
-public Action Timer_RespawnZombie(Handle hTimer, int iSerial)
+static void Respawn_DebugLog(const char[] sFormat, any ...)
 {
-	int iClient = GetClientFromSerial(iSerial);
+	if (!g_cvDebug.BoolValue)
+		return;
+	
+	char sBuffer[256], sPath[PLATFORM_MAX_PATH];
+	VFormat(sBuffer, sizeof(sBuffer), sFormat, 2);
+	BuildPath(Path_SM, sPath, sizeof(sPath), "logs/szf_respawn_debug.log");
+	LogToFileEx(sPath, "%s", sBuffer);
+}
+
+public Action Timer_RespawnZombie(Handle hTimer, DataPack hPack)
+{
+	hPack.Reset();
+	int iClient = GetClientFromSerial(hPack.ReadCell());
+	int iSchedule = hPack.ReadCell();
 	if (!iClient || !IsClientInGame(iClient) || IsPlayerAlive(iClient) || !IsZombie(iClient))
 		return Plugin_Continue;
 	
 	if (!g_bEnabled || g_nRoundState != SZFRoundState_Active)
 		return Plugin_Continue;
 	
-	if (GetGameTime() < g_flZombieRespawnAt[iClient] - 0.05)
+	if (iSchedule != g_iRespawnSchedule[iClient])
 		return Plugin_Continue;
 	
 	TF2_RespawnPlayer2(iClient);
@@ -197,6 +252,13 @@ public Action Timer_RespawnZombie(Handle hTimer, int iSerial)
 
 void Respawn_OnSpawn(int iClient)
 {
+	if (g_flZombieRespawnAt[iClient] > 0.0 && g_nRoundState == SZFRoundState_Active && IsZombie(iClient))
+	{
+		float flEarly = g_flZombieRespawnAt[iClient] - GetGameTime();
+		if (FloatAbs(flEarly) >= 0.5)
+			Respawn_DebugLog("%N: spawned %.1fs %s their plugin respawn", iClient, FloatAbs(flEarly), flEarly > 0.0 ? "before" : "after");
+	}
+	
 	g_flZombieRespawnAt[iClient] = 0.0;
 }
 
@@ -205,6 +267,7 @@ void Respawn_ClientDisconnect(int iClient)
 	g_flZombieRespawnAt[iClient] = 0.0;
 	g_bSpecialPartner[iClient] = false;
 	g_bForcedSniper[iClient] = false;
+	g_iPackBoomer[iClient] = 0;
 }
 
 void Respawn_HookPlayerManager()
@@ -286,7 +349,7 @@ static int Respawn_FindSpecialCandidate()
 
 void Respawn_OnSpecialPicked(int iClient, Infected nInfected)
 {
-	if (nInfected != Infected_Spitter && nInfected != Infected_Jockey)
+	if (nInfected != Infected_Jockey)
 		return;
 	
 	int iPartner = Respawn_FindDeadZombie(iClient);
@@ -329,6 +392,11 @@ void Respawn_OnBoomerSpawn(int iBoomer)
 	if (flWindow <= 0.0 || !IsValidZombieClass(TFClass_Sniper))
 		return;
 	
+	GetClientAbsOrigin(iBoomer, g_vecBoomerSpawn[iBoomer]);
+	GetClientEyeAngles(iBoomer, g_vecBoomerSpawnAngles[iBoomer]);
+	g_bBoomerSpawnUber[iBoomer] = TF2_IsPlayerInCondition(iBoomer, TFCond_Ubercharged);
+	int iBoomerUserId = GetClientUserId(iBoomer);
+	
 	float flLimit = GetGameTime() + flWindow;
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
@@ -342,8 +410,28 @@ void Respawn_OnBoomerSpawn(int iBoomer)
 			continue;
 		
 		g_bForcedSniper[iClient] = true;
+		g_iPackBoomer[iClient] = iBoomerUserId;
 		RequestFrame(Frame_RespawnGroupMember, GetClientSerial(iClient));
 	}
+}
+
+bool Respawn_PlacePackSniper(int iClient)
+{
+	int iBoomer = GetClientOfUserId(g_iPackBoomer[iClient]);
+	g_iPackBoomer[iClient] = 0;
+	
+	if (!iBoomer || !IsClientInGame(iBoomer) || g_nInfected[iClient] != Infected_None || TF2_GetPlayerClass(iClient) != TFClass_Sniper)
+		return false;
+	
+	TeleportEntity(iClient, g_vecBoomerSpawn[iBoomer], g_vecBoomerSpawnAngles[iBoomer], NULL_VECTOR);
+	
+	if (g_bBoomerSpawnUber[iBoomer])
+		TF2_AddCondition(iClient, TFCond_Ubercharged, 2.0);
+	
+	if (IsValidLivingZombie(iBoomer) && g_nInfected[iBoomer] == Infected_Boomer)
+		Glow_Create(iClient, iBoomer, GlowType_BoomerPack, g_iBoomerPackGlowColor);
+	
+	return true;
 }
 
 bool Respawn_TakeForcedSniper(int iClient)
@@ -356,11 +444,15 @@ bool Respawn_TakeForcedSniper(int iClient)
 void Frame_RespawnGroupMember(int iSerial)
 {
 	int iClient = GetClientFromSerial(iSerial);
-	if (!iClient || !IsClientInGame(iClient) || IsPlayerAlive(iClient) || !IsZombie(iClient))
+	if (!iClient || !IsClientInGame(iClient))
 		return;
 	
-	if (!g_bEnabled || g_nRoundState != SZFRoundState_Active)
+	if (IsPlayerAlive(iClient) || !IsZombie(iClient) || !g_bEnabled || g_nRoundState != SZFRoundState_Active)
+	{
+		g_bForcedSniper[iClient] = false;
+		g_iPackBoomer[iClient] = 0;
 		return;
+	}
 	
 	TF2_RespawnPlayer2(iClient);
 }

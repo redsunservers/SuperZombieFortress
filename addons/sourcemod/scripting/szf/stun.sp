@@ -23,9 +23,12 @@
 #define HIDEHUD_BITCOUNT			12
 
 
-#define BLIND_COLOR			{0, 0, 0, 255}
-#define BLIND_MULTI_SPEED_MIN		0.5
 #define BLIND_HIDEHUD				(HIDEHUD_HEALTH|HIDEHUD_MISCSTATUS|HIDEHUD_CROSSHAIR|HIDEHUD_BONUS_PROGRESS)
+
+#define STUN_SPEED_MULTI			0.8
+#define STUN_FOG_START_FRACTION		0.5
+
+static const int g_iStunTeammateGlowColor[4] = {255, 255, 255, 255};
 
 enum struct StunInfo
 {
@@ -33,12 +36,17 @@ enum struct StunInfo
 	bool bCooldown;
 	int iPreviousFogEnt;
 	int iCurrentFogEnt;
-	ArrayList aTimers;
+	int iFogEnt;
+	float flFogEnd;
 	
-	float flCurrentBlinkStart;
-	float flCurrentBlinkStartHold;
-	float flCurrentBlinkEndHold;
-	float flCurrentBlinkEnd;
+	bool bSkyFogSaved;
+	int iSkyFogEnable;
+	int iSkyFogBlend;
+	int iSkyFogColor;
+	float flSkyFogStart;
+	float flSkyFogEnd;
+	float flSkyFogMaxDensity;
+	ArrayList aTimers;
 }
 
 static StunInfo g_StunInfo[MAXPLAYERS+1];
@@ -68,46 +76,22 @@ bool Stun_StartPlayer(int iClient, float flDuration = 6.0)
 	g_StunInfo[iClient].bStunned = true;
 	g_StunInfo[iClient].aTimers = new ArrayList();
 	
-	const float flFirstFade = 1.0;
-	DataPack hPack;
-	
-	CreateFade(iClient, flFirstFade, 0.0, FFADE_IN|FFADE_PURGE, BLIND_COLOR);
+	if (IsSurvivor(iClient))
+	{
+		for (int iTeammate = 1; iTeammate <= MaxClients; iTeammate++)
+			if (iTeammate != iClient && IsValidLivingSurvivor(iTeammate))
+				Glow_Create(iClient, iTeammate, GlowType_StunTeammate, g_iStunTeammateGlowColor);
+	}
 	
 	Stun_ShakeRandom(iClient);
 	
 	ClientCommand(iClient, "r_screenoverlay\"debug/yuv\"");
 	Sound_PlayMusicToClient(iClient, "backstab", flDuration);
 	
-	float flFadeIn, flFadeHold, flFadeOut;
-	Stun_GetRandomBlinkDuration(flDuration, flFadeIn, flFadeHold, flFadeOut);
-	flFadeOut = 1.0;
-	
-	Handle hTimer = CreateDataTimer(flDuration - flFadeIn - flFadeHold, Stun_StartBlinkTimer, hPack);
-	hPack.WriteCell(GetClientSerial(iClient));
-	hPack.WriteFloat(flFadeIn);
-	hPack.WriteFloat(flFadeHold);
-	hPack.WriteFloat(1.0);
-	g_StunInfo[iClient].aTimers.Push(hTimer);
-	
-	float flDurationMade = flFirstFade;
-	float flDurationLeft = flDuration - flFadeIn - flFadeHold - flDurationMade;
-	while (Stun_GetRandomBlinkDuration(flDurationLeft, flFadeIn, flFadeHold, flFadeOut))
-	{
-		hTimer = CreateDataTimer(flDurationMade, Stun_StartBlinkTimer, hPack);
-		hPack.WriteCell(GetClientSerial(iClient));
-		hPack.WriteFloat(flFadeIn);
-		hPack.WriteFloat(flFadeHold);
-		hPack.WriteFloat(flFadeOut);
-		g_StunInfo[iClient].aTimers.Push(hTimer);
-		
-		flDurationMade += flFadeIn + flFadeHold + flFadeOut;
-		flDurationLeft -= flFadeIn + flFadeHold + flFadeOut;
-	}
-	
 	SetEntProp(iClient, Prop_Send, "m_iHideHUD", GetEntProp(iClient, Prop_Send, "m_iHideHUD")|BLIND_HIDEHUD);
 	TF2Attrib_SetByName(iClient, "deploy time increased", 2.0);
 	
-	hTimer = CreateTimer(flDuration, Stun_EndPlayerTimer, GetClientSerial(iClient));
+	Handle hTimer = CreateTimer(flDuration, Stun_EndPlayerTimer, GetClientSerial(iClient));
 	g_StunInfo[iClient].aTimers.Push(hTimer);
 	return true;
 }
@@ -120,6 +104,8 @@ void Stun_ResetClient(int iClient)
 	g_StunInfo[iClient].bStunned = false;
 	g_StunInfo[iClient].bCooldown = false;
 	g_StunInfo[iClient].iPreviousFogEnt = INVALID_ENT_REFERENCE;
+	g_StunInfo[iClient].bSkyFogSaved = false;
+	Stun_RemoveFog(iClient);
 	delete g_StunInfo[iClient].aTimers;
 }
 
@@ -127,6 +113,8 @@ void Stun_OnPostThinkPost(int iClient)
 {
 	if (g_StunInfo[iClient].bStunned)
 		Stun_ClientThink(iClient);
+	else
+		Stun_CheckObserverFog(iClient);
 }
 
 void Stun_EndPlayer(int iClient)
@@ -146,6 +134,11 @@ void Stun_EndPlayer(int iClient)
 	g_StunInfo[iClient].bStunned = false;
 	delete g_StunInfo[iClient].aTimers;
 	
+	Stun_RestoreSkyFog(iClient);
+	
+	Stun_RemoveFog(iClient);
+	Glow_RemoveViewer(iClient, GlowType_StunTeammate);
+	
 	float flCooldown = g_cvStunImmunity.FloatValue;
 	if (flCooldown > 0.0)
 	{
@@ -158,7 +151,6 @@ void Stun_EndPlayer(int iClient)
 	
 	TF2Attrib_RemoveByName(iClient, "deploy time increased");
 	
-	TF2_RemoveCondition(iClient, TFCond_LostFooting);
 	SDKCall_SetSpeed(iClient);
 }
 
@@ -192,18 +184,39 @@ public Action Stun_EndCooldownTimer(Handle hTimer, int iSerial)
 
 void Stun_ClientThink(int iClient)
 {
-	static int iFogEnt = INVALID_ENT_REFERENCE;
-	
-	if (!IsValidEntity(iFogEnt))
+	int iFogEnt = g_StunInfo[iClient].iFogEnt;
+	if (EntRefToEntIndex(iFogEnt) <= MaxClients)
 	{
-		iFogEnt = EntIndexToEntRef(CreateEntityByName("env_fog_controller"));
-		DispatchKeyValue(iFogEnt, "fogstart", "256");
-		DispatchKeyValue(iFogEnt, "fogend", "512");
+		iFogEnt = CreateEntityByName("env_fog_controller");
+		if (iFogEnt == -1)
+			return;
+		
+		float flDistance = g_cvStunFogDistance.FloatValue;
+		DispatchKeyValueFloat(iFogEnt, "fogstart", flDistance * STUN_FOG_START_FRACTION);
+		DispatchKeyValueFloat(iFogEnt, "fogend", flDistance);
 		DispatchKeyValue(iFogEnt, "fogenable", "1");
+		DispatchKeyValue(iFogEnt, "fogmaxdensity", "1");
 		DispatchKeyValue(iFogEnt, "fogcolor", "0 0 0");
 		DispatchKeyValue(iFogEnt, "fogcolor2", "171 177 209");
 		
 		DispatchSpawn(iFogEnt);
+		iFogEnt = EntIndexToEntRef(iFogEnt);
+		g_StunInfo[iClient].iFogEnt = iFogEnt;
+		g_StunInfo[iClient].flFogEnd = -1.0;
+	}
+	
+	float flFogEnd = g_cvStunFogDistance.FloatValue;
+	if (FloatAbs(flFogEnd - g_StunInfo[iClient].flFogEnd) >= 1.0)
+	{
+		g_StunInfo[iClient].flFogEnd = flFogEnd;
+		
+		float flFogStart = flFogEnd * STUN_FOG_START_FRACTION;
+		SetVariantFloat(flFogStart);
+		AcceptEntityInput(iFogEnt, "SetStartDist");
+		SetVariantFloat(flFogEnd);
+		AcceptEntityInput(iFogEnt, "SetEndDist");
+		
+		Stun_SetSkyFog(iClient, flFogStart, flFogEnd);
 	}
 	
 	int iPreviousFogEnt = GetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl");
@@ -217,107 +230,78 @@ void Stun_ClientThink(int iClient)
 	}
 	
 	SetEntProp(iClient, Prop_Send, "m_iAirDash", 999);	// Prevent any double-jumping
-	TF2_AddCondition(iClient, TFCond_LostFooting, TFCondDuration_Infinite);
 	SDKCall_SetSpeed(iClient);	//Recalculate speed every frame
 }
 
+static void Stun_RemoveFog(int iClient)
+{
+	int iFogEnt = EntRefToEntIndex(g_StunInfo[iClient].iFogEnt);
+	g_StunInfo[iClient].iFogEnt = INVALID_ENT_REFERENCE;
+	if (iFogEnt > MaxClients)
+		RemoveEntity(iFogEnt);
+}
+
+static void Stun_CheckObserverFog(int iClient)
+{
+	int iTarget = GetEntPropEnt(iClient, Prop_Send, "m_hObserverTarget");
+	if (!(0 < iTarget <= MaxClients) || !g_StunInfo[iTarget].bStunned)
+		return;
+	
+	int iFogEnt = EntRefToEntIndex(g_StunInfo[iTarget].iFogEnt);
+	if (iFogEnt <= MaxClients || GetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl") != iFogEnt)
+		return;
+	
+	SetEntPropEnt(iClient, Prop_Send, "m_PlayerFog.m_hCtrl", EntRefToEntIndex(g_StunInfo[iTarget].iPreviousFogEnt));
+}
+
+static void Stun_SetSkyFog(int iClient, float flStart, float flEnd)
+{
+	if (GetEntProp(iClient, Prop_Send, "m_skybox3d.area") == 255)
+		return;
+	
+	if (!g_StunInfo[iClient].bSkyFogSaved)
+	{
+		g_StunInfo[iClient].bSkyFogSaved = true;
+		g_StunInfo[iClient].iSkyFogEnable = GetEntProp(iClient, Prop_Send, "m_skybox3d.fog.enable");
+		g_StunInfo[iClient].iSkyFogBlend = GetEntProp(iClient, Prop_Send, "m_skybox3d.fog.blend");
+		g_StunInfo[iClient].iSkyFogColor = GetEntProp(iClient, Prop_Send, "m_skybox3d.fog.colorPrimary");
+		g_StunInfo[iClient].flSkyFogStart = GetEntPropFloat(iClient, Prop_Send, "m_skybox3d.fog.start");
+		g_StunInfo[iClient].flSkyFogEnd = GetEntPropFloat(iClient, Prop_Send, "m_skybox3d.fog.end");
+		g_StunInfo[iClient].flSkyFogMaxDensity = GetEntPropFloat(iClient, Prop_Send, "m_skybox3d.fog.maxdensity");
+		
+		SetEntProp(iClient, Prop_Send, "m_skybox3d.fog.enable", 1);
+		SetEntProp(iClient, Prop_Send, "m_skybox3d.fog.blend", 0);
+		SetEntProp(iClient, Prop_Send, "m_skybox3d.fog.colorPrimary", g_StunInfo[iClient].iSkyFogColor & 0xFF000000);
+		SetEntPropFloat(iClient, Prop_Send, "m_skybox3d.fog.maxdensity", 1.0);
+	}
+	
+	SetEntPropFloat(iClient, Prop_Send, "m_skybox3d.fog.start", flStart);
+	SetEntPropFloat(iClient, Prop_Send, "m_skybox3d.fog.end", flEnd);
+}
+
+static void Stun_RestoreSkyFog(int iClient)
+{
+	if (!g_StunInfo[iClient].bSkyFogSaved)
+		return;
+	
+	g_StunInfo[iClient].bSkyFogSaved = false;
+	SetEntProp(iClient, Prop_Send, "m_skybox3d.fog.enable", g_StunInfo[iClient].iSkyFogEnable);
+	SetEntProp(iClient, Prop_Send, "m_skybox3d.fog.blend", g_StunInfo[iClient].iSkyFogBlend);
+	SetEntProp(iClient, Prop_Send, "m_skybox3d.fog.colorPrimary", g_StunInfo[iClient].iSkyFogColor);
+	SetEntPropFloat(iClient, Prop_Send, "m_skybox3d.fog.start", g_StunInfo[iClient].flSkyFogStart);
+	SetEntPropFloat(iClient, Prop_Send, "m_skybox3d.fog.end", g_StunInfo[iClient].flSkyFogEnd);
+	SetEntPropFloat(iClient, Prop_Send, "m_skybox3d.fog.maxdensity", g_StunInfo[iClient].flSkyFogMaxDensity);
+}
+
 // -----------------------
-// BLINK
 // -----------------------
-
-Action Stun_StartBlinkTimer(Handle hTimer, DataPack hPack)
-{
-	hPack.Reset();
-	int iClient = GetClientFromSerial(hPack.ReadCell());
-	float flFadeIn = hPack.ReadFloat();
-	float flFadeHold = hPack.ReadFloat();
-	float flFadeOut = hPack.ReadFloat();
-	
-	if (iClient == 0 || !IsPlayerAlive(iClient))
-		return Plugin_Continue;
-	
-	if (!g_StunInfo[iClient].aTimers || g_StunInfo[iClient].aTimers.FindValue(hTimer) == -1)
-		return Plugin_Continue;
-	
-	CreateFade(iClient, flFadeIn, flFadeHold, FFADE_OUT|FFADE_PURGE, BLIND_COLOR);
-	
-	CreateDataTimer(flFadeIn, Stun_EndBlinkTimer, hPack);
-	hPack.WriteCell(GetClientSerial(iClient));
-	hPack.WriteFloat(flFadeHold);
-	hPack.WriteFloat(flFadeOut);
-	
-	float flGameTime = GetGameTime();
-	g_StunInfo[iClient].flCurrentBlinkStart = flGameTime;
-	g_StunInfo[iClient].flCurrentBlinkStartHold = flGameTime + flFadeIn;
-	g_StunInfo[iClient].flCurrentBlinkEndHold = flGameTime + flFadeIn + flFadeHold;
-	g_StunInfo[iClient].flCurrentBlinkEnd = flGameTime + flFadeIn + flFadeHold + flFadeOut;
-	
-	return Plugin_Continue;
-}
-
-Action Stun_EndBlinkTimer(Handle hTimer, DataPack hPack)
-{
-	hPack.Reset();
-	int iClient = GetClientFromSerial(hPack.ReadCell());
-	float flFadeHold = hPack.ReadFloat();
-	float flFadeOut = hPack.ReadFloat();
-	
-	if (iClient == 0)
-		return Plugin_Continue;
-	
-	if (g_StunInfo[iClient].bStunned)
-		CreateFade(iClient, flFadeOut, flFadeHold, FFADE_IN|FFADE_PURGE, BLIND_COLOR);
-	
-	return Plugin_Continue;
-}
-
-void CreateFade(int iClient, float flDuration, float flHoldTime, int iFlags, int iColor[4])
-{
-	BfWrite bf = UserMessageToBfWrite(StartMessageOne("Fade", iClient));
-	bf.WriteShort(RoundToNearest(flDuration * (1 << SCREENFADE_FRACBITS)));	//Fade duration
-	bf.WriteShort(RoundToNearest(flHoldTime * (1 << SCREENFADE_FRACBITS)));	//Hold Time
-	bf.WriteShort(iFlags);		//Fade type
-	bf.WriteByte(iColor[0]);	//Red
-	bf.WriteByte(iColor[1]);	//Green
-	bf.WriteByte(iColor[2]);	//Blue
-	bf.WriteByte(iColor[3]);	//Alpha
-	EndMessage();
-}
 
 float Stun_GetSpeedMulti(int iClient)
 {
 	if (!g_StunInfo[iClient].bStunned)
 		return 1.0;
 	
-	float flGameTime = GetGameTime();
-	if (g_StunInfo[iClient].flCurrentBlinkStart <= flGameTime <= g_StunInfo[iClient].flCurrentBlinkStartHold)
-	{
-		float flDuration = g_StunInfo[iClient].flCurrentBlinkStartHold - g_StunInfo[iClient].flCurrentBlinkStart;
-		if (flDuration <= 0.0)
-			return BLIND_MULTI_SPEED_MIN;
-		
-		float flProgress = flGameTime - g_StunInfo[iClient].flCurrentBlinkStart;
-		float flPercentage = 1.0 - (flProgress / flDuration);
-		return (flPercentage * (1.0 - BLIND_MULTI_SPEED_MIN)) + BLIND_MULTI_SPEED_MIN;
-	}
-	else if (g_StunInfo[iClient].flCurrentBlinkStartHold <= flGameTime <= g_StunInfo[iClient].flCurrentBlinkEndHold)
-	{
-		return BLIND_MULTI_SPEED_MIN;
-	}
-	else if (g_StunInfo[iClient].flCurrentBlinkEndHold <= flGameTime <= g_StunInfo[iClient].flCurrentBlinkEnd)
-	{
-		float flDuration = g_StunInfo[iClient].flCurrentBlinkEnd - g_StunInfo[iClient].flCurrentBlinkEndHold;
-		if (flDuration <= 0.0)
-			return 1.0;
-		
-		float flProgress = flGameTime - g_StunInfo[iClient].flCurrentBlinkEndHold;
-		float flPercentage = (flProgress / flDuration);
-		return (flPercentage * (1.0 - BLIND_MULTI_SPEED_MIN)) + BLIND_MULTI_SPEED_MIN;
-	}
-	else
-	{
-		return 1.0;
-	}
+	return STUN_SPEED_MULTI;
 }
 
 // -----------------------
@@ -342,34 +326,4 @@ void Stun_Shake(int iClient, float vecVel[3], float flScale)
 	SetEntPropVector(iClient, Prop_Send, "m_vecPunchAngleVel", vecBuffer);
 	AddVectors(vecVel, vecBuffer, vecBuffer);
 	SetEntPropVector(iClient, Prop_Send, "m_vecPunchAngleVel", vecBuffer);
-}
-
-bool Stun_GetRandomBlinkDuration(float flDurationLeft, float &flFadeIn, float &flFadeHold, float &flFadeOut)
-{
-	const float flMinDuration = 3.0;
-	const float flMaxDuration = 6.0;
-	
-	float flTotalDuration;
-	
-	if (flDurationLeft < flMinDuration)
-	{
-		return false;
-	}
-	else if (flMinDuration <= flDurationLeft < flMaxDuration)
-	{
-		flTotalDuration = flDurationLeft;
-	}
-	else
-	{
-		float flDuration = flDurationLeft - flMinDuration;
-		if (flDuration > flMaxDuration)
-			flDuration = flMaxDuration;
-		
-		flTotalDuration = GetRandomFloat(flMinDuration, flDuration);
-	}
-	
-	flFadeHold = 0.5;
-	flFadeIn = GetRandomFloat(0.5, flTotalDuration - 0.5 - flFadeHold);
-	flFadeOut = flTotalDuration - flFadeIn - flFadeHold;
-	return true;
 }
