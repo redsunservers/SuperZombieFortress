@@ -462,7 +462,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	g_nRoundState = SZFRoundState_Grace;
 	g_iRoundPlayedCount++;
-	g_flZombieMinicritsEnd = 0.0;
+	ZombieMinicrits_Reset();
 	
 	CPrintToChatAll("%t", "Grace_Start", "{green}");
 	
@@ -498,6 +498,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	
 	//Calculate team counts. At least one survivor must exist.
 	g_iStartingZombies = MapConfig_GetStartingZombies(iLength);
+	MapConfig_DebugValueSet();
 	iSurvivorCount = iLength - g_iStartingZombies;
 	if (iSurvivorCount == 0 && iLength > 0)
 		iSurvivorCount = 1;

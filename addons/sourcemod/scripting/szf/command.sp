@@ -32,6 +32,11 @@ public Action Command_ServerRage(int iArgs)
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
+	char sCommand[32];
+	GetCmdArg(0, sCommand, sizeof(sCommand));
+	if (MapConfig_BlockManualFrenzy(sCommand))
+		return Plugin_Handled;
+	
 	char sDuration[256];
 	GetCmdArg(1, sDuration, sizeof(sDuration));
 	float flDuration = StringToFloat(sDuration);

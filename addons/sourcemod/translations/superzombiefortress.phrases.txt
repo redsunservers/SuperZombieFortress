@@ -33,13 +33,19 @@
 	"Zombie_StartMinicritsMinutes"
 	{
 		"#format"	"{1:s},{2:d},{3:d}"
-		"en"		"{1}Small zombie team this round: zombies deal mini-crits for the first {3} minutes!"
+		"en"		"{1}Small zombie team this round: the starting zombies deal mini-crits for the first {3} minutes!"
 	}
 	
 	"Zombie_StartMinicritsSeconds"
 	{
 		"#format"	"{1:s},{2:d},{3:d}"
-		"en"		"{1}Small zombie team this round: zombies deal mini-crits for the first {3} seconds!"
+		"en"		"{1}Small zombie team this round: the starting zombies deal mini-crits for the first {3} seconds!"
+	}
+	
+	"Zombie_MinicritsGiven"
+	{
+		"#format"	"{1:s},{2:d}"
+		"en"		"{1}Small zombie team: you now deal mini-crits for the next {2} seconds!"
 	}
 	
 	"Team_SurvivorLocked"
@@ -753,7 +759,7 @@
 	
 	"Menu_ClassesInfectedSniper"
 	{
-		"en"		"Has Bushwacka to crit damage survivors who are under mini-crit effect.\nAble to keep wearables in secondary slot to use.\nRage: +100 melee range for 10 seconds."
+		"en"		"Has Bushwacka to crit damage survivors who are under mini-crit effect.\nAble to keep wearables in secondary slot to use.\nRage: +50 melee range for 10 seconds."
 	}
 	
 	"Menu_ClassesInfectedSpy"
