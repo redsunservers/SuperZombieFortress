@@ -159,10 +159,14 @@ void LastStand_CheckLeft4Dead(int iIgnoredClient)
 	g_bLeft4Dead = true;
 	LastStand_OnStart();
 	
+	int iClients[MAXPLAYERS];
+	int iCount;
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
 		if (iClient == iIgnoredClient || !IsValidLivingSurvivor(iClient))
 			continue;
+		
+		iClients[iCount++] = iClient;
 		
 		Stun_EndPlayer(iClient);
 		TF2_RemoveCondition(iClient, TFCond_Dazed);
@@ -173,10 +177,37 @@ void LastStand_CheckLeft4Dead(int iIgnoredClient)
 		SDKCall_SetSpeed(iClient);
 	}
 	
-	CPrintToChatAll("%t", "Survivor_Left4Dead", "{green}", iSurvivors, RoundToNearest(LastStand_GetLeft4DeadResistance() * 100.0));
+	char sNames[512];
+	LastStand_JoinNames(iClients, iCount, sNames, sizeof(sNames));
+	if (iCount == 1)
+		CPrintToChatAllEx(iClients[0], "%t", "Survivor_Left4DeadOne", sNames, "{green}");
+	else
+		CPrintToChatAllEx(iClients[0], "%t", "Survivor_Left4Dead", sNames, "{green}");
+	
 	Sound_PlayMusicToAll("laststand");
 	
 	FireRelay("FireUser1", "szf_laststand");
+}
+
+static void LastStand_JoinNames(const int[] iClients, int iCount, char[] sBuffer, int iLength)
+{
+	sBuffer[0] = '\0';
+	for (int i = 0; i < iCount; i++)
+	{
+		if (i > 0)
+		{
+			if (i < iCount - 1)
+				StrCat(sBuffer, iLength, "{green}, ");
+			else if (iCount > 2)
+				StrCat(sBuffer, iLength, "{green}, and ");
+			else
+				StrCat(sBuffer, iLength, "{green} and ");
+		}
+		
+		char sName[128];
+		GetClientName2(iClients[i], sName, sizeof(sName));
+		StrCat(sBuffer, iLength, sName);
+	}
 }
 
 void LastStand_ResetLeft4Dead()

@@ -193,8 +193,14 @@
 	
 	"Survivor_Left4Dead"
 	{
-		"#format"	"{1:s},{2:d},{3:d}"
-		"en"		"{1}Left 4 Dead! The last {2} survivors deal mini-crits, take {3}％ less damage, can't be stunned and move 10％ faster, but heal less from hits and kills."
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}{2} have been Left 4 Dead..."
+	}
+	
+	"Survivor_Left4DeadOne"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}{2} has been Left 4 Dead..."
 	}
 	
 	"Infected_Zombify"
