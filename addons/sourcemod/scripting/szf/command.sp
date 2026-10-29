@@ -23,6 +23,11 @@ public Action Command_ServerTank(int iArgs)
 	if (!g_bEnabled)
 		return Plugin_Continue;
 	
+	char sCommand[32];
+	GetCmdArg(0, sCommand, sizeof(sCommand));
+	if (MapConfig_BlockForcedTank(sCommand))
+		return Plugin_Handled;
+	
 	ZombieTank();
 	return Plugin_Handled;
 }

@@ -446,6 +446,8 @@ ConVar g_cvStunImmunity;
 ConVar g_cvStunFogDistance;
 ConVar g_cvLastStandKingRuneDuration;
 ConVar g_cvLastStandDefenseDuration;
+ConVar g_cvLeft4DeadSurvivors;
+ConVar g_cvLeft4DeadCount;
 ConVar g_cvDispenserAmmoCooldown;
 ConVar g_cvDispenserAmmoMax;
 ConVar g_cvDispenserHealRate;
@@ -999,7 +1001,7 @@ public void TF2_OnConditionAdded(int iClient, TFCond nCond)
 			}
 			case TFCond_Dazed:
 			{
-				if (IsLastManStanding(iClient) && !LastStand_IsBonkSlowdown(iClient))
+				if (IsStunImmune(iClient) && !LastStand_IsBonkSlowdown(iClient))
 					TF2_RemoveCondition(iClient, TFCond_Dazed);
 			}
 		}
@@ -1340,7 +1342,9 @@ public void OnGameFrame()
 		for (int iClient = 1; iClient <= MaxClients; iClient++)
 		{
 			//Last man gets minicrit boost if 6 players ingame
-			if (iCount == 1 && IsValidLivingSurvivor(iClient) && GetActivePlayerCount() >= 6)
+			if (iCount == 1 && IsValidLivingSurvivor(iClient) && GetActivePlayerCount() >= 6 && !IsLeft4Dead(iClient))
+				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
+			else if (IsLeft4Dead(iClient) && !MinicritsBecomeCrits(GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon")))
 				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
 			else if (bZombieMinicrits && g_bZombieMinicrits[iClient] && IsValidLivingZombie(iClient) && !ZombieGetsPluginMinicrits(iClient, GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon")))
 				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
@@ -1634,6 +1638,7 @@ void SZFEnable()
 	g_bEnabled = true;
 	g_bNewFullRound = true;
 	g_bLastSurvivor = false;
+	LastStand_ResetLeft4Dead();
 	
 	g_flTimeProgress = 0.0;
 	
@@ -1724,6 +1729,7 @@ void SZFDisable()
 	g_bEnabled = false;
 	g_bNewFullRound = true;
 	g_bLastSurvivor = false;
+	LastStand_ResetLeft4Dead();
 	
 	g_flTimeProgress = 0.0;
 	
@@ -1926,13 +1932,13 @@ void UpdateDirector()
 	//Not survival, no rage and no active tank
 	if (!g_bSurvival && !g_bZombieRage && !ZombiesTankComing() && !ZombiesHaveTank())
 	{
-		if (g_cvDirectorTank.BoolValue && g_TankEvent.CanDoEvent())
+		if (g_cvDirectorTank.BoolValue && g_TankEvent.CanDoEvent() && !MapConfig_BlockForcedTank())
 		{
 			ZombieTank();
 		}
 		else if (g_cvDirectorFrenzy.BoolValue && g_FrenzyEvent.CanDoEvent())
 		{
-			if (g_cvDirectorTank.BoolValue && GetRandomFloat(0.0, 1.0) < g_cvFrenzyTankChance.FloatValue)
+			if (g_cvDirectorTank.BoolValue && !MapConfig_BlockForcedTank() && GetRandomFloat(0.0, 1.0) < g_cvFrenzyTankChance.FloatValue)
 				ZombieTank();
 			else
 				ZombieRage();
@@ -2037,6 +2043,12 @@ void CheckLastSurvivor(int iIgnoredClient = 0)
 	if (g_bLastSurvivor || g_nRoundState != SZFRoundState_Active)
 		return;
 	
+	if (LastStand_IsLeft4DeadRound())
+	{
+		LastStand_CheckLeft4Dead(iIgnoredClient);
+		return;
+	}
+	
 	int iLastSurvivor;
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{
@@ -2112,7 +2124,8 @@ public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, 
 	}
 	else if (StrEqual("szf_zombietank", sTargetName) || StrEqual("szf_tank", sTargetName))
 	{
-		ZombieTank(iCaller);
+		if (!MapConfig_BlockForcedTank(sTargetName))
+			ZombieTank(iCaller);
 	}
 	else if (StrEqual("szf_laststand", sTargetName))
 	{
