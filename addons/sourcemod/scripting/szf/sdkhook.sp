@@ -300,7 +300,7 @@ static bool IsStunningHit(float flDamage, int iDamageCustom)
 
 static bool PluginMinicritApplies(int iVictim, int iAttacker, int iWeapon)
 {
-	return IsValidSurvivor(iVictim) && IsValidLivingZombie(iAttacker) && AreZombieMinicritsActive()
+	return IsValidSurvivor(iVictim) && IsValidLivingZombie(iAttacker) && HasZombieMinicrits(iAttacker)
 		&& ZombieGetsPluginMinicrits(iAttacker, iWeapon) && !WillMinicritAnyway(iVictim, iAttacker)
 		&& !TF2_IsPlayerInCondition(iVictim, TFCond_DefenseBuffed) && !WeaponChanges_IsVaccinatorUbered(iVictim);
 }

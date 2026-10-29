@@ -1,4 +1,6 @@
 #define CONFIG_MAPS		"configs/szf/maps.cfg"
+#define MAPCONFIG_LOWPLAYERCOUNT	"LowPlayerCount"
+#define MAPSETTING_UNSET			-999999.0
 
 enum
 {
@@ -11,6 +13,9 @@ enum
 	MapSetting_Frenzy2RespawnTime,
 	MapSetting_Post2ndFrenzyRespawnTime,
 	MapSetting_StartingRatio,
+	MapSetting_DisableManualFrenzy,
+	MapSetting_MinicritZombies,
+	MapSetting_MinicritDuration,
 	
 	MapSetting_Count
 }
@@ -25,7 +30,10 @@ static const char g_sMapSettingKeys[][] =
 	"postfrenzyrate",
 	"frenzy2respawntime",
 	"post2ndfrenzyrespawntime",
-	"startingratio"
+	"startingratio",
+	"disablemanualfrenzy",
+	"minicritzombies",
+	"minicritduration"
 };
 
 static const float g_flMapSettingDefaults[] =
@@ -38,7 +46,10 @@ static const float g_flMapSettingDefaults[] =
 	30.0,
 	10.0,
 	4.0,
-	4.0
+	4.0,
+	0.0,
+	3.0,
+	120.0
 };
 
 static bool g_bMapConfigLoaded;
@@ -49,6 +60,10 @@ static int g_iMapLevel = -1;
 static char g_sMapLevel[64];
 static bool g_bMapLevelForNextRound;
 static bool g_bMapRebalancePending;
+static float g_flMapLowSettings[MapSetting_Count];
+static int g_iMapLowZombies;
+static ArrayList g_aMapLevelLow;
+static ArrayList g_aMapLevelLowZombies;
 
 static int g_iSplitUserId[MAXPLAYERS + 1];
 static int g_iSplitZombieRound[MAXPLAYERS + 1];
@@ -70,6 +85,21 @@ void MapConfig_Load()
 		g_mMapLevels = new StringMap();
 	else
 		g_mMapLevels.Clear();
+	
+	if (!g_aMapLevelLow)
+	{
+		g_aMapLevelLow = new ArrayList(MapSetting_Count);
+		g_aMapLevelLowZombies = new ArrayList();
+	}
+	else
+	{
+		g_aMapLevelLow.Clear();
+		g_aMapLevelLowZombies.Clear();
+	}
+	
+	g_iMapLowZombies = 0;
+	for (int i = 0; i < MapSetting_Count; i++)
+		g_flMapLowSettings[i] = MAPSETTING_UNSET;
 	
 	g_iMapLevel = -1;
 	g_bMapConfigLoaded = true;
@@ -94,6 +124,7 @@ void MapConfig_Load()
 		if (MapConfig_JumpToMap(kv, sMap))
 		{
 			MapConfig_ReadSection(kv, g_flMapSettings);
+			g_iMapLowZombies = MapConfig_ReadLowPlayerCount(kv, g_flMapLowSettings, 0);
 			
 			if (kv.JumpToKey("levels", false))
 			{
@@ -107,10 +138,14 @@ void MapConfig_Load()
 						
 						float flLevel[MapSetting_Count];
 						for (int i = 0; i < MapSetting_Count; i++)
-							flLevel[i] = g_flMapSettings[i];
+							flLevel[i] = MAPSETTING_UNSET;
 						
 						MapConfig_ReadSection(kv, flLevel);
 						g_mMapLevels.SetValue(sRelay, g_aMapLevels.PushArray(flLevel));
+						
+						float flLow[MapSetting_Count];
+						g_aMapLevelLowZombies.Push(MapConfig_ReadLowPlayerCount(kv, flLow, g_iMapLowZombies));
+						g_aMapLevelLow.PushArray(flLow);
 					}
 					while (kv.GotoNextKey(true));
 					
@@ -166,6 +201,36 @@ static bool MapConfig_JumpToMap(KeyValues kv, const char[] sMap)
 	return iBestLength >= 0 && kv.JumpToKey(sBest, false);
 }
 
+static int MapConfig_ReadLowPlayerCount(KeyValues kv, float flLow[MapSetting_Count], int iInherit)
+{
+	for (int i = 0; i < MapSetting_Count; i++)
+		flLow[i] = MAPSETTING_UNSET;
+	
+	if (!kv.JumpToKey(MAPCONFIG_LOWPLAYERCOUNT, false))
+		return 0;
+	
+	MapConfig_ReadSection(kv, flLow);
+	
+	int iZombies = iInherit;
+	char sValue[32];
+	kv.GetString("StartingZombieCount", sValue, sizeof(sValue));
+	TrimString(sValue);
+	if (sValue[0])
+		iZombies = StringToInt(sValue);
+	
+	if (flLow[MapSetting_StartingRatio] != MAPSETTING_UNSET)
+	{
+		LogError("\"startingratio\" in a \"%s\" block of %s is ignored: the starting zombie count decides whether the block is used", MAPCONFIG_LOWPLAYERCOUNT, CONFIG_MAPS);
+		flLow[MapSetting_StartingRatio] = MAPSETTING_UNSET;
+	}
+	
+	if (iZombies <= 0)
+		LogError("A \"%s\" block in %s has no \"StartingZombieCount\" above 0, so it's never used", MAPCONFIG_LOWPLAYERCOUNT, CONFIG_MAPS);
+	
+	kv.GoBack();
+	return iZombies;
+}
+
 static void MapConfig_ReadSection(KeyValues kv, float flSettings[MapSetting_Count])
 {
 	for (int i = 0; i < MapSetting_Count; i++)
@@ -177,7 +242,11 @@ static void MapConfig_ReadSection(KeyValues kv, float flSettings[MapSetting_Coun
 			continue;
 		
 		float flValue;
-		if (StringToFloatEx(sValue, flValue) > 0)
+		if (StrEqual(sValue, "true", false))
+			flSettings[i] = 1.0;
+		else if (StrEqual(sValue, "false", false))
+			flSettings[i] = 0.0;
+		else if (StringToFloatEx(sValue, flValue) > 0)
 			flSettings[i] = flValue;
 		else
 			LogError("Invalid value \"%s\" for \"%s\" in %s", sValue, g_sMapSettingKeys[i], CONFIG_MAPS);
@@ -195,10 +264,52 @@ float MapConfig_GetSetting(int iSetting)
 	if (!g_bMapConfigLoaded)
 		return g_flMapSettingDefaults[iSetting];
 	
-	if (0 <= g_iMapLevel < g_aMapLevels.Length)
-		return view_as<float>(g_aMapLevels.Get(g_iMapLevel, iSetting));
+	bool bLevel = (0 <= g_iMapLevel < g_aMapLevels.Length);
+	bool bLow = (iSetting != MapSetting_StartingRatio);
+	float flValue = g_flMapSettings[iSetting];
 	
-	return g_flMapSettings[iSetting];
+	if (bLow && MapConfig_IsLowPlayerCount(g_iMapLowZombies) && g_flMapLowSettings[iSetting] != MAPSETTING_UNSET)
+		flValue = g_flMapLowSettings[iSetting];
+	
+	if (bLevel)
+	{
+		float flLevel = view_as<float>(g_aMapLevels.Get(g_iMapLevel, iSetting));
+		if (flLevel != MAPSETTING_UNSET)
+			flValue = flLevel;
+		
+		if (bLow && MapConfig_IsLowPlayerCount(g_aMapLevelLowZombies.Get(g_iMapLevel)))
+		{
+			float flLow = view_as<float>(g_aMapLevelLow.Get(g_iMapLevel, iSetting));
+			if (flLow != MAPSETTING_UNSET)
+				flValue = flLow;
+		}
+	}
+	
+	return flValue;
+}
+
+static bool MapConfig_IsLowPlayerCount(int iMaxZombies)
+{
+	return iMaxZombies > 0 && 0 <= g_iStartingZombies <= iMaxZombies;
+}
+
+void MapConfig_DebugValueSet()
+{
+	if (!g_bMapConfigLoaded)
+		return;
+	
+	bool bLevel = (0 <= g_iMapLevel < g_aMapLevels.Length) && MapConfig_IsLowPlayerCount(g_aMapLevelLowZombies.Get(g_iMapLevel));
+	if (bLevel || MapConfig_IsLowPlayerCount(g_iMapLowZombies))
+		CPrintToChatDebug("Map values: %s \"%s\" (%d starting zombies)", bLevel ? "level" : "map", MAPCONFIG_LOWPLAYERCOUNT, g_iStartingZombies);
+}
+
+bool MapConfig_BlockManualFrenzy(const char[] sSource)
+{
+	if (MapConfig_GetSetting(MapSetting_DisableManualFrenzy) == 0.0)
+		return false;
+	
+	CPrintToChatDebug("Map frenzy (%s) ignored: disablemanualfrenzy", sSource);
+	return true;
 }
 
 int MapConfig_GetStartingZombies(int iPlayers)
@@ -264,6 +375,7 @@ void MapConfig_OnRelayTrigger(const char[] sTargetName)
 	g_iMapLevel = iLevel;
 	strcopy(g_sMapLevel, sizeof(g_sMapLevel), sRelay);
 	CPrintToChatDebug("Map level picked: %s (starting ratio %.2f)", sRelay, MapConfig_GetSetting(MapSetting_StartingRatio));
+	MapConfig_DebugValueSet();
 	
 	switch (g_nRoundState)
 	{
@@ -334,6 +446,7 @@ static void MapConfig_RebalanceTeams()
 	}
 	
 	g_iStartingZombies = MapConfig_GetStartingZombies(iPlayers);
+	MapConfig_DebugValueSet();
 	int iWantSurvivors = iPlayers - g_iStartingZombies;
 	if (iWantSurvivors < 1)
 		iWantSurvivors = 1;

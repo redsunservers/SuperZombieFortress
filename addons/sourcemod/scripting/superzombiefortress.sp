@@ -437,8 +437,6 @@ ConVar g_cvJockeyMovementVictim;
 ConVar g_cvJockeyMovementAttacker;
 ConVar g_cvJockeyVictimSpeed;
 ConVar g_cvJockeyRideScale;
-ConVar g_cvZombieMinicritsCount;
-ConVar g_cvZombieMinicritsTime;
 ConVar g_cvSpectatorsJoin;
 ConVar g_cvJoinLockTime;
 ConVar g_cvChargerSlamStun;
@@ -576,6 +574,8 @@ Handle g_hTimerZombieRage;
 
 bool g_bSpecialIgnoreCooldown[MAXPLAYERS + 1];
 float g_flZombieMinicritsEnd;
+int g_iZombieMinicritSlots;
+bool g_bZombieMinicrits[MAXPLAYERS + 1];
 float g_flZombieDefenseEnd[MAXPLAYERS + 1];
 int g_iKillsThisLife[MAXPLAYERS + 1];
 int g_iMaxHealth[MAXPLAYERS + 1];
@@ -893,6 +893,7 @@ public void OnClientDisconnect(int iClient)
 {
 	DHook_UnhookGiveNamedItem(iClient);
 	Queue_OnClientDisconnect(iClient);
+	g_bZombieMinicrits[iClient] = false;
 	
 	if (!g_bEnabled)
 		return;
@@ -1087,24 +1088,75 @@ void EndGracePeriod()
 	
 	LastStand_OnRoundActive();
 	
-	g_flZombieMinicritsEnd = 0.0;
+	ZombieMinicrits_Reset();
 	int iZombies = GetZombieCount();
-	float flMinicritsTime = g_cvZombieMinicritsTime.FloatValue;
-	if (0 < iZombies <= g_cvZombieMinicritsCount.IntValue && flMinicritsTime > 0.0)
+	int iSlots = RoundToFloor(MapConfig_GetSetting(MapSetting_MinicritZombies));
+	float flMinicritsTime = MapConfig_GetSetting(MapSetting_MinicritDuration);
+	if (0 < iZombies <= iSlots && flMinicritsTime > 0.0)
 	{
 		g_flZombieMinicritsEnd = GetGameTime() + flMinicritsTime;
+		g_iZombieMinicritSlots = iSlots;
+		
+		for (int iClient = 1; iClient <= MaxClients; iClient++)
+			if (IsValidZombie(iClient))
+				g_bZombieMinicrits[iClient] = true;
 		
 		int iSeconds = RoundToNearest(flMinicritsTime);
 		if (iSeconds % 60 == 0)
-			CPrintToChatAll("%t", "Zombie_StartMinicritsMinutes", "{green}", iZombies, iSeconds / 60);
+			CPrintToChatAll("%t", "Zombie_StartMinicritsMinutes", "{green}", iSlots, iSeconds / 60);
 		else
-			CPrintToChatAll("%t", "Zombie_StartMinicritsSeconds", "{green}", iZombies, iSeconds);
+			CPrintToChatAll("%t", "Zombie_StartMinicritsSeconds", "{green}", iSlots, iSeconds);
 	}
 }
 
 bool AreZombieMinicritsActive()
 {
 	return g_flZombieMinicritsEnd > GetGameTime();
+}
+
+bool HasZombieMinicrits(int iClient)
+{
+	return g_bZombieMinicrits[iClient] && AreZombieMinicritsActive();
+}
+
+void ZombieMinicrits_Reset()
+{
+	g_flZombieMinicritsEnd = 0.0;
+	g_iZombieMinicritSlots = 0;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		g_bZombieMinicrits[iClient] = false;
+}
+
+void ZombieMinicrits_Update()
+{
+	if (g_nRoundState != SZFRoundState_Active || !AreZombieMinicritsActive())
+		return;
+	
+	int iHolders, iCandidateCount;
+	int iCandidates[MAXPLAYERS];
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (!IsValidZombie(iClient))
+			g_bZombieMinicrits[iClient] = false;
+		else if (g_bZombieMinicrits[iClient])
+			iHolders++;
+		else
+			iCandidates[iCandidateCount++] = iClient;
+	}
+	
+	int iSeconds = RoundToCeil(g_flZombieMinicritsEnd - GetGameTime());
+	while (iHolders < g_iZombieMinicritSlots && iCandidateCount > 0)
+	{
+		int iPick = GetRandomInt(0, iCandidateCount - 1);
+		int iClient = iCandidates[iPick];
+		iCandidates[iPick] = iCandidates[--iCandidateCount];
+		
+		g_bZombieMinicrits[iClient] = true;
+		iHolders++;
+		
+		if (!IsFakeClient(iClient))
+			CPrintToChat(iClient, "%t", "Zombie_MinicritsGiven", "{green}", iSeconds);
+	}
 }
 
 bool MinicritsBecomeCrits(int iWeapon)
@@ -1156,6 +1208,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 	Respawn_Update();
 	Console_UpdateUnderstaffed();
 	ZombieDamage_Update();
+	ZombieMinicrits_Update();
 	LastStand_Update();
 	Sound_Timer();
 	
@@ -1289,7 +1342,7 @@ public void OnGameFrame()
 			//Last man gets minicrit boost if 6 players ingame
 			if (iCount == 1 && IsValidLivingSurvivor(iClient) && GetActivePlayerCount() >= 6)
 				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
-			else if (bZombieMinicrits && IsValidLivingZombie(iClient) && !ZombieGetsPluginMinicrits(iClient, GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon")))
+			else if (bZombieMinicrits && g_bZombieMinicrits[iClient] && IsValidLivingZombie(iClient) && !ZombieGetsPluginMinicrits(iClient, GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon")))
 				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
 		}
 		
@@ -1704,6 +1757,7 @@ void SZFDisable()
 	delete g_hTimerZombieRage;
 	g_bZombieRage = false;
 	MapConfig_Reset();
+	ZombieMinicrits_Reset();
 	
 	//Enable resupply lockers.
 	int iEntity = -1;
@@ -2035,6 +2089,9 @@ public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, 
 	GetEntPropString(iCaller, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
 	
 	MapConfig_OnRelayTrigger(sTargetName);
+	
+	if ((StrEqual("szf_panic_event", sTargetName) || StrContains(sTargetName, "szf_zombierage") == 0) && MapConfig_BlockManualFrenzy(sTargetName))
+		return Plugin_Continue;
 	
 	if (StrEqual("szf_panic_event", sTargetName))
 	{
