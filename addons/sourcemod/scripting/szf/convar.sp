@@ -45,7 +45,9 @@ void ConVar_Init()
 	g_cvFrenzyRespawnStress = CreateConVar("sm_szf_frenzy_respawn_stress", "30.0", "Amount of seconds divided by playercount to add in frenzy respawn stress", _, true, 0.0, true, 120.0);
 	g_cvStunImmunity = CreateConVar("sm_szf_stun_immunity", "0.0", "How long until the survivor can be stunned again.", _, true, 0.0);
 	g_cvStunFogDistance = CreateConVar("sm_szf_stun_fog_distance", "500.0", "A stunned survivor sees black fog: everything this many units away is black, and the fog starts at half of it. Only the stunned player sees it.", _, true, 16.0);
-	g_cvLastStandKingRuneDuration = CreateConVar("sm_szf_laststand_kingrune_duration", "-1.0", "How long the last survivor gets the King Rune, -1.0 for infinite.", _, true, -1.0);
+	g_cvLastStandKingRuneDuration = CreateConVar("sm_szf_laststand_kingrune_duration", "-1.0", "How long the last survivor (and Left 4 Dead's last survivors) get the King Rune, -1.0 for infinite.", _, true, -1.0);
+	g_cvLeft4DeadSurvivors = CreateConVar("sm_szf_left4dead_survivors", "12", "A round that starts with this many survivors or more has Left 4 Dead instead of Last Man Standing: the last sm_szf_left4dead_count survivors get mini-crits, damage resistance (30% at 16 players to 60% at 40), stun immunity, 10% more speed and a quarter of heal on hit and on kill. 0 to disable.", _, true, 0.0);
+	g_cvLeft4DeadCount = CreateConVar("sm_szf_left4dead_count", "4", "How many survivors are left when Left 4 Dead starts.", _, true, 1.0);
 	g_cvLastStandDefenseDuration = CreateConVar("sm_szf_laststand_defense_duration", "-1.0", "How long the last survivor gets damage resistance (50% at 2 players to 95% at 40), -1.0 for the whole stand.", _, true, -1.0);
 	g_cvDispenserAmmoCooldown = CreateConVar("sm_szf_dispenser_ammo_cooldown", "4.0", "Cooldown before client could gain ammo from dispensers.", _, true, 0.0);
 	g_cvDispenserAmmoMax = CreateConVar("sm_szf_dispenser_ammo_max", "20", "Max amount of ticks dispenser could dispense before self-destructs.", _, true, 0.0);

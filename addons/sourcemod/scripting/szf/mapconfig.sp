@@ -16,6 +16,7 @@ enum
 	MapSetting_DisableManualFrenzy,
 	MapSetting_MinicritZombies,
 	MapSetting_MinicritDuration,
+	MapSetting_DisableForcedTank,
 	
 	MapSetting_Count
 }
@@ -33,7 +34,8 @@ static const char g_sMapSettingKeys[][] =
 	"startingratio",
 	"disablemanualfrenzy",
 	"minicritzombies",
-	"minicritduration"
+	"minicritduration",
+	"disableforcedtank"
 };
 
 static const float g_flMapSettingDefaults[] =
@@ -49,7 +51,8 @@ static const float g_flMapSettingDefaults[] =
 	4.0,
 	0.0,
 	3.0,
-	120.0
+	120.0,
+	0.0
 };
 
 static bool g_bMapConfigLoaded;
@@ -309,6 +312,17 @@ bool MapConfig_BlockManualFrenzy(const char[] sSource)
 		return false;
 	
 	CPrintToChatDebug("Map frenzy (%s) ignored: disablemanualfrenzy", sSource);
+	return true;
+}
+
+bool MapConfig_BlockForcedTank(const char[] sSource = "")
+{
+	if (MapConfig_GetSetting(MapSetting_DisableForcedTank) == 0.0)
+		return false;
+	
+	if (sSource[0])
+		CPrintToChatDebug("Tank (%s) blocked: disableforcedtank", sSource);
+	
 	return true;
 }
 

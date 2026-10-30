@@ -62,7 +62,7 @@ bool Stun_IsPlayerStunned(int iClient)
 
 bool Stun_CanStartPlayer(int iClient)
 {
-	return !g_StunInfo[iClient].bStunned && !g_StunInfo[iClient].bCooldown && !IsLastManStanding(iClient);
+	return !g_StunInfo[iClient].bStunned && !g_StunInfo[iClient].bCooldown && !IsStunImmune(iClient);
 }
 
 bool Stun_StartPlayer(int iClient, float flDuration = 6.0)
@@ -70,7 +70,7 @@ bool Stun_StartPlayer(int iClient, float flDuration = 6.0)
 	if (g_StunInfo[iClient].bStunned || g_StunInfo[iClient].bCooldown)
 		return false;	//Already stunned
 	
-	if (IsLastManStanding(iClient))
+	if (IsStunImmune(iClient))
 		return false;
 	
 	g_StunInfo[iClient].bStunned = true;

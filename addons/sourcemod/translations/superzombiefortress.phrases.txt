@@ -191,6 +191,18 @@
 		"en"		"{1}{2} is the last survivor!"
 	}
 	
+	"Survivor_Left4Dead"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}{2} have been Left 4 Dead..."
+	}
+	
+	"Survivor_Left4DeadOne"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}{2} has been Left 4 Dead..."
+	}
+	
 	"Infected_Zombify"
 	{
 		"#format"	"{1:s}"
@@ -804,7 +816,7 @@
 	
 	"Menu_ClassesInfectedSpecialSpitter"
 	{
-		"en"		"The Spitter has a long neck filled with nasty gas survivors couldn't take it.\n- Using rage froze the spitter, spewing out to ground damaging nearby survivors.\n- Also releases gas on death.\n- This gives a bigger threat to horde of survivors in small room."
+		"en"		"The Spitter has a long neck filled with nasty gas survivors couldn't take it.\n- Using rage spews gas onto the ground, damaging nearby survivors.\n- Also releases gas on death.\n- This gives a bigger threat to horde of survivors in small room."
 	}
 	
 	"Menu_ClassesInfectedSpecialJockey"

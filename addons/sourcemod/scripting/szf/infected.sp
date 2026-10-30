@@ -1002,7 +1002,7 @@ public void Infected_OnHunterTouch(int iClient, int iToucher)
 		return;
 	}
 	
-	if (IsLastManStanding(iToucher))
+	if (IsStunImmune(iToucher))
 	{
 		LastStand_OnHunterPounce(iClient, iToucher);
 		
@@ -1389,7 +1389,7 @@ void Infected_SmokerGrabVictim(int iClient)
 	}
 	else if (g_nSmokerStatus[iClient] == SmokerStatus_Retract)
 	{
-		if (!TF2_IsPlayerInCondition(iVictim, TFCond_Dazed) && !IsLastManStanding(iVictim))
+		if (!TF2_IsPlayerInCondition(iVictim, TFCond_Dazed) && !IsStunImmune(iVictim))
 		{
 			const float flDuration = 5.0;
 			Stun_StartPlayer(iVictim, flDuration);
@@ -1435,8 +1435,6 @@ public void Infected_DoSpitterGas(int iClient)
 {
 	SDKCall_PlaySpecificSequence(iClient, "spitter_spitting");
 	ViewModel_SetAnimation(iClient, "ACT_VM_VOMIT");
-	
-	TF2_AddCondition(iClient, TFCond_FreezeInput, 1.0);
 	
 	int iGas = TF2_GetItemInSlot(iClient, WeaponSlot_Secondary);
 	if (iGas > MaxClients)

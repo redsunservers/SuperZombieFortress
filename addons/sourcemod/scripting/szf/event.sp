@@ -7,6 +7,7 @@ void Event_Init()
 	HookEvent("player_hurt", Event_PlayerHurt, EventHookMode_Pre);
 	HookEvent("player_builtobject", Event_PlayerBuiltObject);
 	HookEvent("player_healed", Event_PlayerHealed);
+	HookEvent("player_healonhit", Event_PlayerHealOnHit);
 	HookEvent("object_destroyed", Event_ObjectDestoryed, EventHookMode_Pre);
 	HookEvent("teamplay_point_captured", Event_CPCapture);
 	HookEvent("teamplay_point_startcapture", Event_CPCaptureStart);
@@ -481,6 +482,14 @@ public Action Event_PlayerBuiltObject(Event event, const char[] name, bool dontB
 			SetEntProp(iEntity, Prop_Send, "m_iHealth", RoundToFloor(float(iMaxHealth) * 0.5));
 		}
 	}
+	
+	return Plugin_Continue;
+}
+
+public Action Event_PlayerHealOnHit(Event event, const char[] name, bool dontBroadcast)
+{
+	if (g_bEnabled)
+		LastStand_OnHealOnHit(event.GetInt("entindex"), event.GetInt("amount"), event.GetInt("weapon_def_index"));
 	
 	return Plugin_Continue;
 }

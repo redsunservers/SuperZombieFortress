@@ -212,6 +212,8 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 			
 			if (Infected_IsJockeyVictim(iClient))
 				flSpeed *= g_cvJockeyVictimSpeed.FloatValue;
+			else
+				flSpeed *= LastStand_GetSpeedMulti(iClient);
 		}
 		
 		if (Stun_IsPlayerStunned(iClient))
@@ -441,6 +443,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	DetermineControlPoints();
 	
 	g_bLastSurvivor = false;
+	LastStand_ResetLeft4Dead();
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
 	{

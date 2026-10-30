@@ -6,6 +6,12 @@
 #define LASTSTAND_RESIST_MANY			0.95
 #define LASTSTAND_RESIST_FEW_PLAYERS	2.0
 #define LASTSTAND_RESIST_MANY_PLAYERS	40.0
+#define LEFT4DEAD_RESIST_FEW			0.3
+#define LEFT4DEAD_RESIST_MANY			0.6
+#define LEFT4DEAD_RESIST_FEW_PLAYERS	16.0
+#define LEFT4DEAD_RESIST_MANY_PLAYERS	40.0
+#define LEFT4DEAD_HEAL_MULTI			0.25
+#define LEFT4DEAD_SPEED_MULTI			1.1
 #define LASTSTAND_TF2_TAKEN				0.25
 
 static int g_iLastStandHealth[MAXPLAYERS + 1] = {-1, ...};
@@ -20,10 +26,25 @@ static float g_flBonkEnd[MAXPLAYERS + 1];
 static float g_flLastStandStart;
 static bool g_bLastStandTankSent;
 static int g_iLoneSurvivor;
+static bool g_bLeft4DeadRound;
+static bool g_bLeft4Dead;
+static float g_flLeft4DeadHealCarry[MAXPLAYERS + 1];
+static int g_iLastStandHitDepth[MAXPLAYERS + 1];
+static int g_iLastStandKunaiHealth[MAXPLAYERS + 1] = {-1, ...};
 
 bool IsLastManStanding(int iClient)
 {
 	return g_bLastSurvivor && IsValidLivingSurvivor(iClient);
+}
+
+bool IsLeft4Dead(int iClient)
+{
+	return g_bLeft4Dead && IsValidLivingSurvivor(iClient);
+}
+
+bool IsStunImmune(int iClient)
+{
+	return IsLastManStanding(iClient) || IsLeft4Dead(iClient);
 }
 
 void LastStand_OnStart()
@@ -34,7 +55,7 @@ void LastStand_OnStart()
 
 void LastStand_Update()
 {
-	if (!g_bLastSurvivor || g_bLastStandTankSent || g_nRoundState != SZFRoundState_Active)
+	if (!(g_bLastSurvivor || g_bLeft4Dead) || g_bLastStandTankSent || g_nRoundState != SZFRoundState_Active)
 		return;
 	
 	float flTime = g_cvLastStandTankTime.FloatValue;
@@ -43,6 +64,12 @@ void LastStand_Update()
 	
 	if (GetGameTime() - fMax(g_flLastStandStart, g_flRoundStarted) < flTime)
 		return;
+	
+	if (MapConfig_BlockForcedTank(g_bLeft4Dead ? "Left 4 Dead" : "Last Man Standing"))
+	{
+		g_bLastStandTankSent = true;
+		return;
+	}
 	
 	if (ZombiesHaveTank() || ZombiesTankComing())
 		return;
@@ -60,6 +87,18 @@ void LastStand_Update()
 
 void LastStand_OnRoundActive()
 {
+	LastStand_ResetLeft4Dead();
+	int iSurvivors = LastStand_CountSurvivors(0, false);
+	int iMinSurvivors = g_cvLeft4DeadSurvivors.IntValue;
+	if (iMinSurvivors > 0 && iSurvivors >= iMinSurvivors)
+	{
+		g_bLeft4DeadRound = true;
+		g_iLoneSurvivor = 0;
+		CPrintToChatDebug("Left 4 Dead round: %d starting survivors", iSurvivors);
+		LastStand_CheckLeft4Dead(0);
+		return;
+	}
+	
 	g_iLoneSurvivor = LastStand_GetOnlySurvivor();
 	if (g_iLoneSurvivor)
 		LastStand_CheckLoneSurvivor(g_iLoneSurvivor);
@@ -103,6 +142,168 @@ static int LastStand_GetOnlySurvivor()
 	return iSurvivor;
 }
 
+bool LastStand_IsLeft4DeadRound()
+{
+	return g_bLeft4DeadRound;
+}
+
+void LastStand_CheckLeft4Dead(int iIgnoredClient)
+{
+	if (!g_bLeft4DeadRound || g_bLeft4Dead || g_nRoundState != SZFRoundState_Active)
+		return;
+	
+	int iSurvivors = LastStand_CountSurvivors(iIgnoredClient, true);
+	if (iSurvivors <= 0 || iSurvivors > g_cvLeft4DeadCount.IntValue)
+		return;
+	
+	g_bLeft4Dead = true;
+	LastStand_OnStart();
+	
+	int iClients[MAXPLAYERS];
+	int iCount;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (iClient == iIgnoredClient || !IsValidLivingSurvivor(iClient))
+			continue;
+		
+		iClients[iCount++] = iClient;
+		
+		Stun_EndPlayer(iClient);
+		TF2_RemoveCondition(iClient, TFCond_Dazed);
+		g_flLeft4DeadHealCarry[iClient] = 0.0;
+		
+		TF2_AddCondition(iClient, TFCond_KingRune, g_cvLastStandKingRuneDuration.FloatValue);
+		SetEntityHealth(iClient, SDKCall_GetMaxHealth(iClient));
+		SDKCall_SetSpeed(iClient);
+	}
+	
+	char sNames[512];
+	LastStand_JoinNames(iClients, iCount, sNames, sizeof(sNames));
+	if (iCount == 1)
+		CPrintToChatAllEx(iClients[0], "%t", "Survivor_Left4DeadOne", sNames, "{green}");
+	else
+		CPrintToChatAllEx(iClients[0], "%t", "Survivor_Left4Dead", sNames, "{green}");
+	
+	Sound_PlayMusicToAll("laststand");
+	
+	FireRelay("FireUser1", "szf_laststand");
+}
+
+static void LastStand_JoinNames(const int[] iClients, int iCount, char[] sBuffer, int iLength)
+{
+	sBuffer[0] = '\0';
+	for (int i = 0; i < iCount; i++)
+	{
+		if (i > 0)
+		{
+			if (i < iCount - 1)
+				StrCat(sBuffer, iLength, "{green}, ");
+			else if (iCount > 2)
+				StrCat(sBuffer, iLength, "{green}, and ");
+			else
+				StrCat(sBuffer, iLength, "{green} and ");
+		}
+		
+		char sName[128];
+		GetClientName2(iClients[i], sName, sizeof(sName));
+		StrCat(sBuffer, iLength, sName);
+	}
+}
+
+void LastStand_ResetLeft4Dead()
+{
+	g_bLeft4DeadRound = false;
+	g_bLeft4Dead = false;
+}
+
+static int LastStand_CountSurvivors(int iIgnoredClient, bool bAlive)
+{
+	int iCount;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (iClient != iIgnoredClient && (bAlive ? IsValidLivingSurvivor(iClient) : IsValidSurvivor(iClient)))
+			iCount++;
+	
+	return iCount;
+}
+
+static float LastStand_GetLeft4DeadResistance()
+{
+	return LastStand_Remap(float(GetActivePlayerCount()), LEFT4DEAD_RESIST_FEW_PLAYERS, LEFT4DEAD_RESIST_MANY_PLAYERS, LEFT4DEAD_RESIST_FEW, LEFT4DEAD_RESIST_MANY);
+}
+
+bool LastStand_OnLeft4DeadDamage(int iVictim, float &flDamage, int iDamageCustom)
+{
+	if (!IsLeft4Dead(iVictim) || iDamageCustom == TF_CUSTOM_TRIGGER_HURT)
+		return false;
+	
+	g_flLastStandDamageCarry[iVictim] += flDamage * (1.0 - LastStand_GetLeft4DeadResistance());
+	flDamage = float(RoundToFloor(g_flLastStandDamageCarry[iVictim]));
+	g_flLastStandDamageCarry[iVictim] -= flDamage;
+	return true;
+}
+
+float LastStand_GetSpeedMulti(int iClient)
+{
+	return IsLeft4Dead(iClient) ? LEFT4DEAD_SPEED_MULTI : 1.0;
+}
+
+static void LastStand_CutLeft4DeadHeal(int iClient, int iHealthBefore)
+{
+	int iGain = GetClientHealth(iClient) - iHealthBefore;
+	if (iGain <= 0)
+		return;
+	
+	g_flLeft4DeadHealCarry[iClient] += float(iGain) * LEFT4DEAD_HEAL_MULTI;
+	int iKeep = RoundToFloor(g_flLeft4DeadHealCarry[iClient]);
+	g_flLeft4DeadHealCarry[iClient] -= float(iKeep);
+	SetEntityHealth(iClient, iHealthBefore + iKeep);
+}
+
+void LastStand_OnHealOnHit(int iClient, int iAmount, int iDefIndex)
+{
+	if (iAmount <= 0 || !IsLeft4Dead(iClient) || g_iLastStandHitDepth[iClient] > 0)
+		return;
+	
+	int iWeapon = LastStand_GetWeaponByDefIndex(iClient, iDefIndex);
+	if (iWeapon <= MaxClients)
+		return;
+	
+	if (TF2Attrib_HookValueInt(0, "add_health_on_radius_damage", iWeapon) > 0)
+	{
+		LastStand_CutLeft4DeadHeal(iClient, GetClientHealth(iClient) - iAmount);
+		return;
+	}
+	
+	if (TF2Attrib_HookValueFloat(0.0, "active_item_health_regen", iWeapon) != 0.0)
+		return;
+	
+	if (TF2Attrib_HookValueInt(0, "add_onhit_addhealth", iWeapon) <= 0 && !TF2_IsPlayerInCondition(iClient, TFCond_RegenBuffed))
+		return;
+	
+	int iHealth = GetClientHealth(iClient);
+	if (iHealth < SDKCall_GetMaxHealth(iClient))
+		LastStand_CutLeft4DeadHeal(iClient, iHealth - iAmount);
+}
+
+static int LastStand_GetWeaponByDefIndex(int iClient, int iDefIndex)
+{
+	for (int iSlot = WeaponSlot_Primary; iSlot <= WeaponSlot_BuilderEngie; iSlot++)
+	{
+		int iWeapon = GetPlayerWeaponSlot(iClient, iSlot);
+		if (iWeapon > MaxClients && GetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex") == iDefIndex)
+			return iWeapon;
+	}
+	
+	return -1;
+}
+
+static void LastStand_CheckKunaiKill(int iVictim, int iAttacker, int iWeapon, int iDamageCustom, int iHealth)
+{
+	if (iDamageCustom == TF_CUSTOM_BACKSTAB && !IsPlayerAlive(iVictim) && iWeapon > MaxClients && IsValidEntity(iWeapon)
+		&& TF2Attrib_HookValueInt(0, "sanguisuge", iWeapon) > 0)
+		g_iLastStandKunaiHealth[iAttacker] = iHealth;
+}
+
 void LastStand_AllowHealth(int iClient)
 {
 	if (IsLastManStanding(iClient))
@@ -116,6 +317,9 @@ void LastStand_ResetClient(int iClient)
 	g_flLastStandRegen[iClient] = 0.0;
 	g_flLastStandHurtTime[iClient] = 0.0;
 	g_flLastStandDamageCarry[iClient] = 0.0;
+	g_flLeft4DeadHealCarry[iClient] = 0.0;
+	g_iLastStandKunaiHealth[iClient] = -1;
+	g_iLastStandHitDepth[iClient] = 0;
 	
 	if (g_bIntangible[iClient])
 	{
@@ -133,6 +337,9 @@ void LastStand_ClientDisconnect(int iClient)
 	g_flLastStandRegen[iClient] = 0.0;
 	g_flLastStandHurtTime[iClient] = 0.0;
 	g_flLastStandDamageCarry[iClient] = 0.0;
+	g_flLeft4DeadHealCarry[iClient] = 0.0;
+	g_iLastStandKunaiHealth[iClient] = -1;
+	g_iLastStandHitDepth[iClient] = 0;
 	g_bIntangible[iClient] = false;
 	g_flBonkEnd[iClient] = 0.0;
 	
@@ -189,6 +396,18 @@ void LastStand_OnPreThink(int iClient)
 
 void LastStand_OnPostThinkPost(int iClient)
 {
+	if (g_iLastStandKunaiHealth[iClient] >= 0)
+	{
+		if (IsLeft4Dead(iClient))
+			LastStand_CutLeft4DeadHeal(iClient, g_iLastStandKunaiHealth[iClient]);
+		else if (IsLastManStanding(iClient) && GetClientHealth(iClient) > g_iLastStandKunaiHealth[iClient])
+			SetEntityHealth(iClient, g_iLastStandKunaiHealth[iClient]);
+		
+		g_iLastStandKunaiHealth[iClient] = -1;
+	}
+	
+	g_iLastStandHitDepth[iClient] = 0;
+	
 	if (IsLastManStanding(iClient))
 		g_iLastStandHealth[iClient] = GetClientHealth(iClient);
 	else
@@ -215,14 +434,15 @@ void LastStand_OnZombieDamagedPre(int iVictim, int iAttacker)
 {
 	g_iLastStandHitHealth[iVictim] = -1;
 	
-	if (iVictim == iAttacker || !IsValidZombie(iVictim) || !IsLastManStanding(iAttacker))
+	if (iVictim == iAttacker || !IsValidZombie(iVictim) || !(IsLastManStanding(iAttacker) || IsLeft4Dead(iAttacker)))
 		return;
 	
 	g_iLastStandHitHealth[iVictim] = GetClientHealth(iAttacker);
 	g_iLastStandHitAttacker[iVictim] = iAttacker;
+	g_iLastStandHitDepth[iAttacker]++;
 }
 
-void LastStand_OnZombieDamagedPost(int iVictim)
+void LastStand_OnZombieDamagedPost(int iVictim, int iWeapon, int iDamageCustom)
 {
 	int iHealth = g_iLastStandHitHealth[iVictim];
 	if (iHealth < 0)
@@ -231,8 +451,20 @@ void LastStand_OnZombieDamagedPost(int iVictim)
 	g_iLastStandHitHealth[iVictim] = -1;
 	
 	int iAttacker = g_iLastStandHitAttacker[iVictim];
+	if (g_iLastStandHitDepth[iAttacker] > 0)
+		g_iLastStandHitDepth[iAttacker]--;
+	
+	if (IsLeft4Dead(iAttacker))
+	{
+		LastStand_CutLeft4DeadHeal(iAttacker, iHealth);
+		LastStand_CheckKunaiKill(iVictim, iAttacker, iWeapon, iDamageCustom, GetClientHealth(iAttacker));
+		return;
+	}
+	
 	if (!IsLastManStanding(iAttacker))
 		return;
+	
+	LastStand_CheckKunaiKill(iVictim, iAttacker, iWeapon, iDamageCustom, iHealth);
 	
 	if (GetClientHealth(iAttacker) > iHealth)
 		SetEntityHealth(iAttacker, iHealth);

@@ -179,7 +179,8 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		}
 		
 		bool bLastStand = IsValidZombie(iAttacker) && IsLastManStanding(iVictim);
-		if (bLastStand && IsStunningHit(flDamage, iDamageCustom))
+		bool bStunImmune = IsValidZombie(iAttacker) && IsStunImmune(iVictim);
+		if (bStunImmune && IsStunningHit(flDamage, iDamageCustom))
 		{
 			if (g_nInfected[iAttacker] == Infected_Stalker && iDamageCustom == TF_CUSTOM_BACKSTAB)
 				flDamage = Infected_GetStalkerBackstabDamage(false);
@@ -196,7 +197,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			bChanged = true;
 		}
 		
-		if (IsValidZombie(iAttacker) && (flDamage < 300.0 || bLastStand))
+		if (IsValidZombie(iAttacker) && (flDamage < 300.0 || bStunImmune))
 		{
 			flDamage *= GetZombieDamageMulti();
 			bChanged = true;
@@ -214,12 +215,19 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			bChanged = true;
 		}
 		
+		if (!(iDamageType & DMG_CRIT) && IsValidZombie(iVictim) && IsLeft4Dead(iAttacker) && MinicritsBecomeCrits(iWeapon) && !WillMinicritAnyway(iVictim, iAttacker)
+			&& !TF2_IsPlayerInCondition(iVictim, TFCond_DefenseBuffed) && !HasZombieDefenseBuff(iVictim))
+		{
+			flDamage *= 1.35;
+			bChanged = true;
+		}
+		
 		if (IsValidSurvivor(iVictim) && IsValidZombie(iAttacker))
 		{
 			Sound_Attack(iVictim, iAttacker);
 			
 			//Taunt kill, backstabs and gunslinger combo punch
-			if (!bLastStand && IsStunningHit(flDamage, iDamageCustom))
+			if (!bStunImmune && IsStunningHit(flDamage, iDamageCustom))
 			{
 				
 				if (TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged) || (IsRazorbackActive(iVictim) && iDamageCustom == TF_CUSTOM_BACKSTAB))
@@ -335,7 +343,7 @@ static bool WillMinicritAnyway(int iVictim, int iAttacker)
 
 public void Client_OnTakeDamagePost(int iVictim, int iAttacker, int iInflicter, float flDamage, int iDamageType, int iWeapon, const float vecForce[3], const float vecForcePos[3], int iDamageCustom)
 {
-	LastStand_OnZombieDamagedPost(iVictim);
+	LastStand_OnZombieDamagedPost(iVictim, iWeapon, iDamageCustom);
 	Rage_OnTakeDamagePost(iVictim, iAttacker, flDamage);
 }
 
@@ -353,6 +361,9 @@ public Action Client_OnTakeDamageAlive(int iVictim, int &iAttacker, int &iInflic
 	g_flPluginDefenseDamage[iVictim] = 0.0;
 	
 	if (LastStand_OnTakeDamage(iVictim, flDamage, iDamageType, iDamageCustom))
+		action = Plugin_Changed;
+	
+	if (LastStand_OnLeft4DeadDamage(iVictim, flDamage, iDamageCustom))
 		action = Plugin_Changed;
 	
 	return action;
