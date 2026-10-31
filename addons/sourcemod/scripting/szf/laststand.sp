@@ -177,37 +177,27 @@ void LastStand_CheckLeft4Dead(int iIgnoredClient)
 		SDKCall_SetSpeed(iClient);
 	}
 	
-	char sNames[512];
-	LastStand_JoinNames(iClients, iCount, sNames, sizeof(sNames));
+	for (int i = 0; i < iCount; i++)
+	{
+		char sName[128];
+		GetClientName2(iClients[i], sName, sizeof(sName));
+		
+		if (iCount == 1)
+			CPrintToChatAllEx(iClients[i], "%t", "Survivor_Left4DeadNameAlone", sName, "{green}");
+		else if (i == iCount - 1)
+			CPrintToChatAllEx(iClients[i], "%t", "Survivor_Left4DeadNameLast", sName, "{green}", "{green}");
+		else
+			CPrintToChatAllEx(iClients[i], "%s", sName);
+	}
+	
 	if (iCount == 1)
-		CPrintToChatAllEx(iClients[0], "%t", "Survivor_Left4DeadOne", sNames, "{green}");
+		CPrintToChatAllEx(iClients[0], "%t", "Survivor_Left4DeadOne", "{green}");
 	else
-		CPrintToChatAllEx(iClients[0], "%t", "Survivor_Left4Dead", sNames, "{green}");
+		CPrintToChatAllEx(iClients[0], "%t", "Survivor_Left4Dead", "{green}");
 	
 	Sound_PlayMusicToAll("laststand");
 	
 	FireRelay("FireUser1", "szf_laststand");
-}
-
-static void LastStand_JoinNames(const int[] iClients, int iCount, char[] sBuffer, int iLength)
-{
-	sBuffer[0] = '\0';
-	for (int i = 0; i < iCount; i++)
-	{
-		if (i > 0)
-		{
-			if (i < iCount - 1)
-				StrCat(sBuffer, iLength, "{green}, ");
-			else if (iCount > 2)
-				StrCat(sBuffer, iLength, "{green}, and ");
-			else
-				StrCat(sBuffer, iLength, "{green} and ");
-		}
-		
-		char sName[128];
-		GetClientName2(iClients[i], sName, sizeof(sName));
-		StrCat(sBuffer, iLength, sName);
-	}
 }
 
 void LastStand_ResetLeft4Dead()

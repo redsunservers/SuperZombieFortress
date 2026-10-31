@@ -127,6 +127,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 {
 	WeaponChanges_OnTakeDamagePre(iVictim, iDamageType);
 	LastStand_OnZombieDamagedPre(iVictim, iAttacker);
+	ScoutTeam_OnTakeDamagePre(iVictim, 0.0, 0);
 	g_flPluginDefenseDamage[iVictim] = 0.0;
 	
 	if (!CanRecieveDamage(iVictim))
@@ -215,13 +216,6 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			bChanged = true;
 		}
 		
-		if (!(iDamageType & DMG_CRIT) && IsValidZombie(iVictim) && IsLeft4Dead(iAttacker) && MinicritsBecomeCrits(iWeapon) && !WillMinicritAnyway(iVictim, iAttacker)
-			&& !TF2_IsPlayerInCondition(iVictim, TFCond_DefenseBuffed) && !HasZombieDefenseBuff(iVictim))
-		{
-			flDamage *= 1.35;
-			bChanged = true;
-		}
-		
 		if (IsValidSurvivor(iVictim) && IsValidZombie(iAttacker))
 		{
 			Sound_Attack(iVictim, iAttacker);
@@ -291,6 +285,7 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	SDKCall_SetSpeed(iVictim);
 	
 	WeaponChanges_OnTakeDamagePre(iVictim, iDamageType);
+	ScoutTeam_OnTakeDamagePre(iVictim, flDamage, iDamageType);
 	
 	if (bChanged)
 		return Plugin_Changed;
@@ -359,6 +354,9 @@ public Action Client_OnTakeDamageAlive(int iVictim, int &iAttacker, int &iInflic
 	}
 	
 	g_flPluginDefenseDamage[iVictim] = 0.0;
+	
+	if (ScoutTeam_OnTakeDamageAlive(iVictim, iInflicter, iWeapon, flDamage, iDamageType, iDamageCustom))
+		action = Plugin_Changed;
 	
 	if (LastStand_OnTakeDamage(iVictim, flDamage, iDamageType, iDamageCustom))
 		action = Plugin_Changed;
@@ -664,10 +662,11 @@ static float g_flZombieDamageShown = -1.0;
 
 static float GetZombieDamageMulti()
 {
+	float flMulti = MapConfig_GetZombieDamage();
 	if (GetLivingZombieCount() < g_iStartingZombies)
-		return g_cvZombieDamageUnderstaffed.FloatValue;
+		flMulti += g_cvZombieDamageUnderstaffed.FloatValue - g_cvZombieDamage.FloatValue;
 	
-	return g_cvZombieDamage.FloatValue;
+	return flMulti > 0.0 ? flMulti : 0.0;
 }
 
 static int GetLivingZombieCount()

@@ -93,7 +93,7 @@
 	"Rage_Soldier"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}[Rage]{default} Your banner charges much faster"
+		"en"		"{1}[Rage]{default} Your banner charges much faster, also from damage you take"
 	}
 	
 	"Rage_Pyro"
@@ -191,16 +191,34 @@
 		"en"		"{1}{2} is the last survivor!"
 	}
 	
-	"Survivor_Left4Dead"
+	"Survivor_Left4DeadNameLast"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"en"		"{2}and {1}{3}..."
+	}
+	
+	"Survivor_Left4DeadNameAlone"
 	{
 		"#format"	"{1:s},{2:s}"
-		"en"		"{1}{2} have been Left 4 Dead..."
+		"en"		"{1}{2}..."
+	}
+	
+	"Survivor_Left4Dead"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}Have been Left 4 Dead!"
 	}
 	
 	"Survivor_Left4DeadOne"
 	{
-		"#format"	"{1:s},{2:s}"
-		"en"		"{1}{2} has been Left 4 Dead..."
+		"#format"	"{1:s}"
+		"en"		"{1}Has been Left 4 Dead!"
+	}
+	
+	"Survivor_ScoutVulnerable"
+	{
+		"#format"	"{1:s}"
+		"en"		"{1}You grow vulnerable as you stray away from your teammates"
 	}
 	
 	"Infected_Zombify"
@@ -691,7 +709,7 @@
 	
 	"Menu_ClassesSurvivorsScout"
 	{
-		"en"		"Moves at 360 speed instead of 400.\nCounts as one player when capturing, instead of two.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon."
+		"en"		"Moves at 360 speed instead of 400.\nCounts as one player when capturing, instead of two.\nGains 2 primary ammo per kill, this can go beyond the usual maximum capacity of your weapon.\nIn close proximity of a teammate gain a defensive buff.\nHowever, if you stray too far away from all teammates you gain vulnerability to damage."
 	}
 	
 	"Menu_ClassesSurvivorsSoldier"
@@ -741,7 +759,7 @@
 	
 	"Menu_ClassesInfectedSoldier"
 	{
-		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep banners in secondary slot to use.\nRage: your banner charges 3 times faster for 5 seconds."
+		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep banners in secondary slot to use.\nRage: your banner charges 3 times faster for 5 seconds, and 5％ for every 50 damage you take.\nYour banner charge is kept when you die."
 	}
 	
 	"Menu_ClassesInfectedPyro"

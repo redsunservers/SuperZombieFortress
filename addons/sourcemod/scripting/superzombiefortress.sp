@@ -634,6 +634,7 @@ int g_iOffsetItemDefinitionIndex;
 #include "szf/queue.sp"
 #include "szf/rage.sp"
 #include "szf/respawn.sp"
+#include "szf/scoutteam.sp"
 #include "szf/sdkcall.sp"
 #include "szf/sdkhook.sp"
 #include "szf/specialqueue.sp"
@@ -727,6 +728,7 @@ public void OnPluginStart()
 	ConVar_Init();
 	Queue_Init();
 	SpecialQueue_Init();
+	ScoutTeam_Init();
 	Event_Init();
 	Weapons_Init();
 	
@@ -878,6 +880,8 @@ public void OnClientPutInServer(int iClient)
 	Rage_OnClientPutInServer(iClient);
 	WeaponChanges_ResetClient(iClient);
 	Pickup_ResetClient(iClient);
+	ScoutTeam_ResetClient(iClient, true);
+	Banner_ResetClient(iClient);
 	
 	if (AreClientCookiesCached(iClient))
 		OnClientCookiesCached(iClient);
@@ -1335,6 +1339,8 @@ public void OnGameFrame()
 	if (!g_bEnabled)
 		return;
 	
+	ScoutTeam_Update();
+	
 	if (g_nRoundState == SZFRoundState_Active)
 	{
 		int iCount = GetSurvivorCount();
@@ -1344,8 +1350,8 @@ public void OnGameFrame()
 			//Last man gets minicrit boost if 6 players ingame
 			if (iCount == 1 && IsValidLivingSurvivor(iClient) && GetActivePlayerCount() >= 6 && !IsLeft4Dead(iClient))
 				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
-			else if (IsLeft4Dead(iClient) && !MinicritsBecomeCrits(GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon")))
-				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
+			else if (IsLeft4Dead(iClient))
+				TF2_AddCondition(iClient, TFCond_CritOnKill, 0.05);
 			else if (bZombieMinicrits && g_bZombieMinicrits[iClient] && IsValidLivingZombie(iClient) && !ZombieGetsPluginMinicrits(iClient, GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon")))
 				TF2_AddCondition(iClient, TFCond_Buffed, 0.05);
 		}
@@ -1773,6 +1779,7 @@ void SZFDisable()
 
 void ResetClientState(int iClient)
 {
+	ScoutTeam_ResetClient(iClient);
 	g_iHorde[iClient] = 0;
 	g_iCapturingPoint[iClient] = -1;
 	g_iRageTimer[iClient] = 0;
@@ -1804,8 +1811,6 @@ void SetGlow()
 			if (IsSurvivor(iClient))
 			{
 				if (1 <= iCount <= 3)
-					bGlow = true;
-				else if (GetClientHealth(iClient) <= 30)
 					bGlow = true;
 				else if (Stun_IsPlayerStunned(iClient))
 					bGlow = true;

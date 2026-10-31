@@ -17,6 +17,8 @@ enum
 	MapSetting_MinicritZombies,
 	MapSetting_MinicritDuration,
 	MapSetting_DisableForcedTank,
+	MapSetting_ZombieDamage,
+	MapSetting_RareWeaponChance,
 	
 	MapSetting_Count
 }
@@ -35,7 +37,9 @@ static const char g_sMapSettingKeys[][] =
 	"disablemanualfrenzy",
 	"minicritzombies",
 	"minicritduration",
-	"disableforcedtank"
+	"disableforcedtank",
+	"zombiedamage",
+	"rareweaponchance"
 };
 
 static const float g_flMapSettingDefaults[] =
@@ -52,7 +56,9 @@ static const float g_flMapSettingDefaults[] =
 	0.0,
 	3.0,
 	120.0,
-	0.0
+	0.0,
+	-1.0,
+	-1.0
 };
 
 static bool g_bMapConfigLoaded;
@@ -508,4 +514,16 @@ static void MapConfig_RebalanceTeams()
 			}
 		}
 	}
+}
+
+float MapConfig_GetZombieDamage()
+{
+	float flValue = MapConfig_GetSetting(MapSetting_ZombieDamage);
+	return flValue >= 0.0 ? flValue : g_cvZombieDamage.FloatValue;
+}
+
+float MapConfig_GetRareWeaponChance()
+{
+	float flValue = MapConfig_GetSetting(MapSetting_RareWeaponChance);
+	return flValue >= 0.0 ? flValue : g_cvWeaponRareChance.FloatValue;
 }
