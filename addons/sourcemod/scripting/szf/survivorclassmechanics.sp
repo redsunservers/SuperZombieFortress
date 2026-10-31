@@ -86,17 +86,28 @@ static ScoutTeamState ScoutTeam_GetState(int iClient, bool bWasFar)
 	GetClientAbsOrigin(iClient, vecOrigin);
 	
 	float flNearest = -1.0;
+	float flNearestScout = -1.0;
 	for (int iOther = 1; iOther <= MaxClients; iOther++)
 	{
-		if (iOther == iClient || !IsValidLivingSurvivor(iOther) || TF2_GetPlayerClass(iOther) == TFClass_Scout)
+		if (iOther == iClient || !IsValidLivingSurvivor(iOther))
 			continue;
 		
 		float vecOther[3];
 		GetClientAbsOrigin(iOther, vecOther);
 		float flDistance = GetVectorDistance(vecOrigin, vecOther, true);
-		if (flNearest < 0.0 || flDistance < flNearest)
+		if (TF2_GetPlayerClass(iOther) == TFClass_Scout)
+		{
+			if (flNearestScout < 0.0 || flDistance < flNearestScout)
+				flNearestScout = flDistance;
+		}
+		else if (flNearest < 0.0 || flDistance < flNearest)
+		{
 			flNearest = flDistance;
+		}
 	}
+	
+	if (flNearest < 0.0)
+		flNearest = flNearestScout;
 	
 	if (flNearest < 0.0)
 		return ScoutTeam_None;
