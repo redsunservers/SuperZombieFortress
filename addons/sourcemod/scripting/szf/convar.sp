@@ -15,14 +15,14 @@ void ConVar_Init()
 	
 	g_cvForceOn = CreateConVar("sm_szf_force_on", "1", "<0/1> Force enable SZF for next map.", _, true, 0.0, true, 1.0);
 	g_cvDebug = CreateConVar("sm_szf_debug", "0", "Enable debugs?", _, true, 0.0, true, 1.0);
-	g_cvZombieDamage = CreateConVar("sm_szf_zombie_damage", "0.6", "Multiplier on all damage zombies deal with their weapons. Survivors always deal normal damage.", _, true, 0.0);
-	g_cvZombieDamageUnderstaffed = CreateConVar("sm_szf_zombie_damage_understaffed", "0.8", "Multiplier on zombie weapon damage, instead of sm_szf_zombie_damage, while fewer zombies are alive than the round's starting zombie count.", _, true, 0.0);
+	g_cvZombieDamage = CreateConVar("sm_szf_zombie_damage", "0.6", "Multiplier on all damage zombies deal with their weapons. Survivors always deal normal damage. A map can set its own in maps.cfg (\"zombiedamage\").", _, true, 0.0);
+	g_cvZombieDamageUnderstaffed = CreateConVar("sm_szf_zombie_damage_understaffed", "0.8", "Multiplier on zombie weapon damage, instead of sm_szf_zombie_damage, while fewer zombies are alive than the round's starting zombie count. On a map with its own \"zombiedamage\" (maps.cfg), the difference between the two is added to that instead.", _, true, 0.0);
 	g_cvDirectorFrenzy = CreateConVar("sm_szf_director_frenzy", "0", "<0/1> Let the old director start frenzies on its own. Frenzies come from the respawn timeline (maps.cfg) instead.", _, true, 0.0, true, 1.0);
 	g_cvDirectorTank = CreateConVar("sm_szf_director_tank", "0", "<0/1> Let the old director (and the last control point) call Tanks on their own. Tanks otherwise only come from maps, admins and a long Last Man Standing.", _, true, 0.0, true, 1.0);
 	g_cvLastStandTankTime = CreateConVar("sm_szf_laststand_tank_time", "300.0", "Seconds of Last Man Standing before a Tank is sent, once per round. 0 to disable.", _, true, 0.0);
 	g_cvWeaponSpawnReappear = CreateConVar("sm_szf_weapon_spawn_reappear", "0.25", "% chance for spawn weapons to reappear.", _, true, 0.0, true, 1.0);
 	g_cvWeaponPickupChance = CreateConVar("sm_szf_weapon_pickup_chance", "0.07", "% chance for normal weapons to be pickups.", _, true, 0.0, true, 1.0);
-	g_cvWeaponRareChance = CreateConVar("sm_szf_weapon_rare_chance", "0.2", "% chance for normal weapons to be rare.", _, true, 0.0, true, 1.0);
+	g_cvWeaponRareChance = CreateConVar("sm_szf_weapon_rare_chance", "0.2", "% chance for normal weapons to be rare. A map can set its own in maps.cfg (\"rareweaponchance\").", _, true, 0.0, true, 1.0);
 	g_cvWeaponRareCap = CreateConVar("sm_szf_weapon_rare_cap", "50", "Max amount of rare weapons to generate", _, true, 0.0);
 	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "350", "Amount of health the Tank gets per alive survivor.", _, true, 10.0);
 	g_cvTankHealthMin = CreateConVar("sm_szf_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with.", _, true, 0.0);
@@ -46,7 +46,7 @@ void ConVar_Init()
 	g_cvStunImmunity = CreateConVar("sm_szf_stun_immunity", "0.0", "How long until the survivor can be stunned again.", _, true, 0.0);
 	g_cvStunFogDistance = CreateConVar("sm_szf_stun_fog_distance", "500.0", "A stunned survivor sees black fog: everything this many units away is black, and the fog starts at half of it. Only the stunned player sees it.", _, true, 16.0);
 	g_cvLastStandKingRuneDuration = CreateConVar("sm_szf_laststand_kingrune_duration", "-1.0", "How long the last survivor (and Left 4 Dead's last survivors) get the King Rune, -1.0 for infinite.", _, true, -1.0);
-	g_cvLeft4DeadSurvivors = CreateConVar("sm_szf_left4dead_survivors", "12", "A round that starts with this many survivors or more has Left 4 Dead instead of Last Man Standing: the last sm_szf_left4dead_count survivors get mini-crits, damage resistance (30% at 16 players to 60% at 40), stun immunity, 10% more speed and a quarter of heal on hit and on kill. 0 to disable.", _, true, 0.0);
+	g_cvLeft4DeadSurvivors = CreateConVar("sm_szf_left4dead_survivors", "12", "A round that starts with this many survivors or more has Left 4 Dead instead of Last Man Standing: the last sm_szf_left4dead_count survivors get crits, damage resistance (30% at 16 players to 60% at 40), stun immunity, 10% more speed and a quarter of heal on hit and on kill. 0 to disable.", _, true, 0.0);
 	g_cvLeft4DeadCount = CreateConVar("sm_szf_left4dead_count", "4", "How many survivors are left when Left 4 Dead starts.", _, true, 1.0);
 	g_cvLastStandDefenseDuration = CreateConVar("sm_szf_laststand_defense_duration", "-1.0", "How long the last survivor gets damage resistance (50% at 2 players to 95% at 40), -1.0 for the whole stand.", _, true, -1.0);
 	g_cvDispenserAmmoCooldown = CreateConVar("sm_szf_dispenser_ammo_cooldown", "4.0", "Cooldown before client could gain ammo from dispensers.", _, true, 0.0);

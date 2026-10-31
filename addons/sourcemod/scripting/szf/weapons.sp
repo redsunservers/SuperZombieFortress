@@ -261,6 +261,7 @@ public bool Weapons_OnPickup_Minicrits(int iClient)
 public bool Weapons_OnPickup_Defense(int iClient)
 {
 	TF2_AddCondition(iClient, TFCond_DefenseBuffed, 45.0);
+	ScoutTeam_OnDefensePickup(iClient, 45.0);
 	
 	return true;
 }

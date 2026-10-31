@@ -3,10 +3,11 @@
 #define RAGE_SCOUT_SPEED			20.0
 #define RAGE_SCOUT_BALL_DAMAGE		30.0
 #define RAGE_SOLDIER_BANNER_MULTI	3.0
+#define RAGE_SOLDIER_HURT_CHARGE	0.1
 #define RAGE_PYRO_RINGS				5
 #define RAGE_PYRO_RING_INTERVAL		0.5
 #define RAGE_PYRO_RING_DAMAGE		6.0
-#define RAGE_PYRO_RING_RADIUS		135.0
+#define RAGE_PYRO_RING_RADIUS		67.5
 #define RAGE_DEMO_PUSH				250.0
 #define RAGE_DEMO_PUSH_UP			150.0
 #define RAGE_HEAVY_RESIST			0.8
@@ -162,6 +163,11 @@ float Rage_GetSpeedBonus(int iClient)
 float Rage_GetBannerChargeMulti(int iClient)
 {
 	return Rage_IsEffectActive(iClient, TFClass_Soldier) ? RAGE_SOLDIER_BANNER_MULTI : 1.0;
+}
+
+float Rage_GetBannerChargeFromDamage(int iClient, int iDamage)
+{
+	return Rage_IsEffectActive(iClient, TFClass_Soldier) ? float(iDamage) * RAGE_SOLDIER_HURT_CHARGE : 0.0;
 }
 
 void Rage_OnConditionRemoved(int iClient, TFCond nCond)

@@ -449,6 +449,7 @@ public MRESReturn DHook_RoundRespawnPre()
 	{
 		g_iDamageZombie[iClient] = 0;
 		g_iKillsThisLife[iClient] = 0;
+		Banner_ResetClient(iClient);
 		g_bSpecialIgnoreCooldown[iClient] = false;
 		g_nInfected[iClient] = Infected_None;
 		g_nNextInfected[iClient] = Infected_None;
