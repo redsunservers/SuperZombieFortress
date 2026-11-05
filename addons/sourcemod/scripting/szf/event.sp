@@ -175,7 +175,6 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 				TF2_AddCondition(iClient, TFCond_Ubercharged, 2.0);
 		
 		HandleZombieLoadout(iClient);
-		Banner_OnZombieSpawn(iClient);
 		if (GetCookie(iClient, g_cFirstTimeZombie) < 1)
 			InitiateZombieTutorial(iClient);
 	}
@@ -293,7 +292,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 	
 	g_iMaxHealth[iVictim] = -1;
 	g_bShouldBacteriaPlay[iVictim] = true;
-	Banner_OnPlayerDeath(iVictim, bDeadRinger);
+	Banner_OnPlayerDeath(iVictim);
+	Infected_ResetHunterPin(iVictim);
 	
 	if (!bDeadRinger)
 	{
@@ -624,39 +624,36 @@ public Action Event_HideNotice(Event event, const char[] name, bool dontBroadcas
 	return Plugin_Continue;
 }
 
-static float g_flBannerSaved[MAXPLAYERS + 1];
-static bool g_bBannerSaved[MAXPLAYERS + 1];
+static bool g_bBannerUsed[MAXPLAYERS + 1];
 
-void Banner_OnPlayerDeath(int iVictim, bool bDeadRinger)
+void Banner_OnThink(int iClient)
 {
-	if (bDeadRinger || !IsValidZombie(iVictim) || !TF2_IsSlotClassname(iVictim, WeaponSlot_Secondary, "tf_weapon_buff_item"))
+	if (TF2_GetPlayerClass(iClient) != TFClass_Soldier || !IsValidLivingZombie(iClient) || g_nInfected[iClient] != Infected_None)
 		return;
 	
-	g_bBannerSaved[iVictim] = true;
-	if (GetEntProp(iVictim, Prop_Send, "m_bRageDraining"))
-		g_flBannerSaved[iVictim] = 0.0;
-	else
-		g_flBannerSaved[iVictim] = fMin(g_flBannerMeter[iVictim], GetEntPropFloat(iVictim, Prop_Send, "m_flRageMeter"));
+	if (!TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_buff_item"))
+		return;
+	
+	if (GetEntProp(iClient, Prop_Send, "m_bRageDraining"))
+	{
+		g_bBannerUsed[iClient] = true;
+		return;
+	}
+	
+	if (g_bBannerUsed[iClient])
+	{
+		g_bBannerUsed[iClient] = false;
+		g_flBannerMeter[iClient] = 0.0;
+	}
+	
+	if (GetEntPropFloat(iClient, Prop_Send, "m_flRageMeter") < g_flBannerMeter[iClient])
+		SetEntPropFloat(iClient, Prop_Send, "m_flRageMeter", g_flBannerMeter[iClient]);
 }
 
-void Banner_OnZombieSpawn(int iClient)
+void Banner_OnPlayerDeath(int iVictim)
 {
-	if (g_bBannerSaved[iClient] && g_nInfected[iClient] == Infected_None && TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_buff_item"))
-		RequestFrame(Frame_RestoreBanner, GetClientSerial(iClient));
-}
-
-void Frame_RestoreBanner(int iSerial)
-{
-	int iClient = GetClientFromSerial(iSerial);
-	if (!iClient || !g_bBannerSaved[iClient] || !IsValidLivingZombie(iClient) || g_nInfected[iClient] != Infected_None)
-		return;
-	
-	if (!TF2_IsSlotClassname(iClient, WeaponSlot_Secondary, "tf_weapon_buff_item") || GetEntProp(iClient, Prop_Send, "m_bRageDraining"))
-		return;
-	
-	g_bBannerSaved[iClient] = false;
-	g_flBannerMeter[iClient] = g_flBannerSaved[iClient];
-	SetEntPropFloat(iClient, Prop_Send, "m_flRageMeter", g_flBannerSaved[iClient]);
+	if (IsValidZombie(iVictim) && GetEntProp(iVictim, Prop_Send, "m_bRageDraining"))
+		g_bBannerUsed[iVictim] = true;
 }
 
 void Banner_OnHurt(int iVictim, int iDamage)
@@ -681,6 +678,6 @@ void Banner_OnHurt(int iVictim, int iDamage)
 
 void Banner_ResetClient(int iClient)
 {
-	g_bBannerSaved[iClient] = false;
-	g_flBannerSaved[iClient] = 0.0;
+	g_flBannerMeter[iClient] = 0.0;
+	g_bBannerUsed[iClient] = false;
 }

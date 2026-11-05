@@ -230,6 +230,9 @@ public Action Console_VoiceMenu(int iClient, const char[] sCommand, int iArgs)
 		if (IsSurvivor(iClient) && AttemptCarryItem(iClient))
 			return Plugin_Handled;
 		
+		if (IsZombie(iClient) && Infected_OnHunterCallMedic(iClient))
+			return Plugin_Handled;
+		
 		if (IsZombie(iClient) && !TF2_IsPlayerInCondition(iClient, TFCond_Taunting))
 		{
 			if (g_iRageTimer[iClient] == 0)

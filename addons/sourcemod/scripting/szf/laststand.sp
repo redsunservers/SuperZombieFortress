@@ -173,7 +173,10 @@ void LastStand_CheckLeft4Dead(int iIgnoredClient)
 		g_flLeft4DeadHealCarry[iClient] = 0.0;
 		
 		TF2_AddCondition(iClient, TFCond_KingRune, g_cvLastStandKingRuneDuration.FloatValue);
-		SetEntityHealth(iClient, SDKCall_GetMaxHealth(iClient));
+		int iMaxHealth = SDKCall_GetMaxHealth(iClient);
+		int iHealth = GetClientHealth(iClient);
+		if (iHealth < iMaxHealth)
+			SetEntityHealth(iClient, iHealth + (iMaxHealth - iHealth) / 2);
 		SDKCall_SetSpeed(iClient);
 	}
 	
@@ -521,7 +524,7 @@ void LastStand_OnHunterPounce(int iHunter, int iVictim)
 
 void SetPlayerIntangible(int iClient)
 {
-	SetEntityCollisionGroup(iClient, COLLISION_GROUP_DEBRIS_TRIGGER);
+	SetEntityCollisionGroup(iClient, COLLISION_GROUP_PUSHAWAY);
 	g_flIntangibleStart[iClient] = GetGameTime();
 	
 	if (!g_bIntangible[iClient])

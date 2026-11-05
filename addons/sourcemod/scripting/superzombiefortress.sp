@@ -911,6 +911,7 @@ public void OnClientDisconnect(int iClient)
 	CheckLastSurvivor(iClient);
 	
 	Weapons_ClientDisconnect(iClient);
+	Infected_ResetHunterPin(iClient);
 	LastStand_ClientDisconnect(iClient);
 	Respawn_ClientDisconnect(iClient);
 	Rage_EndTimedEffect(iClient);
@@ -1784,6 +1785,7 @@ void ResetClientState(int iClient)
 	g_iCapturingPoint[iClient] = -1;
 	g_iRageTimer[iClient] = 0;
 	Infected_ResetJockey(iClient);
+	Infected_ResetHunterPin(iClient);
 	Rage_EndTimedEffect(iClient);
 	WeaponChanges_ResetClient(iClient);
 	Glow_RemoveClient(iClient);

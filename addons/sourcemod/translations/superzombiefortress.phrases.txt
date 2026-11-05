@@ -503,7 +503,7 @@
 	"SpecialInfected_Hunter"
 	{
 		"#format"	"{1:d}"
-		"en"		"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}({1} second cooldown)"
+		"en"		"{green}YOU ARE A HUNTER:\n{orange}- Call 'MEDIC!' to LEAP and POUNCE ENEMY SURVIVORS! {yellow}({1} second cooldown)\n{orange}- A pounce PINS you and the survivor in place. Call 'MEDIC!' again to LET GO early!"
 	}
 	
 	"SpecialInfected_Smoker"
@@ -754,7 +754,7 @@
 	
 	"Menu_ClassesInfectedScout"
 	{
-		"en"		"Has Sandman to slow down survivors.\nAble to keep drinks in secondary slot to use.\nRage: +20 movement speed for 5 seconds, and Sandman balls deal 30 damage."
+		"en"		"Has Sandman to slow down survivors.\nAble to keep drinks in secondary slot to use.\nRage: +20 movement speed for 5 seconds, and Sandman balls deal 30 damage (60 for a moonshot)."
 	}
 	
 	"Menu_ClassesInfectedSoldier"
@@ -824,7 +824,7 @@
 	
 	"Menu_ClassesInfectedSpecialHunter"
 	{
-		"en"		"The Hunter is a fast being, being very agile they can easily reach beyond the level's obstacles.\n- Using rage will perform a swift leap which can pounce enemies when making physical contact while leaping.\n- A pounce stuns the survivor, and you are free to keep attacking them or anyone else."
+		"en"		"The Hunter is a fast being, being very agile they can easily reach beyond the level's obstacles.\n- Using rage will perform a swift leap which can pounce enemies when making physical contact while leaping.\n- A pounce stuns the survivor and pins you both in place.\n- Call 'MEDIC!' while pinned to let go: you can both move, they stay stunned."
 	}
 	
 	"Menu_ClassesInfectedSpecialSmoker"
