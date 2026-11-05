@@ -221,6 +221,9 @@ public MRESReturn DHook_CalculateMaxSpeedPost(int iClient, DHookReturn hReturn)
 			flSpeed *= Stun_GetSpeedMulti(iClient);
 		}
 		
+		if (Infected_IsHunterPinned(iClient))
+			flSpeed = 1.0;
+		
 		if (flSpeed <= 1.0)	// Do not set speed to negative or you'll send em to the backrooms
 			flSpeed = 1.0;
 		

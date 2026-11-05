@@ -959,6 +959,14 @@ public void Infected_OnStalkerThink(int iClient, int &iButtons)
 
 static bool g_bHunterIsUsingPounce[MAXPLAYERS+1];
 
+#define HUNTER_DETACH_DELAY		0.5
+#define HUNTER_PIN_MAX_DISTANCE	48.0
+
+static int g_iHunterPinVictim[MAXPLAYERS+1];
+static int g_iHunterPinnedBy[MAXPLAYERS+1];
+static int g_iHunterPinNumber[MAXPLAYERS+1];
+static float g_flHunterPinStart[MAXPLAYERS+1];
+
 public void Infected_DoHunterJump(int iClient)
 {
 	float vecVelocity[3];
@@ -988,6 +996,22 @@ public void Infected_OnHunterThink(int iClient, int &iButtons)
 {
 	if (GetEntityFlags(iClient) & FL_ONGROUND)
 		g_bHunterIsUsingPounce[iClient] = false;
+	
+	if (g_iHunterPinVictim[iClient])
+	{
+		int iVictim = GetClientOfUserId(g_iHunterPinVictim[iClient]);
+		if (!iVictim || !IsValidLivingSurvivor(iVictim) || !Stun_IsPlayerStunned(iVictim) || TF2_IsPlayerInCondition(iVictim, TFCond_Ubercharged) || Infected_IsHunterPinApart(iClient, iVictim))
+			Infected_EndHunterPin(iClient);
+	}
+}
+
+static bool Infected_IsHunterPinApart(int iHunter, int iVictim)
+{
+	float vecHunter[3], vecVictim[3];
+	GetClientAbsOrigin(iHunter, vecHunter);
+	GetClientAbsOrigin(iVictim, vecVictim);
+	vecHunter[2] = vecVictim[2];
+	return GetVectorDistance(vecHunter, vecVictim) > HUNTER_PIN_MAX_DISTANCE;
 }
 
 public void Infected_OnHunterTouch(int iClient, int iToucher)
@@ -1021,11 +1045,15 @@ public void Infected_OnHunterTouch(int iClient, int iToucher)
 			//Teleport hunter inside the target
 			float vecPosClient[3];
 			GetClientAbsOrigin(iToucher, vecPosClient);
-			TeleportEntity(iClient, vecPosClient, NULL_VECTOR, NULL_VECTOR);
+			float vecStill[3];
+			TeleportEntity(iClient, vecPosClient, NULL_VECTOR, vecStill);
+			TeleportEntity(iToucher, NULL_VECTOR, NULL_VECTOR, vecStill);
 			
 			SetPlayerIntangible(iClient);
 			
 			TF2_StunPlayer(iToucher, flDuration, 0.5, TF_STUNFLAGS_GHOSTSCARE|TF_STUNFLAG_SLOWDOWN, 0);
+			
+			Infected_StartHunterPin(iClient, iToucher, flDuration);
 		}
 		
 		Forward_OnHunterHit(iClient, iToucher);
@@ -1038,6 +1066,88 @@ public void Infected_OnHunterTouch(int iClient, int iToucher)
 public void Infected_OnHunterDeath(int iClient, int iKiller, int iAssist)
 {
 	g_bHunterIsUsingPounce[iClient] = false;
+}
+
+static void Infected_StartHunterPin(int iHunter, int iVictim, float flDuration)
+{
+	Infected_EndHunterPin(iHunter);
+	
+	g_iHunterPinVictim[iHunter] = GetClientUserId(iVictim);
+	g_iHunterPinnedBy[iVictim] = GetClientUserId(iHunter);
+	g_iHunterPinNumber[iHunter]++;
+	g_flHunterPinStart[iHunter] = GetEngineTime();
+	
+	SDKCall_SetSpeed(iHunter);
+	SDKCall_SetSpeed(iVictim);
+	
+	DataPack hPack;
+	CreateDataTimer(flDuration, Timer_HunterPinEnd, hPack, TIMER_FLAG_NO_MAPCHANGE);
+	hPack.WriteCell(GetClientSerial(iHunter));
+	hPack.WriteCell(g_iHunterPinNumber[iHunter]);
+}
+
+public Action Timer_HunterPinEnd(Handle hTimer, DataPack hPack)
+{
+	hPack.Reset();
+	int iHunter = GetClientFromSerial(hPack.ReadCell());
+	if (iHunter && hPack.ReadCell() == g_iHunterPinNumber[iHunter])
+		Infected_EndHunterPin(iHunter);
+	
+	return Plugin_Continue;
+}
+
+void Infected_EndHunterPin(int iHunter)
+{
+	if (!g_iHunterPinVictim[iHunter])
+		return;
+	
+	int iVictim = GetClientOfUserId(g_iHunterPinVictim[iHunter]);
+	g_iHunterPinVictim[iHunter] = 0;
+	
+	if (IsClientInGame(iHunter) && IsPlayerAlive(iHunter))
+		SDKCall_SetSpeed(iHunter);
+	
+	if (iVictim && g_iHunterPinnedBy[iVictim] == GetClientUserId(iHunter))
+	{
+		g_iHunterPinnedBy[iVictim] = 0;
+		if (IsPlayerAlive(iVictim))
+			SDKCall_SetSpeed(iVictim);
+	}
+}
+
+void Infected_ResetHunterPin(int iClient)
+{
+	Infected_EndHunterPin(iClient);
+	
+	if (g_iHunterPinnedBy[iClient])
+	{
+		int iHunter = GetClientOfUserId(g_iHunterPinnedBy[iClient]);
+		g_iHunterPinnedBy[iClient] = 0;
+		if (iHunter)
+			Infected_EndHunterPin(iHunter);
+		
+		if (IsClientInGame(iClient) && IsPlayerAlive(iClient))
+			SDKCall_SetSpeed(iClient);
+	}
+}
+
+bool Infected_IsHunterPinned(int iClient)
+{
+	if (g_iHunterPinVictim[iClient])
+		return true;
+	
+	return g_iHunterPinnedBy[iClient] != 0 && Stun_IsPlayerStunned(iClient);
+}
+
+bool Infected_OnHunterCallMedic(int iClient)
+{
+	if (!g_iHunterPinVictim[iClient])
+		return false;
+	
+	if (GetEngineTime() - g_flHunterPinStart[iClient] >= HUNTER_DETACH_DELAY)
+		Infected_EndHunterPin(iClient);
+	
+	return true;
 }
 
 ////////////////

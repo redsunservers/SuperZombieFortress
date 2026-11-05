@@ -669,6 +669,9 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	TFClassType iClass = TF2_GetPlayerClass(iClient);
 	int iSlot = TF2_GetItemSlot(wep.iIndex, iClass);
 	
+	WeaponAmmo targetAmmo;
+	bool bTargetAmmo = WeaponAmmo_GetProp(iTarget, targetAmmo);
+	
 	if (!IsSpawnWeapon(iTarget))
 	{
 		Weapon oldwep;
@@ -684,17 +687,24 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 			
 			if (GetWeaponFromIndex(oldwep, iOldIndex) && oldwep.iIndex >= 0)
 			{
+				WeaponAmmo oldAmmo;
+				bool bOldAmmo = WeaponAmmo_Get(iClient, iEntity, iSlot, oldAmmo);
+				
 				EmitSoundToClient(iClient, "ui/item_heavy_gun_drop.wav");
 				
 				if (DroppedWeapon_IsPhysics(iTarget))
 				{
 					int iDrop = DroppedWeapon_Replace(iTarget, oldwep);
 					if (iDrop != INVALID_ENT_REFERENCE)
+					{
 						CalloutWeapon(iClient, iDrop, true);
+						WeaponAmmo_SetProp(iDrop, bOldAmmo, oldAmmo);
+					}
 				}
 				else
 				{
 					SetWeaponModel(iTarget, oldwep);
+					WeaponAmmo_SetProp(iTarget, bOldAmmo, oldAmmo);
 					
 					//Kill the weapon glow with its model if it had one.
 					int iGlow = GetWeaponGlowEnt(iTarget);
@@ -767,6 +777,9 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 	
 	//Reset meter to default value
 	SetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", SDKCall_GetDefaultItemChargeMeterValue(iWeapon), iSlot);
+	
+	if (bTargetAmmo)
+		WeaponAmmo_Apply(iClient, iWeapon, iSlot, targetAmmo);
 	
 	//Call client to reset HUD meter
 	CreateTimer(0.1, Timer_UpdateClientHud, GetClientSerial(iClient));

@@ -13,6 +13,20 @@ static bool g_bDroppedCheckReady[2048];
 static int g_iRareOutline[2048] = {INVALID_ENT_REFERENCE, ...};
 static int g_iRareOutlineClassMask[2048];
 
+#define WEAPONAMMO_METAL	3
+
+enum struct WeaponAmmo
+{
+	int iClip;
+	int iReserve;
+	float flEnergy;
+	float flMeter;
+	float flRegen;
+}
+
+static WeaponAmmo g_PropAmmo[2048];
+static int g_iPropAmmoRef[2048] = {INVALID_ENT_REFERENCE, ...};
+
 void DroppedWeapon_Reset()
 {
 	delete g_aDroppedWeapons;
@@ -65,7 +79,14 @@ void DroppedWeapon_OnSurvivorDeath(int iVictim)
 		vecVelocity[1] = vecDirection[1] * flSpeed;
 		vecVelocity[2] = GetRandomFloat(140.0, 200.0);
 		
-		DroppedWeapon_Create(wep, vecOrigin, vecAngles, vecVelocity);
+		int iDrop = DroppedWeapon_Create(wep, vecOrigin, vecAngles, vecVelocity);
+		if (iDrop != INVALID_ENT_REFERENCE)
+		{
+			WeaponAmmo ammo;
+			bool bAmmo = WeaponAmmo_Get(iVictim, iWeapon, iSlot, ammo);
+			WeaponAmmo_SetProp(iDrop, bAmmo, ammo);
+		}
+		
 		iCount++;
 	}
 }
@@ -352,7 +373,81 @@ bool Trace_DroppedWeaponSight(int iEntity, int iMask, any iData)
 void DroppedWeapon_OnEntityDestroyed(int iEntity)
 {
 	if (MaxClients < iEntity < sizeof(g_iRareOutline))
+	{
 		RareOutline_Remove(iEntity);
+		g_iPropAmmoRef[iEntity] = INVALID_ENT_REFERENCE;
+	}
+}
+
+bool WeaponAmmo_Get(int iClient, int iWeapon, int iSlot, WeaponAmmo ammo)
+{
+	if (iWeapon <= MaxClients || !HasEntProp(iWeapon, Prop_Send, "m_iClip1"))
+		return false;
+	
+	ammo.iClip = GetEntProp(iWeapon, Prop_Send, "m_iClip1");
+	
+	ammo.iReserve = -1;
+	int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
+	if (iAmmoType > -1 && iAmmoType != WEAPONAMMO_METAL)
+		ammo.iReserve = GetEntProp(iClient, Prop_Send, "m_iAmmo", _, iAmmoType);
+	
+	ammo.flEnergy = HasEntProp(iWeapon, Prop_Send, "m_flEnergy") ? GetEntPropFloat(iWeapon, Prop_Send, "m_flEnergy") : -1.0;
+	ammo.flMeter = GetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", iSlot);
+	ammo.flRegen = HasEntProp(iWeapon, Prop_Send, "m_flEffectBarRegenTime") ? GetEntPropFloat(iWeapon, Prop_Send, "m_flEffectBarRegenTime") : 0.0;
+	return true;
+}
+
+void WeaponAmmo_SetProp(int iProp, bool bAmmo, WeaponAmmo ammo)
+{
+	if (iProp <= MaxClients || iProp >= sizeof(g_iPropAmmoRef))
+		return;
+	
+	if (!bAmmo)
+	{
+		g_iPropAmmoRef[iProp] = INVALID_ENT_REFERENCE;
+		return;
+	}
+	
+	g_PropAmmo[iProp] = ammo;
+	g_iPropAmmoRef[iProp] = EntIndexToEntRef(iProp);
+}
+
+bool WeaponAmmo_GetProp(int iProp, WeaponAmmo ammo)
+{
+	if (iProp <= MaxClients || iProp >= sizeof(g_iPropAmmoRef) || g_iPropAmmoRef[iProp] == INVALID_ENT_REFERENCE)
+		return false;
+	
+	if (EntRefToEntIndex(g_iPropAmmoRef[iProp]) != iProp)
+		return false;
+	
+	ammo = g_PropAmmo[iProp];
+	return true;
+}
+
+void WeaponAmmo_Apply(int iClient, int iWeapon, int iSlot, WeaponAmmo ammo)
+{
+	if (iWeapon <= MaxClients || !HasEntProp(iWeapon, Prop_Send, "m_iClip1"))
+		return;
+	
+	int iClip = GetEntProp(iWeapon, Prop_Send, "m_iClip1");
+	if (ammo.iClip > -1 && iClip > -1)
+		SetEntProp(iWeapon, Prop_Send, "m_iClip1", min(ammo.iClip, iClip));
+	
+	int iAmmoType = GetEntProp(iWeapon, Prop_Send, "m_iPrimaryAmmoType");
+	if (ammo.iReserve > -1 && iAmmoType > -1 && iAmmoType != WEAPONAMMO_METAL)
+	{
+		int iMax = GetEntProp(iClient, Prop_Send, "m_iAmmo", _, iAmmoType);
+		SetEntProp(iClient, Prop_Send, "m_iAmmo", min(ammo.iReserve, iMax), _, iAmmoType);
+	}
+	
+	if (ammo.flEnergy >= 0.0 && HasEntProp(iWeapon, Prop_Send, "m_flEnergy"))
+		SetEntPropFloat(iWeapon, Prop_Send, "m_flEnergy", fMin(ammo.flEnergy, GetEntPropFloat(iWeapon, Prop_Send, "m_flEnergy")));
+	
+	if (ammo.flMeter >= 0.0)
+		SetEntPropFloat(iClient, Prop_Send, "m_flItemChargeMeter", ammo.flMeter, iSlot);
+	
+	if (ammo.flRegen > 0.0 && HasEntProp(iWeapon, Prop_Send, "m_flEffectBarRegenTime"))
+		SetEntPropFloat(iWeapon, Prop_Send, "m_flEffectBarRegenTime", ammo.flRegen);
 }
 
 void RareOutline_Set(int iEntity, Weapon wep)

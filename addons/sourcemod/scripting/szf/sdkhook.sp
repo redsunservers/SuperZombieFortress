@@ -93,10 +93,7 @@ public void Client_PreThinkPost(int iClient)
 {
 	UpdateClientCarrying(iClient);
 	
-	// This should only be changed from reset, e.g. player spawn or banner used
-	float flRageMeter = GetEntPropFloat(iClient, Prop_Send, "m_flRageMeter");
-	if (g_flBannerMeter[iClient] > flRageMeter)
-		g_flBannerMeter[iClient] = flRageMeter;
+	Banner_OnThink(iClient);
 	
 	if (g_flDisguiseCompleteTime && !GetEntDataFloat(iClient, g_iOffsetDisguiseCompleteTime))
 		OnClientDisguise(iClient);
@@ -198,13 +195,15 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 			bChanged = true;
 		}
 		
+		float flBaseDamage = flDamage;
+		
 		if (IsValidZombie(iAttacker) && (flDamage < 300.0 || bStunImmune))
 		{
 			flDamage *= GetZombieDamageMulti();
 			bChanged = true;
 		}
 		
-		if (Rage_OnZombieHit(iVictim, iAttacker, iDamageCustom, flDamage))
+		if (Rage_OnZombieHit(iVictim, iAttacker, iDamageCustom, flBaseDamage, flDamage))
 			bChanged = true;
 		
 		if (SpitterBleed_OnTakeDamage(iVictim, iAttacker, iDamageCustom, flDamage))

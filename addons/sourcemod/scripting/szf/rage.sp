@@ -2,6 +2,8 @@
 #define RAGE_DURATION_LONG			10.0
 #define RAGE_SCOUT_SPEED			20.0
 #define RAGE_SCOUT_BALL_DAMAGE		30.0
+#define RAGE_SCOUT_MOONSHOT_DAMAGE	30.0
+#define RAGE_SCOUT_MOONSHOT_MIN		18.75
 #define RAGE_SOLDIER_BANNER_MULTI	3.0
 #define RAGE_SOLDIER_HURT_CHARGE	0.1
 #define RAGE_PYRO_RINGS				5
@@ -186,12 +188,15 @@ void Rage_OnConditionRemoved(int iClient, TFCond nCond)
 		TF2_AddCondition(iClient, TFCond_Stealthed, flTimeLeft);
 }
 
-bool Rage_OnZombieHit(int iVictim, int iAttacker, int iDamageCustom, float &flDamage)
+bool Rage_OnZombieHit(int iVictim, int iAttacker, int iDamageCustom, float flBaseDamage, float &flDamage)
 {
 	if (iDamageCustom != TF_CUSTOM_BASEBALL || !IsValidSurvivor(iVictim) || !IsValidZombie(iAttacker) || !Rage_IsEffectActive(iAttacker, TFClass_Scout))
 		return false;
 	
 	flDamage = RAGE_SCOUT_BALL_DAMAGE;
+	if (flBaseDamage >= RAGE_SCOUT_MOONSHOT_MIN)
+		flDamage += RAGE_SCOUT_MOONSHOT_DAMAGE;
+	
 	return true;
 }
 
