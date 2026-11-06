@@ -19,6 +19,8 @@ enum
 	MapSetting_DisableForcedTank,
 	MapSetting_ZombieDamage,
 	MapSetting_RareWeaponChance,
+	MapSetting_LowPlayerRatio,
+	MapSetting_LowPlayerRatioCount,
 	
 	MapSetting_Count
 }
@@ -39,7 +41,9 @@ static const char g_sMapSettingKeys[][] =
 	"minicritduration",
 	"disableforcedtank",
 	"zombiedamage",
-	"rareweaponchance"
+	"rareweaponchance",
+	"lowplayerratio",
+	"lowplayerratiocount"
 };
 
 static const float g_flMapSettingDefaults[] =
@@ -58,7 +62,9 @@ static const float g_flMapSettingDefaults[] =
 	120.0,
 	0.0,
 	-1.0,
-	-1.0
+	-1.0,
+	0.0,
+	0.0
 };
 
 static bool g_bMapConfigLoaded;
@@ -227,10 +233,13 @@ static int MapConfig_ReadLowPlayerCount(KeyValues kv, float flLow[MapSetting_Cou
 	if (sValue[0])
 		iZombies = StringToInt(sValue);
 	
-	if (flLow[MapSetting_StartingRatio] != MAPSETTING_UNSET)
+	for (int i = 0; i < MapSetting_Count; i++)
 	{
-		LogError("\"startingratio\" in a \"%s\" block of %s is ignored: the starting zombie count decides whether the block is used", MAPCONFIG_LOWPLAYERCOUNT, CONFIG_MAPS);
-		flLow[MapSetting_StartingRatio] = MAPSETTING_UNSET;
+		if (MapConfig_IsRatioSetting(i) && flLow[i] != MAPSETTING_UNSET)
+		{
+			LogError("\"%s\" in a \"%s\" block of %s is ignored: the starting zombie count decides whether the block is used", g_sMapSettingKeys[i], MAPCONFIG_LOWPLAYERCOUNT, CONFIG_MAPS);
+			flLow[i] = MAPSETTING_UNSET;
+		}
 	}
 	
 	if (iZombies <= 0)
@@ -274,7 +283,7 @@ float MapConfig_GetSetting(int iSetting)
 		return g_flMapSettingDefaults[iSetting];
 	
 	bool bLevel = (0 <= g_iMapLevel < g_aMapLevels.Length);
-	bool bLow = (iSetting != MapSetting_StartingRatio);
+	bool bLow = !MapConfig_IsRatioSetting(iSetting);
 	float flValue = g_flMapSettings[iSetting];
 	
 	if (bLow && MapConfig_IsLowPlayerCount(g_iMapLowZombies) && g_flMapLowSettings[iSetting] != MAPSETTING_UNSET)
@@ -332,14 +341,32 @@ bool MapConfig_BlockForcedTank(const char[] sSource = "")
 	return true;
 }
 
+static float MapConfig_GetStartingRatio(int iPlayers)
+{
+	float flRatio = MapConfig_GetSetting(MapSetting_StartingRatio);
+	
+	float flLowRatio = MapConfig_GetSetting(MapSetting_LowPlayerRatio);
+	int iLowMaxPlayers = RoundToFloor(MapConfig_GetSetting(MapSetting_LowPlayerRatioCount));
+	if (flLowRatio > 0.0 && iLowMaxPlayers > 0 && iPlayers <= iLowMaxPlayers)
+		flRatio = flLowRatio;
+	
+	if (flRatio < 1.0)
+		flRatio = 1.0;
+	
+	return flRatio;
+}
+
+static bool MapConfig_IsRatioSetting(int iSetting)
+{
+	return iSetting == MapSetting_StartingRatio || iSetting == MapSetting_LowPlayerRatio || iSetting == MapSetting_LowPlayerRatioCount;
+}
+
 int MapConfig_GetStartingZombies(int iPlayers)
 {
 	if (iPlayers < 2)
 		return 0;
 	
-	float flRatio = MapConfig_GetSetting(MapSetting_StartingRatio);
-	if (flRatio < 1.0)
-		flRatio = 1.0;
+	float flRatio = MapConfig_GetStartingRatio(iPlayers);
 	
 	int iZombies = RoundToCeil(float(iPlayers) / flRatio - 0.001);
 	if (iZombies < 1)
@@ -348,6 +375,7 @@ int MapConfig_GetStartingZombies(int iPlayers)
 	if (iZombies > iPlayers - 1)
 		iZombies = iPlayers - 1;
 	
+	CPrintToChatDebug("Starting zombies: %d of %d players (starting ratio %.2f)", iZombies, iPlayers, flRatio);
 	return iZombies;
 }
 
