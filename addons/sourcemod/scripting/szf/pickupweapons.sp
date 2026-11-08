@@ -713,6 +713,8 @@ void PickupWeapon(int iClient, Weapon wep, int iTarget)
 					
 					RareOutline_Update(iTarget, oldwep);
 					
+					DroppedWeapon_StartLifetime(iTarget);
+					
 					//Callout under a new weapon model
 					CalloutWeapon(iClient, iTarget, true);
 					

@@ -1,6 +1,7 @@
 #define CONFIG_MAPS		"configs/szf/maps.cfg"
 #define MAPCONFIG_LOWPLAYERCOUNT	"LowPlayerCount"
 #define MAPSETTING_UNSET			-999999.0
+#define MAPCONFIG_REINFORCEMENTTRIGGERS	"reinforcementtriggers"
 
 enum
 {
@@ -21,6 +22,10 @@ enum
 	MapSetting_RareWeaponChance,
 	MapSetting_LowPlayerRatio,
 	MapSetting_LowPlayerRatioCount,
+	MapSetting_ReinforcementTime,
+	MapSetting_ReinforcementPercent,
+	MapSetting_ReinforcementThreshold,
+	MapSetting_DisableReinforcementTimer,
 	
 	MapSetting_Count
 }
@@ -43,7 +48,11 @@ static const char g_sMapSettingKeys[][] =
 	"zombiedamage",
 	"rareweaponchance",
 	"lowplayerratio",
-	"lowplayerratiocount"
+	"lowplayerratiocount",
+	"reinforcementtime",
+	"reinforcementpercent",
+	"reinforcementthreshold",
+	"disablereinforcementtimer"
 };
 
 static const float g_flMapSettingDefaults[] =
@@ -64,6 +73,10 @@ static const float g_flMapSettingDefaults[] =
 	-1.0,
 	-1.0,
 	0.0,
+	0.0,
+	300.0,
+	15.0,
+	50.0,
 	0.0
 };
 
@@ -79,6 +92,7 @@ static float g_flMapLowSettings[MapSetting_Count];
 static int g_iMapLowZombies;
 static ArrayList g_aMapLevelLow;
 static ArrayList g_aMapLevelLowZombies;
+static StringMap g_mReinforcementTriggers;
 
 static int g_iSplitUserId[MAXPLAYERS + 1];
 static int g_iSplitZombieRound[MAXPLAYERS + 1];
@@ -119,6 +133,11 @@ void MapConfig_Load()
 	g_iMapLevel = -1;
 	g_bMapConfigLoaded = true;
 	
+	if (!g_mReinforcementTriggers)
+		g_mReinforcementTriggers = new StringMap();
+	else
+		g_mReinforcementTriggers.Clear();
+	
 	KeyValues kv = Config_LoadFile(CONFIG_MAPS, "Maps");
 	if (!kv)
 		return;
@@ -140,6 +159,7 @@ void MapConfig_Load()
 		{
 			MapConfig_ReadSection(kv, g_flMapSettings);
 			g_iMapLowZombies = MapConfig_ReadLowPlayerCount(kv, g_flMapLowSettings, 0);
+			MapConfig_ReadReinforcementTriggers(kv);
 			
 			if (kv.JumpToKey("levels", false))
 			{
@@ -554,4 +574,52 @@ float MapConfig_GetRareWeaponChance()
 {
 	float flValue = MapConfig_GetSetting(MapSetting_RareWeaponChance);
 	return flValue >= 0.0 ? flValue : g_cvWeaponRareChance.FloatValue;
+}
+
+static void MapConfig_ReadReinforcementTriggers(KeyValues kv)
+{
+	if (!kv.JumpToKey(MAPCONFIG_REINFORCEMENTTRIGGERS, false))
+		return;
+	
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			char sType[16], sName[256];
+			kv.GetSectionName(sType, sizeof(sType));
+			kv.GetString(NULL_STRING, sName, sizeof(sName));
+			TrimString(sName);
+			MapConfig_ToLower(sType);
+			
+			if (!StrEqual(sType, "relay") && !StrEqual(sType, "capture"))
+				LogError("\"%s\" in a \"%s\" block of %s is ignored: use \"relay\" or \"capture\"", sType, MAPCONFIG_REINFORCEMENTTRIGGERS, CONFIG_MAPS);
+			else if (sName[0])
+			{
+				char sKey[300];
+				MapConfig_TriggerKey(sType, sName, sKey, sizeof(sKey));
+				g_mReinforcementTriggers.SetValue(sKey, true);
+			}
+		}
+		while (kv.GotoNextKey(false));
+		
+		kv.GoBack();
+	}
+	
+	kv.GoBack();
+}
+
+bool MapConfig_IsReinforcementTrigger(const char[] sType, const char[] sName)
+{
+	if (!g_mReinforcementTriggers || !g_mReinforcementTriggers.Size || !sName[0])
+		return false;
+	
+	char sKey[300];
+	MapConfig_TriggerKey(sType, sName, sKey, sizeof(sKey));
+	return g_mReinforcementTriggers.ContainsKey(sKey);
+}
+
+static void MapConfig_TriggerKey(const char[] sType, const char[] sName, char[] sKey, int iLength)
+{
+	Format(sKey, iLength, "%s:%s", sType, sName);
+	MapConfig_ToLower(sKey);
 }

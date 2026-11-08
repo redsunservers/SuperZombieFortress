@@ -24,6 +24,7 @@ void ConVar_Init()
 	g_cvWeaponPickupChance = CreateConVar("sm_szf_weapon_pickup_chance", "0.07", "% chance for normal weapons to be pickups.", _, true, 0.0, true, 1.0);
 	g_cvWeaponRareChance = CreateConVar("sm_szf_weapon_rare_chance", "0.2", "% chance for normal weapons to be rare. A map can set its own in maps.cfg (\"rareweaponchance\").", _, true, 0.0, true, 1.0);
 	g_cvWeaponRareCap = CreateConVar("sm_szf_weapon_rare_cap", "50", "Max amount of rare weapons to generate", _, true, 0.0);
+	g_cvDroppedWeaponLifetime = CreateConVar("sm_szf_dropped_weapon_lifetime", "120.0", "Seconds a weapon a survivor left on the floor (dropped when killed, or swapped for another) stays there before it despawns. 0 = never.", _, true, 0.0);
 	g_cvTankHealth = CreateConVar("sm_szf_tank_health", "350", "Amount of health the Tank gets per alive survivor.", _, true, 10.0);
 	g_cvTankHealthMin = CreateConVar("sm_szf_tank_health_min", "1000", "Minimum amount of health the Tank can spawn with.", _, true, 0.0);
 	g_cvTankHealthMax = CreateConVar("sm_szf_tank_health_max", "10000", "Maximum amount of health the Tank can spawn with.", _, true, 0.0);
@@ -39,12 +40,14 @@ void ConVar_Init()
 	g_cvJockeyVictimSpeed = CreateConVar("sm_szf_jockey_victim_speed", "1.0", "Max speed multiplier of a survivor ridden by a jockey (1.0 = their normal speed).", _, true, 0.0);
 	g_cvJockeyRideScale = CreateConVar("sm_szf_jockey_ride_scale", "1.25", "Model and hitbox scale of a jockey while it rides a survivor, so it's easier to hit up there. 1 = normal size.", _, true, 0.5, true, 2.0);
 	g_cvSpectatorsJoin = CreateConVar("sm_szf_spectators_join", "0", "<0/1> Put players who are in spectator when a new round starts on a team, through the normal team split (zombie queue). 0: they stay in spectator, aren't counted in the split, and can join the Infected when the zombie join lock allows.", _, true, 0.0, true, 1.0);
-	g_cvJoinLockTime = CreateConVar("sm_szf_join_lock_time", "120.0", "Players who aren't on a team can't join the Infected during setup and for this many seconds after it ends, unless the Infected team has fewer players than the round's starting zombie count. 0 = only during setup.", _, true, 0.0);
+	g_cvJoinLockTime = CreateConVar("sm_szf_join_lock_time", "60.0", "Players who aren't on a team can't join the Infected during setup and for this many seconds after it ends, unless the Infected team has fewer players than the round's starting zombie count. 0 = only during setup.", _, true, 0.0);
 	g_cvChargerSlamStun = CreateConVar("sm_szf_charger_slam_stun", "6.0", "How long a survivor is stunned when a charging Charger pushes them into a wall or object (6 = a normal backstab stun). 0 to disable.", _, true, 0.0);
 	g_cvFrenzyTankChance = CreateConVar("sm_szf_frenzy_tank", "0.0", "% Chance of a Tank appearing instead of a frenzy.", _, true, 0.0, true, 1.0);
 	g_cvFrenzyRespawnStress = CreateConVar("sm_szf_frenzy_respawn_stress", "30.0", "Amount of seconds divided by playercount to add in frenzy respawn stress", _, true, 0.0, true, 120.0);
 	g_cvStunImmunity = CreateConVar("sm_szf_stun_immunity", "0.0", "How long until the survivor can be stunned again.", _, true, 0.0);
 	g_cvStunFogDistance = CreateConVar("sm_szf_stun_fog_distance", "500.0", "A stunned survivor sees black fog: everything this many units away is black, and the fog starts at half of it. Only the stunned player sees it.", _, true, 16.0);
+	g_cvStunOutlines = CreateConVar("sm_szf_stun_outlines", "4", "How many of the nearest living survivors a stunned survivor sees outlined. 0 = none.", _, true, 0.0);
+	g_cvStunOutlinesMax = CreateConVar("sm_szf_stun_outlines_max", "30", "Most stun outlines on the server at once (each one is an entity). 0 = no limit.", _, true, 0.0);
 	g_cvLastStandKingRuneDuration = CreateConVar("sm_szf_laststand_kingrune_duration", "-1.0", "How long the last survivor (and Left 4 Dead's last survivors) get the King Rune, -1.0 for infinite.", _, true, -1.0);
 	g_cvLeft4DeadSurvivors = CreateConVar("sm_szf_left4dead_survivors", "12", "A round that starts with this many survivors or more has Left 4 Dead instead of Last Man Standing: the last sm_szf_left4dead_count survivors get crits, damage resistance (30% at 16 players to 60% at 40), stun immunity, 10% more speed and a quarter of heal on hit and on kill. 0 to disable.", _, true, 0.0);
 	g_cvLeft4DeadCount = CreateConVar("sm_szf_left4dead_count", "4", "How many survivors are left when Left 4 Dead starts.", _, true, 1.0);

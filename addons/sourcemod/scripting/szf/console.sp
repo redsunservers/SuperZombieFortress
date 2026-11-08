@@ -133,6 +133,9 @@ public Action Console_JoinClass(int iClient, const char[] sCommand, int iArgs)
 	
 	if (IsZombie(iClient))
 	{
+		if (Reinforce_OnJoinClass(iClient, sArg))
+			return Plugin_Handled;
+		
 		if (g_nInfected[iClient] != Infected_None)
 			return Plugin_Handled;
 		

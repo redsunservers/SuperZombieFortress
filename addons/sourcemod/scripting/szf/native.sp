@@ -24,7 +24,7 @@ public any Native_GetLastSurvivor(Handle hPlugin, int iNumParams)
 		return 0;
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidLivingSurvivor(iClient))
+		if (IsLastManStanding(iClient))
 			return iClient;
 	
 	return 0;

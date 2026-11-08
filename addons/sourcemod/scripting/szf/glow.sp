@@ -104,6 +104,28 @@ static int Glow_Find(int iViewer, int iTarget, GlowType nType)
 	return -1;
 }
 
+int Glow_Count(GlowType nType)
+{
+	if (!g_aGlows)
+		return 0;
+	
+	int iCount = 0;
+	for (int i = g_aGlows.Length - 1; i >= 0; i--)
+	{
+		int iGlow = EntRefToEntIndex(g_aGlows.Get(i));
+		if (iGlow <= MaxClients)
+		{
+			g_aGlows.Erase(i);
+			continue;
+		}
+		
+		if (g_nGlowType[iGlow] == nType)
+			iCount++;
+	}
+	
+	return iCount;
+}
+
 void Glow_RemoveViewer(int iClient, GlowType nType)
 {
 	Glow_Remove(iClient, 0, nType);

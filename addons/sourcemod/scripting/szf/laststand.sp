@@ -28,23 +28,30 @@ static bool g_bLastStandTankSent;
 static int g_iLoneSurvivor;
 static bool g_bLeft4DeadRound;
 static bool g_bLeft4Dead;
+static bool g_bLeft4DeadStarted;
 static float g_flLeft4DeadHealCarry[MAXPLAYERS + 1];
 static int g_iLastStandHitDepth[MAXPLAYERS + 1];
 static int g_iLastStandKunaiHealth[MAXPLAYERS + 1] = {-1, ...};
+static bool g_bLastStandMember[MAXPLAYERS + 1];
 
 bool IsLastManStanding(int iClient)
 {
-	return g_bLastSurvivor && IsValidLivingSurvivor(iClient);
+	return g_bLastSurvivor && IsValidLivingSurvivor(iClient) && g_bLastStandMember[iClient];
 }
 
 bool IsLeft4Dead(int iClient)
 {
-	return g_bLeft4Dead && IsValidLivingSurvivor(iClient);
+	return g_bLeft4Dead && IsValidLivingSurvivor(iClient) && g_bLastStandMember[iClient];
 }
 
 bool IsStunImmune(int iClient)
 {
 	return IsLastManStanding(iClient) || IsLeft4Dead(iClient);
+}
+
+void LastStand_AddMember(int iClient)
+{
+	g_bLastStandMember[iClient] = true;
 }
 
 void LastStand_OnStart()
@@ -157,7 +164,12 @@ void LastStand_CheckLeft4Dead(int iIgnoredClient)
 		return;
 	
 	g_bLeft4Dead = true;
-	LastStand_OnStart();
+	if (g_bLeft4DeadStarted)
+		g_flLastStandStart = GetGameTime();
+	else
+		LastStand_OnStart();
+	
+	g_bLeft4DeadStarted = true;
 	
 	int iClients[MAXPLAYERS];
 	int iCount;
@@ -167,6 +179,7 @@ void LastStand_CheckLeft4Dead(int iIgnoredClient)
 			continue;
 		
 		iClients[iCount++] = iClient;
+		g_bLastStandMember[iClient] = true;
 		
 		Stun_EndPlayer(iClient);
 		TF2_RemoveCondition(iClient, TFCond_Dazed);
@@ -207,6 +220,36 @@ void LastStand_ResetLeft4Dead()
 {
 	g_bLeft4DeadRound = false;
 	g_bLeft4Dead = false;
+	g_bLeft4DeadStarted = false;
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		g_bLastStandMember[iClient] = false;
+}
+
+void LastStand_EndLeft4Dead()
+{
+	if (!g_bLeft4Dead)
+		return;
+	
+	g_bLeft4Dead = false;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (!g_bLastStandMember[iClient])
+			continue;
+		
+		g_bLastStandMember[iClient] = false;
+		g_flLeft4DeadHealCarry[iClient] = 0.0;
+		if (IsValidLivingSurvivor(iClient))
+		{
+			TF2_RemoveCondition(iClient, TFCond_KingRune);
+			SDKCall_SetSpeed(iClient);
+		}
+	}
+	
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		Sound_EndSpecificMusic(iClient, "laststand");
+	
+	CPrintToChatAll("%t", "Survivor_Left4DeadEnded", "{limegreen}", "{lightsalmon}");
 }
 
 static int LastStand_CountSurvivors(int iIgnoredClient, bool bAlive)
@@ -313,6 +356,7 @@ void LastStand_ResetClient(int iClient)
 	g_flLeft4DeadHealCarry[iClient] = 0.0;
 	g_iLastStandKunaiHealth[iClient] = -1;
 	g_iLastStandHitDepth[iClient] = 0;
+	g_bLastStandMember[iClient] = false;
 	
 	if (g_bIntangible[iClient])
 	{
@@ -333,6 +377,7 @@ void LastStand_ClientDisconnect(int iClient)
 	g_flLeft4DeadHealCarry[iClient] = 0.0;
 	g_iLastStandKunaiHealth[iClient] = -1;
 	g_iLastStandHitDepth[iClient] = 0;
+	g_bLastStandMember[iClient] = false;
 	g_bIntangible[iClient] = false;
 	g_flBonkEnd[iClient] = 0.0;
 	

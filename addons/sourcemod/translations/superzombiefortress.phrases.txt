@@ -84,6 +84,30 @@
 		"en"		"{1}Zombies are understaffed you can now join blue team early"
 	}
 	
+	"Reinforce_Warning"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}[Super Zombie Fortress] {2}Reinforcements are on their way, hold out for just a little longer!"
+	}
+	
+	"Reinforce_Arrived"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}[Super Zombie Fortress] {2}Reinforcements have arrived!"
+	}
+	
+	"Reinforce_Chosen"
+	{
+		"#format"	"{1:s},{2:s},{3:d}"
+		"en"		"{1}[Super Zombie Fortress] {2}You will be cured and become a reinforcement in {3} seconds, change class to the one you want to be reinforced as."
+	}
+	
+	"Reinforce_ClassPicked"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"en"		"{1}[Super Zombie Fortress] {2}You will be reinforced as {3}."
+	}
+	
 	"Rage_Scout"
 	{
 		"#format"	"{1:s}"
@@ -213,6 +237,12 @@
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}Has been Left 4 Dead!"
+	}
+	
+	"Survivor_Left4DeadEnded"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}[Super Zombie Fortress] {2}No man left behind..."
 	}
 	
 	"Survivor_ScoutVulnerable"
