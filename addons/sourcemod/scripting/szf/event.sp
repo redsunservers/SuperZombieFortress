@@ -92,7 +92,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 	Infected nInfected = g_nInfected[iClient];
 	
 	//Figure out what special infected client is
-	if (g_nRoundState == SZFRoundState_Active)
+	if (g_nRoundState == SZFRoundState_Active && !Reinforce_IsSpawning(iClient))
 	{
 		//If client got a force set as specific special infected, set as that infected
 		if (g_nNextInfected[iClient] != Infected_None)
@@ -130,7 +130,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 	//Force respawn if client is playing as disallowed class
 	if (IsSurvivor(iClient))
 	{
-		if (g_nRoundState == SZFRoundState_Active)
+		if (g_nRoundState == SZFRoundState_Active && !Reinforce_IsSpawning(iClient))
 		{
 			SpawnClient(iClient, TFTeam_Zombie);
 			return Plugin_Continue;
@@ -143,6 +143,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 		}
 		
 		HandleSurvivorLoadout(iClient);
+		Reinforce_OnSurvivorSpawn(iClient);
 		if (GetCookie(iClient, g_cFirstTimeSurvivor) < 1)
 			InitiateSurvivorTutorial(iClient);
 	}
@@ -179,7 +180,7 @@ public Action Event_PlayerInventoryUpdate(Event event, const char[] name, bool d
 			InitiateZombieTutorial(iClient);
 	}
 	
-	if (g_nRoundState == SZFRoundState_Active)
+	if (g_nRoundState == SZFRoundState_Active && IsZombie(iClient))
 	{
 		if (g_ClientClasses[iClient].callback_spawn != INVALID_FUNCTION)
 		{
@@ -260,6 +261,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		if (!GetRandomInt(0, 1) && g_nRoundState == SZFRoundState_Active && IsValidSurvivor(iVictim))
 			SpecialQueue_Add(iKillers[1], "assist");
 	}
+	
+	Reinforce_OnPlayerDeath(iVictim, iKillers[0], iKillers[1], bDeadRinger);
 	
 	if (iVictim != iKillers[0] && iKillers[0] == iInflictor)
 	{
@@ -438,6 +441,7 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 		g_iDamageDealtLife[iAttacker] += iDamageAmount;
 		
 		SpecialQueue_OnPlayerHurt(iVictim, iAttacker, iDamageAmount, event.GetInt("custom"));
+		Reinforce_OnPlayerHurt(iVictim, iAttacker, iDamageAmount, event.GetInt("custom"));
 		
 		if (IsValidZombie(iAttacker))
 		{
@@ -575,6 +579,10 @@ public Action Event_CPCapture(Event event, const char[] name, bool dontBroadcast
 	}
 	
 	CheckRemainingCP();
+	
+	char sPointName[256];
+	event.GetString("cpname", sPointName, sizeof(sPointName));
+	Reinforce_OnPointCaptured(iCaptureIndex, sPointName, view_as<TFTeam>(event.GetInt("team")));
 	
 	return Plugin_Continue;
 }

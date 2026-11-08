@@ -403,6 +403,7 @@ stock void TF2_EndRound(TFTeam nTeam)
 		SetVariantInt(view_as<int>(nTeam));
 		AcceptEntityInput(iIndex, "SetTeam");
 		AcceptEntityInput(iIndex, "RoundWin");
+		RemoveEntity(iIndex);
 	}
 }
 
@@ -1137,7 +1138,7 @@ stock int ShowParticle(const char[] sParticle, float flDuration, float vecPos[3]
 		DispatchKeyValue(iParticle, "effect_name", sParticle);
 		ActivateEntity(iParticle);
 		AcceptEntityInput(iParticle, "start");
-		CreateTimer(flDuration, Timer_RemoveParticle, iParticle);
+		CreateTimer(flDuration, Timer_RemoveParticle, EntIndexToEntRef(iParticle));
 	}
 	else
 	{
@@ -1203,13 +1204,14 @@ stock void PrecacheParticle(char[] sParticleName)
 			AcceptEntityInput(iParticle, "SetParent", 0, iParticle, 0);
 			ActivateEntity(iParticle);
 			AcceptEntityInput(iParticle, "start");
-			CreateTimer(0.01, Timer_RemoveParticle, iParticle);
+			CreateTimer(0.01, Timer_RemoveParticle, EntIndexToEntRef(iParticle));
 		}
 	}
 }
 
-public Action Timer_RemoveParticle(Handle hTimer, int iParticle)
+public Action Timer_RemoveParticle(Handle hTimer, int iRef)
 {
+	int iParticle = EntRefToEntIndex(iRef);
 	if (iParticle >= 0 && IsValidEntity(iParticle))
 	{
 		char sClassname[32];

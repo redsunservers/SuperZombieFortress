@@ -1388,6 +1388,32 @@ public void Infected_EndSmokerBeam(int iClient)
 	ViewModel_SetAnimation(iClient, "ACT_VM_COUGH");
 }
 
+void Infected_ResetSmoker(int iClient)
+{
+	if (g_nSmokerStatus[iClient] != SmokerStatus_None)
+	{
+		if (IsValidLivingSurvivor(g_iSmokerGrabVictim[iClient]))
+			TeleportEntity(g_iSmokerGrabVictim[iClient], NULL_VECTOR, NULL_VECTOR, {0.0, 0.0, 0.0});
+		
+		if (IsClientInGame(iClient) && IsPlayerAlive(iClient))
+		{
+			SetEntityMoveType(iClient, MOVETYPE_WALK);
+			TF2_RemoveCondition(iClient, TFCond_FreezeInput);
+		}
+	}
+	
+	g_iSmokerGrabVictim[iClient] = 0;
+	g_nSmokerStatus[iClient] = SmokerStatus_None;
+	
+	for (int i = 0; i < sizeof(g_iSmokerRopes[]); i++)
+	{
+		if (g_iSmokerRopes[iClient][i] && IsValidEntity(g_iSmokerRopes[iClient][i]))
+			RemoveEntity(g_iSmokerRopes[iClient][i]);
+		
+		g_iSmokerRopes[iClient][i] = 0;
+	}
+}
+
 public Action Infected_OnSmokerTouch(int iRope, int iToucher)
 {
 	// Hit a wall or something, retract it
@@ -1405,6 +1431,20 @@ public Action Infected_OnSmokerTouch(int iRope, int iToucher)
 			g_iSmokerGrabVictim[iClient] = 0;
 			Infected_RetractSmokerBeam(iClient, SmokerStatus_Retract);
 			return Plugin_Handled;
+		}
+	}
+	
+	char sLink[64];
+	GetEntPropString(iRope, Prop_Data, "m_iNextLinkName", sLink, sizeof(sLink));
+	if (sLink[0])
+	{
+		char sName[64];
+		int iLinked = -1;
+		while ((iLinked = FindEntityByClassname(iLinked, "keyframe_rope")) != -1)
+		{
+			GetEntPropString(iLinked, Prop_Data, "m_iName", sName, sizeof(sName));
+			if (StrEqual(sName, sLink))
+				RemoveEntity(iLinked);
 		}
 	}
 	

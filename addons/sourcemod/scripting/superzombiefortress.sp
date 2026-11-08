@@ -423,6 +423,7 @@ ConVar g_cvWeaponSpawnReappear;
 ConVar g_cvWeaponPickupChance;
 ConVar g_cvWeaponRareChance;
 ConVar g_cvWeaponRareCap;
+ConVar g_cvDroppedWeaponLifetime;
 ConVar g_cvTankHealth;
 ConVar g_cvTankHealthMin;
 ConVar g_cvTankHealthMax;
@@ -444,6 +445,8 @@ ConVar g_cvFrenzyTankChance;
 ConVar g_cvFrenzyRespawnStress;
 ConVar g_cvStunImmunity;
 ConVar g_cvStunFogDistance;
+ConVar g_cvStunOutlines;
+ConVar g_cvStunOutlinesMax;
 ConVar g_cvLastStandKingRuneDuration;
 ConVar g_cvLastStandDefenseDuration;
 ConVar g_cvLeft4DeadSurvivors;
@@ -633,6 +636,7 @@ int g_iOffsetItemDefinitionIndex;
 #include "szf/prefsave.sp"
 #include "szf/queue.sp"
 #include "szf/rage.sp"
+#include "szf/reinforcement.sp"
 #include "szf/respawn.sp"
 #include "szf/sdkcall.sp"
 #include "szf/sdkhook.sp"
@@ -882,6 +886,7 @@ public void OnClientPutInServer(int iClient)
 	Pickup_ResetClient(iClient);
 	ScoutTeam_ResetClient(iClient, true);
 	Banner_ResetClient(iClient);
+	Reinforce_ResetClient(iClient);
 	
 	if (AreClientCookiesCached(iClient))
 		OnClientCookiesCached(iClient);
@@ -912,6 +917,7 @@ public void OnClientDisconnect(int iClient)
 	
 	Weapons_ClientDisconnect(iClient);
 	Infected_ResetHunterPin(iClient);
+	Infected_ResetSmoker(iClient);
 	LastStand_ClientDisconnect(iClient);
 	Respawn_ClientDisconnect(iClient);
 	Rage_EndTimedEffect(iClient);
@@ -1095,6 +1101,8 @@ void EndGracePeriod()
 	
 	LastStand_OnRoundActive();
 	
+	Reinforce_OnRoundActive();
+	
 	ZombieMinicrits_Reset();
 	int iZombies = GetZombieCount();
 	int iSlots = RoundToFloor(MapConfig_GetSetting(MapSetting_MinicritZombies));
@@ -1217,6 +1225,7 @@ public Action Timer_Main(Handle hTimer) //1 second
 	ZombieDamage_Update();
 	ZombieMinicrits_Update();
 	LastStand_Update();
+	Reinforce_Update();
 	Sound_Timer();
 	
 	if (g_nRoundState == SZFRoundState_Active)
@@ -1365,7 +1374,7 @@ public void OnGameFrame()
 			int iZombieCount, iQueuedCount;
 			for (int iClient = 1; iClient <= MaxClients; iClient++)
 			{
-				if (!IsValidZombie(iClient) || g_nInfected[iClient] != Infected_None || g_nNextInfected[iClient] != Infected_None)
+				if (!IsValidZombie(iClient) || g_nInfected[iClient] != Infected_None || g_nNextInfected[iClient] != Infected_None || Reinforce_IsPending(iClient))
 					continue;
 				
 				if (SpecialQueue_Has(iClient))
@@ -1692,6 +1701,8 @@ void SZFEnable()
 	// Map pickup
 	PrecacheSound("ui/item_paint_can_pickup.wav");
 	
+	Reinforce_Precache();
+	
 	// Disable holiday lights from ropes for Smoker tongue
 	GameRules_SetProp("m_bRopesHolidayLightsAllowed", false);
 	
@@ -1786,6 +1797,7 @@ void ResetClientState(int iClient)
 	g_iRageTimer[iClient] = 0;
 	Infected_ResetJockey(iClient);
 	Infected_ResetHunterPin(iClient);
+	Infected_ResetSmoker(iClient);
 	Rage_EndTimedEffect(iClient);
 	WeaponChanges_ResetClient(iClient);
 	Glow_RemoveClient(iClient);
@@ -2085,6 +2097,7 @@ void StartLastSurvivor(int iLastSurvivor)
 	SetEntityHealth(iLastSurvivor, SDKCall_GetMaxHealth(iLastSurvivor));
 	
 	g_bLastSurvivor = true;
+	LastStand_AddMember(iLastSurvivor);
 	LastStand_AllowHealth(iLastSurvivor);
 	LastStand_OnStart();
 	
@@ -2108,6 +2121,8 @@ public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, 
 	GetEntPropString(iCaller, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
 	
 	MapConfig_OnRelayTrigger(sTargetName);
+	
+	Reinforce_OnRelayTrigger(sTargetName);
 	
 	if ((StrEqual("szf_panic_event", sTargetName) || StrContains(sTargetName, "szf_zombierage") == 0) && MapConfig_BlockManualFrenzy(sTargetName))
 		return Plugin_Continue;
@@ -2642,11 +2657,11 @@ int GetMostDamageZom()
 	int iHighest = 0;
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && g_nNextInfected[iClient] != Infected_Tank && g_nInfected[iClient] != Infected_Tank && g_iDamageZombie[iClient] > iHighest)
+		if (IsValidZombie(iClient) && !Reinforce_IsPending(iClient) && g_nNextInfected[iClient] != Infected_Tank && g_nInfected[iClient] != Infected_Tank && g_iDamageZombie[iClient] > iHighest)
 			iHighest = g_iDamageZombie[iClient];
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && g_nNextInfected[iClient] != Infected_Tank && g_nInfected[iClient] != Infected_Tank && g_iDamageZombie[iClient] >= iHighest)
+		if (IsValidZombie(iClient) && !Reinforce_IsPending(iClient) && g_nNextInfected[iClient] != Infected_Tank && g_nInfected[iClient] != Infected_Tank && g_iDamageZombie[iClient] >= iHighest)
 			aClients.Push(iClient);
 	
 	if (aClients.Length <= 0)

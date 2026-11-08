@@ -308,7 +308,7 @@ void Respawn_OnFrenzyZombieDeath(int iVictim)
 		iClient = Respawn_FindSpecialCandidate();
 	
 	if (!iClient && IsValidZombie(iVictim))
-		iClient = iVictim;
+		iClient = Reinforce_IsPending(iVictim) ? SpecialQueue_GetRandomTaker() : iVictim;
 	
 	if (!iClient)
 		return;
@@ -319,7 +319,7 @@ void Respawn_OnFrenzyZombieDeath(int iVictim)
 
 static bool Respawn_CanGetSpecial(int iClient)
 {
-	return IsValidZombie(iClient) && !SpecialQueue_Has(iClient) && g_nNextInfected[iClient] == Infected_None;
+	return IsValidZombie(iClient) && !SpecialQueue_Has(iClient) && g_nNextInfected[iClient] == Infected_None && !Reinforce_IsPending(iClient);
 }
 
 static int Respawn_FindSpecialCandidate()
@@ -366,6 +366,9 @@ void Respawn_OnSpecialPicked(int iClient, Infected nInfected)
 
 Infected Respawn_TakePendingPartner(int iClient)
 {
+	if (Reinforce_IsPending(iClient))
+		return Infected_None;
+	
 	for (int i = 0; i < sizeof(g_iPendingPartners); i++)
 	{
 		if (g_iPendingPartners[i] <= 0 || !IsValidInfected(view_as<Infected>(i)))
@@ -406,7 +409,7 @@ void Respawn_OnBoomerSpawn(int iBoomer)
 		if (g_flZombieRespawnAt[iClient] <= 0.0 || g_flZombieRespawnAt[iClient] > flLimit)
 			continue;
 		
-		if (g_nNextInfected[iClient] != Infected_None || SpecialQueue_Has(iClient) || g_bSpecialPartner[iClient])
+		if (g_nNextInfected[iClient] != Infected_None || SpecialQueue_Has(iClient) || g_bSpecialPartner[iClient] || Reinforce_IsPending(iClient))
 			continue;
 		
 		g_bForcedSniper[iClient] = true;
@@ -467,7 +470,7 @@ static int Respawn_FindDeadZombie(int iIgnore)
 		if (iClient == iIgnore || !IsValidZombie(iClient) || IsPlayerAlive(iClient))
 			continue;
 		
-		if (g_nNextInfected[iClient] != Infected_None || SpecialQueue_Has(iClient) || g_bSpecialPartner[iClient] || g_bForcedSniper[iClient])
+		if (g_nNextInfected[iClient] != Infected_None || SpecialQueue_Has(iClient) || g_bSpecialPartner[iClient] || g_bForcedSniper[iClient] || Reinforce_IsPending(iClient))
 			continue;
 		
 		float flRespawnAt = g_flZombieRespawnAt[iClient];

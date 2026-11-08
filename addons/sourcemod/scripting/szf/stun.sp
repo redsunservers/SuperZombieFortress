@@ -65,6 +65,48 @@ bool Stun_CanStartPlayer(int iClient)
 	return !g_StunInfo[iClient].bStunned && !g_StunInfo[iClient].bCooldown && !IsStunImmune(iClient);
 }
 
+static void Stun_OutlineNearestTeammates(int iClient)
+{
+	int iCount = g_cvStunOutlines.IntValue;
+	if (iCount <= 0 || IsFakeClient(iClient))
+		return;
+	
+	float vecOrigin[3], vecTeammate[3];
+	GetClientAbsOrigin(iClient, vecOrigin);
+	
+	int iTeammates[MAXPLAYERS + 1];
+	float flDistances[MAXPLAYERS + 1];
+	int iTotal = 0;
+	for (int iTeammate = 1; iTeammate <= MaxClients; iTeammate++)
+	{
+		if (iTeammate == iClient || !IsValidLivingSurvivor(iTeammate))
+			continue;
+		
+		GetClientAbsOrigin(iTeammate, vecTeammate);
+		iTeammates[iTotal] = iTeammate;
+		flDistances[iTotal] = GetVectorDistance(vecOrigin, vecTeammate, true);
+		iTotal++;
+	}
+	
+	int iMax = g_cvStunOutlinesMax.IntValue;
+	for (int i = 0; i < iTotal && i < iCount; i++)
+	{
+		int iNearest = i;
+		for (int j = i + 1; j < iTotal; j++)
+			if (flDistances[j] < flDistances[iNearest])
+				iNearest = j;
+		
+		int iTeammate = iTeammates[iNearest];
+		iTeammates[iNearest] = iTeammates[i];
+		flDistances[iNearest] = flDistances[i];
+		
+		if (iMax > 0 && Glow_Count(GlowType_StunTeammate) >= iMax)
+			return;
+		
+		Glow_Create(iClient, iTeammate, GlowType_StunTeammate, g_iStunTeammateGlowColor);
+	}
+}
+
 bool Stun_StartPlayer(int iClient, float flDuration = 6.0)
 {
 	if (g_StunInfo[iClient].bStunned || g_StunInfo[iClient].bCooldown)
@@ -77,11 +119,7 @@ bool Stun_StartPlayer(int iClient, float flDuration = 6.0)
 	g_StunInfo[iClient].aTimers = new ArrayList();
 	
 	if (IsSurvivor(iClient))
-	{
-		for (int iTeammate = 1; iTeammate <= MaxClients; iTeammate++)
-			if (iTeammate != iClient && IsValidLivingSurvivor(iTeammate))
-				Glow_Create(iClient, iTeammate, GlowType_StunTeammate, g_iStunTeammateGlowColor);
-	}
+		Stun_OutlineNearestTeammates(iClient);
 	
 	Stun_ShakeRandom(iClient);
 	

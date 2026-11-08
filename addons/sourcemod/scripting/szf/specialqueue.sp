@@ -115,6 +115,16 @@ static bool SpecialQueue_IsInfectedAlive(Infected nInfected)
 
 bool SpecialQueue_Add(int iClient, const char[] sReason)
 {
+	if (Reinforce_IsPending(iClient))
+	{
+		int iOther = SpecialQueue_GetRandomTaker();
+		if (!iOther)
+			return false;
+		
+		CPrintToChatDebug("Special queue: %N is about to be a reinforcement, %N gets it (%s)", iClient, iOther, sReason);
+		iClient = iOther;
+	}
+	
 	int iMax = g_cvSpecialQueueMax.IntValue;
 	if (iMax > 0 && g_iSpecialQueue[iClient] >= iMax)
 		return false;
@@ -124,6 +134,18 @@ bool SpecialQueue_Add(int iClient, const char[] sReason)
 	return true;
 }
 
+int SpecialQueue_GetRandomTaker()
+{
+	int iMax = g_cvSpecialQueueMax.IntValue;
+	int iClients[MAXPLAYERS];
+	int iCount;
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+		if (IsValidZombie(iClient) && !Reinforce_IsPending(iClient) && (iMax <= 0 || g_iSpecialQueue[iClient] < iMax))
+			iClients[iCount++] = iClient;
+	
+	return iCount > 0 ? iClients[GetRandomInt(0, iCount - 1)] : 0;
+}
+
 bool SpecialQueue_Has(int iClient)
 {
 	return g_iSpecialQueue[iClient] > 0;
@@ -131,7 +153,7 @@ bool SpecialQueue_Has(int iClient)
 
 bool SpecialQueue_CanTake(int iClient)
 {
-	return g_iSpecialQueue[iClient] > 0 && g_bSpecialNewLife[iClient];
+	return g_iSpecialQueue[iClient] > 0 && g_bSpecialNewLife[iClient] && !Reinforce_IsPending(iClient);
 }
 
 bool SpecialQueue_IsGuaranteed(int iClient)
@@ -177,6 +199,21 @@ void SpecialQueue_OnPlayerHurt(int iVictim, int iAttacker, int iDamage, int iDam
 		return;
 	
 	g_iSpecialDamage[iAttacker] += iDamage;
-	if (g_iSpecialDamage[iAttacker] >= iRequired && SpecialQueue_Add(iAttacker, "damage"))
+	if (g_iSpecialDamage[iAttacker] < iRequired)
+		return;
+	
+	if (Reinforce_IsPending(iAttacker))
+	{
+		int iOther = SpecialQueue_GetRandomTaker();
+		if (iOther && SpecialQueue_Add(iOther, "damage, for a reinforcement"))
+		{
+			g_bSpecialIgnoreCooldown[iOther] = true;
+			g_iSpecialDamage[iAttacker] = 0;
+		}
+		
+		return;
+	}
+	
+	if (SpecialQueue_Add(iAttacker, "damage"))
 		g_bSpecialDamageQueued[iAttacker] = true;
 }

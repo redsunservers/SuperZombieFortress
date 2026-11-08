@@ -147,6 +147,7 @@ int DroppedWeapon_Create(Weapon wep, const float vecOrigin[3], const float vecAn
 		g_aDroppedWeapons = new ArrayList();
 	
 	g_aDroppedWeapons.Push(EntIndexToEntRef(iProp));
+	DroppedWeapon_StartLifetime(iProp);
 	
 	if (wep.nRarity == WeaponRarity_Rare)
 		RareOutline_Set(iProp, wep);
@@ -180,6 +181,7 @@ int DroppedWeapon_CreateStatic(Weapon wep, const float vecOrigin[3], const float
 	SetEntProp(iProp, Prop_Send, "m_nSkin", 99);
 	SetWeaponModel(iProp, wep);
 	Weapons_SetupProp(iProp);
+	DroppedWeapon_StartLifetime(iProp);
 	
 	if (wep.nRarity == WeaponRarity_Rare)
 		RareOutline_Set(iProp, wep);
@@ -513,4 +515,33 @@ public Action RareOutline_SetTransmit(int iGlow, int iClient)
 		return Plugin_Continue;
 	
 	return Plugin_Handled;
+}
+
+static int g_iDropLife[2048];
+static int g_iDropLifeCount;
+
+void DroppedWeapon_StartLifetime(int iProp)
+{
+	float flLifetime = g_cvDroppedWeaponLifetime.FloatValue;
+	if (flLifetime <= 0.0 || iProp <= MaxClients || iProp >= sizeof(g_iDropLife) || GetWeaponType(iProp) != WeaponType_Dropped)
+		return;
+	
+	g_iDropLife[iProp] = ++g_iDropLifeCount;
+	
+	DataPack hPack;
+	CreateDataTimer(flLifetime, Timer_DroppedWeaponExpire, hPack, TIMER_FLAG_NO_MAPCHANGE);
+	hPack.WriteCell(EntIndexToEntRef(iProp));
+	hPack.WriteCell(g_iDropLife[iProp]);
+}
+
+public Action Timer_DroppedWeaponExpire(Handle hTimer, DataPack hPack)
+{
+	hPack.Reset();
+	int iProp = EntRefToEntIndex(hPack.ReadCell());
+	int iLife = hPack.ReadCell();
+	
+	if (iProp > MaxClients && g_iDropLife[iProp] == iLife)
+		RemoveEntity(iProp);
+	
+	return Plugin_Continue;
 }
