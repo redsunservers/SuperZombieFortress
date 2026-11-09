@@ -379,6 +379,7 @@ Cookie g_cForceZombieStartMapName;
 Cookie g_cForceZombieStartTimestamp;
 Cookie g_cOptInZombie;
 Cookie g_cCustomViewModels;
+Cookie g_cNoSpecial;
 
 //Global State
 bool g_bEnabled;
@@ -596,6 +597,7 @@ int g_iForceZombieStartTimestamp[MAXPLAYERS + 1];
 
 bool g_bOptInZombie[MAXPLAYERS + 1];
 bool g_bCustomViewModels[MAXPLAYERS + 1] = {true, ...};
+bool g_bNoSpecial[MAXPLAYERS + 1];
 
 //Map overwrites
 int g_iMaxRareWeapons;
@@ -701,6 +703,7 @@ public void OnPluginStart()
 	
 	g_cOptInZombie = PrefSave_NewCookie("szf_optin_zombie", "Whether this player opted in to always start rounds on the Infected team.", CookieAccess_Protected);
 	g_cCustomViewModels = PrefSave_NewCookie("szf_custom_viewmodels", "Whether this player sees custom zombie and special infected viewmodels (0 = default TF2 viewmodels).", CookieAccess_Protected);
+	g_cNoSpecial = PrefSave_NewCookie("szf_no_special", "Whether this player never spawns as a special infected or the Tank (their specials go to other zombies).", CookieAccess_Protected);
 	PrefSave_Init();
 	
 	g_bTF2Items = LibraryExists("TF2Items");
@@ -732,6 +735,7 @@ public void OnPluginStart()
 	ConVar_Init();
 	Queue_Init();
 	SpecialQueue_Init();
+	Reinforce_Init();
 	ScoutTeam_Init();
 	Event_Init();
 	Weapons_Init();
@@ -808,6 +812,9 @@ public void OnClientCookiesCached(int iClient)
 	g_cCustomViewModels.Get(iClient, sValue, sizeof(sValue));
 	g_bCustomViewModels[iClient] = !StrEqual(sValue, "0");
 	
+	g_cNoSpecial.Get(iClient, sValue, sizeof(sValue));
+	g_bNoSpecial[iClient] = StringToInt(sValue) != 0;
+	
 	Queue_OnClientCookiesCached(iClient);
 }
 
@@ -878,6 +885,7 @@ public void OnClientPutInServer(int iClient)
 	g_flTimeStartAsZombie[iClient] = 0.0;
 	g_bOptInZombie[iClient] = false;
 	g_bCustomViewModels[iClient] = true;
+	g_bNoSpecial[iClient] = false;
 	Queue_OnClientPutInServer(iClient);
 	SpecialQueue_OnClientPutInServer(iClient);
 	Stun_ResetClient(iClient);
@@ -1374,7 +1382,7 @@ public void OnGameFrame()
 			int iZombieCount, iQueuedCount;
 			for (int iClient = 1; iClient <= MaxClients; iClient++)
 			{
-				if (!IsValidZombie(iClient) || g_nInfected[iClient] != Infected_None || g_nNextInfected[iClient] != Infected_None || Reinforce_IsPending(iClient))
+				if (!IsValidZombie(iClient) || g_nInfected[iClient] != Infected_None || g_nNextInfected[iClient] != Infected_None || !SpecialQueue_CanBeSpecial(iClient))
 					continue;
 				
 				if (SpecialQueue_Has(iClient))
@@ -2657,11 +2665,11 @@ int GetMostDamageZom()
 	int iHighest = 0;
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && !Reinforce_IsPending(iClient) && g_nNextInfected[iClient] != Infected_Tank && g_nInfected[iClient] != Infected_Tank && g_iDamageZombie[iClient] > iHighest)
+		if (IsValidZombie(iClient) && SpecialQueue_CanBeSpecial(iClient) && g_nNextInfected[iClient] != Infected_Tank && g_nInfected[iClient] != Infected_Tank && g_iDamageZombie[iClient] > iHighest)
 			iHighest = g_iDamageZombie[iClient];
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && !Reinforce_IsPending(iClient) && g_nNextInfected[iClient] != Infected_Tank && g_nInfected[iClient] != Infected_Tank && g_iDamageZombie[iClient] >= iHighest)
+		if (IsValidZombie(iClient) && SpecialQueue_CanBeSpecial(iClient) && g_nNextInfected[iClient] != Infected_Tank && g_nInfected[iClient] != Infected_Tank && g_iDamageZombie[iClient] >= iHighest)
 			aClients.Push(iClient);
 	
 	if (aClients.Length <= 0)

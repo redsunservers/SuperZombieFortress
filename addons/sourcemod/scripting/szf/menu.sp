@@ -393,6 +393,7 @@ void Menu_DisplaySettings(int iClient)
 	Menu_SetTitleTranslation(hMenu, "Menu_SettingsTitle", iClient);
 	
 	Menu_AddToggleItem(hMenu, "optin_zombie", "Menu_SettingsAlwaysZombie", iClient, g_bOptInZombie[iClient]);
+	Menu_AddToggleItem(hMenu, "no_special", "Menu_SettingsNoSpecial", iClient, g_bNoSpecial[iClient]);
 	Menu_AddToggleItem(hMenu, "custom_viewmodels", "Menu_SettingsCustomViewModels", iClient, g_bCustomViewModels[iClient]);
 	Menu_AddItemTranslation(hMenu, "music", "Menu_SettingsMusic", iClient);
 	
@@ -428,6 +429,31 @@ public int Menu_SelectSettings(Menu hMenu, MenuAction action, int iClient, int i
 					{
 						PrefSave_SetCookie(iClient, g_cOptInZombie, "0");
 						CPrintToChat(iClient, "%t", "Menu_SettingsAlwaysZombieOff", "{limegreen}", "{lightsalmon}");
+					}
+				}
+				
+				Menu_DisplaySettings(iClient);
+			}
+			else if (StrEqual(sSelect, "no_special"))
+			{
+				if (!AreClientCookiesCached(iClient))
+				{
+					CPrintToChat(iClient, "%t", "Menu_SettingsNotLoaded", "{red}");
+				}
+				else
+				{
+					g_bNoSpecial[iClient] = !g_bNoSpecial[iClient];
+					
+					if (g_bNoSpecial[iClient])
+					{
+						PrefSave_SetCookie(iClient, g_cNoSpecial, "1");
+						CPrintToChat(iClient, "%t", "Menu_SettingsNoSpecialOn", "{limegreen}", "{lightsalmon}");
+						SpecialQueue_GiveAway(iClient);
+					}
+					else
+					{
+						PrefSave_SetCookie(iClient, g_cNoSpecial, "0");
+						CPrintToChat(iClient, "%t", "Menu_SettingsNoSpecialOff", "{limegreen}", "{lightsalmon}");
 					}
 				}
 				

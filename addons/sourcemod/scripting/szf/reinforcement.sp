@@ -8,6 +8,10 @@
 #define REINFORCE_DUCK_VIEW			45.0
 #define REINFORCE_ORDER_STEP		100000.0
 #define REINFORCE_TRACE_PASSES		MAXPLAYERS
+#define REINFORCE_IDLE_TIME			5.0
+#define REINFORCE_IDLE_REPEAT		1.0
+#define REINFORCE_IDLE_SOUND		"ui/system_message_alert.wav"
+#define REINFORCE_IDLE_CHANNEL		SNDCHAN_USER_BASE
 
 static const float g_vecReinforceHullMins[3] = {-24.0, -24.0, 0.0};
 static const float g_vecReinforceHullMaxs[3] = {24.0, 24.0, 82.0};
@@ -18,6 +22,8 @@ static int g_iReinforceWave[MAXPLAYERS + 1];
 static TFClassType g_nReinforceClass[MAXPLAYERS + 1];
 static bool g_bReinforceSpawning[MAXPLAYERS + 1];
 static bool g_bReinforceCrouch[MAXPLAYERS + 1];
+static int g_iReinforceIdle[MAXPLAYERS + 1];
+static int g_iReinforceArrivals;
 static float g_vecReinforceSpot[MAXPLAYERS + 1][3];
 static float g_vecReinforceAngles[MAXPLAYERS + 1][3];
 static int g_iReinforceStartSurvivors;
@@ -28,9 +34,30 @@ static StringMap g_mReinforceTriggersUsed;
 static int g_iReinforceIgnore[MAXPLAYERS + 1];
 static int g_iReinforceIgnoreCount;
 
+void Reinforce_Init()
+{
+	AddCommandListener(Reinforce_OnCommand, "voicemenu");
+	AddCommandListener(Reinforce_OnCommand, "taunt");
+	AddCommandListener(Reinforce_OnCommand, "+taunt");
+	AddCommandListener(Reinforce_OnCommand, "+inspect_server");
+	AddCommandListener(Reinforce_OnCommand, "say");
+	AddCommandListener(Reinforce_OnCommand, "say_team");
+	AddCommandListener(Reinforce_OnCommand, "menuselect");
+	AddCommandListener(Reinforce_OnCommand, "joinclass");
+}
+
+public Action Reinforce_OnCommand(int iClient, const char[] sCommand, int iArgs)
+{
+	if (0 < iClient <= MaxClients)
+		g_iReinforceIdle[iClient] = 0;
+	
+	return Plugin_Continue;
+}
+
 void Reinforce_Precache()
 {
 	PrecacheSound(REINFORCE_SOUND);
+	PrecacheSound(REINFORCE_IDLE_SOUND);
 }
 
 void Reinforce_ResetClient(int iClient)
@@ -41,6 +68,7 @@ void Reinforce_ResetClient(int iClient)
 	g_nReinforceClass[iClient] = TFClass_Unknown;
 	g_bReinforceSpawning[iClient] = false;
 	g_bReinforceCrouch[iClient] = false;
+	g_iReinforceIdle[iClient] = 0;
 }
 
 void Reinforce_OnRoundActive()
@@ -411,6 +439,46 @@ void Reinforce_OnSurvivorSpawn(int iClient)
 		Reinforce_Crouch(iClient);
 	
 	RequestFrame(Frame_ReinforceSpawned, GetClientUserId(iClient));
+	
+	g_iReinforceIdle[iClient] = 0;
+	if (!IsFakeClient(iClient))
+	{
+		g_iReinforceIdle[iClient] = ++g_iReinforceArrivals;
+		Reinforce_StartIdleTimer(iClient, REINFORCE_IDLE_TIME);
+	}
+}
+
+public void OnPlayerRunCmdPre(int iClient, int iButtons, int iImpulse, const float vecVel[3], const float vecAngles[3], int iWeapon, int iSubType, int iCmdNum, int iTickCount, int iSeed, const int iMouse[2])
+{
+	if (g_iReinforceIdle[iClient] && (iButtons || iImpulse || iWeapon || iMouse[0] || iMouse[1]))
+		g_iReinforceIdle[iClient] = 0;
+}
+
+static void Reinforce_StartIdleTimer(int iClient, float flDelay)
+{
+	DataPack data;
+	CreateDataTimer(flDelay, Timer_ReinforceIdle, data, TIMER_FLAG_NO_MAPCHANGE);
+	data.WriteCell(GetClientUserId(iClient));
+	data.WriteCell(g_iReinforceIdle[iClient]);
+}
+
+public Action Timer_ReinforceIdle(Handle hTimer, DataPack data)
+{
+	data.Reset();
+	int iClient = GetClientOfUserId(data.ReadCell());
+	int iArrival = data.ReadCell();
+	if (!iClient || g_iReinforceIdle[iClient] != iArrival)
+		return Plugin_Stop;
+	
+	if (!g_bEnabled || g_nRoundState != SZFRoundState_Active || !IsValidLivingSurvivor(iClient))
+	{
+		g_iReinforceIdle[iClient] = 0;
+		return Plugin_Stop;
+	}
+	
+	EmitSoundToClient(iClient, REINFORCE_IDLE_SOUND, _, REINFORCE_IDLE_CHANNEL);
+	Reinforce_StartIdleTimer(iClient, REINFORCE_IDLE_REPEAT);
+	return Plugin_Stop;
 }
 
 public void Frame_ReinforceSpawned(int iUserId)
