@@ -889,6 +889,12 @@
 		"en"		"Custom view models {1}"
 	}
 	
+	"Menu_SettingsNoSpecial"
+	{
+		"#format"	"{1:s}"
+		"en"		"Never spawn as special infected {1}"
+	}
+	
 	"Menu_SettingsOn"
 	{
 		"en"		"[ON]"
@@ -932,6 +938,18 @@
 	{
 		"#format"	"{1:s},{2:s}"
 		"en"		"{1}Custom view models off: {2}from your next spawn, you will see the default TF2 view models."
+	}
+	
+	"Menu_SettingsNoSpecialOn"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}Never spawn as special infected on: {2}specials and Tanks you would get from now on go to other zombies."
+	}
+	
+	"Menu_SettingsNoSpecialOff"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}Never spawn as special infected off: {2}you can be picked as special infected and the Tank again."
 	}
 	
 	"Menu_QueueTitle"

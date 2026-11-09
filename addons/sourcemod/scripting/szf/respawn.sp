@@ -308,7 +308,7 @@ void Respawn_OnFrenzyZombieDeath(int iVictim)
 		iClient = Respawn_FindSpecialCandidate();
 	
 	if (!iClient && IsValidZombie(iVictim))
-		iClient = Reinforce_IsPending(iVictim) ? SpecialQueue_GetRandomTaker() : iVictim;
+		iClient = SpecialQueue_CanBeSpecial(iVictim) ? iVictim : SpecialQueue_GetRandomTaker();
 	
 	if (!iClient)
 		return;
@@ -319,7 +319,7 @@ void Respawn_OnFrenzyZombieDeath(int iVictim)
 
 static bool Respawn_CanGetSpecial(int iClient)
 {
-	return IsValidZombie(iClient) && !SpecialQueue_Has(iClient) && g_nNextInfected[iClient] == Infected_None && !Reinforce_IsPending(iClient);
+	return IsValidZombie(iClient) && !SpecialQueue_Has(iClient) && g_nNextInfected[iClient] == Infected_None && SpecialQueue_CanBeSpecial(iClient);
 }
 
 static int Respawn_FindSpecialCandidate()
@@ -366,7 +366,7 @@ void Respawn_OnSpecialPicked(int iClient, Infected nInfected)
 
 Infected Respawn_TakePendingPartner(int iClient)
 {
-	if (Reinforce_IsPending(iClient))
+	if (!SpecialQueue_CanBeSpecial(iClient))
 		return Infected_None;
 	
 	for (int i = 0; i < sizeof(g_iPendingPartners); i++)
@@ -470,7 +470,7 @@ static int Respawn_FindDeadZombie(int iIgnore)
 		if (iClient == iIgnore || !IsValidZombie(iClient) || IsPlayerAlive(iClient))
 			continue;
 		
-		if (g_nNextInfected[iClient] != Infected_None || SpecialQueue_Has(iClient) || g_bSpecialPartner[iClient] || g_bForcedSniper[iClient] || Reinforce_IsPending(iClient))
+		if (g_nNextInfected[iClient] != Infected_None || SpecialQueue_Has(iClient) || g_bSpecialPartner[iClient] || g_bForcedSniper[iClient] || !SpecialQueue_CanBeSpecial(iClient))
 			continue;
 		
 		float flRespawnAt = g_flZombieRespawnAt[iClient];

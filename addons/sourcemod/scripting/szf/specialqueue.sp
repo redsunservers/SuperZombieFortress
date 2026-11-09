@@ -115,13 +115,13 @@ static bool SpecialQueue_IsInfectedAlive(Infected nInfected)
 
 bool SpecialQueue_Add(int iClient, const char[] sReason)
 {
-	if (Reinforce_IsPending(iClient))
+	if (!SpecialQueue_CanBeSpecial(iClient))
 	{
 		int iOther = SpecialQueue_GetRandomTaker();
 		if (!iOther)
 			return false;
 		
-		CPrintToChatDebug("Special queue: %N is about to be a reinforcement, %N gets it (%s)", iClient, iOther, sReason);
+		CPrintToChatDebug("Special queue: %N %s, %N gets it (%s)", iClient, g_bNoSpecial[iClient] ? "never spawns as a special" : "is about to be a reinforcement", iOther, sReason);
 		iClient = iOther;
 	}
 	
@@ -140,10 +140,46 @@ int SpecialQueue_GetRandomTaker()
 	int iClients[MAXPLAYERS];
 	int iCount;
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsValidZombie(iClient) && !Reinforce_IsPending(iClient) && (iMax <= 0 || g_iSpecialQueue[iClient] < iMax))
+		if (IsValidZombie(iClient) && SpecialQueue_CanBeSpecial(iClient) && (iMax <= 0 || g_iSpecialQueue[iClient] < iMax))
 			iClients[iCount++] = iClient;
 	
 	return iCount > 0 ? iClients[GetRandomInt(0, iCount - 1)] : 0;
+}
+
+bool SpecialQueue_CanBeSpecial(int iClient)
+{
+	return !Reinforce_IsPending(iClient) && !g_bNoSpecial[iClient];
+}
+
+void SpecialQueue_GiveAway(int iClient)
+{
+	if (SpecialQueue_CanBeSpecial(iClient))
+		return;
+	
+	bool bIgnoreCooldown = g_bSpecialDamageQueued[iClient] || g_bSpecialIgnoreCooldown[iClient];
+	int iGiven;
+	while (g_iSpecialQueue[iClient] > 0)
+	{
+		int iOther = SpecialQueue_GetRandomTaker();
+		if (!iOther || !SpecialQueue_Add(iOther, "passed on"))
+			break;
+		
+		g_iSpecialQueue[iClient]--;
+		if (bIgnoreCooldown && !iGiven)
+			g_bSpecialIgnoreCooldown[iOther] = true;
+		
+		iGiven++;
+	}
+	
+	if (iGiven > 0)
+	{
+		g_bSpecialIgnoreCooldown[iClient] = false;
+		if (g_bSpecialDamageQueued[iClient])
+		{
+			g_bSpecialDamageQueued[iClient] = false;
+			g_iSpecialDamage[iClient] = 0;
+		}
+	}
 }
 
 bool SpecialQueue_Has(int iClient)
@@ -153,7 +189,7 @@ bool SpecialQueue_Has(int iClient)
 
 bool SpecialQueue_CanTake(int iClient)
 {
-	return g_iSpecialQueue[iClient] > 0 && g_bSpecialNewLife[iClient] && !Reinforce_IsPending(iClient);
+	return g_iSpecialQueue[iClient] > 0 && g_bSpecialNewLife[iClient] && SpecialQueue_CanBeSpecial(iClient);
 }
 
 bool SpecialQueue_IsGuaranteed(int iClient)
@@ -164,7 +200,12 @@ bool SpecialQueue_IsGuaranteed(int iClient)
 void SpecialQueue_OnPlayerDeath(int iVictim)
 {
 	if (0 < iVictim <= MaxClients)
+	{
 		g_bSpecialNewLife[iVictim] = true;
+		
+		if (g_bNoSpecial[iVictim] && g_iSpecialQueue[iVictim] > 0)
+			SpecialQueue_GiveAway(iVictim);
+	}
 }
 
 void SpecialQueue_OnSpawned(int iClient)
@@ -202,10 +243,10 @@ void SpecialQueue_OnPlayerHurt(int iVictim, int iAttacker, int iDamage, int iDam
 	if (g_iSpecialDamage[iAttacker] < iRequired)
 		return;
 	
-	if (Reinforce_IsPending(iAttacker))
+	if (!SpecialQueue_CanBeSpecial(iAttacker))
 	{
 		int iOther = SpecialQueue_GetRandomTaker();
-		if (iOther && SpecialQueue_Add(iOther, "damage, for a reinforcement"))
+		if (iOther && SpecialQueue_Add(iOther, "damage, passed on"))
 		{
 			g_bSpecialIgnoreCooldown[iOther] = true;
 			g_iSpecialDamage[iAttacker] = 0;
