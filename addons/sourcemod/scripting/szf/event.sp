@@ -1,5 +1,6 @@
 void Event_Init()
 {
+	HookEvent("teamplay_round_start", Event_RoundStart);
 	HookEvent("teamplay_setup_finished", Event_SetupEnd);
 	HookEvent("teamplay_round_win", Event_RoundEnd);
 	HookEvent("post_inventory_application", Event_PlayerInventoryUpdate);
@@ -16,6 +17,16 @@ void Event_Init()
 	HookEvent("fish_notice", Event_HideNotice, EventHookMode_Pre);
 	HookEvent("fish_notice__arm", Event_HideNotice, EventHookMode_Pre);
 	HookEventEx("slap_notice", Event_HideNotice, EventHookMode_Pre);
+}
+
+public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
+{
+	if (!g_bEnabled)
+		return Plugin_Continue;
+	
+	MapConfig_CreateLevelRelays();
+	
+	return Plugin_Continue;
 }
 
 public Action Event_SetupEnd(Event event, const char[] name, bool dontBroadcast)

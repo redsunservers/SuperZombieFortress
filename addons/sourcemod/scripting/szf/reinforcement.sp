@@ -126,7 +126,7 @@ void Reinforce_OnPlayerHurt(int iVictim, int iAttacker, int iDamage, int iDamage
 
 void Reinforce_Update()
 {
-	if (g_nRoundState != SZFRoundState_Active || g_bReinforceTimerDone)
+	if (g_nRoundState != SZFRoundState_Active || g_bReinforceTimerDone || !Reinforce_IsEnabled())
 		return;
 	
 	float flTime = MapConfig_GetSetting(MapSetting_ReinforcementTime);
@@ -201,6 +201,12 @@ static void Reinforce_OnMapTrigger(const char[] sType, const char[] sName)
 	for (int i = 0; sKey[i]; i++)
 		sKey[i] = CharToLower(sKey[i]);
 	
+	if (!Reinforce_IsEnabled())
+	{
+		CPrintToChatDebug("Reinforcements (%s) ignored: reinforcements are off for this map", sKey);
+		return;
+	}
+	
 	if (g_mReinforceTriggersUsed.ContainsKey(sKey))
 		return;
 	
@@ -212,6 +218,11 @@ static void Reinforce_OnMapTrigger(const char[] sType, const char[] sName)
 	
 	if (Reinforce_StartWave(sKey))
 		g_mReinforceTriggersUsed.SetValue(sKey, true);
+}
+
+static bool Reinforce_IsEnabled()
+{
+	return MapConfig_GetSetting(MapSetting_Reinforcements) != 0.0;
 }
 
 static bool Reinforce_IsThresholdMet()

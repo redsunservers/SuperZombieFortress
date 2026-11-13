@@ -2,6 +2,7 @@
 #define MAPCONFIG_LOWPLAYERCOUNT	"LowPlayerCount"
 #define MAPSETTING_UNSET			-999999.0
 #define MAPCONFIG_REINFORCEMENTTRIGGERS	"reinforcementtriggers"
+#define MAPCONFIG_REINFORCEMENTRELAY	"reinforcementrelay"
 
 enum
 {
@@ -26,6 +27,7 @@ enum
 	MapSetting_ReinforcementPercent,
 	MapSetting_ReinforcementThreshold,
 	MapSetting_DisableReinforcementTimer,
+	MapSetting_Reinforcements,
 	
 	MapSetting_Count
 }
@@ -52,7 +54,8 @@ static const char g_sMapSettingKeys[][] =
 	"reinforcementtime",
 	"reinforcementpercent",
 	"reinforcementthreshold",
-	"disablereinforcementtimer"
+	"disablereinforcementtimer",
+	"reinforcements"
 };
 
 static const float g_flMapSettingDefaults[] =
@@ -77,6 +80,7 @@ static const float g_flMapSettingDefaults[] =
 	300.0,
 	15.0,
 	50.0,
+	0.0,
 	0.0
 };
 
@@ -88,6 +92,7 @@ static int g_iMapLevel = -1;
 static char g_sMapLevel[64];
 static bool g_bMapLevelForNextRound;
 static bool g_bMapRebalancePending;
+static bool g_bMapCaseLevels;
 static float g_flMapLowSettings[MapSetting_Count];
 static int g_iMapLowZombies;
 static ArrayList g_aMapLevelLow;
@@ -131,6 +136,7 @@ void MapConfig_Load()
 		g_flMapLowSettings[i] = MAPSETTING_UNSET;
 	
 	g_iMapLevel = -1;
+	g_bMapCaseLevels = false;
 	g_bMapConfigLoaded = true;
 	
 	if (!g_mReinforcementTriggers)
@@ -171,6 +177,24 @@ void MapConfig_Load()
 						kv.GetSectionName(sRelay, sizeof(sRelay));
 						MapConfig_ToLower(sRelay);
 						
+						int iColon = FindCharInString(sRelay, ':', true);
+						if (iColon != -1)
+						{
+							int iCase = StringToInt(sRelay[iColon + 1]);
+							if (1 <= iCase <= 16)
+							{
+								char sCase[64];
+								strcopy(sCase, sizeof(sCase), sRelay);
+								sCase[iColon] = '\0';
+								FormatEx(sRelay, sizeof(sRelay), "%s:%d", sCase, iCase);
+								g_bMapCaseLevels = true;
+							}
+							else
+							{
+								LogError("Level \"%s\" in %s is never picked: a logic_case's case number, 1 to 16, goes after the ':'", sRelay, CONFIG_MAPS);
+							}
+						}
+						
 						float flLevel[MapSetting_Count];
 						for (int i = 0; i < MapSetting_Count; i++)
 							flLevel[i] = MAPSETTING_UNSET;
@@ -200,6 +224,8 @@ void MapConfig_Load()
 	
 	if (g_sMapLevel[0] && !g_mMapLevels.GetValue(g_sMapLevel, g_iMapLevel))
 		g_iMapLevel = -1;
+	
+	MapConfig_CreateLevelRelays();
 }
 
 static bool MapConfig_JumpToMap(KeyValues kv, const char[] sMap)
@@ -436,13 +462,39 @@ void MapConfig_OnRelayTrigger(const char[] sTargetName)
 	strcopy(sRelay, sizeof(sRelay), sTargetName);
 	MapConfig_ToLower(sRelay);
 	
+	MapConfig_PickLevel(sRelay);
+}
+
+void MapConfig_OnCaseTrigger(int iEntity, const char[] sOutput)
+{
+	if (!g_bMapCaseLevels || !g_mMapLevels)
+		return;
+	
+	char sTargetName[64];
+	GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
+	if (!sTargetName[0])
+		return;
+	
+	char sNumber[16];
+	strcopy(sNumber, sizeof(sNumber), sOutput);
+	ReplaceString(sNumber, sizeof(sNumber), "OnCase", "", false);
+	
+	char sLevel[64];
+	FormatEx(sLevel, sizeof(sLevel), "%s:%d", sTargetName, StringToInt(sNumber));
+	MapConfig_ToLower(sLevel);
+	
+	MapConfig_PickLevel(sLevel);
+}
+
+static void MapConfig_PickLevel(const char[] sLevel)
+{
 	int iLevel;
-	if (!g_mMapLevels.GetValue(sRelay, iLevel))
+	if (!g_mMapLevels.GetValue(sLevel, iLevel))
 		return;
 	
 	g_iMapLevel = iLevel;
-	strcopy(g_sMapLevel, sizeof(g_sMapLevel), sRelay);
-	CPrintToChatDebug("Map level picked: %s (starting ratio %.2f)", sRelay, MapConfig_GetSetting(MapSetting_StartingRatio));
+	strcopy(g_sMapLevel, sizeof(g_sMapLevel), sLevel);
+	CPrintToChatDebug("Map level picked: %s (starting ratio %.2f)", sLevel, MapConfig_GetSetting(MapSetting_StartingRatio));
 	MapConfig_DebugValueSet();
 	
 	switch (g_nRoundState)
@@ -460,6 +512,51 @@ void MapConfig_OnRelayTrigger(const char[] sTargetName)
 			}
 		}
 	}
+}
+
+void MapConfig_CreateLevelRelays()
+{
+	if (!g_mMapLevels || !g_mMapLevels.Size)
+		return;
+	
+	int iMade;
+	StringMapSnapshot snapshot = g_mMapLevels.Snapshot();
+	int iLength = snapshot.Length;
+	for (int i = 0; i < iLength; i++)
+	{
+		char sRelay[64];
+		snapshot.GetKey(i, sRelay, sizeof(sRelay));
+		if (StrContains(sRelay, ":") != -1 || MapConfig_HasRelay(sRelay))
+			continue;
+		
+		int iRelay = CreateEntityByName("logic_relay");
+		if (!IsValidEntity(iRelay))
+			continue;
+		
+		DispatchKeyValue(iRelay, "targetname", sRelay);
+		DispatchKeyValue(iRelay, "spawnflags", "2");
+		DispatchSpawn(iRelay);
+		iMade++;
+	}
+	
+	delete snapshot;
+	
+	if (iMade)
+		CPrintToChatDebug("Map level relays made by the plugin: %d", iMade);
+}
+
+static bool MapConfig_HasRelay(const char[] sRelay)
+{
+	int iEntity = -1;
+	while ((iEntity = FindEntityByClassname(iEntity, "logic_relay")) != -1)
+	{
+		char sTargetName[64];
+		GetEntPropString(iEntity, Prop_Data, "m_iName", sTargetName, sizeof(sTargetName));
+		if (StrEqual(sTargetName, sRelay, false))
+			return true;
+	}
+	
+	return false;
 }
 
 public void Frame_MapConfigRebalance(any data)
@@ -578,6 +675,16 @@ float MapConfig_GetRareWeaponChance()
 
 static void MapConfig_ReadReinforcementTriggers(KeyValues kv)
 {
+	char sRelay[256];
+	kv.GetString(MAPCONFIG_REINFORCEMENTRELAY, sRelay, sizeof(sRelay));
+	TrimString(sRelay);
+	if (sRelay[0])
+	{
+		char sKey[300];
+		MapConfig_TriggerKey("relay", sRelay, sKey, sizeof(sKey));
+		g_mReinforcementTriggers.SetValue(sKey, true);
+	}
+	
 	if (!kv.JumpToKey(MAPCONFIG_REINFORCEMENTTRIGGERS, false))
 		return;
 	
