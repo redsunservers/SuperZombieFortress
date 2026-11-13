@@ -1729,6 +1729,13 @@ void SZFEnable()
 	HookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
 	HookEntityOutput("math_counter", "OutValue", OnCounterValue);
 	
+	for (int i = 1; i <= 16; i++)
+	{
+		char sOutput[16];
+		FormatEx(sOutput, sizeof(sOutput), "OnCase%02d", i);
+		HookEntityOutput("logic_case", sOutput, OnCaseTrigger);
+	}
+	
 	//[Re]Enable periodic timers.
 	delete g_hTimerMain;
 	g_hTimerMain = CreateTimer(1.0, Timer_Main, _, TIMER_REPEAT);
@@ -1778,6 +1785,13 @@ void SZFDisable()
 	
 	UnhookEntityOutput("logic_relay", "OnTrigger", OnRelayTrigger);
 	UnhookEntityOutput("math_counter", "OutValue", OnCounterValue);
+	
+	for (int i = 1; i <= 16; i++)
+	{
+		char sOutput[16];
+		FormatEx(sOutput, sizeof(sOutput), "OnCase%02d", i);
+		UnhookEntityOutput("logic_case", sOutput, OnCaseTrigger);
+	}
 	
 	//Disable periodic timers.
 	delete g_hTimerMain;
@@ -2161,6 +2175,13 @@ public Action OnRelayTrigger(const char[] sOutput, int iCaller, int iActivator, 
 	{
 		Sound_PlayMusicToAll("laststand");
 	}
+	
+	return Plugin_Continue;
+}
+
+public Action OnCaseTrigger(const char[] sOutput, int iCaller, int iActivator, float flDelay)
+{
+	MapConfig_OnCaseTrigger(iCaller, sOutput);
 	
 	return Plugin_Continue;
 }
