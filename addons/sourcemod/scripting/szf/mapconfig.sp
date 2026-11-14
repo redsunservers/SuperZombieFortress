@@ -28,6 +28,7 @@ enum
 	MapSetting_ReinforcementThreshold,
 	MapSetting_DisableReinforcementTimer,
 	MapSetting_Reinforcements,
+	MapSetting_ObjectiveLenience,
 	
 	MapSetting_Count
 }
@@ -55,7 +56,8 @@ static const char g_sMapSettingKeys[][] =
 	"reinforcementpercent",
 	"reinforcementthreshold",
 	"disablereinforcementtimer",
-	"reinforcements"
+	"reinforcements",
+	"objectivelenience"
 };
 
 static const float g_flMapSettingDefaults[] =
@@ -81,7 +83,8 @@ static const float g_flMapSettingDefaults[] =
 	15.0,
 	50.0,
 	0.0,
-	0.0
+	0.0,
+	1.0
 };
 
 static bool g_bMapConfigLoaded;

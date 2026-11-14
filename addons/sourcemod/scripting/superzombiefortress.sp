@@ -633,6 +633,7 @@ int g_iOffsetItemDefinitionIndex;
 #include "szf/mapconfig.sp"
 #include "szf/menu.sp"
 #include "szf/native.sp"
+#include "szf/objective.sp"
 #include "szf/pickupweapons.sp"
 #include "szf/droppedweapons.sp"
 #include "szf/prefsave.sp"
@@ -895,6 +896,7 @@ public void OnClientPutInServer(int iClient)
 	ScoutTeam_ResetClient(iClient, true);
 	Banner_ResetClient(iClient);
 	Reinforce_ResetClient(iClient);
+	Objective_ResetClient(iClient, true);
 	
 	if (AreClientCookiesCached(iClient))
 		OnClientCookiesCached(iClient);
@@ -1110,6 +1112,8 @@ void EndGracePeriod()
 	LastStand_OnRoundActive();
 	
 	Reinforce_OnRoundActive();
+	
+	Objective_OnRoundActive();
 	
 	ZombieMinicrits_Reset();
 	int iZombies = GetZombieCount();
@@ -1358,6 +1362,7 @@ public void OnGameFrame()
 		return;
 	
 	ScoutTeam_Update();
+	Objective_Update();
 	
 	if (g_nRoundState == SZFRoundState_Active)
 	{
@@ -1711,6 +1716,8 @@ void SZFEnable()
 	
 	Reinforce_Precache();
 	
+	Objective_Precache();
+	
 	// Disable holiday lights from ropes for Smoker tongue
 	GameRules_SetProp("m_bRopesHolidayLightsAllowed", false);
 	
@@ -1814,6 +1821,7 @@ void SZFDisable()
 void ResetClientState(int iClient)
 {
 	ScoutTeam_ResetClient(iClient);
+	Objective_ResetClient(iClient);
 	g_iHorde[iClient] = 0;
 	g_iCapturingPoint[iClient] = -1;
 	g_iRageTimer[iClient] = 0;

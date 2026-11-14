@@ -2,6 +2,7 @@ enum GlowType
 {
 	GlowType_StunTeammate = 0,
 	GlowType_BoomerPack,
+	GlowType_Objective,
 	
 	GlowType_Count
 }

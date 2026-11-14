@@ -8,6 +8,7 @@ static Handle g_hSDKCallSetSpeed;
 static Handle g_hSDKCallTossJarThink;
 static Handle g_hSDKCallGetVelocity;
 static Handle g_hSDKCallGetDefaultItemChargeMeterValue;
+static Handle g_hSDKCallTeamMayCapturePoint;
 
 void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 {
@@ -90,6 +91,15 @@ void SDKCall_Init(GameData hSDKHooks, GameData hTF2, GameData hSZF)
 	g_hSDKCallGetDefaultItemChargeMeterValue = EndPrepSDKCall();
 	if (!g_hSDKCallGetDefaultItemChargeMeterValue)
 		LogError("Failed to create call: CBaseEntity::GetDefaultItemChargeMeterValue");
+	
+	StartPrepSDKCall(SDKCall_GameRules);
+	PrepSDKCall_SetFromConf(hSZF, SDKConf_Virtual, "CTeamplayRules::TeamMayCapturePoint");
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Plain);
+	PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
+	g_hSDKCallTeamMayCapturePoint = EndPrepSDKCall();
+	if (!g_hSDKCallTeamMayCapturePoint)
+		LogError("Failed to create call: CTeamplayRules::TeamMayCapturePoint");
 }
 
 int SDKCall_GetMaxHealth(int iClient)
@@ -143,4 +153,12 @@ void SDKCall_GetVelocity(int iEntity, float vecVelocity[3])
 float SDKCall_GetDefaultItemChargeMeterValue(int iWeapon)
 {
 	return SDKCall(g_hSDKCallGetDefaultItemChargeMeterValue, iWeapon);
+}
+
+bool SDKCall_TeamMayCapturePoint(TFTeam nTeam, int iPointIndex)
+{
+	if (!g_hSDKCallTeamMayCapturePoint)
+		return true;
+	
+	return SDKCall(g_hSDKCallTeamMayCapturePoint, nTeam, iPointIndex);
 }

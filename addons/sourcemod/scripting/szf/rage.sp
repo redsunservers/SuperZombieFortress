@@ -4,14 +4,13 @@
 #define RAGE_SCOUT_BALL_DAMAGE		30.0
 #define RAGE_SCOUT_MOONSHOT_DAMAGE	30.0
 #define RAGE_SCOUT_MOONSHOT_MIN		18.75
-#define RAGE_SOLDIER_BANNER_MULTI	3.0
 #define RAGE_SOLDIER_HURT_CHARGE	0.1
 #define RAGE_PYRO_RINGS				5
 #define RAGE_PYRO_RING_INTERVAL		0.5
 #define RAGE_PYRO_RING_DAMAGE		6.0
 #define RAGE_PYRO_RING_RADIUS		67.5
 #define RAGE_DEMO_PUSH				250.0
-#define RAGE_DEMO_PUSH_UP			150.0
+#define RAGE_DEMO_PUSH_UP			300.0
 #define RAGE_HEAVY_RESIST			0.8
 #define RAGE_SNIPER_RANGE			50.0
 #define RAGE_SNIPER_BASE_RANGE		48.0
@@ -160,11 +159,6 @@ static void Rage_EndEffect(int iClient)
 float Rage_GetSpeedBonus(int iClient)
 {
 	return Rage_IsEffectActive(iClient, TFClass_Scout) ? RAGE_SCOUT_SPEED : 0.0;
-}
-
-float Rage_GetBannerChargeMulti(int iClient)
-{
-	return Rage_IsEffectActive(iClient, TFClass_Soldier) ? RAGE_SOLDIER_BANNER_MULTI : 1.0;
 }
 
 float Rage_GetBannerChargeFromDamage(int iClient, int iDamage)

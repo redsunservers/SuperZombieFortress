@@ -117,7 +117,7 @@
 	"Rage_Soldier"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}[Rage]{default} Your banner charges much faster, also from damage you take"
+		"en"		"{1}[Rage]{default} Your banner charges from damage you take"
 	}
 	
 	"Rage_Pyro"
@@ -249,6 +249,42 @@
 	{
 		"#format"	"{1:s}"
 		"en"		"{1}You grow vulnerable as you stray away from your teammates"
+	}
+	
+	"Objective_Vulnerable"
+	{
+		"#format"	"{1:s},{2:s},{3:d}"
+		"en"		"{1}[Super Zombie Fortress] {2}Being far away from the current objective as one of the last {3} survivors will leave you vulnerable!"
+	}
+	
+	"Objective_Warning1"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}[Super Zombie Fortress] {2}The zombies grow restless..."
+	}
+	
+	"Objective_Warning2"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}[Super Zombie Fortress] {2}The zombies grow angry..."
+	}
+	
+	"Objective_Warning3"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}[Super Zombie Fortress] {2}The air fills with virus particles..."
+	}
+	
+	"Objective_Warning4"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}[Super Zombie Fortress] {2}DIE."
+	}
+	
+	"Objective_Lenience"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"		"{1}[Super Zombie Fortress] {2}You will no longer become vulnerable while being far away from an objective for a short period of time, make your way to the next objective quickly."
 	}
 	
 	"Infected_Zombify"
@@ -789,7 +825,7 @@
 	
 	"Menu_ClassesInfectedSoldier"
 	{
-		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep banners in secondary slot to use.\nRage: your banner charges 3 times faster for 5 seconds, and 5％ for every 50 damage you take.\nYour banner charge is kept when you die."
+		"en"		"Benefits less from movement speed and health regeneration bonuses while in a horde.\nAble to keep banners in secondary slot to use.\nRage: for 5 seconds your banner charges 5％ for every 50 damage you take.\nYour banner charge is kept when you die."
 	}
 	
 	"Menu_ClassesInfectedPyro"

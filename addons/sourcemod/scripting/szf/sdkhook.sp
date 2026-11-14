@@ -128,7 +128,15 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	g_flPluginDefenseDamage[iVictim] = 0.0;
 	
 	if (!CanRecieveDamage(iVictim))
+	{
+		if (iVictim != iAttacker && IsValidZombie(iVictim) && IsClassname(iInflicter, "obj_sentrygun"))
+		{
+			iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
+			return Plugin_Changed;
+		}
+		
 		return Plugin_Continue;
+	}
 	
 	Debris debris;
 	if (Config_GetDebrisFromEntity(iInflicter, debris) && GetEntPropEnt(iInflicter, Prop_Send, "m_hOwnerEntity") != iAttacker)
@@ -260,7 +268,10 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		{
 			//Disable physics force from sentry damage
 			if (IsClassname(iInflicter, "obj_sentrygun"))
+			{
 				iDamageType |= DMG_PREVENT_PHYSICS_FORCE;
+				bChanged = true;
+			}
 		}
 	}
 	
@@ -343,6 +354,9 @@ public void Client_OnTakeDamagePost(int iVictim, int iAttacker, int iInflicter, 
 
 public Action Client_OnTakeDamageAlive(int iVictim, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
 {
+	if (Objective_OnTakeDamageAlive(iVictim, flDamage))
+		return Plugin_Changed;
+	
 	Action action = WeaponChanges_OnTakeDamageAlive(iVictim, flDamage, iDamageType);
 	
 	if (IsPluginDefenseHit(iVictim, iDamageType, iDamageCustom) && (iDamageType & DMG_CRIT))

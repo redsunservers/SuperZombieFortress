@@ -460,7 +460,7 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 			
 			if (!GetEntProp(iAttacker, Prop_Send, "m_bRageDraining") && TF2_IsSlotClassname(iAttacker, WeaponSlot_Secondary, "tf_weapon_buff_item"))
 			{
-				g_flBannerMeter[iAttacker] += float(iDamageAmount) / g_cvBannerRequirement.FloatValue * 100.0 * Rage_GetBannerChargeMulti(iAttacker);
+				g_flBannerMeter[iAttacker] += float(iDamageAmount) / g_cvBannerRequirement.FloatValue * 100.0;
 				if (g_flBannerMeter[iAttacker] >= 100.0)
 					g_flBannerMeter[iAttacker] = 100.0;
 				
@@ -594,6 +594,8 @@ public Action Event_CPCapture(Event event, const char[] name, bool dontBroadcast
 	char sPointName[256];
 	event.GetString("cpname", sPointName, sizeof(sPointName));
 	Reinforce_OnPointCaptured(iCaptureIndex, sPointName, view_as<TFTeam>(event.GetInt("team")));
+	
+	Objective_OnPointCaptured(view_as<TFTeam>(event.GetInt("team")));
 	
 	return Plugin_Continue;
 }
