@@ -39,6 +39,10 @@ void SDKHook_OnEntityCreated(int iEntity, const char[] sClassname)
 		SDKHook(iEntity, SDKHook_Think, CaptureArea_Think);
 		SDKHook(iEntity, SDKHook_ThinkPost, CaptureArea_Think);
 	}
+	else if (StrEqual(sClassname, "base_boss") || StrEqual(sClassname, "tank_boss"))
+	{
+		SDKHook(iEntity, SDKHook_OnTakeDamage, Boss_OnTakeDamage);
+	}
 }
 
 void SDKHook_HookClient(int iClient)
@@ -143,6 +147,8 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 		return Plugin_Stop;	// Prevent TF2 game allowing debris to damage victim, we want to handle our own damages
 	
 	bool bChanged = false;
+	
+	Banner_OnTakeDamagePre(iVictim, iAttacker, iWeapon);
 	
 	if (g_ClientClasses[iVictim].callback_damage != INVALID_FUNCTION)
 	{
@@ -278,6 +284,9 @@ public Action Client_OnTakeDamage(int iVictim, int &iAttacker, int &iInflicter, 
 	if (Rage_OnTakeDamage(iVictim, flDamage))
 		bChanged = true;
 	
+	if (Banner_OnTakeDamage(iVictim, flDamage))
+		bChanged = true;
+	
 	if (IsPluginDefenseHit(iVictim, iDamageType, iDamageCustom))
 	{
 		iDamageType &= ~DMG_CRIT;
@@ -313,8 +322,9 @@ static bool IsStunningHit(float flDamage, int iDamageCustom)
 
 static bool PluginMinicritApplies(int iVictim, int iAttacker, int iWeapon)
 {
-	return IsValidSurvivor(iVictim) && IsValidLivingZombie(iAttacker) && HasZombieMinicrits(iAttacker)
-		&& ZombieGetsPluginMinicrits(iAttacker, iWeapon) && !WillMinicritAnyway(iVictim, iAttacker)
+	return IsValidSurvivor(iVictim) && IsValidLivingZombie(iAttacker)
+		&& ((HasZombieMinicrits(iAttacker) && ZombieGetsPluginMinicrits(iAttacker, iWeapon)) || Banner_GivesPluginMinicrits(iAttacker, iWeapon))
+		&& !WillMinicritAnyway(iVictim, iAttacker)
 		&& !TF2_IsPlayerInCondition(iVictim, TFCond_DefenseBuffed) && !WeaponChanges_IsVaccinatorUbered(iVictim);
 }
 
@@ -348,12 +358,18 @@ static bool WillMinicritAnyway(int iVictim, int iAttacker)
 
 public void Client_OnTakeDamagePost(int iVictim, int iAttacker, int iInflicter, float flDamage, int iDamageType, int iWeapon, const float vecForce[3], const float vecForcePos[3], int iDamageCustom)
 {
+	Banner_RestoreConditions(iAttacker);
+	Banner_RestoreConditions(iVictim);
+	
 	LastStand_OnZombieDamagedPost(iVictim, iWeapon, iDamageCustom);
 	Rage_OnTakeDamagePost(iVictim, iAttacker, flDamage);
 }
 
 public Action Client_OnTakeDamageAlive(int iVictim, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
 {
+	Banner_RestoreConditions(iAttacker);
+	Banner_RestoreConditions(iVictim);
+	
 	if (Objective_OnTakeDamageAlive(iVictim, flDamage))
 		return Plugin_Changed;
 	
@@ -378,6 +394,14 @@ public Action Client_OnTakeDamageAlive(int iVictim, int &iAttacker, int &iInflic
 		action = Plugin_Changed;
 	
 	return action;
+}
+
+public Action Boss_OnTakeDamage(int iBoss, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)
+{
+	if (LastStand_OnBossDamage(iAttacker, flDamage))
+		return Plugin_Changed;
+	
+	return Plugin_Continue;
 }
 
 public Action Client_GetMaxHealth(int iClient, int &iMaxHealth)

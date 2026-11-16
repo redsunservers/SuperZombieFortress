@@ -595,7 +595,7 @@ public Action Event_CPCapture(Event event, const char[] name, bool dontBroadcast
 	event.GetString("cpname", sPointName, sizeof(sPointName));
 	Reinforce_OnPointCaptured(iCaptureIndex, sPointName, view_as<TFTeam>(event.GetInt("team")));
 	
-	Objective_OnPointCaptured(view_as<TFTeam>(event.GetInt("team")));
+	Objective_OnPointCaptured();
 	
 	return Plugin_Continue;
 }
@@ -701,4 +701,99 @@ void Banner_ResetClient(int iClient)
 {
 	g_flBannerMeter[iClient] = 0.0;
 	g_bBannerUsed[iClient] = false;
+	Banner_ResetBuffs(iClient);
+}
+
+#define BANNER_BUFF_OFFENSE		1
+#define BANNER_BUFF_DEFENSE		2
+#define BANNER_PULSE_TIME		1.2
+#define BANNER_RESIST_MULTI		0.8
+
+static float g_flBannerOffenseEnd[MAXPLAYERS + 1];
+static float g_flBannerDefenseEnd[MAXPLAYERS + 1];
+static int g_iBannerOffenseOwner[MAXPLAYERS + 1];
+static int g_iBannerDefenseOwner[MAXPLAYERS + 1];
+static float g_flBannerOwnDefenseEnd[MAXPLAYERS + 1];
+
+void Banner_OnPlayerBuff(int iClient, int iOwnerUserId, int iType)
+{
+	if (!g_bEnabled || !IsValidLivingZombie(iClient))
+		return;
+	
+	if (iType == BANNER_BUFF_OFFENSE)
+	{
+		g_flBannerOffenseEnd[iClient] = GetGameTime() + BANNER_PULSE_TIME;
+		g_iBannerOffenseOwner[iClient] = iOwnerUserId;
+	}
+	else if (iType == BANNER_BUFF_DEFENSE)
+	{
+		g_flBannerDefenseEnd[iClient] = GetGameTime() + BANNER_PULSE_TIME;
+		g_iBannerDefenseOwner[iClient] = iOwnerUserId;
+	}
+}
+
+void Banner_OnOwnDefenseBuff(int iClient, float flDuration)
+{
+	float flEnd = flDuration < 0.0 ? 1.0e9 : GetGameTime() + flDuration;
+	if (flEnd > g_flBannerOwnDefenseEnd[iClient])
+		g_flBannerOwnDefenseEnd[iClient] = flEnd;
+}
+
+static bool Banner_HasOwnDefense(int iClient)
+{
+	return g_flBannerOwnDefenseEnd[iClient] > GetGameTime() || HasZombieDefenseBuff(iClient);
+}
+
+static bool Banner_HasResistance(int iClient)
+{
+	return g_flBannerDefenseEnd[iClient] > GetGameTime() && IsValidLivingZombie(iClient) && !Banner_HasOwnDefense(iClient);
+}
+
+bool Banner_GivesPluginMinicrits(int iAttacker, int iWeapon)
+{
+	return 0 < iAttacker <= MaxClients && g_flBannerOffenseEnd[iAttacker] > GetGameTime() && IsValidLivingZombie(iAttacker)
+		&& MinicritsBecomeCrits(iWeapon);
+}
+
+bool Banner_OnTakeDamage(int iVictim, float &flDamage)
+{
+	if (!Banner_HasResistance(iVictim))
+		return false;
+	
+	flDamage *= BANNER_RESIST_MULTI;
+	return true;
+}
+
+void Banner_OnTakeDamagePre(int iVictim, int iAttacker, int iWeapon)
+{
+	if (Banner_GivesPluginMinicrits(iAttacker, iWeapon) && TF2_IsPlayerInCondition(iAttacker, TFCond_Buffed))
+		TF2_RemoveCondition(iAttacker, TFCond_Buffed);
+	
+	if (Banner_HasResistance(iVictim) && TF2_IsPlayerInCondition(iVictim, TFCond_DefenseBuffed))
+		TF2_RemoveCondition(iVictim, TFCond_DefenseBuffed);
+}
+
+void Banner_RestoreConditions(int iClient)
+{
+	if (iClient <= 0 || iClient > MaxClients)
+		return;
+	
+	float flNow = GetGameTime();
+	float flOffense = g_flBannerOffenseEnd[iClient] - flNow;
+	float flDefense = g_flBannerDefenseEnd[iClient] - flNow;
+	if ((flOffense <= 0.0 && flDefense <= 0.0) || !IsValidLivingZombie(iClient))
+		return;
+	
+	if (flOffense > 0.0 && !TF2_IsPlayerInCondition(iClient, TFCond_Buffed))
+		TF2_AddCondition(iClient, TFCond_Buffed, flOffense, GetClientOfUserId(g_iBannerOffenseOwner[iClient]));
+	
+	if (flDefense > 0.0 && !TF2_IsPlayerInCondition(iClient, TFCond_DefenseBuffed))
+		TF2_AddCondition(iClient, TFCond_DefenseBuffed, flDefense, GetClientOfUserId(g_iBannerDefenseOwner[iClient]));
+}
+
+void Banner_ResetBuffs(int iClient)
+{
+	g_flBannerOffenseEnd[iClient] = 0.0;
+	g_flBannerDefenseEnd[iClient] = 0.0;
+	g_flBannerOwnDefenseEnd[iClient] = 0.0;
 }

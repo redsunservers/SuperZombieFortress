@@ -28,7 +28,7 @@ enum
 	MapSetting_ReinforcementThreshold,
 	MapSetting_DisableReinforcementTimer,
 	MapSetting_Reinforcements,
-	MapSetting_ObjectiveLenience,
+	MapSetting_ObjectiveDome,
 	
 	MapSetting_Count
 }
@@ -57,7 +57,7 @@ static const char g_sMapSettingKeys[][] =
 	"reinforcementthreshold",
 	"disablereinforcementtimer",
 	"reinforcements",
-	"objectivelenience"
+	"objectivedome"
 };
 
 static const float g_flMapSettingDefaults[] =

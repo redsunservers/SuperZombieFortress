@@ -12,6 +12,9 @@
 #define LEFT4DEAD_RESIST_MANY_PLAYERS	40.0
 #define LEFT4DEAD_HEAL_MULTI			0.25
 #define LEFT4DEAD_SPEED_MULTI			1.1
+#define LEFT4DEAD_MEDIGUN_MULTI			0.75
+#define LEFT4DEAD_MEDIGUN_ATTRIBUTE		"heal rate penalty"
+#define LEFT4DEAD_BOSS_DAMAGE			0.25
 #define LASTSTAND_TF2_TAKEN				0.25
 
 static int g_iLastStandHealth[MAXPLAYERS + 1] = {-1, ...};
@@ -33,6 +36,7 @@ static float g_flLeft4DeadHealCarry[MAXPLAYERS + 1];
 static int g_iLastStandHitDepth[MAXPLAYERS + 1];
 static int g_iLastStandKunaiHealth[MAXPLAYERS + 1] = {-1, ...};
 static bool g_bLastStandMember[MAXPLAYERS + 1];
+static bool g_bLeft4DeadMedigun[MAXPLAYERS + 1];
 
 bool IsLastManStanding(int iClient)
 {
@@ -154,6 +158,11 @@ bool LastStand_IsLeft4DeadRound()
 	return g_bLeft4DeadRound;
 }
 
+bool LastStand_IsLeft4DeadActive()
+{
+	return g_bLeft4Dead;
+}
+
 void LastStand_CheckLeft4Dead(int iIgnoredClient)
 {
 	if (!g_bLeft4DeadRound || g_bLeft4Dead || g_nRoundState != SZFRoundState_Active)
@@ -191,6 +200,7 @@ void LastStand_CheckLeft4Dead(int iIgnoredClient)
 		if (iHealth < iMaxHealth)
 			SetEntityHealth(iClient, iHealth + (iMaxHealth - iHealth) / 2);
 		SDKCall_SetSpeed(iClient);
+		LastStand_SetMedigunCut(iClient, true);
 	}
 	
 	for (int i = 0; i < iCount; i++)
@@ -223,7 +233,10 @@ void LastStand_ResetLeft4Dead()
 	g_bLeft4DeadStarted = false;
 	
 	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
 		g_bLastStandMember[iClient] = false;
+		LastStand_SetMedigunCut(iClient, false);
+	}
 }
 
 void LastStand_EndLeft4Dead()
@@ -239,6 +252,7 @@ void LastStand_EndLeft4Dead()
 		
 		g_bLastStandMember[iClient] = false;
 		g_flLeft4DeadHealCarry[iClient] = 0.0;
+		LastStand_SetMedigunCut(iClient, false);
 		if (IsValidLivingSurvivor(iClient))
 		{
 			TF2_RemoveCondition(iClient, TFCond_KingRune);
@@ -281,6 +295,30 @@ bool LastStand_OnLeft4DeadDamage(int iVictim, float &flDamage, int iDamageCustom
 float LastStand_GetSpeedMulti(int iClient)
 {
 	return IsLeft4Dead(iClient) ? LEFT4DEAD_SPEED_MULTI : 1.0;
+}
+
+static void LastStand_SetMedigunCut(int iClient, bool bEnable)
+{
+	if (g_bLeft4DeadMedigun[iClient] == bEnable)
+		return;
+	
+	g_bLeft4DeadMedigun[iClient] = bEnable;
+	if (!IsClientInGame(iClient))
+		return;
+	
+	if (bEnable)
+		TF2Attrib_SetByName(iClient, LEFT4DEAD_MEDIGUN_ATTRIBUTE, LEFT4DEAD_MEDIGUN_MULTI);
+	else
+		TF2Attrib_RemoveByName(iClient, LEFT4DEAD_MEDIGUN_ATTRIBUTE);
+}
+
+bool LastStand_OnBossDamage(int iAttacker, float &flDamage)
+{
+	if (!IsLeft4Dead(iAttacker))
+		return false;
+	
+	flDamage *= LEFT4DEAD_BOSS_DAMAGE;
+	return true;
 }
 
 static void LastStand_CutLeft4DeadHeal(int iClient, int iHealthBefore)
@@ -357,6 +395,7 @@ void LastStand_ResetClient(int iClient)
 	g_iLastStandKunaiHealth[iClient] = -1;
 	g_iLastStandHitDepth[iClient] = 0;
 	g_bLastStandMember[iClient] = false;
+	LastStand_SetMedigunCut(iClient, false);
 	
 	if (g_bIntangible[iClient])
 	{
@@ -378,6 +417,7 @@ void LastStand_ClientDisconnect(int iClient)
 	g_iLastStandKunaiHealth[iClient] = -1;
 	g_iLastStandHitDepth[iClient] = 0;
 	g_bLastStandMember[iClient] = false;
+	g_bLeft4DeadMedigun[iClient] = false;
 	g_bIntangible[iClient] = false;
 	g_flBonkEnd[iClient] = 0.0;
 	
