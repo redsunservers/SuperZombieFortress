@@ -896,7 +896,7 @@ public void OnClientPutInServer(int iClient)
 	ScoutTeam_ResetClient(iClient, true);
 	Banner_ResetClient(iClient);
 	Reinforce_ResetClient(iClient);
-	Objective_ResetClient(iClient, true);
+	Objective_ResetClient(iClient);
 	
 	if (AreClientCookiesCached(iClient))
 		OnClientCookiesCached(iClient);
@@ -1206,6 +1206,7 @@ void AddZombieDefenseBuff(int iClient, float flDuration)
 	if (!ZombieHidesBuffs(iClient))
 	{
 		TF2_AddCondition(iClient, TFCond_DefenseBuffed, flDuration);
+		Banner_OnOwnDefenseBuff(iClient, flDuration);
 		return;
 	}
 	
@@ -1409,6 +1410,7 @@ public void OnGameFrame()
 }
 
 #define SPECIAL_INTERVAL_MIN_PLAYERS	2
+#define SPECIAL_INTERVAL_LEFT4DEAD		0.5
 
 float GetSpecialInfectedInterval()
 {
@@ -1419,7 +1421,11 @@ float GetSpecialInfectedInterval()
 	float flFraction = float(GetActivePlayerCount() - SPECIAL_INTERVAL_MIN_PLAYERS) / float(g_cvSpecialInfectedIntervalPlayers.IntValue - SPECIAL_INTERVAL_MIN_PLAYERS);
 	flFraction = fMax(0.0, fMin(1.0, flFraction));
 	
-	return flBase + (g_cvSpecialInfectedIntervalMax.FloatValue - flBase) * flFraction;
+	float flInterval = flBase + (g_cvSpecialInfectedIntervalMax.FloatValue - flBase) * flFraction;
+	if (LastStand_IsLeft4DeadActive())
+		flInterval *= SPECIAL_INTERVAL_LEFT4DEAD;
+	
+	return flInterval;
 }
 
 void Handle_WinCondition()
@@ -1770,6 +1776,7 @@ void SZFDisable()
 	g_bNewFullRound = true;
 	g_bLastSurvivor = false;
 	LastStand_ResetLeft4Dead();
+	Objective_End();
 	
 	g_flTimeProgress = 0.0;
 	
@@ -1822,6 +1829,7 @@ void ResetClientState(int iClient)
 {
 	ScoutTeam_ResetClient(iClient);
 	Objective_ResetClient(iClient);
+	Banner_ResetBuffs(iClient);
 	g_iHorde[iClient] = 0;
 	g_iCapturingPoint[iClient] = -1;
 	g_iRageTimer[iClient] = 0;

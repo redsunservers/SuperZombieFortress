@@ -33,8 +33,12 @@ void ScoutTeam_Init()
 public Action ScoutTeam_PlayerBuff(Event event, const char[] name, bool dontBroadcast)
 {
 	int iClient = GetClientOfUserId(event.GetInt("userid"));
-	if (0 < iClient <= MaxClients && event.GetInt("buff_type") == SCOUTTEAM_BUFF_BATTALIONS)
+	int iType = event.GetInt("buff_type");
+	if (0 < iClient <= MaxClients && iType == SCOUTTEAM_BUFF_BATTALIONS)
 		g_flScoutTeamBattalionsEnd[iClient] = GetGameTime() + SCOUTTEAM_BUFF_PULSE_TIME;
+	
+	if (0 < iClient <= MaxClients)
+		Banner_OnPlayerBuff(iClient, event.GetInt("buff_owner"), iType);
 	
 	return Plugin_Continue;
 }
