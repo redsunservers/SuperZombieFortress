@@ -129,7 +129,7 @@
 	"Rage_Demoman"
 	{
 		"#format"	"{1:s}"
-		"en"		"{1}[Rage]{default} Your melee swings deal increased knockback"
+		"en"		"{1}[Rage]{default} You gain the speed and max health of 4 Eyelander heads"
 	}
 	
 	"Rage_Heavy"
@@ -799,7 +799,7 @@
 	
 	"Menu_ClassesInfectedDemoman"
 	{
-		"en"		"Has Eyelander to damage survivors with long range.\nBenefits less from movement speed and health regeneration bonuses while in a horde.\nRage: your hits knock survivors back for 5 seconds."
+		"en"		"Has Eyelander to damage survivors with long range.\nBenefits less from movement speed and health regeneration bonuses while in a horde.\nRage: the speed and max health of 4 Eyelander heads for 5 seconds."
 	}
 	
 	"Menu_ClassesInfectedHeavy"

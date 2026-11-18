@@ -9,8 +9,7 @@
 #define RAGE_PYRO_RING_INTERVAL		0.5
 #define RAGE_PYRO_RING_DAMAGE		6.0
 #define RAGE_PYRO_RING_RADIUS		67.5
-#define RAGE_DEMO_PUSH				250.0
-#define RAGE_DEMO_PUSH_UP			300.0
+#define RAGE_DEMO_HEADS				4
 #define RAGE_HEAVY_RESIST			0.8
 #define RAGE_SNIPER_RANGE			50.0
 #define RAGE_SNIPER_BASE_RANGE		48.0
@@ -32,6 +31,7 @@ static bool g_bRageOverlay[MAXPLAYERS + 1];
 static int g_iRageMelee[MAXPLAYERS + 1] = {INVALID_ENT_REFERENCE, ...};
 static float g_flRageMeleeOldRange[MAXPLAYERS + 1];
 static int g_iRagePyroRingsLeft[MAXPLAYERS + 1];
+static int g_iRageHeads[MAXPLAYERS + 1];
 static int g_iRageMedicCircle[MAXPLAYERS + 1];
 static int g_iRageBeamSprite;
 static int g_iRageHaloSprite;
@@ -120,6 +120,7 @@ void Rage_OnClientPutInServer(int iClient)
 	g_flRageEffectEnd[iClient] = 0.0;
 	g_bRageOverlay[iClient] = false;
 	g_iRageMelee[iClient] = INVALID_ENT_REFERENCE;
+	g_iRageHeads[iClient] = 0;
 }
 
 void Rage_EndTimedEffect(int iClient)
@@ -150,6 +151,14 @@ static void Rage_EndEffect(int iClient)
 			TF2Attrib_SetByName(iMelee, "melee range multiplier", g_flRageMeleeOldRange[iClient]);
 		else
 			TF2Attrib_RemoveByName(iMelee, "melee range multiplier");
+	}
+	
+	if (g_iRageHeads[iClient] > 0)
+	{
+		if (IsClientInGame(iClient))
+			Rage_AddHeads(iClient, -g_iRageHeads[iClient]);
+		
+		g_iRageHeads[iClient] = 0;
 	}
 	
 	if (IsClientInGame(iClient) && IsPlayerAlive(iClient))
@@ -203,48 +212,6 @@ bool Rage_OnTakeDamage(int iVictim, float &flDamage)
 	return true;
 }
 
-void Rage_OnTakeDamagePost(int iVictim, int iAttacker, float flDamage)
-{
-	if (flDamage <= 0.0 || iVictim == iAttacker || !IsValidLivingSurvivor(iVictim) || !IsValidLivingZombie(iAttacker) || !Rage_IsEffectActive(iAttacker, TFClass_DemoMan))
-		return;
-	
-	DataPack hPack = new DataPack();
-	hPack.WriteCell(GetClientSerial(iVictim));
-	hPack.WriteCell(GetClientSerial(iAttacker));
-	RequestFrame(Frame_RageKnockback, hPack);
-}
-
-public void Frame_RageKnockback(DataPack hPack)
-{
-	hPack.Reset();
-	int iVictim = GetClientFromSerial(hPack.ReadCell());
-	int iAttacker = GetClientFromSerial(hPack.ReadCell());
-	delete hPack;
-	
-	if (!iVictim || !iAttacker || !IsValidLivingSurvivor(iVictim) || !IsClientInGame(iAttacker))
-		return;
-	
-	if (Infected_IsJockeyVictim(iVictim))
-		return;
-	
-	float vecAttacker[3], vecVictim[3], vecDir[3];
-	GetClientAbsOrigin(iAttacker, vecAttacker);
-	GetClientAbsOrigin(iVictim, vecVictim);
-	MakeVectorFromPoints(vecAttacker, vecVictim, vecDir);
-	vecDir[2] = 0.0;
-	if (NormalizeVector(vecDir, vecDir) <= 0.0)
-		return;
-	
-	float vecVelocity[3];
-	GetEntPropVector(iVictim, Prop_Data, "m_vecVelocity", vecVelocity);
-	vecVelocity[0] += vecDir[0] * RAGE_DEMO_PUSH;
-	vecVelocity[1] += vecDir[1] * RAGE_DEMO_PUSH;
-	if (vecVelocity[2] < RAGE_DEMO_PUSH_UP)
-		vecVelocity[2] = RAGE_DEMO_PUSH_UP;
-	
-	TeleportEntity(iVictim, NULL_VECTOR, NULL_VECTOR, vecVelocity);
-}
-
 static bool Rage_IsEffectActive(int iClient, TFClassType nClass)
 {
 	return g_flRageEffectEnd[iClient] > GetGameTime() && g_nRageEffectClass[iClient] == nClass;
@@ -279,8 +246,28 @@ static void Rage_StartEffect(int iClient, TFClassType nClass, float flDuration)
 		}
 	}
 	
+	if (nClass == TFClass_DemoMan)
+	{
+		Rage_AddHeads(iClient, RAGE_DEMO_HEADS);
+		g_iRageHeads[iClient] = RAGE_DEMO_HEADS;
+	}
+	
 	SDKCall_SetSpeed(iClient);
 	CreateTimer(flDuration, Timer_RageEffectEnd, GetClientSerial(iClient));
+}
+
+static void Rage_AddHeads(int iClient, int iHeads)
+{
+	int iTotal = GetEntProp(iClient, Prop_Send, "m_iDecapitations") + iHeads;
+	if (iTotal < 0)
+		iTotal = 0;
+	
+	SetEntProp(iClient, Prop_Send, "m_iDecapitations", iTotal);
+	
+	if (iTotal <= 0)
+		TF2_RemoveCondition(iClient, TFCond_DemoBuff);
+	else if (iHeads > 0 && !TF2_IsPlayerInCondition(iClient, TFCond_DemoBuff))
+		TF2_AddCondition(iClient, TFCond_DemoBuff);
 }
 
 static void Rage_SetOverlay(int iClient, const char[] sMaterial)

@@ -3,6 +3,7 @@
 #define MAPSETTING_UNSET			-999999.0
 #define MAPCONFIG_REINFORCEMENTTRIGGERS	"reinforcementtriggers"
 #define MAPCONFIG_REINFORCEMENTRELAY	"reinforcementrelay"
+#define MAPCONFIG_LEVEL_NAMES			16
 
 enum
 {
@@ -176,38 +177,28 @@ void MapConfig_Load()
 				{
 					do
 					{
-						char sRelay[64];
-						kv.GetSectionName(sRelay, sizeof(sRelay));
-						MapConfig_ToLower(sRelay);
-						
-						int iColon = FindCharInString(sRelay, ':', true);
-						if (iColon != -1)
-						{
-							int iCase = StringToInt(sRelay[iColon + 1]);
-							if (1 <= iCase <= 16)
-							{
-								char sCase[64];
-								strcopy(sCase, sizeof(sCase), sRelay);
-								sCase[iColon] = '\0';
-								FormatEx(sRelay, sizeof(sRelay), "%s:%d", sCase, iCase);
-								g_bMapCaseLevels = true;
-							}
-							else
-							{
-								LogError("Level \"%s\" in %s is never picked: a logic_case's case number, 1 to 16, goes after the ':'", sRelay, CONFIG_MAPS);
-							}
-						}
+						char sNames[256];
+						kv.GetSectionName(sNames, sizeof(sNames));
+						MapConfig_ToLower(sNames);
 						
 						float flLevel[MapSetting_Count];
 						for (int i = 0; i < MapSetting_Count; i++)
 							flLevel[i] = MAPSETTING_UNSET;
 						
 						MapConfig_ReadSection(kv, flLevel);
-						g_mMapLevels.SetValue(sRelay, g_aMapLevels.PushArray(flLevel));
+						int iLevel = g_aMapLevels.PushArray(flLevel);
 						
 						float flLow[MapSetting_Count];
 						g_aMapLevelLowZombies.Push(MapConfig_ReadLowPlayerCount(kv, flLow, g_iMapLowZombies));
 						g_aMapLevelLow.PushArray(flLow);
+						
+						char sRelays[MAPCONFIG_LEVEL_NAMES][64];
+						int iRelays = ExplodeString(sNames, " ", sRelays, sizeof(sRelays), sizeof(sRelays[]));
+						for (int i = 0; i < iRelays; i++)
+						{
+							if (sRelays[i][0])
+								MapConfig_AddLevelName(sRelays[i], iLevel);
+						}
 					}
 					while (kv.GotoNextKey(true));
 					
@@ -318,6 +309,32 @@ static void MapConfig_ReadSection(KeyValues kv, float flSettings[MapSetting_Coun
 		else
 			LogError("Invalid value \"%s\" for \"%s\" in %s", sValue, g_sMapSettingKeys[i], CONFIG_MAPS);
 	}
+}
+
+static void MapConfig_AddLevelName(const char[] sName, int iLevel)
+{
+	char sRelay[64];
+	strcopy(sRelay, sizeof(sRelay), sName);
+	
+	int iColon = FindCharInString(sRelay, ':', true);
+	if (iColon != -1)
+	{
+		int iCase = StringToInt(sRelay[iColon + 1]);
+		if (1 <= iCase <= 16)
+		{
+			char sCase[64];
+			strcopy(sCase, sizeof(sCase), sRelay);
+			sCase[iColon] = '\0';
+			FormatEx(sRelay, sizeof(sRelay), "%s:%d", sCase, iCase);
+			g_bMapCaseLevels = true;
+		}
+		else
+		{
+			LogError("Level \"%s\" in %s is never picked: a logic_case's case number, 1 to 16, goes after the ':'", sRelay, CONFIG_MAPS);
+		}
+	}
+	
+	g_mMapLevels.SetValue(sRelay, iLevel);
 }
 
 static void MapConfig_ToLower(char[] sBuffer)
