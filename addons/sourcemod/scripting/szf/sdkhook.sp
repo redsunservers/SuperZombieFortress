@@ -362,7 +362,6 @@ public void Client_OnTakeDamagePost(int iVictim, int iAttacker, int iInflicter, 
 	Banner_RestoreConditions(iVictim);
 	
 	LastStand_OnZombieDamagedPost(iVictim, iWeapon, iDamageCustom);
-	Rage_OnTakeDamagePost(iVictim, iAttacker, flDamage);
 }
 
 public Action Client_OnTakeDamageAlive(int iVictim, int &iAttacker, int &iInflicter, float &flDamage, int &iDamageType, int &iWeapon, float vecForce[3], float vecForcePos[3], int iDamageCustom)

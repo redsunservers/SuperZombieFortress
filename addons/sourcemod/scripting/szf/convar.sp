@@ -78,8 +78,6 @@ void ConVar_Init()
 	ConVar_Add("mp_waitingforplayers_time", 50.0);
 	ConVar_Add("mp_forceautoteam", 0.0);
 	
-	ConVar_Add("spec_freeze_time", -1.0);
-	
 	ConVar_Add("sv_turbophysics", 0.0);
 	
 	ConVar_Add("tf_obj_upgrade_per_hit", 0.0);
