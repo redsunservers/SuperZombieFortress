@@ -45,22 +45,22 @@
 			"CTeamplayRules::GetCaptureValueForPlayer"
 			{
 				"linux"		"160"
-				"windows"	"158"
+				"windows"	"159"
 			}
 			"CTeamplayRules::TeamMayCapturePoint"
 			{
 				"linux"		"161"
-				"windows"	"159"
+				"windows"	"160"
 			}
 			"CTeamplayRules::SetWinningTeam"
 			{
 				"linux"		"167"
-				"windows"	"165"
+				"windows"	"166"
 			}
 			"CTeamplayRoundBasedRules::RoundRespawn"
 			{
 				"linux"		"233"
-				"windows"	"230"
+				"windows"	"231"
 			}
 			"CBaseEntity::GetVelocity"
 			{
